@@ -25,9 +25,30 @@
  * SUCH DAMAGE.
  */
 
+#include <unistd.h>
+
 #include "maki.h"
+
+void maki_callback (struct sashimi_connection* connection, char* message)
+{
+	g_print("%s\n", message);
+	g_free(message);
+}
 
 int main (int argc, char* argv[])
 {
+	struct sashimi_connection* connection;
+
+	connection = sashimi_connect("xesio.ath.cx", 6667, maki_callback);
+	sashimi_send(connection, "USER schnauf xesio.ath.cx xesio.ath.cx :schnauf");
+	sashimi_send(connection, "NICK schnauf");
+	sleep(1);
+	sashimi_send(connection, "PRIVMSG schnauf ::]");
+	sashimi_send(connection, "JOIN #test");
+	sashimi_send(connection, "PRIVMSG #test :schnauf!");
+	sleep(1000);
+	sashimi_send(connection, "QUIT :schnauf");
+	sashimi_close(connection);
+
 	return 0;
 }
