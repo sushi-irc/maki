@@ -53,24 +53,28 @@ void maki_callback (gchar* message, gpointer data)
 		gchar** parts;
 		gchar** from;
 		gchar* from_nick;
-		gchar* from_name;
-		gchar* from_host;
 		gchar* type;
 		gchar* to;
 		gchar* msg;
 
 		parts = g_strsplit(message, " ", 4);
-		from = g_strsplit_set(maki_remove_colon(parts[0]), "!@", 3);
+		from = g_strsplit_set(parts[0], "!@", 3);
 		from_nick = from[0];
-		from_name = from[1];
-		from_host = (from_name != NULL) ? from[2] : NULL;
 		type = parts[1];
-		to = maki_remove_colon(parts[2]);
-		msg = maki_remove_colon(parts[3]);
+		to = parts[2];
+		msg = parts[3];
 
-		if (g_ascii_strncasecmp(type, "PRIVMSG", 7) == 0)
+		if (from && from_nick && type && to && msg)
 		{
-			maki_signal_send_message(maki_connection->maki->bus, time, maki_connection->server, to, from_nick, msg);
+			from = maki_remove_colon(from);
+			from_nick = maki_remove_colon(from_nick);
+			to = maki_remove_colon(to);
+			msg = maki_remove_colon(msg);
+
+			if (g_ascii_strncasecmp(type, "PRIVMSG", 7) == 0)
+			{
+				maki_signal_send_message(maki_connection->maki->bus, time, maki_connection->server, to, from_nick, msg);
+			}
 		}
 
 		g_strfreev(from);
