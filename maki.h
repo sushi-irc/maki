@@ -34,12 +34,19 @@ struct maki
 {
 	DBusConnection* bus;
 	GHashTable* connections;
+
 	struct
 	{
 		gchar* logs;
 		gchar* servers;
 	}
 	directories;
+
+	struct
+	{
+		GThread* methods;
+	}
+	threads;
 };
 
 struct maki_connection
@@ -54,3 +61,6 @@ void maki_callback (gchar*, gpointer);
 void maki_servers (struct maki*);
 
 void maki_signal_message(DBusConnection*, GTimeVal, gchar*, gchar*, gchar*, gchar*);
+
+gpointer maki_methods (gpointer);
+void maki_method_say(struct maki*, DBusMessage*);
