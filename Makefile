@@ -10,6 +10,7 @@ all: maki
 
 clean:
 	$(RM) maki
+	$(RM) $(OBJECTS)
 
 $(OBJECTS): %.o: %.c
 	$(QUIET_CC) $(CC) $(CFLAGS) -c -o $@ $+
