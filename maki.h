@@ -25,6 +25,13 @@
  * SUCH DAMAGE.
  */
 
+#include <dbus/dbus.h>
 #include <glib.h>
 
 #include <sashimi.h>
+
+struct maki_callback_data
+{
+	char* server;
+	DBusConnection* bus;
+};
