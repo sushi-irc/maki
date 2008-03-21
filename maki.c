@@ -46,7 +46,7 @@ void maki_callback (gchar* message, gpointer data)
 
 	g_get_current_time(&time);
 
-	g_print("%d %s %s\n", time.tv_sec, maki_connection->server, message);
+	g_print("%ld %s %s\n", time.tv_sec, maki_connection->server, message);
 
 	if (message[0] == ':')
 	{
@@ -66,7 +66,6 @@ void maki_callback (gchar* message, gpointer data)
 
 		if (from && from_nick && type && to && msg)
 		{
-			from = maki_remove_colon(from);
 			from_nick = maki_remove_colon(from_nick);
 			to = maki_remove_colon(to);
 			msg = maki_remove_colon(msg);
