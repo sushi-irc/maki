@@ -27,20 +27,27 @@
 
 #include "maki.h"
 
-void maki_signal_send_message (DBusConnection* bus, GTimeVal time, gchar* server, gchar* to, gchar* from_nick, gchar* message)
-{
-	dbus_uint32_t serial = 0;
-	DBusMessage* bus_message;
-	DBusMessageIter bus_args;
+#define DBUS_SIGNAL_INIT(name) \
+	{ \
+		dbus_uint32_t serial = 0; \
+		DBusMessage* bus_message; \
+		DBusMessageIter bus_args; \
+		bus_message = dbus_message_new_signal("/de/ikkoku/sushi", "de.ikkoku.sushi", name); \
+		dbus_message_iter_init_append(bus_message, &bus_args);
+#define DBUS_SIGNAL_TYPE(type, var) \
+		dbus_message_iter_append_basic(&bus_args, type, &var);
+#define DBUS_SIGNAL_SEND(bus) \
+		dbus_connection_send(bus, bus_message, &serial); \
+		dbus_connection_flush(bus); dbus_message_unref(bus_message); \
+	}
 
-	bus_message = dbus_message_new_signal("/de/ikkoku/sushi", "de.ikkoku.sushi", "message");
-	dbus_message_iter_init_append(bus_message, &bus_args);
-	dbus_message_iter_append_basic(&bus_args, DBUS_TYPE_INT64, &time.tv_sec);
-	dbus_message_iter_append_basic(&bus_args, DBUS_TYPE_STRING, &server);
-	dbus_message_iter_append_basic(&bus_args, DBUS_TYPE_STRING, &to);
-	dbus_message_iter_append_basic(&bus_args, DBUS_TYPE_STRING, &from_nick);
-	dbus_message_iter_append_basic(&bus_args, DBUS_TYPE_STRING, &message);
-	dbus_connection_send(bus, bus_message, &serial);
-	dbus_connection_flush(bus);
-	dbus_message_unref(bus_message);
+void maki_signal_message (DBusConnection* bus, GTimeVal time, gchar* server, gchar* to, gchar* from_nick, gchar* message)
+{
+	DBUS_SIGNAL_INIT("message");
+	DBUS_SIGNAL_TYPE(DBUS_TYPE_INT64, time.tv_sec);
+	DBUS_SIGNAL_TYPE(DBUS_TYPE_STRING, server);
+	DBUS_SIGNAL_TYPE(DBUS_TYPE_STRING, to);
+	DBUS_SIGNAL_TYPE(DBUS_TYPE_STRING, from_nick);
+	DBUS_SIGNAL_TYPE(DBUS_TYPE_STRING, message);
+	DBUS_SIGNAL_SEND(bus);
 }

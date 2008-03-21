@@ -50,3 +50,7 @@ struct maki_connection
 };
 
 void maki_callback (gchar*, gpointer);
+
+void maki_servers (struct maki*);
+
+void maki_signal_message(DBusConnection*, GTimeVal, gchar*, gchar*, gchar*, gchar*);

@@ -72,7 +72,7 @@ void maki_callback (gchar* message, gpointer data)
 
 			if (g_ascii_strncasecmp(type, "PRIVMSG", 7) == 0)
 			{
-				maki_signal_send_message(maki_connection->maki->bus, time, maki_connection->server, to, from_nick, msg);
+				maki_signal_message(maki_connection->maki->bus, time, maki_connection->server, to, from_nick, msg);
 			}
 		}
 
