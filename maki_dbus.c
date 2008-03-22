@@ -64,6 +64,13 @@ gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* me
 	return TRUE;
 }
 
+gboolean maki_dbus_shutdown (makiDBus* self, GError** error)
+{
+	g_main_loop_quit(self->maki->loop);
+
+	return TRUE;
+}
+
 #include "maki_dbus.h"
 
 G_DEFINE_TYPE(makiDBus, maki_dbus, G_TYPE_OBJECT)

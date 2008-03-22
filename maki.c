@@ -29,6 +29,35 @@
 
 #include "maki.h"
 
+void maki_shutdown (struct maki* maki)
+{
+	GHashTableIter iter;
+	gpointer key;
+	gpointer value;
+
+	g_hash_table_iter_init(&iter, maki->connections);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		struct maki_connection* m_conn = value;
+
+		sashimi_disconnect(m_conn->connection);
+		sashimi_free(m_conn->connection);
+		g_free(m_conn->server);
+		g_free(m_conn);
+	}
+
+	g_hash_table_unref(maki->connections);
+
+	g_free(maki->directories.logs);
+	g_free(maki->directories.servers);
+
+	g_main_loop_unref(maki->loop);
+
+	dbus_g_connection_unref(maki->bus->bus);
+	g_object_unref(maki->bus);
+}
+
 gchar* maki_remove_colon (gchar* string)
 {
 	if (string != NULL && string[0] == ':')
@@ -110,9 +139,9 @@ int main (int argc, char* argv[])
 
 	/*
 	g_mkdir_with_parents(logs_dir, 0755);
-	sashimi_disconnect(connection);
-	sashimi_free(connection);
 	*/
+
+	maki_shutdown(&maki);
 
 	return 0;
 }
