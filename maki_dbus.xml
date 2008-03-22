@@ -44,12 +44,26 @@
 			<arg name="topic" type="s" />
 		</method>
 
+		<signal name="join">
+			<arg name="time" type="i" />
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="nick" type="s" />
+		</signal>
+
 		<signal name="message">
 			<arg name="time" type="i" />
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
 			<arg name="nick" type="s" />
 			<arg name="message" type="s" />
+		</signal>
+
+		<signal name="part">
+			<arg name="time" type="i" />
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="nick" type="s" />
 		</signal>
 	</interface>
 </node>

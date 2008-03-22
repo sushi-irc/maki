@@ -77,11 +77,11 @@ gchar* maki_remove_colon (gchar* string)
 void maki_callback (gchar* message, gpointer data)
 {
 	GTimeVal time;
-	struct maki_connection* maki_connection = data;
+	struct maki_connection* m_conn = data;
 
 	g_get_current_time(&time);
 
-	g_print("%ld %s %s\n", time.tv_sec, maki_connection->server, message);
+	g_print("%ld %s %s\n", time.tv_sec, m_conn->server, message);
 
 	if (message[0] == ':')
 	{
@@ -99,15 +99,23 @@ void maki_callback (gchar* message, gpointer data)
 		to = parts[2];
 		msg = parts[3];
 
-		if (from && from_nick && type && to && msg)
+		if (from && from_nick && type && to)
 		{
 			from_nick = maki_remove_colon(from_nick);
 			to = maki_remove_colon(to);
 			msg = maki_remove_colon(msg);
 
-			if (g_ascii_strncasecmp(type, "PRIVMSG", 7) == 0)
+			if (g_ascii_strncasecmp(type, "PRIVMSG", 7) == 0 && msg)
 			{
-				maki_dbus_emit_message(maki_connection->maki->bus, time.tv_sec, maki_connection->server, to, from_nick, msg);
+				maki_dbus_emit_message(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg);
+			}
+			else if (g_ascii_strncasecmp(type, "JOIN", 4) == 0)
+			{
+				maki_dbus_emit_join(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick);
+			}
+			else if (g_ascii_strncasecmp(type, "PART", 4) == 0)
+			{
+				maki_dbus_emit_part(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick);
 			}
 		}
 
