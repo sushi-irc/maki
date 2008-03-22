@@ -60,7 +60,7 @@ void maki_callback (gchar*, gpointer);
 
 void maki_servers (struct maki*);
 
-void maki_signal_message(DBusConnection*, GTimeVal, gchar*, gchar*, gchar*, gchar*);
+void maki_signal_message(DBusConnection*, GTimeVal, const gchar*, const gchar*, const gchar*, const gchar*);
 
 gpointer maki_methods (gpointer);
 void maki_method_say(struct maki*, DBusMessage*);

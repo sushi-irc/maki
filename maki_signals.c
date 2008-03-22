@@ -41,7 +41,7 @@
 		dbus_connection_flush(bus); dbus_message_unref(bus_message); \
 	}
 
-void maki_signal_message (DBusConnection* bus, GTimeVal time, gchar* server, gchar* to, gchar* from_nick, gchar* message)
+void maki_signal_message (DBusConnection* bus, GTimeVal time, const gchar* server, const gchar* to, const gchar* from_nick, const gchar* message)
 {
 	DBUS_SIGNAL_INIT("message");
 	DBUS_SIGNAL_TYPE(DBUS_TYPE_INT64, time.tv_sec);
