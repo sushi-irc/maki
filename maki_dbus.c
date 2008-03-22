@@ -111,6 +111,21 @@ gboolean maki_dbus_shutdown (makiDBus* self, GError** error)
 	return TRUE;
 }
 
+gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* topic, GError** error)
+{
+	gchar* buffer;
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		buffer = g_strdup_printf("TOPIC %s :%s", channel, topic);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
 #include "maki_dbus.h"
 
 G_DEFINE_TYPE(makiDBus, maki_dbus, G_TYPE_OBJECT)

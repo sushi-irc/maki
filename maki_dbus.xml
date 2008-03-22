@@ -25,6 +25,12 @@
 
 		<method name="shutdown" />
 
+		<method name="topic">
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="topic" type="s" />
+		</method>
+
 		<signal name="message">
 			<arg name="time" type="i" />
 			<arg name="server" type="s" />
