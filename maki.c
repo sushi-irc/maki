@@ -72,7 +72,7 @@ void maki_callback (gchar* message, gpointer data)
 
 			if (g_ascii_strncasecmp(type, "PRIVMSG", 7) == 0)
 			{
-				maki_signal_message(maki_connection->maki->bus, time, maki_connection->server, to, from_nick, msg);
+				maki_dbus_emit_message(maki_connection->maki->bus, time.tv_sec, maki_connection->server, to, from_nick, msg);
 			}
 		}
 
@@ -86,8 +86,7 @@ void maki_callback (gchar* message, gpointer data)
 
 int main (int argc, char* argv[])
 {
-	DBusError error;
-	DBusConnection* bus;
+	GMainLoop* loop;
 	struct maki maki;
 
 	if (!g_thread_supported())
@@ -95,20 +94,20 @@ int main (int argc, char* argv[])
 		g_thread_init(NULL);
 	}
 
-	dbus_error_init(&error);
-	bus = dbus_bus_get(DBUS_BUS_SESSION, &error);
-	dbus_error_free(&error);
+	dbus_g_thread_init();
+	g_type_init();
 
-	maki.bus = bus;
+	maki.bus = g_object_new(MAKI_DBUS_TYPE, NULL);
+	maki.bus->maki = &maki;
+
 	maki.connections = g_hash_table_new(g_str_hash, g_str_equal);
 	maki.directories.logs = g_strconcat(g_get_home_dir(), G_DIR_SEPARATOR_S, ".sushi", G_DIR_SEPARATOR_S, "logs", NULL);
 	maki.directories.servers = g_strconcat(g_get_home_dir(), G_DIR_SEPARATOR_S, ".sushi", G_DIR_SEPARATOR_S, "servers", NULL);
-	maki.threads.methods = g_thread_create(maki_methods, &maki, TRUE, NULL);
 
 	maki_servers(&maki);
 
-	while (TRUE)
-		sleep(1);
+	loop = g_main_loop_new(NULL, FALSE);
+	g_main_loop_run(loop);
 
 	/*
 	g_mkdir_with_parents(logs_dir, 0755);

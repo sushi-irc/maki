@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+
+<node name="/de/ikkoku/sushi">
+	<interface name="de.ikkoku.sushi">
+		<method name="say">
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="message" type="s" />
+		</method>
+
+		<signal name="message">
+			<arg name="time" type="i" />
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="nick" type="s" />
+			<arg name="message" type="s" />
+		</signal>
+	</interface>
+</node>

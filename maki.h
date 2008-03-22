@@ -25,14 +25,38 @@
  * SUCH DAMAGE.
  */
 
-#include <dbus/dbus.h>
+#include <dbus/dbus-glib.h>
+#include <dbus/dbus-glib-bindings.h>
 #include <glib.h>
 
 #include <sashimi.h>
 
+typedef struct
+{
+	GObject parent;
+	DBusGConnection* bus;
+	struct maki* maki;
+}
+makiDBus;
+
+typedef struct
+{
+	GObjectClass parent;
+}
+makiDBusClass;
+
+GType maki_dbus_get_type (void);
+
+#define MAKI_DBUS_TYPE            (maki_dbus_get_type())
+#define MAKI_DBUS(object)         (G_TYPE_CHECK_INSTANCE_CAST((object), MAKI_DBUS_TYPE, makiDBus))
+#define MAKI_DBUS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass), MAKI_DBUS_TYPE, makiDBusClass))
+#define IS_MAKI_DBUS(object)      (G_TYPE_CHECK_INSTANCE_TYPE((object), MAKI_DBUS_TYPE))
+#define IS_MAKI_DBUS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), MAKI_DBUS_TYPE))
+#define MAKI_DBUS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), MAKI_DBUS_TYPE, makiDBus))
+
 struct maki
 {
-	DBusConnection* bus;
+	makiDBus* bus;
 	GHashTable* connections;
 
 	struct
@@ -41,12 +65,6 @@ struct maki
 		gchar* servers;
 	}
 	directories;
-
-	struct
-	{
-		GThread* methods;
-	}
-	threads;
 };
 
 struct maki_connection
@@ -60,7 +78,4 @@ void maki_callback (gchar*, gpointer);
 
 void maki_servers (struct maki*);
 
-void maki_signal_message(DBusConnection*, GTimeVal, const gchar*, const gchar*, const gchar*, const gchar*);
-
-gpointer maki_methods (gpointer);
-void maki_method_say(struct maki*, DBusMessage*);
+void maki_dbus_emit_message (makiDBus*, glong, const gchar*, const gchar*, const gchar*, const gchar*);
