@@ -1,6 +1,8 @@
 include ../Makefile.common
 
-CFLAGS  += -I../sashimi $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0) -fgnu89-inline
+CFLAGS := $(subst -pedantic,,$(CFLAGS))
+
+CFLAGS  += -I../sashimi $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0)
 LDFLAGS += -L../sashimi $(shell pkg-config --libs dbus-glib-1) $(shell pkg-config --libs glib-2.0) -lsashimi
 
 COMPONENTS = dbus marshal servers
