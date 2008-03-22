@@ -2,6 +2,16 @@
 
 <node name="/de/ikkoku/sushi">
 	<interface name="de.ikkoku.sushi">
+		<method name="join">
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+		</method>
+
+		<method name="part">
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+		</method>
+
 		<method name="raw">
 			<arg name="server" type="s" />
 			<arg name="command" type="s" />
