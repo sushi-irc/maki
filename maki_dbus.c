@@ -43,6 +43,18 @@ void maki_dbus_emit_message (makiDBus* self, glong time, const gchar* server, co
 	g_signal_emit(self, signals[s_message], 0, time, server, channel, nick, message);
 }
 
+gboolean maki_dbus_raw (makiDBus* self, gchar* server, gchar* command, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		sashimi_send(m_conn->connection, command);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
 {
 	gchar* buffer;
