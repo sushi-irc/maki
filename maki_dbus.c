@@ -35,6 +35,7 @@ enum
 	s_join,
 	s_message,
 	s_part,
+	s_quit,
 	s_last
 };
 
@@ -53,6 +54,11 @@ void maki_dbus_emit_message (makiDBus* self, glong time, const gchar* server, co
 void maki_dbus_emit_part (makiDBus* self, glong time, const gchar* server, const gchar* channel, const gchar* nick)
 {
 	g_signal_emit(self, signals[s_part], 0, time, server, channel, nick);
+}
+
+void maki_dbus_emit_quit (makiDBus* self, glong time, const gchar* server, const gchar* nick)
+{
+	g_signal_emit(self, signals[s_quit], 0, time, server, nick);
 }
 
 gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, GError** error)
@@ -117,7 +123,12 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, GError** error)
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
+		GTimeVal time;
+
 		sashimi_disconnect(m_conn->connection);
+
+		g_get_current_time(&time);
+		maki_dbus_emit_quit(self, time.tv_sec, server, sashimi_nick(m_conn->connection));
 	}
 
 	return TRUE;
@@ -234,4 +245,5 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 	signals[s_join] = g_signal_new("join", G_OBJECT_CLASS_TYPE(klass), G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED, 0, NULL, NULL, g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING, G_TYPE_NONE, 4, G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_message] = g_signal_new("message", G_OBJECT_CLASS_TYPE(klass), G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED, 0, NULL, NULL, g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING, G_TYPE_NONE, 5, G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_part] = g_signal_new("part", G_OBJECT_CLASS_TYPE(klass), G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED, 0, NULL, NULL, g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING, G_TYPE_NONE, 4, G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_quit] = g_signal_new("quit", G_OBJECT_CLASS_TYPE(klass), G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED, 0, NULL, NULL, g_cclosure_user_marshal_VOID__INT64_STRING_STRING, G_TYPE_NONE, 3, G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
 }

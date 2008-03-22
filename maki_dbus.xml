@@ -65,5 +65,11 @@
 			<arg name="channel" type="s" />
 			<arg name="nick" type="s" />
 		</signal>
+
+		<signal name="quit">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" />
+		</signal>
 	</interface>
 </node>
