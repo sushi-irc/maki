@@ -43,7 +43,7 @@ void maki_dbus_emit_message (makiDBus* self, glong time, const gchar* server, co
 	g_signal_emit(self, signals[s_message], 0, time, server, channel, nick, message);
 }
 
-gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError **error)
+gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
 {
 	gchar* buffer;
 	GTimeVal time;

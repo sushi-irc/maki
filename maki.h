@@ -65,6 +65,8 @@ struct maki
 		gchar* servers;
 	}
 	directories;
+
+	GMainLoop* loop;
 };
 
 struct maki_connection

@@ -86,7 +86,6 @@ void maki_callback (gchar* message, gpointer data)
 
 int main (int argc, char* argv[])
 {
-	GMainLoop* loop;
 	struct maki maki;
 
 	if (!g_thread_supported())
@@ -106,8 +105,8 @@ int main (int argc, char* argv[])
 
 	maki_servers(&maki);
 
-	loop = g_main_loop_new(NULL, FALSE);
-	g_main_loop_run(loop);
+	maki.loop = g_main_loop_new(NULL, FALSE);
+	g_main_loop_run(maki.loop);
 
 	/*
 	g_mkdir_with_parents(logs_dir, 0755);
