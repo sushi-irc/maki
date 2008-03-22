@@ -59,24 +59,23 @@ void maki_servers (struct maki* maki)
 					gchar* nick;
 					gchar* name;
 					gint port;
-					struct maki_connection* maki_connection;
-					struct sashimi_connection* connection;
-
-					maki_connection = g_new(struct maki_connection, 1);
-
-					maki_connection->maki = maki;
-					maki_connection->server = g_strdup(file);
+					struct maki_connection* m_conn;
 
 					address = g_key_file_get_string(key_file, *group, "address", NULL);
 					port = g_key_file_get_integer(key_file, *group, "port", NULL);
 					nick = g_key_file_get_string(key_file, *group, "nick", NULL);
 					name = g_key_file_get_string(key_file, *group, "name", NULL);
 
-					connection = sashimi_new(address, port, nick, name, maki_callback, maki_connection);
-					sashimi_connect(connection);
+					m_conn = g_new(struct maki_connection, 1);
 
-					maki_connection->connection = connection;
-					g_hash_table_insert(maki->connections, maki_connection->server, maki_connection);
+					m_conn->maki = maki;
+					m_conn->server = g_strdup(file);
+					m_conn->connection = sashimi_new(address, port, nick, name, maki_callback, m_conn);
+					m_conn->channels = g_queue_new();
+
+					sashimi_connect(m_conn->connection);
+
+					g_hash_table_insert(maki->connections, m_conn->server, m_conn);
 
 					g_free(address);
 					g_free(nick);
@@ -85,13 +84,20 @@ void maki_servers (struct maki* maki)
 				else
 				{
 					gchar* buffer;
-					struct maki_connection* maki_connection;
+					gboolean autojoin;
+					struct maki_connection* m_conn;
 
-					maki_connection = g_hash_table_lookup(maki->connections, file);
-					buffer = g_strdup_printf("JOIN %s", *group);
-					sashimi_send(maki_connection->connection, buffer);
+					autojoin = g_key_file_get_boolean(key_file, *group, "autojoin", NULL);
 
-					g_free(buffer);
+					m_conn = g_hash_table_lookup(maki->connections, file);
+
+					if (autojoin)
+					{
+						g_queue_push_tail(m_conn->channels, g_strdup(*group));
+						buffer = g_strdup_printf("JOIN %s", *group);
+						sashimi_send(m_conn->connection, buffer);
+						g_free(buffer);
+					}
 				}
 			}
 

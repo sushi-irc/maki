@@ -41,6 +41,12 @@ void maki_shutdown (struct maki* maki)
 	{
 		struct maki_connection* m_conn = value;
 
+		while (!g_queue_is_empty(m_conn->channels))
+		{
+			g_free(g_queue_pop_head(m_conn->channels));
+		}
+
+		g_queue_free(m_conn->channels);
 		sashimi_disconnect(m_conn->connection);
 		sashimi_free(m_conn->connection);
 		g_free(m_conn->server);

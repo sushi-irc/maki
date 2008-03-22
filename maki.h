@@ -74,6 +74,7 @@ struct maki_connection
 	struct maki* maki;
 	char* server;
 	struct sashimi_connection* connection;
+	GQueue* channels;
 };
 
 void maki_callback (gchar*, gpointer);
