@@ -99,6 +99,18 @@ gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, GError**
 	return TRUE;
 }
 
+gboolean maki_dbus_quit (makiDBus* self, gchar* server, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		sashimi_disconnect(m_conn->connection);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_raw (makiDBus* self, gchar* server, gchar* command, GError** error)
 {
 	struct maki_connection* m_conn;
