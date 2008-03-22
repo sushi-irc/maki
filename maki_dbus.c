@@ -59,19 +59,17 @@ gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* me
 {
 	gchar* buffer;
 	GTimeVal time;
-	struct maki_connection* connection;
+	struct maki_connection* m_conn;
 
-	connection = g_hash_table_lookup(self->maki->connections, server);
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		buffer = g_strdup_printf("PRIVMSG %s :%s", channel, message);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
 
-	buffer = g_strdup_printf("PRIVMSG %s :%s", channel, message);
-	g_print("%s\n", buffer);
-
-	sashimi_send(connection->connection, buffer);
-
-	g_free(buffer);
-
-	g_get_current_time(&time);
-	maki_dbus_emit_message(self, time.tv_sec, server, channel, sashimi_nick(connection->connection), message);
+		g_get_current_time(&time);
+		maki_dbus_emit_message(self, time.tv_sec, server, channel, sashimi_nick(m_conn->connection), message);
+	}
 
 	return TRUE;
 }
