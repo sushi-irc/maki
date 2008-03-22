@@ -104,6 +104,27 @@ gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* me
 	return TRUE;
 }
 
+gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
+{
+	gchar** server;
+	GHashTableIter iter;
+	gpointer key;
+	gpointer value;
+
+	server = *servers = g_new(gchar**, g_hash_table_size(self->maki->connections) + 1);
+	g_hash_table_iter_init(&iter, self->maki->connections);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		*server = g_strdup(key);
+		++server;
+	}
+
+	*server = NULL;
+
+	return TRUE;
+}
+
 gboolean maki_dbus_shutdown (makiDBus* self, GError** error)
 {
 	g_main_loop_quit(self->maki->loop);
