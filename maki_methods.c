@@ -46,7 +46,7 @@ gpointer maki_methods (gpointer data)
 
 		if (bus_message == NULL)
 		{
-			g_usleep(1000000);
+			g_usleep(100000);
 			continue;
 		}
 
@@ -69,6 +69,7 @@ void maki_method_say (struct maki* maki, DBusMessage* message)
 	dbus_uint32_t serial = 0;
 	DBusMessage* reply;
 	DBusMessageIter args;
+	GTimeVal time;
 	struct maki_connection* connection;
 
 	gchar* buffer;
@@ -94,6 +95,9 @@ void maki_method_say (struct maki* maki, DBusMessage* message)
 	sashimi_send(connection->connection, buffer);
 
 	g_free(buffer);
+
+	g_get_current_time(&time);
+	maki_signal_message(maki->bus, time, server, channel, sashimi_nick(connection->connection), msg);
 
 	reply = dbus_message_new_method_return(message);
 	dbus_connection_send(maki->bus, reply, &serial);
