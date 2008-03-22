@@ -74,12 +74,24 @@ static void maki_dbus_init (makiDBus* obj)
 	GError* error = NULL;
 	guint request_name_result;
 
-	obj->bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error);
-	dbus_g_connection_register_g_object(obj->bus, "/de/ikkoku/sushi", G_OBJECT(obj));
+	if ((obj->bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error)) != NULL)
+	{
+		dbus_g_connection_register_g_object(obj->bus, "/de/ikkoku/sushi", G_OBJECT(obj));
 
-	proxy = dbus_g_proxy_new_for_name(obj->bus, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS);
+		if ((proxy = dbus_g_proxy_new_for_name(obj->bus, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS)) != NULL)
+		{
+			if (!org_freedesktop_DBus_request_name(proxy, "de.ikkoku.sushi", 0, &request_name_result, &error))
+			{
+				g_error_free(error);
+			}
 
-	org_freedesktop_DBus_request_name(proxy, "de.ikkoku.sushi", 0, &request_name_result, &error);
+			g_object_unref(proxy);
+		}
+	}
+	else
+	{
+		g_error_free(error);
+	}
 }
 
 static void maki_dbus_class_init (makiDBusClass* klass)
