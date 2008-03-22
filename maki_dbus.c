@@ -43,6 +43,32 @@ void maki_dbus_emit_message (makiDBus* self, glong time, const gchar* server, co
 	g_signal_emit(self, signals[s_message], 0, time, server, channel, nick, message);
 }
 
+gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, GError** error)
+{
+	gchar** channel;
+	guint i;
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		channel = *channels = g_new(gchar*, g_queue_get_length(m_conn->channels) + 1);
+
+		for (i = 0; i < g_queue_get_length(m_conn->channels); ++i)
+		{
+			*channel = g_strdup(g_queue_peek_nth(m_conn->channels, i));
+			++channel;
+		}
+	}
+	else
+	{
+		channel = *channels = g_new(gchar*, 1);
+	}
+
+	*channel = NULL;
+
+	return TRUE;
+}
+
 gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, GError** error)
 {
 	gchar* buffer;
@@ -111,7 +137,7 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 	gpointer key;
 	gpointer value;
 
-	server = *servers = g_new(gchar**, g_hash_table_size(self->maki->connections) + 1);
+	server = *servers = g_new(gchar*, g_hash_table_size(self->maki->connections) + 1);
 	g_hash_table_iter_init(&iter, self->maki->connections);
 
 	while (g_hash_table_iter_next(&iter, &key, &value))

@@ -2,6 +2,11 @@
 
 <node name="/de/ikkoku/sushi">
 	<interface name="de.ikkoku.sushi">
+		<method name="channels">
+			<arg name="server" type="s" />
+			<arg name="channels" type="as" direction="out" />
+		</method>
+
 		<method name="join">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
