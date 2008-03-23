@@ -149,7 +149,7 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, GError** error)
 		sashimi_disconnect(m_conn->connection);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_quit(self, time.tv_sec, server, sashimi_nick(m_conn->connection));
+		maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick);
 	}
 
 	return TRUE;
@@ -180,7 +180,7 @@ gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* me
 		g_free(buffer);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_message(self, time.tv_sec, server, channel, sashimi_nick(m_conn->connection), message);
+		maki_dbus_emit_message(self, time.tv_sec, server, channel, m_conn->nick, message);
 	}
 
 	return TRUE;

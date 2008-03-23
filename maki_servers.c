@@ -70,6 +70,7 @@ void maki_servers (struct maki* maki)
 
 					m_conn->maki = maki;
 					m_conn->server = g_strdup(file);
+					m_conn->nick = g_strdup(nick);
 					m_conn->connection = sashimi_new(address, port, nick, name, maki_callback, m_conn);
 					m_conn->channels = g_queue_new();
 

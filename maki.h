@@ -72,7 +72,8 @@ struct maki
 struct maki_connection
 {
 	struct maki* maki;
-	char* server;
+	gchar* server;
+	gchar* nick;
 	struct sashimi_connection* connection;
 	GQueue* channels;
 };

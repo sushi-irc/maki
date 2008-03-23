@@ -49,6 +49,7 @@ void maki_shutdown (struct maki* maki)
 		g_queue_free(m_conn->channels);
 		sashimi_disconnect(m_conn->connection);
 		sashimi_free(m_conn->connection);
+		g_free(m_conn->nick);
 		g_free(m_conn->server);
 		g_free(m_conn);
 	}
@@ -124,6 +125,14 @@ void maki_callback (gchar* message, gpointer data)
 				kick = g_strsplit(msg, " ", 2);
 				maki_dbus_emit_kick(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, kick[0]);
 				g_strfreev(kick);
+			}
+			else if (g_ascii_strncasecmp(type, "NICK", 4) == 0 && to)
+			{
+				if (g_ascii_strcasecmp(m_conn->nick, from_nick) == 0)
+				{
+					g_free(m_conn->nick);
+					m_conn->nick = g_strdup(to);
+				}
 			}
 		}
 
