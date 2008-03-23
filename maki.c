@@ -117,6 +117,14 @@ void maki_callback (gchar* message, gpointer data)
 			{
 				maki_dbus_emit_quit(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick);
 			}
+			else if (g_ascii_strncasecmp(type, "KICK", 4) == 0 && to && msg)
+			{
+				gchar** kick;
+
+				kick = g_strsplit(msg, " ", 2);
+				maki_dbus_emit_kick(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, kick[0]);
+				g_strfreev(kick);
+			}
 		}
 
 		g_strfreev(from);

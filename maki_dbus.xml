@@ -12,6 +12,12 @@
 			<arg name="channel" type="s" />
 		</method>
 
+		<method name="kick">
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="who" type="s" />
+		</method>
+
 		<method name="part">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
@@ -49,6 +55,14 @@
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
 			<arg name="nick" type="s" />
+		</signal>
+
+		<signal name="kick">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="nick" type="s" />
+			<arg name="who" type="s" />
 		</signal>
 
 		<signal name="message">
