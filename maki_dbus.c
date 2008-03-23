@@ -196,12 +196,43 @@ gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* me
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
-		buffer = g_strdup_printf("PRIVMSG %s :%s", channel, message);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		gchar** messages = NULL;
 
 		g_get_current_time(&time);
-		maki_dbus_emit_message(self, time.tv_sec, server, channel, m_conn->nick, message);
+
+		for (buffer = message; *buffer != '\0'; ++buffer)
+		{
+			if (*buffer == '\r' || *buffer == '\n')
+			{
+				messages = g_strsplit(message, "\n", 0);
+				break;
+			}
+		}
+
+		if (!messages)
+		{
+			buffer = g_strdup_printf("PRIVMSG %s :%s", channel, message);
+			sashimi_send(m_conn->connection, buffer);
+			g_free(buffer);
+
+			maki_dbus_emit_message(self, time.tv_sec, server, channel, m_conn->nick, message);
+		}
+		else
+		{
+			gchar** tmp;
+
+			for (tmp = messages; *tmp != NULL; ++tmp)
+			{
+				g_strchomp(*tmp);
+				buffer = g_strdup_printf("PRIVMSG %s :%s", channel, *tmp);
+				sashimi_send(m_conn->connection, buffer);
+				g_free(buffer);
+
+				maki_dbus_emit_message(self, time.tv_sec, server, channel, m_conn->nick, *tmp);
+			}
+
+			g_strfreev(messages);
+		}
 	}
 
 	return TRUE;
