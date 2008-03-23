@@ -41,22 +41,22 @@ enum
 
 guint signals[s_last];
 
-void maki_dbus_emit_join (makiDBus* self, glong time, const gchar* server, const gchar* channel, const gchar* nick)
+void maki_dbus_emit_join (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick)
 {
 	g_signal_emit(self, signals[s_join], 0, time, server, channel, nick);
 }
 
-void maki_dbus_emit_message (makiDBus* self, glong time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
+void maki_dbus_emit_message (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
 {
 	g_signal_emit(self, signals[s_message], 0, time, server, channel, nick, message);
 }
 
-void maki_dbus_emit_part (makiDBus* self, glong time, const gchar* server, const gchar* channel, const gchar* nick)
+void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick)
 {
 	g_signal_emit(self, signals[s_part], 0, time, server, channel, nick);
 }
 
-void maki_dbus_emit_quit (makiDBus* self, glong time, const gchar* server, const gchar* nick)
+void maki_dbus_emit_quit (makiDBus* self, gint64 time, const gchar* server, const gchar* nick)
 {
 	g_signal_emit(self, signals[s_quit], 0, time, server, nick);
 }
