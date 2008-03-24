@@ -29,6 +29,20 @@
 
 #include "maki.h"
 
+void maki_channel_destroy (gpointer data)
+{
+	struct maki_channel* m_chan = data;
+
+	while (!g_queue_is_empty(m_chan->nicks))
+	{
+		g_free(g_queue_pop_head(m_chan->nicks));
+	}
+
+	g_queue_free(m_chan->nicks);
+	g_free(m_chan->name);
+	g_free(m_chan);
+}
+
 void maki_shutdown (struct maki* maki)
 {
 	GHashTableIter iter;
@@ -41,12 +55,7 @@ void maki_shutdown (struct maki* maki)
 	{
 		struct maki_connection* m_conn = value;
 
-		while (!g_queue_is_empty(m_conn->channels))
-		{
-			g_free(g_queue_pop_head(m_conn->channels));
-		}
-
-		g_queue_free(m_conn->channels);
+		g_hash_table_destroy(m_conn->channels);
 		sashimi_disconnect(m_conn->connection);
 		sashimi_free(m_conn->connection);
 		g_free(m_conn->nick);
@@ -108,10 +117,26 @@ void maki_callback (gchar* message, gpointer data)
 			}
 			else if (g_ascii_strncasecmp(type, "JOIN", 4) == 0 && to)
 			{
+				if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
+				{
+					struct maki_channel* m_chan;
+
+					m_chan = g_new(struct maki_channel, 1);
+					m_chan->name = g_strdup(to);
+					m_chan->nicks = g_queue_new();
+
+					g_hash_table_insert(m_conn->channels, m_chan->name, m_chan);
+				}
+
 				maki_dbus_emit_join(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick);
 			}
 			else if (g_ascii_strncasecmp(type, "PART", 4) == 0 && to)
 			{
+				if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
+				{
+					g_hash_table_remove(m_conn->channels, to);
+				}
+
 				maki_dbus_emit_part(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick);
 			}
 			else if (g_ascii_strncasecmp(type, "QUIT", 4) == 0)

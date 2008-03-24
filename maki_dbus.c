@@ -76,16 +76,23 @@ void maki_dbus_emit_quit (makiDBus* self, gint64 time, const gchar* server, cons
 gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, GError** error)
 {
 	gchar** channel;
-	guint i;
 	struct maki_connection* m_conn;
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
-		channel = *channels = g_new(gchar*, g_queue_get_length(m_conn->channels) + 1);
+		GHashTableIter iter;
+		gpointer key;
+		gpointer value;
 
-		for (i = 0; i < g_queue_get_length(m_conn->channels); ++i)
+		channel = *channels = g_new(gchar*, g_hash_table_size(m_conn->channels) + 1);
+
+		g_hash_table_iter_init(&iter, m_conn->channels);
+
+		while (g_hash_table_iter_next(&iter, &key, &value))
 		{
-			*channel = g_strdup(g_queue_peek_nth(m_conn->channels, i));
+			struct maki_channel* m_chan = value;
+
+			*channel = g_strdup(m_chan->name);
 			++channel;
 		}
 	}

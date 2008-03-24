@@ -72,7 +72,7 @@ void maki_servers (struct maki* maki)
 					m_conn->server = g_strdup(file);
 					m_conn->nick = g_strdup(nick);
 					m_conn->connection = sashimi_new(address, port, nick, name, maki_callback, m_conn);
-					m_conn->channels = g_queue_new();
+					m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_destroy);
 
 					sashimi_connect(m_conn->connection);
 
@@ -94,7 +94,6 @@ void maki_servers (struct maki* maki)
 
 					if (autojoin)
 					{
-						g_queue_push_tail(m_conn->channels, g_strdup(*group));
 						buffer = g_strdup_printf("JOIN %s", *group);
 						sashimi_send(m_conn->connection, buffer);
 						g_free(buffer);

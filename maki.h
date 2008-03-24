@@ -75,7 +75,13 @@ struct maki_connection
 	gchar* server;
 	gchar* nick;
 	struct sashimi_connection* connection;
-	GQueue* channels;
+	GHashTable* channels;
+};
+
+struct maki_channel
+{
+	gchar* name;
+	GQueue* nicks;
 };
 
 void maki_callback (gchar*, gpointer);
@@ -88,3 +94,5 @@ void maki_dbus_emit_message (makiDBus*, gint64, const gchar*, const gchar*, cons
 void maki_dbus_emit_nick (makiDBus*, gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_part (makiDBus*, gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_quit (makiDBus*, gint64, const gchar*, const gchar*);
+
+void maki_channel_destroy (gpointer);
