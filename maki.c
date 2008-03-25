@@ -43,27 +43,21 @@ void maki_channel_destroy (gpointer data)
 	g_free(m_chan);
 }
 
+void maki_connection_destroy (gpointer data)
+{
+	struct maki_connection* m_conn = data;
+
+	g_hash_table_destroy(m_conn->channels);
+	sashimi_disconnect(m_conn->connection);
+	sashimi_free(m_conn->connection);
+	g_free(m_conn->nick);
+	g_free(m_conn->server);
+	g_free(m_conn);
+}
+
 void maki_shutdown (struct maki* maki)
 {
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
-
-	g_hash_table_iter_init(&iter, maki->connections);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		struct maki_connection* m_conn = value;
-
-		g_hash_table_destroy(m_conn->channels);
-		sashimi_disconnect(m_conn->connection);
-		sashimi_free(m_conn->connection);
-		g_free(m_conn->nick);
-		g_free(m_conn->server);
-		g_free(m_conn);
-	}
-
-	g_hash_table_unref(maki->connections);
+	g_hash_table_destroy(maki->connections);
 
 	g_free(maki->directories.logs);
 	g_free(maki->directories.servers);
@@ -184,7 +178,7 @@ int main (int argc, char* argv[])
 	maki.bus = g_object_new(MAKI_DBUS_TYPE, NULL);
 	maki.bus->maki = &maki;
 
-	maki.connections = g_hash_table_new(g_str_hash, g_str_equal);
+	maki.connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_destroy);
 	maki.directories.logs = g_strconcat(g_get_home_dir(), G_DIR_SEPARATOR_S, ".sushi", G_DIR_SEPARATOR_S, "logs", NULL);
 	maki.directories.servers = g_strconcat(g_get_home_dir(), G_DIR_SEPARATOR_S, ".sushi", G_DIR_SEPARATOR_S, "servers", NULL);
 

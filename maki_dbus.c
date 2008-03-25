@@ -32,6 +32,7 @@
 
 enum
 {
+	s_connect,
 	s_join,
 	s_kick,
 	s_message,
@@ -42,6 +43,11 @@ enum
 };
 
 guint signals[s_last];
+
+void maki_dbus_emit_connect (makiDBus* self, gint64 time, const gchar* server)
+{
+	g_signal_emit(self, signals[s_connect], 0, time, server);
+}
 
 void maki_dbus_emit_join (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick)
 {
@@ -102,6 +108,13 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 	}
 
 	*channel = NULL;
+
+	return TRUE;
+}
+
+gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
+{
+	maki_server_new(self->maki, server);
 
 	return TRUE;
 }
@@ -174,10 +187,10 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, GError** error)
 	{
 		GTimeVal time;
 
-		sashimi_disconnect(m_conn->connection);
-
 		g_get_current_time(&time);
 		maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick);
+
+		g_hash_table_remove(self->maki->connections, server);
 	}
 
 	return TRUE;
@@ -322,6 +335,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 {
 	dbus_g_object_type_install_info(MAKI_DBUS_TYPE, &dbus_glib_maki_dbus_object_info);
 
+	signals[s_connect] =
+		g_signal_new("connect",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING,
+		             G_TYPE_NONE, 2,
+		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_join] =
 		g_signal_new("join",
 		             G_OBJECT_CLASS_TYPE(klass),

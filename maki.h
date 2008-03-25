@@ -87,6 +87,7 @@ struct maki_channel
 void maki_callback (gchar*, gpointer);
 
 void maki_servers (struct maki*);
+void maki_server_new (struct maki*, const gchar*);
 
 void maki_dbus_emit_join (makiDBus*, gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_kick (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);
@@ -96,3 +97,4 @@ void maki_dbus_emit_part (makiDBus*, gint64, const gchar*, const gchar*, const g
 void maki_dbus_emit_quit (makiDBus*, gint64, const gchar*, const gchar*);
 
 void maki_channel_destroy (gpointer);
+void maki_connection_destroy (gpointer);
