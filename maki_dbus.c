@@ -32,6 +32,7 @@
 
 enum
 {
+	s_action,
 	s_connect,
 	s_join,
 	s_kick,
@@ -43,6 +44,11 @@ enum
 };
 
 guint signals[s_last];
+
+void maki_dbus_emit_action (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
+{
+	g_signal_emit(self, signals[s_action], 0, time, server, channel, nick, message);
+}
 
 void maki_dbus_emit_connect (makiDBus* self, gint64 time, const gchar* server)
 {
@@ -77,6 +83,28 @@ void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, cons
 void maki_dbus_emit_quit (makiDBus* self, gint64 time, const gchar* server, const gchar* nick)
 {
 	g_signal_emit(self, signals[s_quit], 0, time, server, nick);
+}
+
+gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
+{
+	gchar* buffer;
+	GTimeVal time;
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		g_get_current_time(&time);
+
+		g_strdelimit(message, "\r\n", ' ');
+
+		buffer = g_strdup_printf("PRIVMSG %s :\1ACTION %s\1", channel, message);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+
+		maki_dbus_emit_action(self, time.tv_sec, server, channel, m_conn->nick, message);
+	}
+
+	return TRUE;
 }
 
 gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, GError** error)
@@ -379,6 +407,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 {
 	dbus_g_object_type_install_info(MAKI_DBUS_TYPE, &dbus_glib_maki_dbus_object_info);
 
+	signals[s_action] =
+		g_signal_new("action",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             G_TYPE_NONE, 5,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_connect] =
 		g_signal_new("connect",
 		             G_OBJECT_CLASS_TYPE(klass),

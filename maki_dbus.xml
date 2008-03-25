@@ -2,6 +2,12 @@
 
 <node name="/de/ikkoku/sushi">
 	<interface name="de.ikkoku.sushi">
+		<method name="action">
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="message" type="s" />
+		</method>
+
 		<method name="channels">
 			<arg name="server" type="s" />
 			<arg name="channels" type="as" direction="out" />
@@ -69,6 +75,16 @@
 			<arg name="channel" type="s" />
 			<arg name="topic" type="s" />
 		</method>
+
+
+
+		<signal name="action">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="nick" type="s" />
+			<arg name="message" type="s" />
+		</signal>
 
 		<signal name="connect">
 			<arg name="time" type="x" />

@@ -1,3 +1,5 @@
+# action
+VOID:INT64,STRING,STRING,STRING,STRING
 # connect
 VOID:INT64,STRING
 # join

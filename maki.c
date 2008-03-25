@@ -25,6 +25,7 @@
  * SUCH DAMAGE.
  */
 
+#include <string.h>
 #include <unistd.h>
 
 #include "maki.h"
@@ -107,7 +108,28 @@ void maki_callback (gchar* message, gpointer data)
 		{
 			if (g_ascii_strncasecmp(type, "PRIVMSG", 7) == 0 && msg)
 			{
-				maki_dbus_emit_message(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg);
+				if (msg[0] == '\1')
+				{
+					gchar** magic;
+
+					magic = g_strsplit(msg + 1, " ", 2);
+
+					if (g_ascii_strncasecmp(magic[0], "ACTION", 7) == 0 && magic[1])
+					{
+						if (strlen(magic[1]) > 1 && magic[1][strlen(magic[1]) - 1] == '\1')
+						{
+							magic[1][strlen(magic[1]) - 1] = '\0';
+						}
+
+						maki_dbus_emit_action(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, magic[1]);
+					}
+
+					g_strfreev(magic);
+				}
+				else
+				{
+					maki_dbus_emit_message(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg);
+				}
 			}
 			else if (g_ascii_strncasecmp(type, "JOIN", 4) == 0 && to)
 			{
