@@ -70,6 +70,16 @@ struct maki
 	directories;
 
 	GMainLoop* loop;
+
+	GAsyncQueue* message_queue;
+
+	struct
+	{
+		GThread* messages;
+
+		gboolean terminate;
+	}
+	threads;
 };
 
 struct maki_connection
@@ -87,7 +97,7 @@ struct maki_channel
 	GQueue* nicks;
 };
 
-void maki_callback (gchar*, gpointer);
+gpointer maki_callback (gpointer);
 
 void maki_servers (struct maki*);
 void maki_server_new (struct maki*, const gchar*);

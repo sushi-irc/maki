@@ -62,7 +62,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				m_conn->maki = maki;
 				m_conn->server = g_strdup(server);
 				m_conn->nick = g_strdup(nick);
-				m_conn->connection = sashimi_new(address, port, nick, name, maki_callback, m_conn);
+				m_conn->connection = sashimi_new(address, port, nick, name, maki->message_queue, m_conn);
 				m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_destroy);
 
 				sashimi_connect(m_conn->connection);
