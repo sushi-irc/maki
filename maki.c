@@ -29,32 +29,8 @@
 #include <unistd.h>
 
 #include "maki.h"
-
-void maki_channel_destroy (gpointer data)
-{
-	struct maki_channel* m_chan = data;
-
-	while (!g_queue_is_empty(m_chan->nicks))
-	{
-		g_free(g_queue_pop_head(m_chan->nicks));
-	}
-
-	g_queue_free(m_chan->nicks);
-	g_free(m_chan->name);
-	g_free(m_chan);
-}
-
-void maki_connection_destroy (gpointer data)
-{
-	struct maki_connection* m_conn = data;
-
-	g_hash_table_destroy(m_conn->channels);
-	sashimi_disconnect(m_conn->connection);
-	sashimi_free(m_conn->connection);
-	g_free(m_conn->nick);
-	g_free(m_conn->server);
-	g_free(m_conn);
-}
+#include "maki_misc.h"
+#include "maki_servers.h"
 
 void maki_shutdown (struct maki* maki)
 {
@@ -72,16 +48,6 @@ void maki_shutdown (struct maki* maki)
 
 	g_main_loop_quit(maki->loop);
 	g_main_loop_unref(maki->loop);
-}
-
-gchar* maki_remove_colon (gchar* string)
-{
-	if (string != NULL && string[0] == ':')
-	{
-		++string;
-	}
-
-	return string;
 }
 
 gpointer maki_callback (gpointer data)

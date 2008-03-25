@@ -25,55 +25,7 @@
  * SUCH DAMAGE.
  */
 
-#include <glib.h>
+void maki_channel_destroy (gpointer);
+void maki_connection_destroy (gpointer);
 
-#include <sashimi.h>
-
-#include "maki_dbus.h"
-
-#define IRC_RPL_NAMREPLY "353"
-#define IRC_RPL_ENDOFNAMES "366"
-
-struct maki
-{
-	makiDBus* bus;
-	GHashTable* connections;
-
-	struct
-	{
-		gchar* logs;
-		gchar* servers;
-	}
-	directories;
-
-	GMainLoop* loop;
-
-	GAsyncQueue* message_queue;
-
-	struct
-	{
-		GThread* messages;
-
-		gboolean terminate;
-	}
-	threads;
-};
-
-struct maki_connection
-{
-	struct maki* maki;
-	gchar* server;
-	gchar* nick;
-	struct sashimi_connection* connection;
-	GHashTable* channels;
-};
-
-struct maki_channel
-{
-	gchar* name;
-	GQueue* nicks;
-};
-
-gpointer maki_callback (gpointer);
-
-void maki_shutdown (struct maki*);
+gchar* maki_remove_colon (gchar*);

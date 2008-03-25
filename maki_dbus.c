@@ -29,6 +29,7 @@
 
 #include "maki.h"
 #include "maki_marshal.h"
+#include "maki_servers.h"
 
 enum
 {
@@ -369,7 +370,7 @@ gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* 
 	return TRUE;
 }
 
-#include "maki_dbus.h"
+#include "maki_dbus_glue.h"
 
 G_DEFINE_TYPE(makiDBus, maki_dbus, G_TYPE_OBJECT)
 

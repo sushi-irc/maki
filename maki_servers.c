@@ -26,6 +26,7 @@
  */
 
 #include "maki.h"
+#include "maki_misc.h"
 
 void maki_server_new (struct maki* maki, const gchar* server)
 {

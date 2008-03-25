@@ -25,55 +25,40 @@
  * SUCH DAMAGE.
  */
 
-#include <glib.h>
+#include "maki.h"
 
-#include <sashimi.h>
-
-#include "maki_dbus.h"
-
-#define IRC_RPL_NAMREPLY "353"
-#define IRC_RPL_ENDOFNAMES "366"
-
-struct maki
+void maki_channel_destroy (gpointer data)
 {
-	makiDBus* bus;
-	GHashTable* connections;
+	struct maki_channel* m_chan = data;
 
-	struct
+	while (!g_queue_is_empty(m_chan->nicks))
 	{
-		gchar* logs;
-		gchar* servers;
+		g_free(g_queue_pop_head(m_chan->nicks));
 	}
-	directories;
 
-	GMainLoop* loop;
+	g_queue_free(m_chan->nicks);
+	g_free(m_chan->name);
+	g_free(m_chan);
+}
 
-	GAsyncQueue* message_queue;
+void maki_connection_destroy (gpointer data)
+{
+	struct maki_connection* m_conn = data;
 
-	struct
+	g_hash_table_destroy(m_conn->channels);
+	sashimi_disconnect(m_conn->connection);
+	sashimi_free(m_conn->connection);
+	g_free(m_conn->nick);
+	g_free(m_conn->server);
+	g_free(m_conn);
+}
+
+gchar* maki_remove_colon (gchar* string)
+{
+	if (string != NULL && string[0] == ':')
 	{
-		GThread* messages;
-
-		gboolean terminate;
+		++string;
 	}
-	threads;
-};
 
-struct maki_connection
-{
-	struct maki* maki;
-	gchar* server;
-	gchar* nick;
-	struct sashimi_connection* connection;
-	GHashTable* channels;
-};
-
-struct maki_channel
-{
-	gchar* name;
-	GQueue* nicks;
-};
-
-gpointer maki_callback (gpointer);
-
-void maki_shutdown (struct maki*);
+	return string;
+}
