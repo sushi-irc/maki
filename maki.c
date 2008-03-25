@@ -67,10 +67,11 @@ void maki_shutdown (struct maki* maki)
 	g_free(maki->directories.logs);
 	g_free(maki->directories.servers);
 
-	g_main_loop_unref(maki->loop);
-
 	dbus_g_connection_unref(maki->bus->bus);
 	g_object_unref(maki->bus);
+
+	g_main_loop_quit(maki->loop);
+	g_main_loop_unref(maki->loop);
 }
 
 gchar* maki_remove_colon (gchar* string)
@@ -265,8 +266,6 @@ int main (int argc, char* argv[])
 	/*
 	g_mkdir_with_parents(logs_dir, 0755);
 	*/
-
-	maki_shutdown(&maki);
 
 	return 0;
 }

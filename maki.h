@@ -102,6 +102,8 @@ gpointer maki_callback (gpointer);
 void maki_servers (struct maki*);
 void maki_server_new (struct maki*, const gchar*);
 
+void maki_shutdown (struct maki*);
+
 void maki_dbus_emit_action (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_join (makiDBus*, gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_kick (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);

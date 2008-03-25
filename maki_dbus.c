@@ -349,7 +349,7 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 
 gboolean maki_dbus_shutdown (makiDBus* self, GError** error)
 {
-	g_main_loop_quit(self->maki->loop);
+	maki_shutdown(self->maki);
 
 	return TRUE;
 }
