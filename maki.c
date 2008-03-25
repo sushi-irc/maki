@@ -174,6 +174,8 @@ void maki_callback (gchar* message, gpointer data)
 					g_free(m_conn->nick);
 					m_conn->nick = g_strdup(to);
 				}
+
+				maki_dbus_emit_nick(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, to);
 			}
 			else if (g_ascii_strcasecmp(type, IRC_RPL_NAMREPLY) == 0 && to && msg)
 			{
