@@ -313,15 +313,11 @@ gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* me
 			{
 				g_strchomp(*tmp);
 				buffer = g_strdup_printf("PRIVMSG %s :%s", channel, *tmp);
+				sashimi_queue(m_conn->connection, buffer);
+				g_free(buffer);
 
 				maki_dbus_emit_message(self, time.tv_sec, server, channel, m_conn->nick, *tmp);
-
-				g_free(*tmp);
-				*tmp = buffer;
-
 			}
-
-			sashimi_queue(m_conn->connection, messages);
 
 			g_strfreev(messages);
 		}
