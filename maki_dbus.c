@@ -203,14 +203,17 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 
 		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
 		{
-			gint i;
 			gchar** nick;
+			GHashTableIter iter;
+			gpointer key;
+			gpointer value;
 
-			nick = *nicks = g_new(gchar*, g_queue_get_length(m_chan->nicks) + 1);
+			nick = *nicks = g_new(gchar*, g_hash_table_size(m_chan->users) + 1);
+			g_hash_table_iter_init(&iter, m_chan->users);
 
-			for (i = 0; i < g_queue_get_length(m_chan->nicks); ++i)
+			while (g_hash_table_iter_next(&iter, &key, &value))
 			{
-				*nick = g_strdup(g_queue_peek_nth(m_chan->nicks, i));
+				*nick = g_strdup(key);
 				++nick;
 			}
 

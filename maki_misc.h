@@ -25,6 +25,7 @@
  * SUCH DAMAGE.
  */
 
+void maki_user_destroy (gpointer);
 void maki_channel_destroy (gpointer);
 void maki_connection_destroy (gpointer);
 

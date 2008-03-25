@@ -129,24 +129,42 @@ gpointer maki_callback (gpointer data)
 				}
 				else if (g_ascii_strncasecmp(type, "JOIN", 4) == 0 && to)
 				{
+					struct maki_channel* m_chan;
+
 					if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
 					{
 						struct maki_channel* m_chan;
 
 						m_chan = g_new(struct maki_channel, 1);
 						m_chan->name = g_strdup(to);
-						m_chan->nicks = g_queue_new();
+						m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_user_destroy);
 
 						g_hash_table_insert(m_conn->channels, m_chan->name, m_chan);
+					}
+
+					if ((m_chan = g_hash_table_lookup(m_conn->channels, to)) != NULL)
+					{
+						struct maki_user* m_user;
+
+						m_user = g_new(struct maki_user, 1);
+						m_user->nick = g_strdup(from_nick);
+						g_hash_table_replace(m_chan->users, m_user->nick, m_user);
 					}
 
 					maki_dbus_emit_join(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick);
 				}
 				else if (g_ascii_strncasecmp(type, "PART", 4) == 0 && to)
 				{
+					struct maki_channel* m_chan;
+
 					if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
 					{
 						g_hash_table_remove(m_conn->channels, to);
+					}
+
+					if ((m_chan = g_hash_table_lookup(m_conn->channels, to)) != NULL)
+					{
+						g_hash_table_remove(m_chan->users, from_nick);
 					}
 
 					maki_dbus_emit_part(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick);
@@ -183,7 +201,11 @@ gpointer maki_callback (gpointer data)
 
 					for (i = 1; i < g_strv_length(reply); ++i)
 					{
-						g_queue_push_head(m_chan->nicks, g_strdup(maki_remove_colon(reply[i])));
+						struct maki_user* m_user;
+
+						m_user = g_new(struct maki_user, 1);
+						m_user->nick = g_strdup(maki_remove_colon(reply[i]));
+						g_hash_table_replace(m_chan->users, m_user->nick, m_user);
 					}
 
 					g_strfreev(reply);

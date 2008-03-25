@@ -27,16 +27,19 @@
 
 #include "maki.h"
 
+void maki_user_destroy (gpointer data)
+{
+	struct maki_user* m_user = data;
+
+	g_free(m_user->nick);
+	g_free(m_user);
+}
+
 void maki_channel_destroy (gpointer data)
 {
 	struct maki_channel* m_chan = data;
 
-	while (!g_queue_is_empty(m_chan->nicks))
-	{
-		g_free(g_queue_pop_head(m_chan->nicks));
-	}
-
-	g_queue_free(m_chan->nicks);
+	g_hash_table_destroy(m_chan->users);
 	g_free(m_chan->name);
 	g_free(m_chan);
 }

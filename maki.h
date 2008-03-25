@@ -71,7 +71,12 @@ struct maki_connection
 struct maki_channel
 {
 	gchar* name;
-	GQueue* nicks;
+	GHashTable* users;
+};
+
+struct maki_user
+{
+	gchar* nick;
 };
 
 gpointer maki_callback (gpointer);
