@@ -52,6 +52,7 @@ GType maki_dbus_get_type (void);
 #define MAKI_DBUS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), MAKI_DBUS_TYPE, makiDBus))
 
 void maki_dbus_emit_action (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);
+void maki_dbus_emit_connect (makiDBus*, gint64, const gchar*);
 void maki_dbus_emit_join (makiDBus*, gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_kick (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_message (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);

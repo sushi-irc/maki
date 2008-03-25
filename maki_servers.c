@@ -66,7 +66,13 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				m_conn->connection = sashimi_new(address, port, nick, name, maki->message_queue, m_conn);
 				m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_destroy);
 
-				sashimi_connect(m_conn->connection);
+				if (sashimi_connect(m_conn->connection) == 0)
+				{
+					GTimeVal time;
+
+					g_get_current_time(&time);
+					maki_dbus_emit_connect(maki->bus, time.tv_sec, server);
+				}
 
 				g_hash_table_insert(maki->connections, m_conn->server, m_conn);
 
