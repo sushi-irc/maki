@@ -164,6 +164,18 @@ gboolean maki_dbus_nick (makiDBus* self, gchar* server, gchar* nick, GError** er
 	return TRUE;
 }
 
+gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		*nick = g_strdup(m_conn->nick);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, GError** error)
 {
 	gchar* buffer;

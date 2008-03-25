@@ -27,6 +27,11 @@
 			<arg name="nick" type="s" />
 		</method>
 
+		<method name="own_nick">
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" direction="out" />
+		</method>
+
 		<method name="part">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
