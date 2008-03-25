@@ -164,6 +164,34 @@ gboolean maki_dbus_nick (makiDBus* self, gchar* server, gchar* nick, GError** er
 	return TRUE;
 }
 
+gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar*** nicks, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		struct maki_channel* m_chan;
+
+		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		{
+			gint i;
+			gchar** nick;
+
+			nick = *nicks = g_new(gchar*, g_queue_get_length(m_chan->nicks) + 1);
+
+			for (i = 0; i < g_queue_get_length(m_chan->nicks); ++i)
+			{
+				*nick = g_strdup(g_queue_peek_nth(m_chan->nicks, i));
+				++nick;
+			}
+
+			*nick = NULL;
+		}
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError** error)
 {
 	struct maki_connection* m_conn;

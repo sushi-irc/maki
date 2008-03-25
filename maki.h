@@ -31,6 +31,9 @@
 
 #include <sashimi.h>
 
+#define IRC_RPL_NAMREPLY "353"
+#define IRC_RPL_ENDOFNAMES "366"
+
 typedef struct
 {
 	GObject parent;

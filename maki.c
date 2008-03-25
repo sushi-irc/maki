@@ -153,6 +153,21 @@ void maki_callback (gchar* message, gpointer data)
 					m_conn->nick = g_strdup(to);
 				}
 			}
+			else if (g_ascii_strcasecmp(type, IRC_RPL_NAMREPLY) == 0 && to && msg)
+			{
+				gint i;
+				gchar** reply = g_strsplit(msg + 2, " ", 0);
+				struct maki_channel* m_chan;
+
+				m_chan = g_hash_table_lookup(m_conn->channels, reply[0]);
+
+				for (i = 1; i < g_strv_length(reply); ++i)
+				{
+					g_queue_push_head(m_chan->nicks, g_strdup(maki_remove_colon(reply[i])));
+				}
+
+				g_strfreev(reply);
+			}
 		}
 
 		g_strfreev(from);
