@@ -191,7 +191,7 @@ gpointer maki_callback (gpointer data)
 
 					maki_dbus_emit_nick(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, to);
 				}
-				else if (g_ascii_strcasecmp(type, IRC_RPL_NAMREPLY) == 0 && to && msg)
+				else if (g_ascii_strncasecmp(type, IRC_RPL_NAMREPLY, 3) == 0 && to && msg)
 				{
 					gint i;
 					gchar** reply = g_strsplit(msg + 2, " ", 0);
@@ -209,6 +209,14 @@ gpointer maki_callback (gpointer data)
 					}
 
 					g_strfreev(reply);
+				}
+				else if (g_ascii_strncasecmp(type, IRC_RPL_UNAWAY, 3) == 0)
+				{
+					maki_dbus_emit_back(m_conn->maki->bus, time.tv_sec, m_conn->server);
+				}
+				else if (g_ascii_strncasecmp(type, IRC_RPL_NOWAWAY, 3) == 0)
+				{
+					maki_dbus_emit_away(m_conn->maki->bus, time.tv_sec, m_conn->server);
 				}
 			}
 

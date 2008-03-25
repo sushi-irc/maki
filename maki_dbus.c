@@ -34,6 +34,8 @@
 enum
 {
 	s_action,
+	s_away,
+	s_back,
 	s_connect,
 	s_join,
 	s_kick,
@@ -49,6 +51,16 @@ guint signals[s_last];
 void maki_dbus_emit_action (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
 {
 	g_signal_emit(self, signals[s_action], 0, time, server, channel, nick, message);
+}
+
+void maki_dbus_emit_away (makiDBus* self, gint64 time, const gchar* server)
+{
+	g_signal_emit(self, signals[s_away], 0, time, server);
+}
+
+void maki_dbus_emit_back (makiDBus* self, gint64 time, const gchar* server)
+{
+	g_signal_emit(self, signals[s_back], 0, time, server);
 }
 
 void maki_dbus_emit_connect (makiDBus* self, gint64 time, const gchar* server)
@@ -103,6 +115,34 @@ gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar*
 		g_free(buffer);
 
 		maki_dbus_emit_action(self, time.tv_sec, server, channel, m_conn->nick, message);
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_away (makiDBus* self, gchar* server, gchar* message, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar* buffer;
+
+		buffer = g_strdup_printf("AWAY :%s", message);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		sashimi_send(m_conn->connection, "AWAY");
 	}
 
 	return TRUE;
@@ -415,6 +455,22 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_away] =
+		g_signal_new("away",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING,
+		             G_TYPE_NONE, 2,
+		             G_TYPE_INT64, G_TYPE_STRING);
+	signals[s_back] =
+		g_signal_new("back",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING,
+		             G_TYPE_NONE, 2,
+		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_connect] =
 		g_signal_new("connect",
 		             G_OBJECT_CLASS_TYPE(klass),

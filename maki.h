@@ -31,6 +31,8 @@
 
 #include "maki_dbus.h"
 
+#define IRC_RPL_UNAWAY "305"
+#define IRC_RPL_NOWAWAY "306"
 #define IRC_RPL_NAMREPLY "353"
 #define IRC_RPL_ENDOFNAMES "366"
 
