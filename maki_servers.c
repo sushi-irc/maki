@@ -58,6 +58,21 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				nick = g_key_file_get_string(key_file, *group, "nick", NULL);
 				name = g_key_file_get_string(key_file, *group, "name", NULL);
 
+				if (port == 0)
+				{
+					port = 6667;
+				}
+
+				if (nick == NULL)
+				{
+					nick = g_strdup(g_get_user_name());
+				}
+
+				if (name == NULL)
+				{
+					name = g_strdup(g_get_real_name());
+				}
+
 				m_conn = g_new(struct maki_connection, 1);
 
 				m_conn->maki = maki;
