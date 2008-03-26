@@ -25,55 +25,10 @@
  * SUCH DAMAGE.
  */
 
-#include <glib.h>
+#define IRC_RPL_AWAY "301"
+#define IRC_RPL_UNAWAY "305"
+#define IRC_RPL_NOWAWAY "306"
+#define IRC_RPL_NAMREPLY "353"
+#define IRC_RPL_ENDOFNAMES "366"
 
-#include <sashimi.h>
-
-#include "maki_dbus.h"
-
-struct maki
-{
-	makiDBus* bus;
-	GHashTable* connections;
-
-	struct
-	{
-		gchar* logs;
-		gchar* servers;
-	}
-	directories;
-
-	GMainLoop* loop;
-
-	GAsyncQueue* message_queue;
-
-	struct
-	{
-		GThread* messages;
-
-		gboolean terminate;
-	}
-	threads;
-};
-
-struct maki_connection
-{
-	struct maki* maki;
-	gchar* server;
-	gchar* nick;
-	struct sashimi_connection* connection;
-	GHashTable* channels;
-};
-
-struct maki_channel
-{
-	gchar* name;
-	GHashTable* users;
-};
-
-struct maki_user
-{
-	gchar* nick;
-};
-
-void maki_shutdown (struct maki*);
+gpointer maki_irc_parser (gpointer);
