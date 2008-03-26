@@ -79,9 +79,9 @@ void maki_dbus_emit_join (makiDBus* self, gint64 time, const gchar* server, cons
 	g_signal_emit(self, signals[s_join], 0, time, server, channel, nick);
 }
 
-void maki_dbus_emit_kick (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* who)
+void maki_dbus_emit_kick (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* who, const gchar* message)
 {
-	g_signal_emit(self, signals[s_kick], 0, time, server, channel, nick, who);
+	g_signal_emit(self, signals[s_kick], 0, time, server, channel, nick, who, message);
 }
 
 void maki_dbus_emit_message (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
@@ -94,14 +94,14 @@ void maki_dbus_emit_nick (makiDBus* self, gint64 time, const gchar* server, cons
 	g_signal_emit(self, signals[s_nick], 0, time, server, nick, new_nick);
 }
 
-void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick)
+void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
 {
-	g_signal_emit(self, signals[s_part], 0, time, server, channel, nick);
+	g_signal_emit(self, signals[s_part], 0, time, server, channel, nick, message);
 }
 
-void maki_dbus_emit_quit (makiDBus* self, gint64 time, const gchar* server, const gchar* nick)
+void maki_dbus_emit_quit (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
-	g_signal_emit(self, signals[s_quit], 0, time, server, nick);
+	g_signal_emit(self, signals[s_quit], 0, time, server, nick, message);
 }
 
 gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
@@ -209,14 +209,22 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, GError**
 	return TRUE;
 }
 
-gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* who, GError** error)
+gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* who, gchar* message, GError** error)
 {
 	gchar* buffer;
 	struct maki_connection* m_conn;
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
-		buffer = g_strdup_printf("KICK %s %s", channel, who);
+		if (message[0])
+		{
+			buffer = g_strdup_printf("KICK %s %s :%s", channel, who, message);
+		}
+		else
+		{
+			buffer = g_strdup_printf("KICK %s %s", channel, who);
+		}
+
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 	}
@@ -282,14 +290,22 @@ gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError
 	return TRUE;
 }
 
-gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, GError** error)
+gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
 {
 	gchar* buffer;
 	struct maki_connection* m_conn;
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
-		buffer = g_strdup_printf("PART %s", channel);
+		if (message[0])
+		{
+			buffer = g_strdup_printf("PART %s :%s", channel, message);
+		}
+		else
+		{
+			buffer = g_strdup_printf("PART %s", channel);
+		}
+
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 	}
@@ -297,7 +313,7 @@ gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, GError**
 	return TRUE;
 }
 
-gboolean maki_dbus_quit (makiDBus* self, gchar* server, GError** error)
+gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError** error)
 {
 	struct maki_connection* m_conn;
 
@@ -306,7 +322,7 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, GError** error)
 		GTimeVal time;
 
 		g_get_current_time(&time);
-		maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick);
+		maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, message);
 
 		g_hash_table_remove(self->maki->connections, server);
 	}
@@ -466,7 +482,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING,
+		             g_cclosure_user_marshal_VOID__INT64_STRING,
 		             G_TYPE_NONE, 2,
 		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_away_message] =
@@ -506,9 +522,9 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING_STRING,
+		             G_TYPE_NONE, 6,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_message] =
 		g_signal_new("message",
 		             G_OBJECT_CLASS_TYPE(klass),
@@ -530,15 +546,15 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             G_TYPE_NONE, 5,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_quit] =
 		g_signal_new("quit",
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING,
-		             G_TYPE_NONE, 3,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 }
