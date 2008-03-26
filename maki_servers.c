@@ -28,6 +28,36 @@
 #include "maki.h"
 #include "maki_misc.h"
 
+gboolean maki_reconnect (gpointer data)
+{
+	struct maki_connection* m_conn = data;
+
+	sashimi_disconnect(m_conn->connection);
+
+	if (m_conn->maki->config.reconnect.retries > 0)
+	{
+		m_conn->maki->config.reconnect.retries--;
+	}
+	else if (m_conn->maki->config.reconnect.retries == 0)
+	{
+		return FALSE;
+	}
+
+	if (sashimi_connect(m_conn->connection) == 0)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+void maki_reconnect_callback (gpointer data)
+{
+	struct maki_connection* m_conn = data;
+
+	g_timeout_add_seconds(m_conn->maki->config.reconnect.timeout, maki_reconnect, m_conn);
+}
+
 void maki_server_new (struct maki* maki, const gchar* server)
 {
 	gchar* path;
@@ -80,6 +110,8 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				m_conn->nick = g_strdup(nick);
 				m_conn->connection = sashimi_new(address, port, nick, name, maki->message_queue, m_conn);
 				m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_destroy);
+
+				sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 
 				if (sashimi_connect(m_conn->connection) == 0)
 				{

@@ -34,6 +34,18 @@
 struct maki
 {
 	makiDBus* bus;
+
+	struct
+	{
+		struct
+		{
+			gint retries;
+			guint timeout;
+		}
+		reconnect;
+	}
+	config;
+
 	GHashTable* connections;
 
 	struct

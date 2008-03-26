@@ -66,6 +66,9 @@ int main (int argc, char* argv[])
 	maki.bus = g_object_new(MAKI_DBUS_TYPE, NULL);
 	maki.bus->maki = &maki;
 
+	maki.config.reconnect.retries = 3;
+	maki.config.reconnect.timeout = 5;
+
 	maki.connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_destroy);
 
 	maki.directories.logs = g_strconcat(g_get_home_dir(), G_DIR_SEPARATOR_S, ".sushi", G_DIR_SEPARATOR_S, "logs", NULL);
