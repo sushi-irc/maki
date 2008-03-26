@@ -121,7 +121,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 					maki_dbus_emit_connect(maki->bus, time.tv_sec, server);
 				}
 
-				g_hash_table_insert(maki->connections, m_conn->server, m_conn);
+				g_hash_table_replace(maki->connections, m_conn->server, m_conn);
 
 				g_free(address);
 				g_free(nick);
