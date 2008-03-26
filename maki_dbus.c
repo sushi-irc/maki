@@ -35,6 +35,7 @@ enum
 {
 	s_action,
 	s_away,
+	s_away_message,
 	s_back,
 	s_connect,
 	s_join,
@@ -56,6 +57,11 @@ void maki_dbus_emit_action (makiDBus* self, gint64 time, const gchar* server, co
 void maki_dbus_emit_away (makiDBus* self, gint64 time, const gchar* server)
 {
 	g_signal_emit(self, signals[s_away], 0, time, server);
+}
+
+void maki_dbus_emit_away_message (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
+{
+	g_signal_emit(self, signals[s_away_message], 0, time, server, nick, message);
 }
 
 void maki_dbus_emit_back (makiDBus* self, gint64 time, const gchar* server)
@@ -463,6 +469,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING,
 		             G_TYPE_NONE, 2,
 		             G_TYPE_INT64, G_TYPE_STRING);
+	signals[s_away_message] =
+		g_signal_new("away_message",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_back] =
 		g_signal_new("back",
 		             G_OBJECT_CLASS_TYPE(klass),

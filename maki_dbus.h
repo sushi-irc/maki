@@ -53,6 +53,7 @@ GType maki_dbus_get_type (void);
 
 void maki_dbus_emit_action (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_away (makiDBus*, gint64, const gchar*);
+void maki_dbus_emit_away_message (makiDBus*, gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_back (makiDBus*, gint64, const gchar*);
 void maki_dbus_emit_connect (makiDBus*, gint64, const gchar*);
 void maki_dbus_emit_join (makiDBus*, gint64, const gchar*, const gchar*, const gchar*);

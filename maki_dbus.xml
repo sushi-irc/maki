@@ -98,6 +98,12 @@
 		<signal name="away">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
+		</signal>
+
+		<signal name="away_message">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" />
 			<arg name="message" type="s" />
 		</signal>
 

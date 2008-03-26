@@ -218,6 +218,19 @@ gpointer maki_callback (gpointer data)
 				{
 					maki_dbus_emit_away(m_conn->maki->bus, time.tv_sec, m_conn->server);
 				}
+				else if (g_ascii_strncasecmp(type, IRC_RPL_AWAY, 3) == 0 && msg)
+				{
+					gchar** away;
+
+					away = g_strsplit(msg, " ", 2);
+
+					if (away[1])
+					{
+						maki_dbus_emit_away_message(m_conn->maki->bus, time.tv_sec, m_conn->server, away[0], maki_remove_colon(away[1]));
+					}
+
+					g_strfreev(away);
+				}
 			}
 
 			g_strfreev(from);
