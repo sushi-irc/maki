@@ -80,6 +80,8 @@ struct maki_connection
 struct maki_channel
 {
 	gchar* name;
+	gboolean joined;
+	gchar* key;
 	GHashTable* users;
 };
 

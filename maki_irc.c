@@ -32,6 +32,33 @@
 #include "maki_irc.h"
 #include "maki_misc.h"
 
+void maki_join (struct maki_connection* m_conn)
+{
+	GHashTableIter iter;
+	gpointer key;
+	gpointer value;
+
+	g_hash_table_iter_init(&iter, m_conn->channels);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		gchar* buffer;
+		struct maki_channel* m_chan = value;
+
+		if (m_chan->key != NULL)
+		{
+			buffer = g_strdup_printf("JOIN %s %s", m_chan->name, m_chan->key);
+		}
+		else
+		{
+			buffer = g_strdup_printf("JOIN %s", m_chan->name);
+		}
+
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+}
+
 gpointer maki_irc_parser (gpointer data)
 {
 	gchar* message;
@@ -120,17 +147,6 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strdelimit(channel, " ", '\0');
 
-					if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
-					{
-						struct maki_channel* m_chan;
-
-						m_chan = g_new(struct maki_channel, 1);
-						m_chan->name = g_strdup(channel);
-						m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_user_destroy);
-
-						g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
-					}
-
 					if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
 					{
 						struct maki_user* m_user;
@@ -138,6 +154,24 @@ gpointer maki_irc_parser (gpointer data)
 						m_user = g_new(struct maki_user, 1);
 						m_user->nick = g_strdup(from_nick);
 						g_hash_table_replace(m_chan->users, m_user->nick, m_user);
+					}
+
+					if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
+					{
+						if (m_chan != NULL)
+						{
+							m_chan->joined = TRUE;
+						}
+						else
+						{
+							m_chan = g_new(struct maki_channel, 1);
+							m_chan->name = g_strdup(channel);
+							m_chan->joined = TRUE;
+							m_chan->key = NULL;
+							m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_user_destroy);
+
+							g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
+						}
 					}
 
 					maki_dbus_emit_join(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, from_nick);
@@ -152,6 +186,11 @@ gpointer maki_irc_parser (gpointer data)
 					if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
 					{
 						g_hash_table_remove(m_chan->users, from_nick);
+
+						if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
+						{
+							m_chan->joined = FALSE;
+						}
 					}
 
 					if (msg)
@@ -161,11 +200,6 @@ gpointer maki_irc_parser (gpointer data)
 					else
 					{
 						maki_dbus_emit_part(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, from_nick, "");
-					}
-
-					if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
-					{
-						g_hash_table_remove(m_conn->channels, channel);
 					}
 
 					g_strfreev(tmp);
@@ -257,6 +291,10 @@ gpointer maki_irc_parser (gpointer data)
 					}
 
 					g_strfreev(tmp);
+				}
+				else if (g_ascii_strncasecmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || g_ascii_strncasecmp(type, IRC_ERR_NOMOTD, 3) == 0)
+				{
+					maki_join(m_conn);
 				}
 			}
 

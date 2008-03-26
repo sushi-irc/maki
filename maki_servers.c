@@ -129,20 +129,32 @@ void maki_server_new (struct maki* maki, const gchar* server)
 			}
 			else
 			{
-				gchar* buffer;
-				gboolean autojoin;
+				gchar* key;
 				struct maki_connection* m_conn;
 
-				autojoin = g_key_file_get_boolean(key_file, *group, "autojoin", NULL);
+				key = g_key_file_get_string(key_file, *group, "key", NULL);
 
-				m_conn = g_hash_table_lookup(maki->connections, server);
 
-				if (autojoin)
+				if ((m_conn = g_hash_table_lookup(maki->connections, server)) != NULL)
 				{
-					buffer = g_strdup_printf("JOIN %s", *group);
-					sashimi_send(m_conn->connection, buffer);
-					g_free(buffer);
+					struct maki_channel* m_chan;
+
+					m_chan = g_new(struct maki_channel, 1);
+
+					m_chan->name = g_strdup(*group);
+					m_chan->joined = FALSE;
+					m_chan->key = NULL;
+					m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_user_destroy);
+
+					if (key != NULL)
+					{
+						m_chan->key = g_strdup(key);
+					}
+
+					g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
 				}
+
+				g_free(key);
 			}
 		}
 

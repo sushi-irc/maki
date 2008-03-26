@@ -30,5 +30,8 @@
 #define IRC_RPL_NOWAWAY "306"
 #define IRC_RPL_NAMREPLY "353"
 #define IRC_RPL_ENDOFNAMES "366"
+#define IRC_RPL_ENDOFMOTD "376"
+#define IRC_ERR_NOMOTD "422"
 
+void maki_join (struct maki_connection*);
 gpointer maki_irc_parser (gpointer);

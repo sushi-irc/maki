@@ -40,6 +40,7 @@ void maki_channel_destroy (gpointer data)
 	struct maki_channel* m_chan = data;
 
 	g_hash_table_destroy(m_chan->users);
+	g_free(m_chan->key);
 	g_free(m_chan->name);
 	g_free(m_chan);
 }
