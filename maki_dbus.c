@@ -44,6 +44,7 @@ enum
 	s_nick,
 	s_part,
 	s_quit,
+	s_reconnect,
 	s_last
 };
 
@@ -102,6 +103,11 @@ void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, cons
 void maki_dbus_emit_quit (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
 	g_signal_emit(self, signals[s_quit], 0, time, server, nick, message);
+}
+
+void maki_dbus_emit_reconnect (makiDBus* self, gint64 time, const gchar* server)
+{
+	g_signal_emit(self, signals[s_reconnect], 0, time, server);
 }
 
 gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
@@ -570,4 +576,12 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_reconnect] =
+		g_signal_new("reconnect",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING,
+		             G_TYPE_NONE, 2,
+		             G_TYPE_INT64, G_TYPE_STRING);
 }
