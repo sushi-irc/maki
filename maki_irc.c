@@ -263,13 +263,15 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if (g_ascii_strncasecmp(type, "NICK", 4) == 0 && remaining)
 				{
+					gchar* nick = maki_remove_colon(remaining);
+
 					if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
 					{
 						g_free(m_conn->nick);
-						m_conn->nick = g_strdup(remaining);
+						m_conn->nick = g_strdup(nick);
 					}
 
-					maki_dbus_emit_nick(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, remaining);
+					maki_dbus_emit_nick(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, nick);
 				}
 				else if (g_ascii_strncasecmp(type, IRC_RPL_NAMREPLY, 3) == 0 && remaining)
 				{
