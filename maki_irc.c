@@ -36,11 +36,12 @@
  * This function gets called after a successful login.
  * It joins all configured channels.
  */
-void maki_join (struct maki_connection* m_conn)
+gboolean maki_join (gpointer data)
 {
 	GHashTableIter iter;
 	gpointer key;
 	gpointer value;
+	struct maki_connection* m_conn = data;
 
 	g_hash_table_iter_init(&iter, m_conn->channels);
 
@@ -61,6 +62,8 @@ void maki_join (struct maki_connection* m_conn)
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 	}
+
+	return FALSE;
 }
 
 /**
@@ -302,23 +305,25 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if (g_ascii_strncasecmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || g_ascii_strncasecmp(type, IRC_ERR_NOMOTD, 3) == 0)
 				{
-					maki_join(m_conn);
+					g_timeout_add_seconds(1, maki_join, m_conn);
+					m_conn->connected = TRUE;
+					maki_dbus_emit_connected(m_conn->maki->bus, time.tv_sec, m_conn->server, m_conn->nick);
 				}
 				else if (g_ascii_strncasecmp(type, IRC_ERR_NICKNAMEINUSE, 3) == 0)
 				{
-					gchar* buffer;
-					gchar* nick;
+					if (!m_conn->connected)
+					{
+						gchar* buffer;
+						gchar* nick;
 
-					nick = g_strconcat(m_conn->nick, "_", NULL);
+						nick = g_strconcat(m_conn->nick, "_", NULL);
+						g_free(m_conn->nick);
+						m_conn->nick = nick;
 
-					buffer = g_strdup_printf("NICK %s", nick);
-					sashimi_send(m_conn->connection, buffer);
-					g_free(buffer);
-
-					maki_dbus_emit_nick(m_conn->maki->bus, time.tv_sec, m_conn->server, m_conn->nick, nick);
-
-					g_free(m_conn->nick);
-					m_conn->nick = nick;
+						buffer = g_strdup_printf("NICK %s", m_conn->nick);
+						sashimi_send(m_conn->connection, buffer);
+						g_free(buffer);
+					}
 				}
 			}
 

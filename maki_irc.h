@@ -34,5 +34,5 @@
 #define IRC_ERR_NOMOTD "422"
 #define IRC_ERR_NICKNAMEINUSE "433"
 
-void maki_join (struct maki_connection*);
+gboolean maki_join (gpointer);
 gpointer maki_irc_parser (gpointer);

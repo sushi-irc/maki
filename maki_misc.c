@@ -40,7 +40,6 @@ gint maki_connect (struct maki_connection* m_conn)
 		gchar* buffer;
 		GTimeVal time;
 
-		m_conn->connected = TRUE;
 		m_conn->reconnect = TRUE;
 		m_conn->retries = m_conn->maki->config.reconnect.retries;
 
