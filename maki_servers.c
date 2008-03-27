@@ -28,11 +28,17 @@
 #include "maki.h"
 #include "maki_misc.h"
 
+/**
+ * This function handles unexpected reconnects.
+ */
 gboolean maki_reconnect (gpointer data)
 {
 	GTimeVal time;
 	struct maki_connection* m_conn = data;
 
+	/*
+	 * m_conn->reconnect is set to FALSE by the quit method.
+	 */
 	if (!m_conn->reconnect)
 	{
 		return FALSE;
@@ -46,6 +52,11 @@ gboolean maki_reconnect (gpointer data)
 	}
 	else if (m_conn->retries == 0)
 	{
+		/*
+		 * Finally give up and free the connection.
+		 */
+		g_hash_table_remove(m_conn->maki->connections, m_conn->server);
+
 		return FALSE;
 	}
 
@@ -60,6 +71,10 @@ gboolean maki_reconnect (gpointer data)
 	return TRUE;
 }
 
+/**
+ * This function is called by sashimi if the connection drops.
+ * It schedules maki_reconnect() to be called regularly.
+ */
 void maki_reconnect_callback (gpointer data)
 {
 	struct maki_connection* m_conn = data;

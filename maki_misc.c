@@ -27,6 +27,10 @@
 
 #include "maki.h"
 
+/**
+ * This function is a wrapper around sashimi_connect().
+ * It handles the initial login with NICK and USER and emits the connect signal.
+ */
 gint maki_connect (struct maki_connection* m_conn)
 {
 	gint ret;
@@ -58,6 +62,9 @@ gint maki_connect (struct maki_connection* m_conn)
 	return ret;
 }
 
+/**
+ * This function is a wrapper around sashimi_disconnect().
+ */
 gint maki_disconnect (struct maki_connection* m_conn)
 {
 	gint ret;
@@ -68,6 +75,9 @@ gint maki_disconnect (struct maki_connection* m_conn)
 	return ret;
 }
 
+/**
+ * This function gets called by the quit method after a delay.
+ */
 gboolean maki_disconnect_timeout (gpointer data)
 {
 	struct maki_connection* m_conn = data;
@@ -77,6 +87,9 @@ gboolean maki_disconnect_timeout (gpointer data)
 	return FALSE;
 }
 
+/**
+ * This function gets called when a user is removed from the users hash table.
+ */
 void maki_user_destroy (gpointer data)
 {
 	struct maki_user* m_user = data;
@@ -85,6 +98,9 @@ void maki_user_destroy (gpointer data)
 	g_free(m_user);
 }
 
+/**
+ * This function gets called when a channel is removed from the channels hash table.
+ */
 void maki_channel_destroy (gpointer data)
 {
 	struct maki_channel* m_chan = data;
@@ -95,6 +111,9 @@ void maki_channel_destroy (gpointer data)
 	g_free(m_chan);
 }
 
+/**
+ * This function gets called when a connection is removed from the connections hash table.
+ */
 void maki_connection_destroy (gpointer data)
 {
 	struct maki_connection* m_conn = data;
@@ -109,6 +128,10 @@ void maki_connection_destroy (gpointer data)
 	g_free(m_conn);
 }
 
+/**
+ * A convenience function to remove a colon before an argument.
+ * It also checks for NULL.
+ */
 gchar* maki_remove_colon (gchar* string)
 {
 	if (string != NULL && string[0] == ':')

@@ -32,6 +32,10 @@
 #include "maki_irc.h"
 #include "maki_misc.h"
 
+/**
+ * This function gets called after a successful login.
+ * It joins all configured channels.
+ */
 void maki_join (struct maki_connection* m_conn)
 {
 	GHashTableIter iter;
@@ -59,6 +63,10 @@ void maki_join (struct maki_connection* m_conn)
 	}
 }
 
+/**
+ * This function is run in its own thread.
+ * It receives and handles all messages from sashimi.
+ */
 gpointer maki_irc_parser (gpointer data)
 {
 	gchar* message;
