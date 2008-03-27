@@ -100,6 +100,23 @@ gpointer maki_irc_parser (gpointer data)
 
 		g_free(s_msg);
 
+		if (!g_utf8_validate(message, -1, NULL))
+		{
+			gchar* tmp;
+
+			if ((tmp = g_convert_with_fallback(message, -1, "UTF-8", "ISO-8859-1", "?", NULL, NULL, NULL)) != NULL)
+			{
+				g_free(message);
+				message = tmp;
+			}
+			else
+			{
+				g_free(message);
+
+				continue;
+			}
+		}
+
 		g_get_current_time(&time);
 
 		g_print("%ld %s %s\n", time.tv_sec, m_conn->server, message);
