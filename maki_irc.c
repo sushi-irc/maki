@@ -296,6 +296,22 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_join(m_conn);
 				}
+				else if (g_ascii_strncasecmp(type, IRC_ERR_NICKNAMEINUSE, 3) == 0)
+				{
+					gchar* buffer;
+					gchar* nick;
+
+					nick = g_strconcat(m_conn->nick, "_", NULL);
+
+					buffer = g_strdup_printf("NICK %s", nick);
+					sashimi_send(m_conn->connection, buffer);
+					g_free(buffer);
+
+					maki_dbus_emit_nick(m_conn->maki->bus, time.tv_sec, m_conn->server, m_conn->nick, nick);
+
+					g_free(m_conn->nick);
+					m_conn->nick = nick;
+				}
 			}
 
 			g_strfreev(from);
