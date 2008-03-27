@@ -169,13 +169,8 @@ void maki_server_new (struct maki* maki, const gchar* server)
 
 					m_chan->name = g_strdup(*group);
 					m_chan->joined = FALSE;
-					m_chan->key = NULL;
+					m_chan->key = g_strdup(key);
 					m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_user_destroy);
-
-					if (key != NULL)
-					{
-						m_chan->key = g_strdup(key);
-					}
 
 					g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
 				}
