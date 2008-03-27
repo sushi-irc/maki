@@ -29,6 +29,7 @@
 		<method name="join">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
+			<arg name="key" type="s" />
 		</method>
 
 		<method name="kick">
