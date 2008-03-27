@@ -25,6 +25,9 @@
  * SUCH DAMAGE.
  */
 
+gint maki_connect (struct maki_connection*);
+gint maki_disconnect (struct maki_connection*);
+gboolean maki_disconnect_timeout (gpointer);
 void maki_user_destroy (gpointer);
 void maki_channel_destroy (gpointer);
 void maki_connection_destroy (gpointer);

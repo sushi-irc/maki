@@ -72,7 +72,12 @@ struct maki_connection
 {
 	struct maki* maki;
 	gchar* server;
+	gchar* initial_nick;
 	gchar* nick;
+	gchar* name;
+	gboolean connected;
+	gboolean reconnect;
+	gint retries;
 	struct sashimi_connection* connection;
 	GHashTable* channels;
 };

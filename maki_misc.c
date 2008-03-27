@@ -27,6 +27,56 @@
 
 #include "maki.h"
 
+gint maki_connect (struct maki_connection* m_conn)
+{
+	gint ret;
+
+	if ((ret = sashimi_connect(m_conn->connection)) == 0)
+	{
+		gchar* buffer;
+		GTimeVal time;
+
+		m_conn->connected = TRUE;
+		m_conn->reconnect = TRUE;
+		m_conn->retries = m_conn->maki->config.reconnect.retries;
+
+		g_free(m_conn->nick);
+		m_conn->nick = g_strdup(m_conn->initial_nick);
+
+		buffer = g_strdup_printf("NICK %s", m_conn->initial_nick);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+
+		buffer = g_strdup_printf("USER %s 0 * :%s", m_conn->initial_nick, m_conn->name);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+
+		g_get_current_time(&time);
+		maki_dbus_emit_connect(m_conn->maki->bus, time.tv_sec, m_conn->server);
+	}
+
+	return ret;
+}
+
+gint maki_disconnect (struct maki_connection* m_conn)
+{
+	gint ret;
+
+	m_conn->connected = FALSE;
+	ret = sashimi_disconnect(m_conn->connection);
+
+	return ret;
+}
+
+gboolean maki_disconnect_timeout (gpointer data)
+{
+	struct maki_connection* m_conn = data;
+
+	g_hash_table_remove(m_conn->maki->connections, m_conn->server);
+
+	return FALSE;
+}
+
 void maki_user_destroy (gpointer data)
 {
 	struct maki_user* m_user = data;
@@ -50,9 +100,11 @@ void maki_connection_destroy (gpointer data)
 	struct maki_connection* m_conn = data;
 
 	g_hash_table_destroy(m_conn->channels);
-	sashimi_disconnect(m_conn->connection);
+	maki_disconnect(m_conn);
 	sashimi_free(m_conn->connection);
+	g_free(m_conn->name);
 	g_free(m_conn->nick);
+	g_free(m_conn->initial_nick);
 	g_free(m_conn->server);
 	g_free(m_conn);
 }

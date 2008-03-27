@@ -29,6 +29,7 @@
 
 #include "maki.h"
 #include "maki_marshal.h"
+#include "maki_misc.h"
 #include "maki_servers.h"
 
 enum
@@ -179,13 +180,11 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 		{
 			struct maki_channel* m_chan = value;
 
-			if (!m_chan->joined)
+			if (m_chan->joined)
 			{
-				continue;
+				*channel = g_strdup(m_chan->name);
+				++channel;
 			}
-
-			*channel = g_strdup(m_chan->name);
-			++channel;
 		}
 	}
 	else
@@ -340,10 +339,25 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 	{
 		GTimeVal time;
 
+		m_conn->reconnect = FALSE;
+
+		if (message[0])
+		{
+			gchar* buffer;
+
+			buffer = g_strdup_printf("QUIT :%s", message);
+			sashimi_send(m_conn->connection, buffer);
+			g_free(buffer);
+		}
+		else
+		{
+			sashimi_send(m_conn->connection, "QUIT :sushi – http://sushi.ikkoku.de/");
+		}
+
 		g_get_current_time(&time);
 		maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, message);
 
-		g_hash_table_remove(self->maki->connections, server);
+		g_timeout_add_seconds(1, maki_disconnect_timeout, m_conn);
 	}
 
 	return TRUE;
@@ -423,8 +437,13 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
-		*server = g_strdup(key);
-		++server;
+		struct maki_connection* m_conn = value;
+
+		if (m_conn->connected)
+		{
+			*server = g_strdup(key);
+			++server;
+		}
 	}
 
 	*server = NULL;

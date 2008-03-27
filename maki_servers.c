@@ -30,20 +30,29 @@
 
 gboolean maki_reconnect (gpointer data)
 {
+	GTimeVal time;
 	struct maki_connection* m_conn = data;
 
-	sashimi_disconnect(m_conn->connection);
-
-	if (m_conn->maki->config.reconnect.retries > 0)
-	{
-		m_conn->maki->config.reconnect.retries--;
-	}
-	else if (m_conn->maki->config.reconnect.retries == 0)
+	if (!m_conn->reconnect)
 	{
 		return FALSE;
 	}
 
-	if (sashimi_connect(m_conn->connection) == 0)
+	maki_disconnect(m_conn);
+
+	if (m_conn->retries > 0)
+	{
+		m_conn->retries--;
+	}
+	else if (m_conn->retries == 0)
+	{
+		return FALSE;
+	}
+
+	g_get_current_time(&time);
+	maki_dbus_emit_reconnect(m_conn->maki->bus, time.tv_sec, m_conn->server);
+
+	if (maki_connect(m_conn) == 0)
 	{
 		return FALSE;
 	}
@@ -107,18 +116,20 @@ void maki_server_new (struct maki* maki, const gchar* server)
 
 				m_conn->maki = maki;
 				m_conn->server = g_strdup(server);
+				m_conn->initial_nick = g_strdup(nick);
 				m_conn->nick = g_strdup(nick);
-				m_conn->connection = sashimi_new(address, port, nick, name, maki->message_queue, m_conn);
+				m_conn->name = g_strdup(name);
+				m_conn->connected = FALSE;
+				m_conn->reconnect = TRUE;
+				m_conn->retries = maki->config.reconnect.retries;
+				m_conn->connection = sashimi_new(address, port, maki->message_queue, m_conn);
 				m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_destroy);
 
 				sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 
-				if (sashimi_connect(m_conn->connection) == 0)
+				if (maki_connect(m_conn) != 0)
 				{
-					GTimeVal time;
-
-					g_get_current_time(&time);
-					maki_dbus_emit_connect(maki->bus, time.tv_sec, server);
+					maki_reconnect_callback(m_conn);
 				}
 
 				g_hash_table_replace(maki->connections, m_conn->server, m_conn);
