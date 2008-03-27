@@ -121,6 +121,12 @@
 			<arg name="server" type="s" />
 		</signal>
 
+		<signal name="connected">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" />
+		</signal>
+
 		<signal name="join">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
