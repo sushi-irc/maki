@@ -417,11 +417,15 @@ gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* me
 			for (tmp = messages; *tmp != NULL; ++tmp)
 			{
 				g_strchomp(*tmp);
-				buffer = g_strdup_printf("PRIVMSG %s :%s", channel, *tmp);
-				sashimi_queue(m_conn->connection, buffer);
-				g_free(buffer);
 
-				maki_dbus_emit_message(self, time.tv_sec, server, channel, m_conn->nick, *tmp);
+				if ((*tmp)[0])
+				{
+					buffer = g_strdup_printf("PRIVMSG %s :%s", channel, *tmp);
+					sashimi_queue(m_conn->connection, buffer);
+					g_free(buffer);
+
+					maki_dbus_emit_message(self, time.tv_sec, server, channel, m_conn->nick, *tmp);
+				}
 			}
 
 			g_strfreev(messages);
