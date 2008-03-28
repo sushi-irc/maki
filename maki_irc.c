@@ -100,10 +100,16 @@ gpointer maki_irc_parser (gpointer data)
 
 		g_free(s_msg);
 
+		/*
+		 * Check for valid UTF-8, because strange crashes can occur otherwise.
+		 */
 		if (!g_utf8_validate(message, -1, NULL))
 		{
 			gchar* tmp;
 
+			/*
+			 * If the message is not in UTF-8 we will just assume that it is in ISO-8859-1.
+			 */
 			if ((tmp = g_convert_with_fallback(message, -1, "UTF-8", "ISO-8859-1", "?", NULL, NULL, NULL)) != NULL)
 			{
 				g_free(message);
