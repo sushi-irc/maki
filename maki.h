@@ -101,4 +101,5 @@ struct maki_user
 	gchar* nick;
 };
 
+int maki_daemonize (void);
 void maki_shutdown (struct maki*);

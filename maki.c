@@ -25,13 +25,58 @@
  * SUCH DAMAGE.
  */
 
+#include <fcntl.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "maki.h"
 #include "maki_irc.h"
 #include "maki_misc.h"
 #include "maki_servers.h"
+
+int maki_daemonize (void)
+{
+	int fd;
+	pid_t pid;
+
+	pid = fork();
+
+	if (pid > 0)
+	{
+		exit(0);
+	}
+	else if (pid == -1)
+	{
+		return 1;
+	}
+
+	if (setsid() == -1)
+	{
+		return 1;
+	}
+
+	fd = open("/dev/null", O_RDWR);
+
+	if (fd == -1)
+	{
+		return 1;
+	}
+
+	if (dup2(fd, 0) == -1 || dup2(fd, 1) == -1 || dup2(fd, 2) == -1)
+	{
+		return 1;
+	}
+
+	if (fd > 2)
+	{
+		close(fd);
+	}
+
+	return 0;
+}
 
 void maki_shutdown (struct maki* maki)
 {
@@ -78,6 +123,26 @@ void maki_shutdown (struct maki* maki)
 int main (int argc, char* argv[])
 {
 	struct maki maki;
+	gboolean opt_daemon = FALSE;
+	GOptionContext* context;
+	GOptionEntry entries[] =
+	{
+		{ "daemon", 'd', 0, G_OPTION_ARG_NONE, &opt_daemon, "Run as daemon", NULL },
+		{ NULL }
+	};
+
+	context = g_option_context_new(NULL);
+	g_option_context_add_main_entries(context, entries, NULL);
+	g_option_context_parse(context, &argc, &argv, NULL);
+	g_option_context_free(context);
+
+	if (opt_daemon)
+	{
+		if (maki_daemonize() != 0)
+		{
+			return 1;
+		}
+	}
 
 	if (!g_thread_supported())
 	{
