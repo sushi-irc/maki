@@ -46,6 +46,7 @@ enum
 	s_message,
 	s_motd,
 	s_nick,
+	s_notice,
 	s_part,
 	s_quit,
 	s_reconnect,
@@ -113,6 +114,11 @@ void maki_dbus_emit_motd (makiDBus* self, gint64 time, const gchar* server, cons
 void maki_dbus_emit_nick (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* new_nick)
 {
 	g_signal_emit(self, signals[s_nick], 0, time, server, nick, new_nick);
+}
+
+void maki_dbus_emit_notice (makiDBus* self, gint64 time, const gchar* server, const gchar* target, const gchar* nick, const gchar* message)
+{
+	g_signal_emit(self, signals[s_notice], 0, time, server, target, nick, message);
 }
 
 void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
@@ -623,6 +629,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_notice] =
+		g_signal_new("notice",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             G_TYPE_NONE, 5,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_part] =
 		g_signal_new("part",
 		             G_OBJECT_CLASS_TYPE(klass),

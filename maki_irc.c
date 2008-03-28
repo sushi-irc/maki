@@ -319,6 +319,19 @@ gpointer maki_irc_parser (gpointer data)
 
 					maki_dbus_emit_nick(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, nick);
 				}
+				else if (g_ascii_strncasecmp(type, "NOTICE", 6) == 0 && remaining)
+				{
+					gchar** tmp = g_strsplit(remaining, " ", 2);
+					gchar* target = tmp[0];
+					gchar* msg = maki_remove_colon(tmp[1]);
+
+					if (target != NULL && msg != NULL)
+					{
+						maki_dbus_emit_notice(m_conn->maki->bus, time.tv_sec, m_conn->server, target, from_nick, msg);
+					}
+
+					g_strfreev(tmp);
+				}
 				else if (g_ascii_strncasecmp(type, IRC_RPL_NAMREPLY, 3) == 0 && remaining)
 				{
 					gchar** tmp = g_strsplit(remaining, " ", 0);

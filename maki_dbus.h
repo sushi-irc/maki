@@ -63,6 +63,7 @@ void maki_dbus_emit_kick (makiDBus*, gint64, const gchar*, const gchar*, const g
 void maki_dbus_emit_message (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_motd (makiDBus*, gint64, const gchar*, const gchar*);
 void maki_dbus_emit_nick (makiDBus*, gint64, const gchar*, const gchar*, const gchar*);
+void maki_dbus_emit_notice (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_part (makiDBus*, gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_quit (makiDBus*, gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_reconnect (makiDBus*, gint64, const gchar*);
