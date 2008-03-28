@@ -71,8 +71,8 @@ int main (int argc, char* argv[])
 
 	maki.connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_destroy);
 
-	maki.directories.logs = g_strconcat(g_get_home_dir(), G_DIR_SEPARATOR_S, ".sushi", G_DIR_SEPARATOR_S, "logs", NULL);
-	maki.directories.servers = g_strconcat(g_get_home_dir(), G_DIR_SEPARATOR_S, ".sushi", G_DIR_SEPARATOR_S, "servers", NULL);
+	maki.directories.logs = g_build_filename(g_get_home_dir(), ".sushi", "logs", NULL);
+	maki.directories.servers = g_build_filename(g_get_home_dir(), ".sushi", "servers", NULL);
 
 	maki.message_queue = g_async_queue_new();
 

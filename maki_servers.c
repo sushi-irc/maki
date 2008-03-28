@@ -89,7 +89,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 	gchar** groups;
 	GKeyFile* key_file;
 
-	path = g_strconcat(maki->directories.servers, G_DIR_SEPARATOR_S, server, NULL);
+	path = g_build_filename(maki->directories.servers, server, NULL);
 
 	key_file = g_key_file_new();
 
