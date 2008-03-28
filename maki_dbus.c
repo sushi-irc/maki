@@ -343,22 +343,14 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
+		gchar* buffer;
 		GTimeVal time;
 
 		m_conn->reconnect = FALSE;
 
-		if (message[0])
-		{
-			gchar* buffer;
-
-			buffer = g_strdup_printf("QUIT :%s", message);
-			sashimi_send(m_conn->connection, buffer);
-			g_free(buffer);
-		}
-		else
-		{
-			sashimi_send(m_conn->connection, "QUIT :sushi – http://sushi.ikkoku.de/");
-		}
+		buffer = g_strdup_printf("QUIT :%s", message);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
 
 		g_get_current_time(&time);
 		maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, message);

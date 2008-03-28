@@ -34,6 +34,8 @@
 #define IRC_ERR_NOMOTD "422"
 #define IRC_ERR_NICKNAMEINUSE "433"
 
+#define IRC_QUIT_MESSAGE "sushi – http://sushi.ikkoku.de/"
+
 gchar* maki_remove_colon (gchar*);
 void maki_nickserv (struct maki_connection*);
 gboolean maki_join (gpointer);

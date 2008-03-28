@@ -35,6 +35,27 @@
 
 void maki_shutdown (struct maki* maki)
 {
+	GHashTableIter iter;
+	gpointer key;
+	gpointer value;
+
+	g_hash_table_iter_init(&iter, maki->connections);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		GTimeVal time;
+		struct maki_connection* m_conn = value;
+
+		m_conn->reconnect = FALSE;
+
+		sashimi_send(m_conn->connection, "QUIT :" IRC_QUIT_MESSAGE);
+
+		g_get_current_time(&time);
+		maki_dbus_emit_quit(maki->bus, time.tv_sec, m_conn->server, m_conn->nick, IRC_QUIT_MESSAGE);
+	}
+
+	g_usleep(1000000);
+
 	maki->threads.terminate = TRUE;
 	g_thread_join(maki->threads.messages);
 	g_async_queue_unref(maki->message_queue);
