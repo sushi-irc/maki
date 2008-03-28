@@ -418,6 +418,21 @@ gpointer maki_irc_parser (gpointer data)
 						maki_dbus_emit_motd(m_conn->maki->bus, time.tv_sec, m_conn->server, maki_remove_colon(tmp[1]));
 					}
 				}
+				else if (g_ascii_strncasecmp(type, IRC_RPL_TOPIC, 3) == 0 && remaining)
+				{
+					gchar** tmp;
+					gchar* channel;
+					gchar* topic;
+
+					tmp = g_strsplit(remaining, " ", 3);
+					channel = tmp[1];
+					topic = maki_remove_colon(tmp[2]);
+
+					if (tmp[0] != NULL && channel != NULL && topic != NULL)
+					{
+						maki_dbus_emit_topic(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, topic);
+					}
+				}
 			}
 
 			g_strfreev(from);

@@ -51,6 +51,7 @@ enum
 	s_quit,
 	s_reconnect,
 	s_shutdown,
+	s_topic,
 	s_last
 };
 
@@ -139,6 +140,11 @@ void maki_dbus_emit_reconnect (makiDBus* self, gint64 time, const gchar* server)
 void maki_dbus_emit_shutdown (makiDBus* self, gint64 time)
 {
 	g_signal_emit(self, signals[s_shutdown], 0, time);
+}
+
+void maki_dbus_emit_topic (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* topic)
+{
+	g_signal_emit(self, signals[s_topic], 0, time, server, channel, topic);
 }
 
 gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
@@ -669,4 +675,12 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64,
 		             G_TYPE_NONE, 1,
 		             G_TYPE_INT64);
+	signals[s_topic] =
+		g_signal_new("topic",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 }

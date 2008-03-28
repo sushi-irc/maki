@@ -28,6 +28,7 @@
 #define IRC_RPL_AWAY "301"
 #define IRC_RPL_UNAWAY "305"
 #define IRC_RPL_NOWAWAY "306"
+#define IRC_RPL_TOPIC "332"
 #define IRC_RPL_NAMREPLY "353"
 #define IRC_RPL_ENDOFNAMES "366"
 #define IRC_RPL_MOTD "372"

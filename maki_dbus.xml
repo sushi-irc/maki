@@ -203,5 +203,12 @@
 		<signal name="shutdown">
 			<arg name="time" type="x" />
 		</signal>
+
+		<signal name="topic">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="topic" type="s" />
+		</signal>
 	</interface>
 </node>
