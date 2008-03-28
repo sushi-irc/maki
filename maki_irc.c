@@ -33,6 +33,43 @@
 #include "maki_misc.h"
 
 /**
+ * A convenience function to remove a colon before an argument.
+ * It also checks for NULL.
+ */
+gchar* maki_remove_colon (gchar* string)
+{
+	if (string != NULL && string[0] == ':')
+	{
+		++string;
+	}
+
+	return string;
+}
+
+void maki_nickserv (struct maki_connection* m_conn)
+{
+	if (m_conn->nickserv.password != NULL)
+	{
+		gchar* buffer;
+
+		if (g_ascii_strcasecmp(m_conn->nick, m_conn->initial_nick) != 0)
+		{
+			buffer = g_strdup_printf("PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
+			sashimi_send(m_conn->connection, buffer);
+			g_free(buffer);
+
+			buffer = g_strdup_printf("NICK %s", m_conn->initial_nick);
+			sashimi_send(m_conn->connection, buffer);
+			g_free(buffer);
+		}
+
+		buffer = g_strdup_printf("PRIVMSG NickServ :IDENTIFY %s", m_conn->nickserv.password);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+}
+
+/**
  * This function gets called after a successful login.
  * It joins all configured channels.
  */
@@ -333,7 +370,8 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if (g_ascii_strncasecmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || g_ascii_strncasecmp(type, IRC_ERR_NOMOTD, 3) == 0)
 				{
-					g_timeout_add_seconds(1, maki_join, m_conn);
+					maki_nickserv(m_conn);
+					g_timeout_add_seconds(3, maki_join, m_conn);
 					m_conn->connected = TRUE;
 					maki_dbus_emit_connected(m_conn->maki->bus, time.tv_sec, m_conn->server, m_conn->nick);
 				}

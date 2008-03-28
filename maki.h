@@ -80,6 +80,12 @@ struct maki_connection
 	gint retries;
 	struct sashimi_connection* connection;
 	GHashTable* channels;
+
+	struct
+	{
+		gchar* password;
+	}
+	nickserv;
 };
 
 struct maki_channel

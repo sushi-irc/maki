@@ -104,6 +104,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				gchar* address;
 				gchar* nick;
 				gchar* name;
+				gchar* nickserv;
 				gint port;
 				struct maki_connection* m_conn;
 
@@ -111,6 +112,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				port = g_key_file_get_integer(key_file, *group, "port", NULL);
 				nick = g_key_file_get_string(key_file, *group, "nick", NULL);
 				name = g_key_file_get_string(key_file, *group, "name", NULL);
+				nickserv = g_key_file_get_string(key_file, *group, "nickserv", NULL);
 
 				if (port == 0)
 				{
@@ -139,6 +141,8 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				m_conn->retries = maki->config.reconnect.retries;
 				m_conn->connection = sashimi_new(address, port, maki->message_queue, m_conn);
 				m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_destroy);
+
+				m_conn->nickserv.password = g_strdup(nickserv);
 
 				sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 

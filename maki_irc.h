@@ -34,5 +34,7 @@
 #define IRC_ERR_NOMOTD "422"
 #define IRC_ERR_NICKNAMEINUSE "433"
 
+gchar* maki_remove_colon (gchar*);
+void maki_nickserv (struct maki_connection*);
 gboolean maki_join (gpointer);
 gpointer maki_irc_parser (gpointer);

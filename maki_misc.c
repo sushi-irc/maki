@@ -126,17 +126,3 @@ void maki_connection_destroy (gpointer data)
 	g_free(m_conn->server);
 	g_free(m_conn);
 }
-
-/**
- * A convenience function to remove a colon before an argument.
- * It also checks for NULL.
- */
-gchar* maki_remove_colon (gchar* string)
-{
-	if (string != NULL && string[0] == ':')
-	{
-		++string;
-	}
-
-	return string;
-}
