@@ -186,27 +186,30 @@ gpointer maki_irc_parser (gpointer data)
 					gchar* to = tmp[0];
 					gchar* msg = maki_remove_colon(tmp[1]);
 
-					if (msg && msg[0] == '\1')
+					if (to != NULL && msg != NULL)
 					{
-						gchar** magic;
-
-						magic = g_strsplit(msg + 1, " ", 2);
-
-						if (g_ascii_strncasecmp(magic[0], "ACTION", 7) == 0 && magic[1])
+						if (msg[0] == '\1')
 						{
-							if (strlen(magic[1]) > 1 && magic[1][strlen(magic[1]) - 1] == '\1')
+							++msg;
+
+							if (msg[0] && msg[strlen(msg) - 1] == '\1')
 							{
-								magic[1][strlen(magic[1]) - 1] = '\0';
+								msg[strlen(msg) - 1] = '\0';
 							}
 
-							maki_dbus_emit_action(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, magic[1]);
+							if (g_ascii_strncasecmp(msg, "ACTION", 6) == 0 && strlen(msg) > 6)
+							{
+								maki_dbus_emit_action(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg + 7);
+							}
+							else
+							{
+								maki_dbus_emit_ctcp(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg);
+							}
 						}
-
-						g_strfreev(magic);
-					}
-					else if (msg)
-					{
-						maki_dbus_emit_message(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg);
+						else
+						{
+							maki_dbus_emit_message(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg);
+						}
 					}
 
 					g_strfreev(tmp);
