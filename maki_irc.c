@@ -391,6 +391,17 @@ gpointer maki_irc_parser (gpointer data)
 						g_free(buffer);
 					}
 				}
+				else if (g_ascii_strncasecmp(type, IRC_RPL_MOTD, 3) == 0 && remaining)
+				{
+					gchar** tmp;
+
+					tmp = g_strsplit(remaining, " ", 2);
+
+					if (tmp[1] != NULL)
+					{
+						maki_dbus_emit_motd(m_conn->maki->bus, time.tv_sec, m_conn->server, maki_remove_colon(tmp[1]));
+					}
+				}
 			}
 
 			g_strfreev(from);
