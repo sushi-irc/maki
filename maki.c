@@ -35,6 +35,7 @@
 
 void maki_shutdown (struct maki* maki)
 {
+	GTimeVal time;
 	GHashTableIter iter;
 	gpointer key;
 	gpointer value;
@@ -43,7 +44,6 @@ void maki_shutdown (struct maki* maki)
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
-		GTimeVal time;
 		struct maki_connection* m_conn = value;
 
 		m_conn->reconnect = FALSE;
@@ -55,6 +55,9 @@ void maki_shutdown (struct maki* maki)
 	}
 
 	g_usleep(1000000);
+
+	g_get_current_time(&time);
+	maki_dbus_emit_shutdown(maki->bus, time.tv_sec);
 
 	maki->threads.terminate = TRUE;
 	g_thread_join(maki->threads.messages);
