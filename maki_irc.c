@@ -293,7 +293,10 @@ gpointer maki_irc_parser (gpointer data)
 							gchar* nick = maki_remove_colon(tmp[i]);
 							struct maki_user* m_user;
 
-							if (nick[0] == '@'
+							if (nick[0] == '*'
+							    || nick[0] == '!'
+							    || nick[0] == '@'
+							    || nick[0] == '%'
 							    || nick[0] == '+')
 							{
 								++nick;
