@@ -97,10 +97,25 @@ void maki_user_destroy (gpointer data)
 	g_free(m_user);
 }
 
+struct maki_channel* maki_channel_new (const gchar* name)
+{
+	struct maki_channel* m_chan;
+
+	m_chan = g_new(struct maki_channel, 1);
+
+	m_chan->name = g_strdup(name);
+	m_chan->autojoin = FALSE;
+	m_chan->joined = FALSE;
+	m_chan->key = NULL;
+	m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_user_destroy);
+
+	return m_chan;
+}
+
 /**
  * This function gets called when a channel is removed from the channels hash table.
  */
-void maki_channel_destroy (gpointer data)
+void maki_channel_free (gpointer data)
 {
 	struct maki_channel* m_chan = data;
 

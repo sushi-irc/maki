@@ -104,6 +104,7 @@ struct maki_connection
 struct maki_channel
 {
 	gchar* name;
+	gboolean autojoin;
 	gboolean joined;
 	gchar* key;
 	GHashTable* users;

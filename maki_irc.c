@@ -137,6 +137,11 @@ gboolean maki_join (gpointer data)
 		gchar* buffer;
 		struct maki_channel* m_chan = value;
 
+		if (!m_chan->autojoin && !m_chan->joined)
+		{
+			continue;
+		}
+
 		if (m_chan->key != NULL)
 		{
 			buffer = g_strdup_printf("JOIN %s %s", m_chan->name, m_chan->key);
@@ -288,11 +293,8 @@ gpointer maki_irc_parser (gpointer data)
 						}
 						else
 						{
-							m_chan = g_new(struct maki_channel, 1);
-							m_chan->name = g_strdup(channel);
+							m_chan = maki_channel_new(channel);
 							m_chan->joined = TRUE;
-							m_chan->key = NULL;
-							m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_user_destroy);
 
 							g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
 						}
