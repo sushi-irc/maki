@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include "maki.h"
+#include "maki_irc.h"
 #include "maki_marshal.h"
 #include "maki_misc.h"
 #include "maki_servers.h"
@@ -319,14 +320,10 @@ gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mo
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
 		gchar* buffer;
-		GTimeVal time;
 
 		buffer = g_strdup_printf("MODE %s %s", target, mode);
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
-
-		g_get_current_time(&time);
-/*		maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, message);*/
 	}
 
 	return TRUE;
@@ -419,17 +416,27 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
-		gchar* buffer;
 		GTimeVal time;
 
 		m_conn->reconnect = FALSE;
-
-		buffer = g_strdup_printf("QUIT :%s", message);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
-
 		g_get_current_time(&time);
-		maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, message);
+
+		if (message[0])
+		{
+			gchar* buffer;
+
+			buffer = g_strdup_printf("QUIT :%s", message);
+			sashimi_send(m_conn->connection, buffer);
+			g_free(buffer);
+
+			maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, message);
+		}
+		else
+		{
+			sashimi_send(m_conn->connection, "QUIT :" IRC_QUIT_MESSAGE);
+
+			maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, IRC_QUIT_MESSAGE);
+		}
 
 		g_timeout_add_seconds(1, maki_disconnect_timeout, m_conn);
 	}

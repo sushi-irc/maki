@@ -338,7 +338,7 @@ gpointer maki_irc_parser (gpointer data)
 					}
 					else
 					{
-						maki_dbus_emit_quit(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, IRC_QUIT_MESSAGE);
+						maki_dbus_emit_quit(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, "");
 					}
 				}
 				else if (g_ascii_strncasecmp(type, "KICK", 4) == 0 && remaining)
