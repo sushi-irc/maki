@@ -69,6 +69,56 @@ void maki_nickserv (struct maki_connection* m_conn)
 	}
 }
 
+gboolean maki_mode_has_parameter (struct maki_connection* m_conn, gchar sign, gchar mode)
+{
+	gint type;
+	gchar* chanmode;
+
+	if (m_conn->support.chanmodes == NULL)
+	{
+		return FALSE;
+	}
+
+	if (strchr(m_conn->support.prefix.modes, mode) != NULL)
+	{
+		return TRUE;
+	}
+
+	for (chanmode = m_conn->support.chanmodes, type = 0; *chanmode != '\0'; ++chanmode)
+	{
+		if (*chanmode == ',')
+		{
+			++type;
+			continue;
+		}
+
+		if (*chanmode == mode)
+		{
+			if (type == 0 || type == 1)
+			{
+				return TRUE;
+			}
+			else if (type == 2)
+			{
+				if (sign == '+')
+				{
+					return TRUE;
+				}
+				else
+				{
+					return FALSE;
+				}
+			}
+			else if (type == 3)
+			{
+				return FALSE;
+			}
+		}
+	}
+
+	return FALSE;
+}
+
 /**
  * This function gets called after a successful login.
  * It joins all configured channels.
