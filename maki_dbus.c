@@ -392,6 +392,26 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 	return TRUE;
 }
 
+gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar* buffer;
+		GTimeVal time;
+
+		buffer = g_strdup_printf("NOTICE %s :%s", target, message);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+
+		g_get_current_time(&time);
+		maki_dbus_emit_notice(self, time.tv_sec, server, m_conn->nick, target, message);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError** error)
 {
 	struct maki_connection* m_conn;
