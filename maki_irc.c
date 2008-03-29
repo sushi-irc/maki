@@ -382,6 +382,56 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
+				else if (g_ascii_strncasecmp(type, "MODE", 4) == 0 && remaining)
+				{
+					gchar** tmp;
+					gchar* target;
+
+					tmp = g_strsplit(remaining, " ", 2);
+					target = tmp[0];
+
+					if (target != NULL && tmp[1] != NULL)
+					{
+						gchar** modes;
+
+						modes = g_strsplit(maki_remove_colon(tmp[1]), " ", 0);
+
+						if (modes[0] != NULL)
+						{
+							gint i;
+							gchar sign = '+';
+							gchar buffer[3];
+							gchar* mode;
+
+							for (mode = modes[0], i = 1; *mode != '\0'; ++mode)
+							{
+								if (*mode == '+' || *mode == '-')
+								{
+									sign = *mode;
+									continue;
+								}
+
+								buffer[0] = sign;
+								buffer[1] = *mode;
+								buffer[2] = '\0';
+
+								if (maki_mode_has_parameter(m_conn, sign, *mode) && i < g_strv_length(modes))
+								{
+									maki_dbus_emit_mode(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, target, buffer, modes[i]);
+									++i;
+								}
+								else
+								{
+									maki_dbus_emit_mode(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, target, buffer, "");
+								}
+							}
+						}
+
+						g_strfreev(modes);
+					}
+
+					g_strfreev(tmp);
+				}
 				else if (g_ascii_strncasecmp(type, IRC_RPL_NAMREPLY, 3) == 0 && remaining)
 				{
 					gchar** tmp = g_strsplit(remaining, " ", 0);
