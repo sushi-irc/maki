@@ -86,6 +86,19 @@ struct maki_connection
 		gchar* password;
 	}
 	nickserv;
+
+	struct
+	{
+		gchar* chanmodes;
+
+		struct
+		{
+			gchar* modes;
+			gchar* prefixes;
+		}
+		prefix;
+	}
+	support;
 };
 
 struct maki_channel

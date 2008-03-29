@@ -346,11 +346,7 @@ gpointer maki_irc_parser (gpointer data)
 							gchar* nick = maki_remove_colon(tmp[i]);
 							struct maki_user* m_user;
 
-							if (nick[0] == '*'
-							    || nick[0] == '!'
-							    || nick[0] == '@'
-							    || nick[0] == '%'
-							    || nick[0] == '+')
+							if (strchr(m_conn->support.prefix.prefixes, nick[0]) != NULL)
 							{
 								++nick;
 							}
@@ -433,6 +429,53 @@ gpointer maki_irc_parser (gpointer data)
 					if (tmp[0] != NULL && channel != NULL && topic != NULL)
 					{
 						maki_dbus_emit_topic(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, topic);
+					}
+
+					g_strfreev(tmp);
+				}
+				else if (g_ascii_strncasecmp(type, IRC_RPL_ISUPPORT, 3) == 0 && remaining)
+				{
+					gint i;
+					gchar** tmp;
+
+					tmp = g_strsplit(remaining, " ", 0);
+
+					for (i = 1; i < g_strv_length(tmp); ++i)
+					{
+						gchar** support;
+
+						if (tmp[i][0] == ':')
+						{
+							break;
+						}
+
+						support = g_strsplit(tmp[i], "=", 2);
+
+						if (support[0] != NULL && support[1] != NULL)
+						{
+							if (g_ascii_strncasecmp(support[0], "CHANMODES", 9) == 0)
+							{
+								g_free(m_conn->support.chanmodes);
+								m_conn->support.chanmodes = g_strdup(support[1]);
+							}
+							else if (g_ascii_strncasecmp(support[0], "PREFIX", 6) == 0)
+							{
+								gchar* paren;
+
+								paren = strchr(support[1], ')');
+
+								if (support[1][0] == '(' && paren != NULL)
+								{
+									*paren = '\0';
+									g_free(m_conn->support.prefix.modes);
+									g_free(m_conn->support.prefix.prefixes);
+									m_conn->support.prefix.modes = g_strdup(support[1] + 1);
+									m_conn->support.prefix.prefixes = g_strdup(paren + 1);
+								}
+							}
+						}
+
+						g_strfreev(support);
 					}
 
 					g_strfreev(tmp);

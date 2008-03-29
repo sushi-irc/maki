@@ -143,6 +143,9 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_destroy);
 
 				m_conn->nickserv.password = g_strdup(nickserv);
+				m_conn->support.chanmodes = NULL;
+				m_conn->support.prefix.modes = g_strdup("ov");
+				m_conn->support.prefix.prefixes = g_strdup("@+");
 
 				sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 

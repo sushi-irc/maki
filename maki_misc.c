@@ -117,6 +117,9 @@ void maki_connection_destroy (gpointer data)
 {
 	struct maki_connection* m_conn = data;
 
+	g_free(m_conn->support.prefix.prefixes);
+	g_free(m_conn->support.prefix.modes);
+	g_free(m_conn->support.chanmodes);
 	g_free(m_conn->nickserv.password);
 	g_hash_table_destroy(m_conn->channels);
 	maki_disconnect(m_conn);

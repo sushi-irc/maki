@@ -25,6 +25,7 @@
  * SUCH DAMAGE.
  */
 
+#define IRC_RPL_ISUPPORT "005"
 #define IRC_RPL_AWAY "301"
 #define IRC_RPL_UNAWAY "305"
 #define IRC_RPL_NOWAWAY "306"
