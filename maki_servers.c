@@ -156,6 +156,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				g_free(address);
 				g_free(nick);
 				g_free(name);
+				g_free(nickserv);
 			}
 			else
 			{
@@ -163,7 +164,6 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				struct maki_connection* m_conn;
 
 				key = g_key_file_get_string(key_file, *group, "key", NULL);
-
 
 				if ((m_conn = g_hash_table_lookup(maki->connections, server)) != NULL)
 				{

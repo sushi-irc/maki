@@ -417,6 +417,8 @@ gpointer maki_irc_parser (gpointer data)
 					{
 						maki_dbus_emit_motd(m_conn->maki->bus, time.tv_sec, m_conn->server, maki_remove_colon(tmp[1]));
 					}
+
+					g_strfreev(tmp);
 				}
 				else if (g_ascii_strncasecmp(type, IRC_RPL_TOPIC, 3) == 0 && remaining)
 				{
@@ -432,6 +434,8 @@ gpointer maki_irc_parser (gpointer data)
 					{
 						maki_dbus_emit_topic(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, topic);
 					}
+
+					g_strfreev(tmp);
 				}
 			}
 
