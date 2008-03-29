@@ -52,7 +52,7 @@ void maki_nickserv (struct maki_connection* m_conn)
 	{
 		gchar* buffer;
 
-		if (g_ascii_strcasecmp(m_conn->nick, m_conn->initial_nick) != 0)
+		if (strcmp(m_conn->nick, m_conn->initial_nick) != 0)
 		{
 			buffer = g_strdup_printf("PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
 			sashimi_send(m_conn->connection, buffer);
@@ -235,7 +235,7 @@ gpointer maki_irc_parser (gpointer data)
 
 			if (from && from_nick && type)
 			{
-				if (g_ascii_strncasecmp(type, "PRIVMSG", 7) == 0 && remaining)
+				if (strncmp(type, "PRIVMSG", 7) == 0 && remaining)
 				{
 					gchar** tmp = g_strsplit(remaining, " ", 2);
 					gchar* target = tmp[0];
@@ -252,7 +252,7 @@ gpointer maki_irc_parser (gpointer data)
 								msg[strlen(msg) - 1] = '\0';
 							}
 
-							if (g_ascii_strncasecmp(msg, "ACTION", 6) == 0 && strlen(msg) > 6)
+							if (strncmp(msg, "ACTION", 6) == 0 && strlen(msg) > 6)
 							{
 								maki_dbus_emit_action(maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg + 7);
 							}
@@ -269,7 +269,7 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (g_ascii_strncasecmp(type, "JOIN", 4) == 0 && remaining)
+				else if (strncmp(type, "JOIN", 4) == 0 && remaining)
 				{
 					gchar* channel = (remaining[0] == ':') ? remaining + 1 : remaining;
 					struct maki_channel* m_chan;
@@ -285,7 +285,7 @@ gpointer maki_irc_parser (gpointer data)
 						g_hash_table_replace(m_chan->users, m_user->nick, m_user);
 					}
 
-					if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
+					if (strcmp(from_nick, m_conn->nick) == 0)
 					{
 						if (m_chan != NULL)
 						{
@@ -302,7 +302,7 @@ gpointer maki_irc_parser (gpointer data)
 
 					maki_dbus_emit_join(maki->bus, time.tv_sec, m_conn->server, from_nick, channel);
 				}
-				else if (g_ascii_strncasecmp(type, "PART", 4) == 0 && remaining)
+				else if (strncmp(type, "PART", 4) == 0 && remaining)
 				{
 					gchar** tmp = g_strsplit(remaining, " ", 2);
 					gchar* channel = tmp[0];
@@ -313,7 +313,7 @@ gpointer maki_irc_parser (gpointer data)
 					{
 						g_hash_table_remove(m_chan->users, from_nick);
 
-						if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
+						if (strcmp(from_nick, m_conn->nick) == 0)
 						{
 							m_chan->joined = FALSE;
 						}
@@ -330,7 +330,7 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (g_ascii_strncasecmp(type, "QUIT", 4) == 0)
+				else if (strncmp(type, "QUIT", 4) == 0)
 				{
 					if (remaining)
 					{
@@ -341,7 +341,7 @@ gpointer maki_irc_parser (gpointer data)
 						maki_dbus_emit_quit(maki->bus, time.tv_sec, m_conn->server, from_nick, "");
 					}
 				}
-				else if (g_ascii_strncasecmp(type, "KICK", 4) == 0 && remaining)
+				else if (strncmp(type, "KICK", 4) == 0 && remaining)
 				{
 					gchar** tmp = g_strsplit(remaining, " ", 3);
 					gchar* channel = tmp[0];
@@ -359,11 +359,11 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (g_ascii_strncasecmp(type, "NICK", 4) == 0 && remaining)
+				else if (strncmp(type, "NICK", 4) == 0 && remaining)
 				{
 					gchar* nick = maki_remove_colon(remaining);
 
-					if (g_ascii_strcasecmp(from_nick, m_conn->nick) == 0)
+					if (strcmp(from_nick, m_conn->nick) == 0)
 					{
 						g_free(m_conn->nick);
 						m_conn->nick = g_strdup(nick);
@@ -371,7 +371,7 @@ gpointer maki_irc_parser (gpointer data)
 
 					maki_dbus_emit_nick(maki->bus, time.tv_sec, m_conn->server, from_nick, nick);
 				}
-				else if (g_ascii_strncasecmp(type, "NOTICE", 6) == 0 && remaining)
+				else if (strncmp(type, "NOTICE", 6) == 0 && remaining)
 				{
 					gchar** tmp = g_strsplit(remaining, " ", 2);
 					gchar* target = tmp[0];
@@ -384,7 +384,7 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (g_ascii_strncasecmp(type, "MODE", 4) == 0 && remaining)
+				else if (strncmp(type, "MODE", 4) == 0 && remaining)
 				{
 					gchar** tmp;
 					gchar* target;
@@ -434,7 +434,7 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (g_ascii_strncasecmp(type, IRC_RPL_NAMREPLY, 3) == 0 && remaining)
+				else if (strncmp(type, IRC_RPL_NAMREPLY, 3) == 0 && remaining)
 				{
 					gchar** tmp = g_strsplit(remaining, " ", 0);
 					gchar* channel = tmp[2];
@@ -461,15 +461,15 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (g_ascii_strncasecmp(type, IRC_RPL_UNAWAY, 3) == 0)
+				else if (strncmp(type, IRC_RPL_UNAWAY, 3) == 0)
 				{
 					maki_dbus_emit_back(maki->bus, time.tv_sec, m_conn->server);
 				}
-				else if (g_ascii_strncasecmp(type, IRC_RPL_NOWAWAY, 3) == 0)
+				else if (strncmp(type, IRC_RPL_NOWAWAY, 3) == 0)
 				{
 					maki_dbus_emit_away(maki->bus, time.tv_sec, m_conn->server);
 				}
-				else if (g_ascii_strncasecmp(type, IRC_RPL_AWAY, 3) == 0 && remaining)
+				else if (strncmp(type, IRC_RPL_AWAY, 3) == 0 && remaining)
 				{
 					gchar** tmp = g_strsplit(remaining, " ", 3);
 					gchar* nick = tmp[1];
@@ -482,14 +482,14 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (g_ascii_strncasecmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || g_ascii_strncasecmp(type, IRC_ERR_NOMOTD, 3) == 0)
+				else if (strncmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || strncmp(type, IRC_ERR_NOMOTD, 3) == 0)
 				{
 					maki_nickserv(m_conn);
 					g_timeout_add_seconds(3, maki_join, m_conn);
 					m_conn->connected = TRUE;
 					maki_dbus_emit_connected(maki->bus, time.tv_sec, m_conn->server, m_conn->nick);
 				}
-				else if (g_ascii_strncasecmp(type, IRC_ERR_NICKNAMEINUSE, 3) == 0)
+				else if (strncmp(type, IRC_ERR_NICKNAMEINUSE, 3) == 0)
 				{
 					if (!m_conn->connected)
 					{
@@ -505,7 +505,7 @@ gpointer maki_irc_parser (gpointer data)
 						g_free(buffer);
 					}
 				}
-				else if (g_ascii_strncasecmp(type, IRC_RPL_MOTD, 3) == 0 && remaining)
+				else if (strncmp(type, IRC_RPL_MOTD, 3) == 0 && remaining)
 				{
 					gchar** tmp;
 
@@ -518,7 +518,7 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (g_ascii_strncasecmp(type, IRC_RPL_TOPIC, 3) == 0 && remaining)
+				else if (strncmp(type, IRC_RPL_TOPIC, 3) == 0 && remaining)
 				{
 					gchar** tmp;
 					gchar* channel;
@@ -535,7 +535,7 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (g_ascii_strncasecmp(type, IRC_RPL_ISUPPORT, 3) == 0 && remaining)
+				else if (strncmp(type, IRC_RPL_ISUPPORT, 3) == 0 && remaining)
 				{
 					gint i;
 					gchar** tmp;
@@ -555,12 +555,12 @@ gpointer maki_irc_parser (gpointer data)
 
 						if (support[0] != NULL && support[1] != NULL)
 						{
-							if (g_ascii_strncasecmp(support[0], "CHANMODES", 9) == 0)
+							if (strncmp(support[0], "CHANMODES", 9) == 0)
 							{
 								g_free(m_conn->support.chanmodes);
 								m_conn->support.chanmodes = g_strdup(support[1]);
 							}
-							else if (g_ascii_strncasecmp(support[0], "PREFIX", 6) == 0)
+							else if (strncmp(support[0], "PREFIX", 6) == 0)
 							{
 								gchar* paren;
 

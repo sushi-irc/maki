@@ -25,6 +25,8 @@
  * SUCH DAMAGE.
  */
 
+#include <string.h>
+
 #include "maki.h"
 #include "maki_misc.h"
 
@@ -99,7 +101,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 
 		for (group = groups; *group != NULL; ++group)
 		{
-			if (g_ascii_strncasecmp(*group, "server", 6) == 0)
+			if (strncmp(*group, "server", 6) == 0)
 			{
 				gchar* address;
 				gchar* nick;
