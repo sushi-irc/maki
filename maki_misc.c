@@ -66,10 +66,13 @@ gint maki_connect (struct maki_connection* m_conn)
  */
 gint maki_disconnect (struct maki_connection* m_conn)
 {
-	gint ret;
+	gint ret = 0;
 
-	m_conn->connected = FALSE;
-	ret = sashimi_disconnect(m_conn->connection);
+	if (m_conn->connected)
+	{
+		m_conn->connected = FALSE;
+		ret = sashimi_disconnect(m_conn->connection);
+	}
 
 	return ret;
 }

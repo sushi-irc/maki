@@ -242,7 +242,24 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 
 gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 {
-	maki_server_new(self->maki, server);
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		/*
+		 * Disconnect, because strange things happen if we call maki_connect() while still connected.
+		 */
+		maki_disconnect(m_conn);
+
+		if (maki_connect(m_conn) != 0)
+		{
+			maki_reconnect_callback(m_conn);
+		}
+	}
+	else
+	{
+		maki_server_new(self->maki, server);
+	}
 
 	return TRUE;
 }
