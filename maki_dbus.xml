@@ -171,6 +171,15 @@
 			<arg name="message" type="s" />
 		</signal>
 
+		<signal name="mode">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" />
+			<arg name="target" type="s" />
+			<arg name="mode" type="s" />
+			<arg name="parameter" type="s" />
+		</signal>
+
 		<signal name="motd">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
