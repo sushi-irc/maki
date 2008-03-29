@@ -240,6 +240,26 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 	return TRUE;
 }
 
+gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar* buffer;
+		GTimeVal time;
+
+		buffer = g_strdup_printf("PRIVMSG %s :\1%s\1", target, message);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+
+		g_get_current_time(&time);
+		maki_dbus_emit_ctcp(self, time.tv_sec, server, target, m_conn->nick, message);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* key, GError** error)
 {
 	gchar* buffer;
