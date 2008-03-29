@@ -106,8 +106,8 @@
 		<signal name="action">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
-			<arg name="channel" type="s" />
 			<arg name="nick" type="s" />
+			<arg name="target" type="s" />
 			<arg name="message" type="s" />
 		</signal>
 
@@ -142,23 +142,23 @@
 		<signal name="ctcp">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
-			<arg name="target" type="s" />
 			<arg name="nick" type="s" />
+			<arg name="target" type="s" />
 			<arg name="message" type="s" />
 		</signal>
 
 		<signal name="join">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
-			<arg name="channel" type="s" />
 			<arg name="nick" type="s" />
+			<arg name="channel" type="s" />
 		</signal>
 
 		<signal name="kick">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
-			<arg name="channel" type="s" />
 			<arg name="nick" type="s" />
+			<arg name="channel" type="s" />
 			<arg name="who" type="s" />
 			<arg name="message" type="s" />
 		</signal>
@@ -166,8 +166,8 @@
 		<signal name="message">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
-			<arg name="channel" type="s" />
 			<arg name="nick" type="s" />
+			<arg name="target" type="s" />
 			<arg name="message" type="s" />
 		</signal>
 
@@ -187,16 +187,16 @@
 		<signal name="notice">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
-			<arg name="target" type="s" />
 			<arg name="nick" type="s" />
+			<arg name="target" type="s" />
 			<arg name="message" type="s" />
 		</signal>
 
 		<signal name="part">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
-			<arg name="channel" type="s" />
 			<arg name="nick" type="s" />
+			<arg name="channel" type="s" />
 			<arg name="message" type="s" />
 		</signal>
 

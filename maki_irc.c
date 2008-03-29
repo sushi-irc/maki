@@ -199,16 +199,16 @@ gpointer maki_irc_parser (gpointer data)
 
 							if (g_ascii_strncasecmp(msg, "ACTION", 6) == 0 && strlen(msg) > 6)
 							{
-								maki_dbus_emit_action(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg + 7);
+								maki_dbus_emit_action(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, to, msg + 7);
 							}
 							else
 							{
-								maki_dbus_emit_ctcp(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg);
+								maki_dbus_emit_ctcp(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, to, msg);
 							}
 						}
 						else
 						{
-							maki_dbus_emit_message(m_conn->maki->bus, time.tv_sec, m_conn->server, to, from_nick, msg);
+							maki_dbus_emit_message(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, to, msg);
 						}
 					}
 
@@ -248,7 +248,7 @@ gpointer maki_irc_parser (gpointer data)
 						}
 					}
 
-					maki_dbus_emit_join(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, from_nick);
+					maki_dbus_emit_join(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, channel);
 				}
 				else if (g_ascii_strncasecmp(type, "PART", 4) == 0 && remaining)
 				{
@@ -269,11 +269,11 @@ gpointer maki_irc_parser (gpointer data)
 
 					if (msg)
 					{
-						maki_dbus_emit_part(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, from_nick, msg);
+						maki_dbus_emit_part(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, channel, msg);
 					}
 					else
 					{
-						maki_dbus_emit_part(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, from_nick, "");
+						maki_dbus_emit_part(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, channel, "");
 					}
 
 					g_strfreev(tmp);
@@ -298,11 +298,11 @@ gpointer maki_irc_parser (gpointer data)
 
 					if (nick && msg)
 					{
-						maki_dbus_emit_kick(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, from_nick, nick, msg);
+						maki_dbus_emit_kick(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, channel, nick, msg);
 					}
 					else if (nick)
 					{
-						maki_dbus_emit_kick(m_conn->maki->bus, time.tv_sec, m_conn->server, channel, from_nick, nick, "");
+						maki_dbus_emit_kick(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, channel, nick, "");
 					}
 
 					g_strfreev(tmp);
@@ -327,7 +327,7 @@ gpointer maki_irc_parser (gpointer data)
 
 					if (target != NULL && msg != NULL)
 					{
-						maki_dbus_emit_notice(m_conn->maki->bus, time.tv_sec, m_conn->server, target, from_nick, msg);
+						maki_dbus_emit_notice(m_conn->maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg);
 					}
 
 					g_strfreev(tmp);

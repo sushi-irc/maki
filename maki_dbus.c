@@ -57,9 +57,9 @@ enum
 
 guint signals[s_last];
 
-void maki_dbus_emit_action (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
+void maki_dbus_emit_action (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	g_signal_emit(self, signals[s_action], 0, time, server, channel, nick, message);
+	g_signal_emit(self, signals[s_action], 0, time, server, nick, target, message);
 }
 
 void maki_dbus_emit_away (makiDBus* self, gint64 time, const gchar* server)
@@ -87,24 +87,24 @@ void maki_dbus_emit_connected (makiDBus* self, gint64 time, const gchar* server,
 	g_signal_emit(self, signals[s_connected], 0, time, server, nick);
 }
 
-void maki_dbus_emit_ctcp (makiDBus* self, gint64 time, const gchar* server, const gchar* target, const gchar* nick, const gchar* message)
+void maki_dbus_emit_ctcp (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	g_signal_emit(self, signals[s_ctcp], 0, time, server, target, nick, message);
+	g_signal_emit(self, signals[s_ctcp], 0, time, server, nick, target, message);
 }
 
-void maki_dbus_emit_join (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick)
+void maki_dbus_emit_join (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* channel)
 {
-	g_signal_emit(self, signals[s_join], 0, time, server, channel, nick);
+	g_signal_emit(self, signals[s_join], 0, time, server, nick, channel);
 }
 
-void maki_dbus_emit_kick (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* who, const gchar* message)
+void maki_dbus_emit_kick (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who, const gchar* message)
 {
-	g_signal_emit(self, signals[s_kick], 0, time, server, channel, nick, who, message);
+	g_signal_emit(self, signals[s_kick], 0, time, server, nick, channel, who, message);
 }
 
-void maki_dbus_emit_message (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
+void maki_dbus_emit_message (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	g_signal_emit(self, signals[s_message], 0, time, server, channel, nick, message);
+	g_signal_emit(self, signals[s_message], 0, time, server, nick, target, message);
 }
 
 void maki_dbus_emit_motd (makiDBus* self, gint64 time, const gchar* server, const gchar* message)
@@ -117,14 +117,14 @@ void maki_dbus_emit_nick (makiDBus* self, gint64 time, const gchar* server, cons
 	g_signal_emit(self, signals[s_nick], 0, time, server, nick, new_nick);
 }
 
-void maki_dbus_emit_notice (makiDBus* self, gint64 time, const gchar* server, const gchar* target, const gchar* nick, const gchar* message)
+void maki_dbus_emit_notice (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	g_signal_emit(self, signals[s_notice], 0, time, server, target, nick, message);
+	g_signal_emit(self, signals[s_notice], 0, time, server, nick, target, message);
 }
 
-void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* nick, const gchar* message)
+void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* message)
 {
-	g_signal_emit(self, signals[s_part], 0, time, server, channel, nick, message);
+	g_signal_emit(self, signals[s_part], 0, time, server, nick, channel, message);
 }
 
 void maki_dbus_emit_quit (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
@@ -163,7 +163,7 @@ gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar*
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 
-		maki_dbus_emit_action(self, time.tv_sec, server, channel, m_conn->nick, message);
+		maki_dbus_emit_action(self, time.tv_sec, server, m_conn->nick, channel, message);
 	}
 
 	return TRUE;
@@ -254,7 +254,7 @@ gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* me
 		g_free(buffer);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_ctcp(self, time.tv_sec, server, target, m_conn->nick, message);
+		maki_dbus_emit_ctcp(self, time.tv_sec, server, m_conn->nick, target, message);
 	}
 
 	return TRUE;
@@ -470,7 +470,7 @@ gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* me
 			sashimi_send(m_conn->connection, buffer);
 			g_free(buffer);
 
-			maki_dbus_emit_message(self, time.tv_sec, server, channel, m_conn->nick, message);
+			maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, channel, message);
 		}
 		else
 		{
@@ -486,7 +486,7 @@ gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* me
 					sashimi_queue(m_conn->connection, buffer);
 					g_free(buffer);
 
-					maki_dbus_emit_message(self, time.tv_sec, server, channel, m_conn->nick, *tmp);
+					maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, channel, *tmp);
 				}
 			}
 
