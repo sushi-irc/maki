@@ -238,10 +238,10 @@ gpointer maki_irc_parser (gpointer data)
 				if (g_ascii_strncasecmp(type, "PRIVMSG", 7) == 0 && remaining)
 				{
 					gchar** tmp = g_strsplit(remaining, " ", 2);
-					gchar* to = tmp[0];
+					gchar* target = tmp[0];
 					gchar* msg = maki_remove_colon(tmp[1]);
 
-					if (to != NULL && msg != NULL)
+					if (target != NULL && msg != NULL)
 					{
 						if (msg[0] == '\1')
 						{
@@ -254,16 +254,16 @@ gpointer maki_irc_parser (gpointer data)
 
 							if (g_ascii_strncasecmp(msg, "ACTION", 6) == 0 && strlen(msg) > 6)
 							{
-								maki_dbus_emit_action(maki->bus, time.tv_sec, m_conn->server, from_nick, to, msg + 7);
+								maki_dbus_emit_action(maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg + 7);
 							}
 							else
 							{
-								maki_dbus_emit_ctcp(maki->bus, time.tv_sec, m_conn->server, from_nick, to, msg);
+								maki_dbus_emit_ctcp(maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg);
 							}
 						}
 						else
 						{
-							maki_dbus_emit_message(maki->bus, time.tv_sec, m_conn->server, from_nick, to, msg);
+							maki_dbus_emit_message(maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg);
 						}
 					}
 
