@@ -112,6 +112,7 @@ void maki_shutdown (struct maki* maki)
 
 	g_free(maki->directories.logs);
 	g_free(maki->directories.servers);
+	g_free(maki->directories.sushi);
 
 	dbus_g_connection_unref(maki->bus->bus);
 	g_object_unref(maki->bus);
@@ -160,8 +161,9 @@ int main (int argc, char* argv[])
 
 	maki.connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_destroy);
 
-	maki.directories.logs = g_build_filename(g_get_home_dir(), ".sushi", "logs", NULL);
-	maki.directories.servers = g_build_filename(g_get_home_dir(), ".sushi", "servers", NULL);
+	maki.directories.sushi = g_build_filename(g_get_home_dir(), ".sushi", NULL);
+	maki.directories.logs = g_build_filename(maki.directories.sushi, "logs", NULL);
+	maki.directories.servers = g_build_filename(maki.directories.sushi, "servers", NULL);
 
 	maki.message_queue = g_async_queue_new();
 

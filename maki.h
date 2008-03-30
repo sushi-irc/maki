@@ -52,6 +52,7 @@ struct maki
 	{
 		gchar* logs;
 		gchar* servers;
+		gchar* sushi;
 	}
 	directories;
 
