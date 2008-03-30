@@ -330,6 +330,60 @@ gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* w
 	return TRUE;
 }
 
+gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
+{
+	gchar* buffer;
+	GTimeVal time;
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar** messages = NULL;
+
+		g_get_current_time(&time);
+
+		for (buffer = message; *buffer != '\0'; ++buffer)
+		{
+			if (*buffer == '\r' || *buffer == '\n')
+			{
+				messages = g_strsplit(message, "\n", 0);
+				break;
+			}
+		}
+
+		if (messages == NULL)
+		{
+			buffer = g_strdup_printf("PRIVMSG %s :%s", target, message);
+			sashimi_send(m_conn->connection, buffer);
+			g_free(buffer);
+
+			maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, target, message);
+		}
+		else
+		{
+			gchar** tmp;
+
+			for (tmp = messages; *tmp != NULL; ++tmp)
+			{
+				g_strchomp(*tmp);
+
+				if ((*tmp)[0])
+				{
+					buffer = g_strdup_printf("PRIVMSG %s :%s", target, *tmp);
+					sashimi_queue(m_conn->connection, buffer);
+					g_free(buffer);
+
+					maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, target, *tmp);
+				}
+			}
+
+			g_strfreev(messages);
+		}
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mode, GError** error)
 {
 	struct maki_connection* m_conn;
@@ -488,60 +542,6 @@ gboolean maki_dbus_raw (makiDBus* self, gchar* server, gchar* command, GError** 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
 		sashimi_send(m_conn->connection, command);
-	}
-
-	return TRUE;
-}
-
-gboolean maki_dbus_say (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
-{
-	gchar* buffer;
-	GTimeVal time;
-	struct maki_connection* m_conn;
-
-	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
-	{
-		gchar** messages = NULL;
-
-		g_get_current_time(&time);
-
-		for (buffer = message; *buffer != '\0'; ++buffer)
-		{
-			if (*buffer == '\r' || *buffer == '\n')
-			{
-				messages = g_strsplit(message, "\n", 0);
-				break;
-			}
-		}
-
-		if (messages == NULL)
-		{
-			buffer = g_strdup_printf("PRIVMSG %s :%s", channel, message);
-			sashimi_send(m_conn->connection, buffer);
-			g_free(buffer);
-
-			maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, channel, message);
-		}
-		else
-		{
-			gchar** tmp;
-
-			for (tmp = messages; *tmp != NULL; ++tmp)
-			{
-				g_strchomp(*tmp);
-
-				if ((*tmp)[0])
-				{
-					buffer = g_strdup_printf("PRIVMSG %s :%s", channel, *tmp);
-					sashimi_queue(m_conn->connection, buffer);
-					g_free(buffer);
-
-					maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, channel, *tmp);
-				}
-			}
-
-			g_strfreev(messages);
-		}
 	}
 
 	return TRUE;
