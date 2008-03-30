@@ -580,6 +580,139 @@ gboolean maki_dbus_shutdown (makiDBus* self, GError** error)
 	return TRUE;
 }
 
+gboolean maki_dbus_sushi_get_boolean (makiDBus* self, gchar* file, gchar* group, gchar* key, gboolean* value, GError** error)
+{
+	gchar* path;
+	GKeyFile* key_file;
+
+	path = g_build_filename(self->maki->directories.sushi, file, NULL);
+	key_file = g_key_file_new();
+
+	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+	{
+		gboolean val;
+
+		val = g_key_file_get_boolean(key_file, group, key, NULL);
+
+		*value = val;
+	}
+
+	g_key_file_free(key_file);
+	g_free(path);
+
+	return TRUE;
+}
+
+gboolean maki_dbus_sushi_get_integer (makiDBus* self, gchar* file, gchar* group, gchar* key, gint* value, GError** error)
+{
+	gchar* path;
+	GKeyFile* key_file;
+
+	path = g_build_filename(self->maki->directories.sushi, file, NULL);
+	key_file = g_key_file_new();
+
+	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+	{
+		gint val;
+
+		val = g_key_file_get_integer(key_file, group, key, NULL);
+
+		*value = val;
+	}
+
+	g_key_file_free(key_file);
+	g_free(path);
+
+	return TRUE;
+}
+
+gboolean maki_dbus_sushi_get_string (makiDBus* self, gchar* file, gchar* group, gchar* key, gchar** value, GError** error)
+{
+	gchar* path;
+	GKeyFile* key_file;
+
+	path = g_build_filename(self->maki->directories.sushi, file, NULL);
+	key_file = g_key_file_new();
+
+	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+	{
+		gchar* val;
+
+		val = g_key_file_get_string(key_file, group, key, NULL);
+
+		*value = g_strdup(val);
+		g_free(val);
+	}
+
+	g_key_file_free(key_file);
+	g_free(path);
+
+	return TRUE;
+}
+
+gboolean maki_dbus_sushi_set_boolean (makiDBus* self, gchar* file, gchar* group, gchar* key, gboolean value, GError** error)
+{
+	gchar* contents;
+	gchar* path;
+	GKeyFile* key_file;
+
+	path = g_build_filename(self->maki->directories.sushi, file, NULL);
+	key_file = g_key_file_new();
+
+	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
+	g_key_file_set_boolean(key_file, group, key, value);
+	contents = g_key_file_to_data(key_file, NULL, NULL);
+	g_file_set_contents(path, contents, -1, NULL);
+	g_free(contents);
+
+	g_key_file_free(key_file);
+	g_free(path);
+
+	return TRUE;
+}
+
+gboolean maki_dbus_sushi_set_integer (makiDBus* self, gchar* file, gchar* group, gchar* key, gint value, GError** error)
+{
+	gchar* contents;
+	gchar* path;
+	GKeyFile* key_file;
+
+	path = g_build_filename(self->maki->directories.sushi, file, NULL);
+	key_file = g_key_file_new();
+
+	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
+	g_key_file_set_integer(key_file, group, key, value);
+	contents = g_key_file_to_data(key_file, NULL, NULL);
+	g_file_set_contents(path, contents, -1, NULL);
+	g_free(contents);
+
+	g_key_file_free(key_file);
+	g_free(path);
+
+	return TRUE;
+}
+
+gboolean maki_dbus_sushi_set_string (makiDBus* self, gchar* file, gchar* group, gchar* key, gchar* value, GError** error)
+{
+	gchar* contents;
+	gchar* path;
+	GKeyFile* key_file;
+
+	path = g_build_filename(self->maki->directories.sushi, file, NULL);
+	key_file = g_key_file_new();
+
+	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
+	g_key_file_set_string(key_file, group, key, value);
+	contents = g_key_file_to_data(key_file, NULL, NULL);
+	g_file_set_contents(path, contents, -1, NULL);
+	g_free(contents);
+
+	g_key_file_free(key_file);
+	g_free(path);
+
+	return TRUE;
+}
+
 gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* topic, GError** error)
 {
 	gchar* buffer;
