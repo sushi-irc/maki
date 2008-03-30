@@ -103,6 +103,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 		{
 			if (strncmp(*group, "server", 6) == 0)
 			{
+				gboolean autoconnect;
 				gchar* address;
 				gchar* nick;
 				gchar* name;
@@ -110,6 +111,8 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				gint port;
 				struct maki_connection* m_conn;
 
+				autoconnect = !g_key_file_has_key(key_file, *group, "autoconnect", NULL)
+				              || g_key_file_get_boolean(key_file, *group, "autoconnect", NULL);
 				address = g_key_file_get_string(key_file, *group, "address", NULL);
 				port = g_key_file_get_integer(key_file, *group, "port", NULL);
 				nick = g_key_file_get_string(key_file, *group, "nick", NULL);
@@ -151,9 +154,12 @@ void maki_server_new (struct maki* maki, const gchar* server)
 
 				sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 
-				if (maki_connect(m_conn) != 0)
+				if (autoconnect)
 				{
-					maki_reconnect_callback(m_conn);
+					if (maki_connect(m_conn) != 0)
+					{
+						maki_reconnect_callback(m_conn);
+					}
 				}
 
 				g_hash_table_replace(maki->connections, m_conn->server, m_conn);
