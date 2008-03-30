@@ -650,6 +650,25 @@ gboolean maki_dbus_sushi_get_string (makiDBus* self, gchar* file, gchar* group, 
 	return TRUE;
 }
 
+gboolean maki_dbus_sushi_groups (makiDBus* self, gchar* file, gchar*** groups, GError** error)
+{
+	gchar* path;
+	GKeyFile* key_file;
+
+	path = g_build_filename(self->maki->directories.sushi, file, NULL);
+	key_file = g_key_file_new();
+
+	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+	{
+		*groups = g_key_file_get_groups(key_file, NULL);
+	}
+
+	g_key_file_free(key_file);
+	g_free(path);
+
+	return TRUE;
+}
+
 gboolean maki_dbus_sushi_remove (makiDBus* self, gchar* file, gchar* group, gchar* key, GError** error)
 {
 	gchar* path;
