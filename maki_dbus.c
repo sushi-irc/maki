@@ -669,6 +669,39 @@ gboolean maki_dbus_sushi_groups (makiDBus* self, gchar* file, gchar*** groups, G
 	return TRUE;
 }
 
+gboolean maki_dbus_sushi_list (makiDBus* self, gchar* directory, gchar*** files, GError** error)
+{
+	gchar* path;
+	GDir* dir;
+
+	path = g_build_filename(self->maki->directories.sushi, directory, NULL);
+
+	if ((dir = g_dir_open(path, 0, NULL)) != NULL)
+	{
+		guint i = 0;
+		const gchar* name;
+		gchar** tmp;
+
+		tmp = g_new(gchar*, 1);
+
+		while ((name = g_dir_read_name(dir)) != NULL)
+		{
+			tmp = g_renew(gchar*, tmp, i + 2);
+			tmp[i] = g_strdup(name);
+			++i;
+		}
+
+		tmp[i] = NULL;
+		*files = tmp;
+
+		g_dir_close(dir);
+	}
+
+	g_free(path);
+
+	return TRUE;
+}
+
 gboolean maki_dbus_sushi_remove (makiDBus* self, gchar* file, gchar* group, gchar* key, GError** error)
 {
 	gchar* path;
