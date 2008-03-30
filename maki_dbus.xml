@@ -122,6 +122,12 @@
 			<arg name="value" type="s" direction="out" />
 		</method>
 
+		<method name="sushi_remove">
+			<arg name="file" type="s" />
+			<arg name="group" type="s" />
+			<arg name="key" type="s" />
+		</method>
+
 		<method name="sushi_set_boolean">
 			<arg name="file" type="s" />
 			<arg name="group" type="s" />
