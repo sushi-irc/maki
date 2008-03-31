@@ -76,6 +76,7 @@ struct maki_connection
 	gchar* initial_nick;
 	gchar* nick;
 	gchar* name;
+	gboolean autoconnect;
 	gboolean connected;
 	gboolean reconnect;
 	gint retries;

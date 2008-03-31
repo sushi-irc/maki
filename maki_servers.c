@@ -141,6 +141,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				m_conn->initial_nick = g_strdup(nick);
 				m_conn->nick = g_strdup(nick);
 				m_conn->name = g_strdup(name);
+				m_conn->autoconnect = autoconnect;
 				m_conn->connected = FALSE;
 				m_conn->reconnect = TRUE;
 				m_conn->retries = maki->config.reconnect.retries;
@@ -155,7 +156,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 
 				sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 
-				if (autoconnect)
+				if (m_conn->autoconnect)
 				{
 					if (maki_connect(m_conn) != 0)
 					{
