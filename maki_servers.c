@@ -111,8 +111,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				gint port;
 				struct maki_connection* m_conn;
 
-				autoconnect = !g_key_file_has_key(key_file, *group, "autoconnect", NULL)
-				              || g_key_file_get_boolean(key_file, *group, "autoconnect", NULL);
+				autoconnect = g_key_file_get_boolean(key_file, *group, "autoconnect", NULL);
 				address = g_key_file_get_string(key_file, *group, "address", NULL);
 				port = g_key_file_get_integer(key_file, *group, "port", NULL);
 				nick = g_key_file_get_string(key_file, *group, "nick", NULL);
