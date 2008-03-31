@@ -85,12 +85,13 @@ void maki_reconnect_callback (gpointer data)
 	g_timeout_add_seconds(m_conn->maki->config.reconnect.timeout, maki_reconnect, m_conn);
 }
 
-void maki_server_new (struct maki* maki, const gchar* server)
+struct maki_connection* maki_server_new (struct maki* maki, const gchar* server)
 {
 	gchar* path;
 	gchar** group;
 	gchar** groups;
 	GKeyFile* key_file;
+	struct maki_connection* m_conn = NULL;
 
 	path = g_build_filename(maki->directories.servers, server, NULL);
 
@@ -110,7 +111,6 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				gchar* name;
 				gchar* nickserv;
 				gint port;
-				struct maki_connection* m_conn;
 
 				autoconnect = g_key_file_get_boolean(key_file, *group, "autoconnect", NULL);
 				address = g_key_file_get_string(key_file, *group, "address", NULL);
@@ -175,21 +175,21 @@ void maki_server_new (struct maki* maki, const gchar* server)
 			{
 				gboolean autojoin;
 				gchar* key;
-				struct maki_connection* m_conn;
+				struct maki_channel* m_chan;
+
+				if (m_conn == NULL)
+				{
+					continue;
+				}
 
 				autojoin = g_key_file_get_boolean(key_file, *group, "autojoin", NULL);
 				key = g_key_file_get_string(key_file, *group, "key", NULL);
 
-				if ((m_conn = g_hash_table_lookup(maki->connections, server)) != NULL)
-				{
-					struct maki_channel* m_chan;
+				m_chan = maki_channel_new(*group);
+				m_chan->autojoin = autojoin;
+				m_chan->key = g_strdup(key);
 
-					m_chan = maki_channel_new(*group);
-					m_chan->autojoin = autojoin;
-					m_chan->key = g_strdup(key);
-
-					g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
-				}
+				g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
 
 				g_free(key);
 			}
@@ -200,6 +200,8 @@ void maki_server_new (struct maki* maki, const gchar* server)
 
 	g_key_file_free(key_file);
 	g_free(path);
+
+	return m_conn;
 }
 
 void maki_servers (struct maki* maki)
