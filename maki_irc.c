@@ -137,7 +137,7 @@ gboolean maki_join (gpointer data)
 		gchar* buffer;
 		struct maki_channel* m_chan = value;
 
-		if (!m_chan->autojoin && !m_chan->joined)
+		if (!m_chan->autojoin)
 		{
 			continue;
 		}
@@ -285,19 +285,10 @@ gpointer maki_irc_parser (gpointer data)
 						g_hash_table_replace(m_chan->users, m_user->nick, m_user);
 					}
 
-					if (strcmp(from_nick, m_conn->nick) == 0)
+					if (strcmp(from_nick, m_conn->nick) == 0 && m_chan == NULL)
 					{
-						if (m_chan != NULL)
-						{
-							m_chan->joined = TRUE;
-						}
-						else
-						{
-							m_chan = maki_channel_new(channel);
-							m_chan->joined = TRUE;
-
-							g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
-						}
+						m_chan = maki_channel_new(channel);
+						g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
 					}
 
 					maki_dbus_emit_join(maki->bus, time.tv_sec, m_conn->server, from_nick, channel);
@@ -315,7 +306,7 @@ gpointer maki_irc_parser (gpointer data)
 
 						if (strcmp(from_nick, m_conn->nick) == 0)
 						{
-							m_chan->joined = FALSE;
+							g_hash_table_remove(m_conn->channels, channel);
 						}
 					}
 
