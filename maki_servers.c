@@ -88,74 +88,71 @@ void maki_reconnect_callback (gpointer data)
 struct maki_connection* maki_server_new (struct maki* maki, const gchar* server)
 {
 	gchar* path;
-	gchar** group;
-	gchar** groups;
 	GKeyFile* key_file;
 	struct maki_connection* m_conn = NULL;
 
 	path = g_build_filename(maki->directories.servers, server, NULL);
-
 	key_file = g_key_file_new();
 
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 	{
+		gchar** group;
+		gchar** groups;
+		gboolean autoconnect;
+		gchar* address;
+		gchar* nick;
+		gchar* name;
+		gchar* nickserv;
+		gint port;
+
+		autoconnect = g_key_file_get_boolean(key_file, "server", "autoconnect", NULL);
+		address = g_key_file_get_string(key_file, "server", "address", NULL);
+		port = g_key_file_get_integer(key_file, "server", "port", NULL);
+		nick = g_key_file_get_string(key_file, "server", "nick", NULL);
+		name = g_key_file_get_string(key_file, "server", "name", NULL);
+		nickserv = g_key_file_get_string(key_file, "server", "nickserv", NULL);
+
+		if (port == 0)
+		{
+			port = 6667;
+		}
+
+		if (nick == NULL)
+		{
+			nick = g_strdup(g_get_user_name());
+		}
+
+		if (name == NULL)
+		{
+			name = g_strdup(g_get_real_name());
+		}
+
+		m_conn = maki_connection_new(maki, server, address, port, nick, name);
+		m_conn->autoconnect = autoconnect;
+		m_conn->nickserv.password = g_strdup(nickserv);
+
+		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
+
+		if (m_conn->autoconnect)
+		{
+			if (maki_connect(m_conn) != 0)
+			{
+				maki_reconnect_callback(m_conn);
+			}
+		}
+
+		g_hash_table_replace(maki->connections, m_conn->server, m_conn);
+
+		g_free(address);
+		g_free(nick);
+		g_free(name);
+		g_free(nickserv);
+
 		groups = g_key_file_get_groups(key_file, NULL);
 
 		for (group = groups; *group != NULL; ++group)
 		{
-			if (strncmp(*group, "server", 6) == 0)
-			{
-				gboolean autoconnect;
-				gchar* address;
-				gchar* nick;
-				gchar* name;
-				gchar* nickserv;
-				gint port;
-
-				autoconnect = g_key_file_get_boolean(key_file, *group, "autoconnect", NULL);
-				address = g_key_file_get_string(key_file, *group, "address", NULL);
-				port = g_key_file_get_integer(key_file, *group, "port", NULL);
-				nick = g_key_file_get_string(key_file, *group, "nick", NULL);
-				name = g_key_file_get_string(key_file, *group, "name", NULL);
-				nickserv = g_key_file_get_string(key_file, *group, "nickserv", NULL);
-
-				if (port == 0)
-				{
-					port = 6667;
-				}
-
-				if (nick == NULL)
-				{
-					nick = g_strdup(g_get_user_name());
-				}
-
-				if (name == NULL)
-				{
-					name = g_strdup(g_get_real_name());
-				}
-
-				m_conn = maki_connection_new(maki, server, address, port, nick, name);
-				m_conn->autoconnect = autoconnect;
-				m_conn->nickserv.password = g_strdup(nickserv);
-
-				sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
-
-				if (m_conn->autoconnect)
-				{
-					if (maki_connect(m_conn) != 0)
-					{
-						maki_reconnect_callback(m_conn);
-					}
-				}
-
-				g_hash_table_replace(maki->connections, m_conn->server, m_conn);
-
-				g_free(address);
-				g_free(nick);
-				g_free(name);
-				g_free(nickserv);
-			}
-			else
+			if (strncmp(*group, "server", 6) != 0)
 			{
 				gboolean autojoin;
 				gchar* key;
