@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include "maki.h"
+#include "maki_cache.h"
 #include "maki_misc.h"
 
 /**
@@ -145,6 +146,7 @@ void maki_server_new (struct maki* maki, const gchar* server)
 				m_conn->retries = maki->config.reconnect.retries;
 				m_conn->connection = sashimi_new(address, port, maki->message_queue, m_conn);
 				m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_free);
+				m_conn->users = maki_cache_new(maki_user_new, maki_user_free, m_conn);
 
 				m_conn->nickserv.password = g_strdup(nickserv);
 				m_conn->support.chanmodes = NULL;

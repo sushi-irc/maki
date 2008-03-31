@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "maki.h"
+#include "maki_cache.h"
 #include "maki_irc.h"
 #include "maki_misc.h"
 
@@ -278,11 +279,12 @@ gpointer maki_irc_parser (gpointer data)
 
 					if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
 					{
+						struct maki_channel_user* m_cuser;
 						struct maki_user* m_user;
 
-						m_user = g_new(struct maki_user, 1);
-						m_user->nick = g_strdup(from_nick);
-						g_hash_table_replace(m_chan->users, m_user->nick, m_user);
+						m_user = maki_cache_insert(m_conn->users, from_nick);
+						m_cuser = maki_channel_user_new(m_user);
+						g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
 					}
 
 					if (strcmp(from_nick, m_conn->nick) == 0 && m_chan == NULL)
@@ -323,6 +325,19 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if (strncmp(type, "QUIT", 4) == 0)
 				{
+					GHashTableIter iter;
+					gpointer key;
+					gpointer value;
+
+					g_hash_table_iter_init(&iter, m_conn->channels);
+
+					while (g_hash_table_iter_next(&iter, &key, &value))
+					{
+						struct maki_channel* m_chan = value;
+
+						g_hash_table_remove(m_chan->users, from_nick);
+					}
+
 					if (remaining)
 					{
 						maki_dbus_emit_quit(maki->bus, time.tv_sec, m_conn->server, from_nick, maki_remove_colon(remaining));
@@ -339,13 +354,28 @@ gpointer maki_irc_parser (gpointer data)
 					gchar* nick = tmp[1];
 					gchar* msg = maki_remove_colon(tmp[2]);
 
-					if (nick && msg)
+					if (channel != NULL && nick != NULL)
 					{
-						maki_dbus_emit_kick(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, nick, msg);
-					}
-					else if (nick)
-					{
-						maki_dbus_emit_kick(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, nick, "");
+						struct maki_channel* m_chan;
+
+						if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+						{
+							g_hash_table_remove(m_chan->users, nick);
+
+							if (strcmp(nick, m_conn->nick) == 0)
+							{
+								g_hash_table_remove(m_conn->channels, channel);
+							}
+						}
+
+						if (msg != NULL)
+						{
+							maki_dbus_emit_kick(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, nick, msg);
+						}
+						else
+						{
+							maki_dbus_emit_kick(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, nick, "");
+						}
 					}
 
 					g_strfreev(tmp);
@@ -353,6 +383,30 @@ gpointer maki_irc_parser (gpointer data)
 				else if (strncmp(type, "NICK", 4) == 0 && remaining)
 				{
 					gchar* nick = maki_remove_colon(remaining);
+					GHashTableIter iter;
+					gpointer key;
+					gpointer value;
+
+					g_hash_table_iter_init(&iter, m_conn->channels);
+
+					while (g_hash_table_iter_next(&iter, &key, &value))
+					{
+						struct maki_channel* m_chan = value;
+						struct maki_channel_user* m_cuser;
+
+						if ((m_cuser = g_hash_table_lookup(m_chan->users, from_nick)) != NULL)
+						{
+							gchar prefix;
+							struct maki_user* m_user;
+
+							prefix = m_cuser->prefix;
+							g_hash_table_remove(m_chan->users, from_nick);
+							m_user = maki_cache_insert(m_conn->users, nick);
+							m_cuser = maki_channel_user_new(m_user);
+							m_cuser->prefix = prefix;
+							g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
+						}
+					}
 
 					if (strcmp(from_nick, m_conn->nick) == 0)
 					{
@@ -437,6 +491,7 @@ gpointer maki_irc_parser (gpointer data)
 						for (i = 3; i < g_strv_length(tmp); ++i)
 						{
 							gchar* nick = maki_remove_colon(tmp[i]);
+							struct maki_channel_user* m_cuser;
 							struct maki_user* m_user;
 
 							if (strchr(m_conn->support.prefix.prefixes, nick[0]) != NULL)
@@ -444,9 +499,9 @@ gpointer maki_irc_parser (gpointer data)
 								++nick;
 							}
 
-							m_user = g_new(struct maki_user, 1);
-							m_user->nick = g_strdup(nick);
-							g_hash_table_replace(m_chan->users, m_user->nick, m_user);
+							m_user = maki_cache_insert(m_conn->users, nick);
+							m_cuser = maki_channel_user_new(m_user);
+							g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
 						}
 					}
 

@@ -81,6 +81,7 @@ struct maki_connection
 	gint retries;
 	struct sashimi_connection* connection;
 	GHashTable* channels;
+	struct maki_cache* users;
 
 	struct
 	{
@@ -112,7 +113,14 @@ struct maki_channel
 
 struct maki_user
 {
+	struct maki_connection* connection;
 	gchar* nick;
+};
+
+struct maki_channel_user
+{
+	struct maki_user* user;
+	gchar prefix;
 };
 
 int maki_daemonize (void);

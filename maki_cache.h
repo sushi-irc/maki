@@ -25,13 +25,17 @@
  * SUCH DAMAGE.
  */
 
-gint maki_connect (struct maki_connection*);
-gint maki_disconnect (struct maki_connection*);
-gboolean maki_disconnect_timeout (gpointer);
-gpointer maki_user_new (gpointer, gpointer);
-void maki_user_free (gpointer);
-struct maki_channel_user* maki_channel_user_new (struct maki_user*);
-void maki_channel_user_free (gpointer);
-struct maki_channel* maki_channel_new (const gchar*);
-void maki_channel_free (gpointer);
-void maki_connection_free (gpointer);
+struct maki_cache
+{
+	gpointer (*value_new) (gpointer, gpointer);
+	void (*value_free) (gpointer);
+	gpointer value_data;
+
+	GHashTable* hash_table;
+};
+
+
+struct maki_cache* maki_cache_new (gpointer (*) (gpointer, gpointer), void (*) (gpointer), gpointer);
+void maki_cache_free (struct maki_cache*);
+gpointer maki_cache_insert (struct maki_cache*, gpointer);
+void maki_cache_remove (struct maki_cache*, gpointer);

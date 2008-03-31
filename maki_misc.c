@@ -26,6 +26,7 @@
  */
 
 #include "maki.h"
+#include "maki_cache.h"
 
 /**
  * This function is a wrapper around sashimi_connect().
@@ -89,15 +90,47 @@ gboolean maki_disconnect_timeout (gpointer data)
 	return FALSE;
 }
 
+gpointer maki_user_new (gpointer key, gpointer data)
+{
+	gchar* nick = key;
+	struct maki_connection* connection = data;
+	struct maki_user* m_user;
+
+	m_user = g_new(struct maki_user, 1);
+	m_user->connection = connection;
+	m_user->nick = nick;
+
+	return m_user;
+}
+
 /**
  * This function gets called when a user is removed from the users hash table.
  */
-void maki_user_destroy (gpointer data)
+void maki_user_free (gpointer value)
 {
-	struct maki_user* m_user = data;
+	struct maki_user* m_user = value;
 
-	g_free(m_user->nick);
 	g_free(m_user);
+}
+
+struct maki_channel_user* maki_channel_user_new (struct maki_user* m_user)
+{
+	struct maki_channel_user* m_cuser;
+
+	m_cuser = g_new(struct maki_channel_user, 1);
+	m_cuser->user = m_user;
+	m_cuser->prefix = '\0';
+
+	return m_cuser;
+}
+
+void maki_channel_user_free (gpointer data)
+{
+	struct maki_channel_user* m_cuser = data;
+
+	maki_cache_remove(m_cuser->user->connection->users, m_cuser->user->nick);
+
+	g_free(m_cuser);
 }
 
 struct maki_channel* maki_channel_new (const gchar* name)
@@ -109,7 +142,7 @@ struct maki_channel* maki_channel_new (const gchar* name)
 	m_chan->name = g_strdup(name);
 	m_chan->autojoin = FALSE;
 	m_chan->key = NULL;
-	m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_user_destroy);
+	m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_user_free);
 
 	return m_chan;
 }
@@ -130,7 +163,7 @@ void maki_channel_free (gpointer data)
 /**
  * This function gets called when a connection is removed from the connections hash table.
  */
-void maki_connection_destroy (gpointer data)
+void maki_connection_free (gpointer data)
 {
 	struct maki_connection* m_conn = data;
 
@@ -139,6 +172,7 @@ void maki_connection_destroy (gpointer data)
 	g_free(m_conn->support.chanmodes);
 	g_free(m_conn->nickserv.password);
 	g_hash_table_destroy(m_conn->channels);
+	maki_cache_free(m_conn->users);
 	maki_disconnect(m_conn);
 	sashimi_free(m_conn->connection);
 	g_free(m_conn->name);
