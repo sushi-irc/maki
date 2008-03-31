@@ -101,35 +101,18 @@
 
 		<method name="shutdown" />
 
-		<method name="sushi_get_boolean">
-			<arg name="file" type="s" />
-			<arg name="group" type="s" />
-			<arg name="key" type="s" />
-			<arg name="value" type="b" direction="out" />
-		</method>
-
-		<method name="sushi_get_integer">
-			<arg name="file" type="s" />
-			<arg name="group" type="s" />
-			<arg name="key" type="s" />
-			<arg name="value" type="i" direction="out" />
-		</method>
-
-		<method name="sushi_get_string">
+		<method name="sushi_get">
 			<arg name="file" type="s" />
 			<arg name="group" type="s" />
 			<arg name="key" type="s" />
 			<arg name="value" type="s" direction="out" />
 		</method>
 
-		<method name="sushi_groups">
-			<arg name="file" type="s" />
-			<arg name="groupes" type="as" direction="out" />
-		</method>
-
 		<method name="sushi_list">
 			<arg name="directory" type="s" />
-			<arg name="files" type="as" direction="out" />
+			<arg name="file" type="s" />
+			<arg name="group" type="s" />
+			<arg name="result" type="as" direction="out" />
 		</method>
 
 		<method name="sushi_remove">
@@ -138,21 +121,7 @@
 			<arg name="key" type="s" />
 		</method>
 
-		<method name="sushi_set_boolean">
-			<arg name="file" type="s" />
-			<arg name="group" type="s" />
-			<arg name="key" type="s" />
-			<arg name="value" type="b" />
-		</method>
-
-		<method name="sushi_set_integer">
-			<arg name="file" type="s" />
-			<arg name="group" type="s" />
-			<arg name="key" type="s" />
-			<arg name="value" type="i" />
-		</method>
-
-		<method name="sushi_set_string">
+		<method name="sushi_set">
 			<arg name="file" type="s" />
 			<arg name="group" type="s" />
 			<arg name="key" type="s" />
