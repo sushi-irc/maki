@@ -225,8 +225,11 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 		{
 			struct maki_channel* m_chan = value;
 
-			*channel = g_strdup(m_chan->name);
-			++channel;
+			if (m_chan->joined)
+			{
+				*channel = g_strdup(m_chan->name);
+				++channel;
+			}
 		}
 
 		*channel = NULL;
