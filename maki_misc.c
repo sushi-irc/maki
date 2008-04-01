@@ -82,7 +82,7 @@ gboolean maki_disconnect_timeout (gpointer data)
 {
 	struct maki_connection* m_conn = data;
 
-	g_hash_table_remove(m_conn->maki->connections, m_conn->server);
+	maki_disconnect(m_conn);
 
 	return FALSE;
 }
