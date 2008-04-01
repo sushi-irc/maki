@@ -297,6 +297,15 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* k
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
+		struct maki_channel* m_chan;
+
+		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL
+		    && m_chan->key != NULL
+		    && !key[0])
+		{
+			key = m_chan->key;
+		}
+
 		if (key[0])
 		{
 			buffer = g_strdup_printf("JOIN %s %s", channel, key);
