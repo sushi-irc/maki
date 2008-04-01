@@ -132,6 +132,7 @@ struct maki_connection* maki_server_new (struct maki* maki, const gchar* server)
 		m_conn->nickserv.password = g_strdup(nickserv);
 
 		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
+		sashimi_timeout(m_conn->connection, 60);
 
 		if (m_conn->autoconnect)
 		{
