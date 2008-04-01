@@ -206,11 +206,13 @@ gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
 
 gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, GError** error)
 {
-	gchar** channel;
 	struct maki_connection* m_conn;
+
+	*channels = NULL;
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
+		gchar** channel;
 		GHashTableIter iter;
 		gpointer key;
 		gpointer value;
@@ -226,13 +228,9 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 			*channel = g_strdup(m_chan->name);
 			++channel;
 		}
-	}
-	else
-	{
-		channel = *channels = g_new(gchar*, 1);
-	}
 
-	*channel = NULL;
+		*channel = NULL;
+	}
 
 	return TRUE;
 }
@@ -424,6 +422,8 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 {
 	struct maki_connection* m_conn;
 
+	*nicks = NULL;
+
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
 		struct maki_channel* m_chan;
@@ -474,6 +474,8 @@ gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* 
 gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError** error)
 {
 	struct maki_connection* m_conn;
+
+	*nick = NULL;
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
@@ -590,6 +592,8 @@ gboolean maki_dbus_sushi_get (makiDBus* self, gchar* file, gchar* group, gchar* 
 	gchar* path;
 	GKeyFile* key_file;
 
+	*value = NULL;
+
 	path = g_build_filename(self->maki->directories.sushi, file, NULL);
 	key_file = g_key_file_new();
 
@@ -608,6 +612,8 @@ gboolean maki_dbus_sushi_list (makiDBus* self, gchar* directory, gchar* file, gc
 {
 	gchar* path;
 	GDir* dir;
+
+	*result = NULL;
 
 	if (file[0])
 	{
