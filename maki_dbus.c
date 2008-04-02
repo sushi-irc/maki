@@ -25,6 +25,7 @@
  * SUCH DAMAGE.
  */
 
+#include <string.h>
 #include <unistd.h>
 
 #include "maki.h"
@@ -285,6 +286,32 @@ gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* me
 
 		g_get_current_time(&time);
 		maki_dbus_emit_ctcp(self, time.tv_sec, server, m_conn->nick, target, message);
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		if (m_conn->ignores != NULL)
+		{
+			gint length;
+
+			length = g_strv_length(m_conn->ignores);
+			m_conn->ignores = g_renew(gchar*, m_conn->ignores, length + 2);
+			m_conn->ignores[length] = g_strdup(pattern);
+			m_conn->ignores[length + 1] = NULL;
+		}
+		else
+		{
+			m_conn->ignores = g_new(gchar*, 2);
+			m_conn->ignores[0] = g_strdup(pattern);
+			m_conn->ignores[1] = NULL;
+		}
 	}
 
 	return TRUE;
@@ -761,6 +788,63 @@ gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* 
 		buffer = g_strdup_printf("TOPIC %s :%s", channel, topic);
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		if (m_conn->ignores != NULL)
+		{
+			gint i;
+			gint j;
+			gint length;
+			gchar** tmp;
+
+			length = g_strv_length(m_conn->ignores);
+
+			for (i = 0, j = 0; i < length; ++i)
+			{
+				if (strcmp(m_conn->ignores[i], pattern) == 0)
+				{
+					++j;
+				}
+			}
+
+			if (length - j == 0)
+			{
+				g_strfreev(m_conn->ignores);
+				m_conn->ignores = NULL;
+
+				return TRUE;
+			}
+
+			tmp = g_new(gchar*, length - j + 1);
+
+			for (i = 0, j = 0; i < length; ++i)
+			{
+				if (strcmp(m_conn->ignores[i], pattern) != 0)
+				{
+					tmp[j] = m_conn->ignores[i];
+					++j;
+				}
+				else
+				{
+					g_free(m_conn->ignores[i]);
+				}
+			}
+
+			tmp[j] = NULL;
+
+			g_free(m_conn->ignores[length]);
+			g_free(m_conn->ignores);
+			m_conn->ignores = tmp;
+		}
 	}
 
 	return TRUE;

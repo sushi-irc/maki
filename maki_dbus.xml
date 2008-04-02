@@ -32,6 +32,11 @@
 			<arg name="message" type="s" />
 		</method>
 
+		<method name="ignore">
+			<arg name="server" type="s" />
+			<arg name="pattern" type="s" />
+		</method>
+
 		<method name="join">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
@@ -132,6 +137,11 @@
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
 			<arg name="topic" type="s" />
+		</method>
+
+		<method name="unignore">
+			<arg name="server" type="s" />
+			<arg name="pattern" type="s" />
 		</method>
 
 
