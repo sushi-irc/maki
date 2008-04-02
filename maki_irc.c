@@ -416,7 +416,14 @@ gpointer maki_irc_parser (gpointer data)
 
 							if (strcmp(nick, m_conn->nick) == 0)
 							{
-								g_hash_table_remove(m_conn->channels, channel);
+								if (!m_chan->autojoin && m_chan->key == NULL)
+								{
+									g_hash_table_remove(m_conn->channels, channel);
+								}
+								else
+								{
+									m_chan->joined = FALSE;
+								}
 							}
 						}
 
