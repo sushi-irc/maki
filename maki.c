@@ -123,7 +123,9 @@ void maki_shutdown (struct maki* maki)
 
 int main (int argc, char* argv[])
 {
+	const gchar* home_dir;
 	struct maki maki;
+
 	gboolean opt_daemon = FALSE;
 	GOptionContext* context;
 	GOptionEntry entries[] =
@@ -153,6 +155,13 @@ int main (int argc, char* argv[])
 	dbus_g_thread_init();
 	g_type_init();
 
+	home_dir = g_getenv("HOME");
+
+	if (home_dir == NULL)
+	{
+		home_dir = g_get_home_dir();
+	}
+
 	maki.bus = g_object_new(MAKI_DBUS_TYPE, NULL);
 	maki.bus->maki = &maki;
 
@@ -161,7 +170,7 @@ int main (int argc, char* argv[])
 
 	maki.connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_free);
 
-	maki.directories.sushi = g_build_filename(g_get_home_dir(), ".sushi", NULL);
+	maki.directories.sushi = g_build_filename(home_dir, ".sushi", NULL);
 	maki.directories.logs = g_build_filename(maki.directories.sushi, "logs", NULL);
 	maki.directories.servers = g_build_filename(maki.directories.sushi, "servers", NULL);
 
