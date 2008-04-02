@@ -250,6 +250,29 @@ gpointer maki_irc_parser (gpointer data)
 			type = parts[1];
 			remaining = parts[2];
 
+			if (m_conn->ignores != NULL)
+			{
+				gboolean match = FALSE;
+				gint i;
+
+				for (i = 0; i < g_strv_length(m_conn->ignores); ++i)
+				{
+					if (g_pattern_match_simple(m_conn->ignores[i], maki_remove_colon(parts[0])))
+					{
+						match = TRUE;
+						break;
+					}
+				}
+
+				if (match)
+				{
+					g_strfreev(from);
+					g_strfreev(parts);
+					g_free(message);
+					continue;
+				}
+			}
+
 			if (from && from_nick && type)
 			{
 				if (strncmp(type, "PRIVMSG", 7) == 0 && remaining)
