@@ -93,10 +93,10 @@ void maki_shutdown (struct maki* maki)
 
 		m_conn->reconnect = FALSE;
 
-		sashimi_send(m_conn->connection, "QUIT :" IRC_QUIT_MESSAGE);
+		sashimi_send(m_conn->connection, "QUIT :" SUSHI_QUIT_MESSAGE);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_quit(maki->bus, time.tv_sec, m_conn->server, m_conn->nick, IRC_QUIT_MESSAGE);
+		maki_dbus_emit_quit(maki->bus, time.tv_sec, m_conn->server, m_conn->nick, SUSHI_QUIT_MESSAGE);
 	}
 
 	g_usleep(1000000);

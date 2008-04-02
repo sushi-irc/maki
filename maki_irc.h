@@ -37,7 +37,10 @@
 #define IRC_ERR_NOMOTD "422"
 #define IRC_ERR_NICKNAMEINUSE "433"
 
-#define IRC_QUIT_MESSAGE "sushi – http://sushi.ikkoku.de/"
+#define SUSHI_NAME "sushi"
+#define SUSHI_VERSION "0.0.0"
+#define SUSHI_URL "http://sushi.ikkoku.de/"
+#define SUSHI_QUIT_MESSAGE SUSHI_NAME " – " SUSHI_URL
 
 gchar* maki_remove_colon (gchar*);
 void maki_nickserv (struct maki_connection*);

@@ -275,6 +275,26 @@ gpointer maki_irc_parser (gpointer data)
 							}
 							else
 							{
+								if (strcmp(target, m_conn->nick) == 0)
+								{
+									gchar* buffer = NULL;
+
+									if (strncmp(msg, "VERSION", 7) == 0)
+									{
+										buffer = g_strdup_printf("NOTICE %s :\001VERSION %s %s\001", from_nick, SUSHI_NAME, SUSHI_VERSION);
+									}
+									else if (strncmp(msg, "PING", 4) == 0)
+									{
+										buffer = g_strdup_printf("NOTICE %s :\001%s\001", from_nick, msg);
+									}
+
+									if (buffer != NULL)
+									{
+										sashimi_send(m_conn->connection, buffer);
+										g_free(buffer);
+									}
+								}
+
 								maki_dbus_emit_ctcp(maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg);
 							}
 						}

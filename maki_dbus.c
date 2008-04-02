@@ -543,9 +543,9 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 		}
 		else
 		{
-			sashimi_send(m_conn->connection, "QUIT :" IRC_QUIT_MESSAGE);
+			sashimi_send(m_conn->connection, "QUIT :" SUSHI_QUIT_MESSAGE);
 
-			maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, IRC_QUIT_MESSAGE);
+			maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, SUSHI_QUIT_MESSAGE);
 		}
 
 		g_timeout_add_seconds(1, maki_disconnect_timeout, m_conn);
