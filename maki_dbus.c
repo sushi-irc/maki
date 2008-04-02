@@ -317,6 +317,23 @@ gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError
 	return TRUE;
 }
 
+gboolean maki_dbus_ignores (makiDBus* self, gchar* server, gchar*** ignores, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	*ignores = NULL;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		if (m_conn->ignores != NULL)
+		{
+			*ignores = g_strdupv(m_conn->ignores);
+		}
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* key, GError** error)
 {
 	gchar* buffer;
