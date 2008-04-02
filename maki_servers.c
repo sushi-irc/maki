@@ -103,6 +103,7 @@ struct maki_connection* maki_server_new (struct maki* maki, const gchar* server)
 		gchar* nick;
 		gchar* name;
 		gchar* nickserv;
+		gchar** commands;
 		gint port;
 
 		autoconnect = g_key_file_get_boolean(key_file, "server", "autoconnect", NULL);
@@ -111,6 +112,7 @@ struct maki_connection* maki_server_new (struct maki* maki, const gchar* server)
 		nick = g_key_file_get_string(key_file, "server", "nick", NULL);
 		name = g_key_file_get_string(key_file, "server", "name", NULL);
 		nickserv = g_key_file_get_string(key_file, "server", "nickserv", NULL);
+		commands = g_key_file_get_string_list(key_file, "server", "commands", NULL, NULL);
 
 		if (port == 0)
 		{
@@ -129,6 +131,7 @@ struct maki_connection* maki_server_new (struct maki* maki, const gchar* server)
 
 		m_conn = maki_connection_new(maki, server, address, port, nick, name);
 		m_conn->autoconnect = autoconnect;
+		m_conn->commands = g_strdupv(commands);
 		m_conn->nickserv.password = g_strdup(nickserv);
 
 		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
@@ -148,6 +151,7 @@ struct maki_connection* maki_server_new (struct maki* maki, const gchar* server)
 		g_free(nick);
 		g_free(name);
 		g_free(nickserv);
+		g_strfreev(commands);
 
 		groups = g_key_file_get_groups(key_file, NULL);
 

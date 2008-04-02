@@ -90,6 +90,8 @@ struct maki_connection
 	}
 	nickserv;
 
+	gchar** commands;
+
 	struct
 	{
 		gchar* chanmodes;

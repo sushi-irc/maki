@@ -159,6 +159,22 @@ gboolean maki_join (gpointer data)
 	return FALSE;
 }
 
+void maki_commands (struct maki_connection* m_conn)
+{
+	if (m_conn->commands != NULL)
+	{
+		gchar** command;
+
+		command = m_conn->commands;
+
+		while (*command != NULL)
+		{
+			sashimi_send(m_conn->connection, *command);
+			++command;
+		}
+	}
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -546,10 +562,11 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if (strncmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || strncmp(type, IRC_ERR_NOMOTD, 3) == 0)
 				{
-					maki_nickserv(m_conn);
-					g_timeout_add_seconds(3, maki_join, m_conn);
 					m_conn->connected = TRUE;
 					maki_dbus_emit_connected(maki->bus, time.tv_sec, m_conn->server, m_conn->nick);
+					maki_nickserv(m_conn);
+					g_timeout_add_seconds(3, maki_join, m_conn);
+					maki_commands(m_conn);
 				}
 				else if (strncmp(type, IRC_ERR_NICKNAMEINUSE, 3) == 0)
 				{
