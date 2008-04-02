@@ -407,7 +407,15 @@ gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mo
 	{
 		gchar* buffer;
 
-		buffer = g_strdup_printf("MODE %s %s", target, mode);
+		if (mode[0])
+		{
+			buffer = g_strdup_printf("MODE %s %s", target, mode);
+		}
+		else
+		{
+			buffer = g_strdup_printf("MODE %s", target);
+		}
+
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 	}
