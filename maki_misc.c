@@ -178,6 +178,7 @@ struct maki_connection* maki_connection_new (struct maki* maki, const gchar* ser
 
 	m_conn->nickserv.password = NULL;
 	m_conn->commands = NULL;
+	m_conn->ignores = NULL;
 	m_conn->support.chanmodes = NULL;
 	m_conn->support.prefix.modes = g_strdup("ov");
 	m_conn->support.prefix.prefixes = g_strdup("@+");
@@ -195,6 +196,7 @@ void maki_connection_free (gpointer data)
 	g_free(m_conn->support.prefix.prefixes);
 	g_free(m_conn->support.prefix.modes);
 	g_free(m_conn->support.chanmodes);
+	g_strfreev(m_conn->ignores);
 	g_strfreev(m_conn->commands);
 	g_free(m_conn->nickserv.password);
 	g_hash_table_destroy(m_conn->channels);

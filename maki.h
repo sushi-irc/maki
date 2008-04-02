@@ -91,6 +91,7 @@ struct maki_connection
 	nickserv;
 
 	gchar** commands;
+	gchar** ignores;
 
 	struct
 	{
