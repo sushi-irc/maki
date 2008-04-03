@@ -647,15 +647,19 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (strncmp(type, IRC_RPL_TOPIC, 3) == 0 && remaining)
+				else if ((strncmp(type, IRC_RPL_TOPIC, 3) == 0 || strncmp(type, "TOPIC", 5) == 0) && remaining)
 				{
+					gint offset;
 					gchar** tmp;
 					gchar* channel;
 					gchar* topic;
+					struct maki_channel* m_chan;
 
-					tmp = g_strsplit(remaining, " ", 3);
-					channel = tmp[1];
-					topic = maki_remove_colon(tmp[2]);
+					offset = (type[0] == 'T') ? 0 : 1;
+
+					tmp = g_strsplit(remaining, " ", 2 + offset);
+					channel = tmp[offset];
+					topic = maki_remove_colon(tmp[1 + offset]);
 
 					if (tmp[0] != NULL && channel != NULL && topic != NULL)
 					{
