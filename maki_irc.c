@@ -661,6 +661,12 @@ gpointer maki_irc_parser (gpointer data)
 					channel = tmp[offset];
 					topic = maki_remove_colon(tmp[1 + offset]);
 
+					if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+					{
+						g_free(m_chan->topic);
+						m_chan->topic = g_strdup(topic);
+					}
+
 					if (tmp[0] != NULL && channel != NULL && topic != NULL)
 					{
 						maki_dbus_emit_topic(maki->bus, time.tv_sec, m_conn->server, channel, topic);

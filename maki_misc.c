@@ -141,6 +141,7 @@ struct maki_channel* maki_channel_new (const gchar* name)
 	m_chan->joined = FALSE;
 	m_chan->key = NULL;
 	m_chan->users = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_user_free);
+	m_chan->topic = NULL;
 
 	return m_chan;
 }
@@ -152,6 +153,7 @@ void maki_channel_free (gpointer data)
 {
 	struct maki_channel* m_chan = data;
 
+	g_free(m_chan->topic);
 	g_hash_table_destroy(m_chan->users);
 	g_free(m_chan->key);
 	g_free(m_chan->name);
