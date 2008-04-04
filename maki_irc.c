@@ -717,20 +717,18 @@ gpointer maki_irc_parser (gpointer data)
 					numeric = (type[0] != 'T');
 					offset = (numeric) ? 1 : 0;
 
+					if (numeric)
+					{
+						from_nick = "";
+					}
+
 					tmp = g_strsplit(remaining, " ", 2 + offset);
 					channel = tmp[offset];
 					topic = maki_remove_colon(tmp[1 + offset]);
 
 					if (tmp[0] != NULL && channel != NULL && topic != NULL)
 					{
-						if (numeric)
-						{
-							maki_dbus_emit_topic(maki->bus, time.tv_sec, m_conn->server, "", channel, topic);
-						}
-						else
-						{
-							maki_dbus_emit_topic(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, topic);
-						}
+						maki_dbus_emit_topic(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, topic);
 					}
 
 					g_strfreev(tmp);
