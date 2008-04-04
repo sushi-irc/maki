@@ -547,16 +547,13 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if ((strncmp(type, "MODE", 4) == 0 || strncmp(type, IRC_RPL_CHANNELMODEIS, 3) == 0) && remaining)
 				{
-					gboolean numeric;
-					gint offset;
+					gint offset = 0;
 					gchar** tmp;
 					gchar* target;
 
-					numeric = (type[0] != 'M');
-					offset = (numeric) ? 1 : 0;
-
-					if (numeric)
+					if (type[0] != 'M')
 					{
+						offset = 1;
 						from_nick = "";
 					}
 
@@ -718,17 +715,14 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if ((strncmp(type, IRC_RPL_TOPIC, 3) == 0 || strncmp(type, "TOPIC", 5) == 0) && remaining)
 				{
-					gboolean numeric;
-					gint offset;
+					gint offset = 0;
 					gchar** tmp;
 					gchar* channel;
 					gchar* topic;
 
-					numeric = (type[0] != 'T');
-					offset = (numeric) ? 1 : 0;
-
-					if (numeric)
+					if (type[0] != 'T')
 					{
+						offset = 1;
 						from_nick = "";
 					}
 
