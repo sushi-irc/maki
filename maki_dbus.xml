@@ -17,13 +17,6 @@
 			<arg name="server" type="s" />
 		</method>
 
-		<method name="channel_info">
-			<arg name="server" type="s" />
-			<arg name="channel" type="s" />
-			<arg name="key" type="s" />
-			<arg name="value" type="s" direction="out" />
-		</method>
-
 		<method name="channel_user_info">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />

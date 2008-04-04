@@ -205,29 +205,6 @@ gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_channel_info (makiDBus* self, gchar* server, gchar* channel, gchar* key, gchar** value, GError** error)
-{
-
-	struct maki_connection* m_conn;
-
-	*value = NULL;
-
-	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
-	{
-		struct maki_channel* m_chan;
-
-		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
-		{
-			if (strncmp(key, "topic", 5) == 0)
-			{
-				*value = g_strdup(m_chan->topic);
-			}
-		}
-	}
-
-	return TRUE;
-}
-
 gboolean maki_dbus_channel_user_info (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar* key, gchar** value, GError** error)
 {
 
