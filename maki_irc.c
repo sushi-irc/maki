@@ -713,7 +713,6 @@ gpointer maki_irc_parser (gpointer data)
 					gchar** tmp;
 					gchar* channel;
 					gchar* topic;
-					struct maki_channel* m_chan;
 
 					numeric = (type[0] != 'T');
 					offset = (numeric) ? 1 : 0;
