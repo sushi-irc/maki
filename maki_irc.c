@@ -708,13 +708,15 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if ((strncmp(type, IRC_RPL_TOPIC, 3) == 0 || strncmp(type, "TOPIC", 5) == 0) && remaining)
 				{
+					gboolean numeric;
 					gint offset;
 					gchar** tmp;
 					gchar* channel;
 					gchar* topic;
 					struct maki_channel* m_chan;
 
-					offset = (type[0] == 'T') ? 0 : 1;
+					numeric = (type[0] != 'T');
+					offset = (numeric) ? 1 : 0;
 
 					tmp = g_strsplit(remaining, " ", 2 + offset);
 					channel = tmp[offset];
@@ -728,7 +730,14 @@ gpointer maki_irc_parser (gpointer data)
 
 					if (tmp[0] != NULL && channel != NULL && topic != NULL)
 					{
-						maki_dbus_emit_topic(maki->bus, time.tv_sec, m_conn->server, channel, topic);
+						if (numeric)
+						{
+							maki_dbus_emit_topic(maki->bus, time.tv_sec, m_conn->server, "", channel, topic);
+						}
+						else
+						{
+							maki_dbus_emit_topic(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, topic);
+						}
 					}
 
 					g_strfreev(tmp);

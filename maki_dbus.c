@@ -150,9 +150,9 @@ void maki_dbus_emit_shutdown (makiDBus* self, gint64 time)
 	g_signal_emit(self, signals[s_shutdown], 0, time);
 }
 
-void maki_dbus_emit_topic (makiDBus* self, gint64 time, const gchar* server, const gchar* channel, const gchar* topic)
+void maki_dbus_emit_topic (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* topic)
 {
-	g_signal_emit(self, signals[s_topic], 0, time, server, channel, topic);
+	g_signal_emit(self, signals[s_topic], 0, time, server, nick, channel, topic);
 }
 
 gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
@@ -878,7 +878,15 @@ gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* 
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
-		buffer = g_strdup_printf("TOPIC %s :%s", channel, topic);
+		if (topic[0])
+		{
+			buffer = g_strdup_printf("TOPIC %s :%s", channel, topic);
+		}
+		else
+		{
+			buffer = g_strdup_printf("TOPIC %s", channel);
+		}
+
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 	}
@@ -1126,7 +1134,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             G_TYPE_NONE, 5,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 }
