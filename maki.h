@@ -126,7 +126,7 @@ struct maki_user
 struct maki_channel_user
 {
 	struct maki_user* user;
-	gchar prefix;
+	guint prefix;
 };
 
 int maki_daemonize (void);

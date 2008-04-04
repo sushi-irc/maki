@@ -116,7 +116,7 @@ struct maki_channel_user* maki_channel_user_new (struct maki_user* m_user)
 
 	m_cuser = g_new(struct maki_channel_user, 1);
 	m_cuser->user = m_user;
-	m_cuser->prefix = '\0';
+	m_cuser->prefix = 0;
 
 	return m_cuser;
 }

@@ -120,6 +120,38 @@ gboolean maki_mode_has_parameter (struct maki_connection* m_conn, gchar sign, gc
 	return FALSE;
 }
 
+gint maki_prefix_position (struct maki_connection* m_conn, gboolean is_prefix, gchar prefix)
+{
+	guint pos = 0;
+
+	if (is_prefix)
+	{
+		while (m_conn->support.prefix.prefixes[pos] != '\0')
+		{
+			if (m_conn->support.prefix.prefixes[pos] == prefix)
+			{
+				return pos;
+			}
+
+			pos++;
+		}
+	}
+	else
+	{
+		while (m_conn->support.prefix.modes[pos] != '\0')
+		{
+			if (m_conn->support.prefix.modes[pos] == prefix)
+			{
+				return pos;
+			}
+
+			pos++;
+		}
+	}
+
+	return -1;
+}
+
 /**
  * This function gets called after a successful login.
  * It joins all configured channels.
@@ -478,11 +510,13 @@ gpointer maki_irc_parser (gpointer data)
 
 						if ((m_cuser = g_hash_table_lookup(m_chan->users, from_nick)) != NULL)
 						{
-							gchar prefix;
+							guint prefix;
 							struct maki_user* m_user;
 
 							prefix = m_cuser->prefix;
+
 							g_hash_table_remove(m_chan->users, from_nick);
+
 							m_user = maki_cache_insert(m_conn->users, nick);
 							m_cuser = maki_channel_user_new(m_user);
 							m_cuser->prefix = prefix;
@@ -546,6 +580,27 @@ gpointer maki_irc_parser (gpointer data)
 
 								if (maki_mode_has_parameter(m_conn, sign, *mode) && i < g_strv_length(modes))
 								{
+									gint pos;
+
+									if ((pos = maki_prefix_position(m_conn, FALSE, *mode)) >= 0)
+									{
+										struct maki_channel* m_chan;
+										struct maki_channel_user* m_cuser;
+
+										if ((m_chan = g_hash_table_lookup(m_conn->channels, target)) != NULL
+										    && (m_cuser = g_hash_table_lookup(m_chan->users, modes[i])) != NULL)
+										{
+											if (sign == '+')
+											{
+												m_cuser->prefix |= (1 << pos);
+											}
+											else
+											{
+												m_cuser->prefix &= ~(1 << pos);
+											}
+										}
+									}
+
 									maki_dbus_emit_mode(maki->bus, time.tv_sec, m_conn->server, from_nick, target, buffer, modes[i]);
 									++i;
 								}
@@ -573,17 +628,21 @@ gpointer maki_irc_parser (gpointer data)
 						for (i = 3; i < g_strv_length(tmp); ++i)
 						{
 							gchar* nick = maki_remove_colon(tmp[i]);
+							guint prefix = 0;
+							gint pos;
 							struct maki_channel_user* m_cuser;
 							struct maki_user* m_user;
 
-							if (strchr(m_conn->support.prefix.prefixes, nick[0]) != NULL)
+							if ((pos = maki_prefix_position(m_conn, TRUE, *nick)) >= 0)
 							{
+								prefix |= (1 << pos);
 								++nick;
 							}
 
 							m_user = maki_cache_insert(m_conn->users, nick);
 							m_cuser = maki_channel_user_new(m_user);
 							g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
+							m_cuser->prefix = prefix;
 						}
 					}
 
