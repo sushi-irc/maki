@@ -114,7 +114,6 @@ struct maki_channel
 	gboolean joined;
 	gchar* key;
 	GHashTable* users;
-	gchar* topic;
 };
 
 struct maki_user
