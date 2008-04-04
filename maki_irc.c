@@ -545,19 +545,29 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if (strncmp(type, "MODE", 4) == 0 && remaining)
+				else if ((strncmp(type, "MODE", 4) == 0 || strncmp(type, IRC_RPL_CHANNELMODEIS, 3) == 0) && remaining)
 				{
+					gboolean numeric;
+					gint offset;
 					gchar** tmp;
 					gchar* target;
 
-					tmp = g_strsplit(remaining, " ", 2);
-					target = tmp[0];
+					numeric = (type[0] != 'M');
+					offset = (numeric) ? 1 : 0;
 
-					if (target != NULL && tmp[1] != NULL)
+					if (numeric)
+					{
+						from_nick = "";
+					}
+
+					tmp = g_strsplit(remaining, " ", 2 + offset);
+					target = tmp[offset];
+
+					if (tmp[0] != NULL && target != NULL && tmp[1 + offset] != NULL)
 					{
 						gchar** modes;
 
-						modes = g_strsplit(maki_remove_colon(tmp[1]), " ", 0);
+						modes = g_strsplit(maki_remove_colon(tmp[1 + offset]), " ", 0);
 
 						if (modes[0] != NULL)
 						{
