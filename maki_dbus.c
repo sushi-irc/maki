@@ -205,59 +205,6 @@ gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_channel_user_info (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar* key, gchar** value, GError** error)
-{
-
-	struct maki_connection* m_conn;
-
-	*value = NULL;
-
-	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
-	{
-		struct maki_channel* m_chan;
-
-		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
-		{
-			struct maki_channel_user* m_cuser;
-
-			if ((m_cuser = g_hash_table_lookup(m_chan->users, nick)) != NULL)
-			{
-				if (strncmp(key, "prefix", 5) == 0)
-				{
-					gint i;
-					gint length;
-					gchar prefix = '\0';
-
-					length = strlen(m_conn->support.prefix.prefixes);
-
-					for (i = 0; i < length; i++)
-					{
-						if (m_cuser->prefix & (1 << i))
-						{
-							prefix = m_conn->support.prefix.prefixes[i];
-							break;
-						}
-					}
-
-					if (prefix)
-					{
-						*value = g_new(gchar, 2);
-						(*value)[0] = prefix;
-						(*value)[1] = '\0';
-					}
-					else
-					{
-						*value = g_new(gchar, 1);
-						(*value)[0] = '\0';
-					}
-				}
-			}
-		}
-	}
-
-	return TRUE;
-}
-
 gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, GError** error)
 {
 	struct maki_connection* m_conn;
@@ -922,6 +869,106 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 			g_free(m_conn->ignores[length]);
 			g_free(m_conn->ignores);
 			m_conn->ignores = tmp;
+		}
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar** mode, GError** error)
+{
+
+	struct maki_connection* m_conn;
+
+	*mode = NULL;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		struct maki_channel* m_chan;
+
+		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		{
+			struct maki_channel_user* m_cuser;
+
+			if ((m_cuser = g_hash_table_lookup(m_chan->users, nick)) != NULL)
+			{
+				gint pos;
+				gint length;
+				gchar tmp = '\0';
+
+				length = strlen(m_conn->support.prefix.prefixes);
+
+				for (pos = 0; pos < length; pos++)
+				{
+					if (m_cuser->prefix & (1 << pos))
+					{
+						tmp = m_conn->support.prefix.modes[pos];
+						break;
+					}
+				}
+
+				if (tmp)
+				{
+					*mode = g_new(gchar, 2);
+					(*mode)[0] = tmp;
+					(*mode)[1] = '\0';
+				}
+				else
+				{
+					*mode = g_new(gchar, 1);
+					(*mode)[0] = '\0';
+				}
+			}
+		}
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar** prefix, GError** error)
+{
+
+	struct maki_connection* m_conn;
+
+	*prefix = NULL;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		struct maki_channel* m_chan;
+
+		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		{
+			struct maki_channel_user* m_cuser;
+
+			if ((m_cuser = g_hash_table_lookup(m_chan->users, nick)) != NULL)
+			{
+				gint pos;
+				gint length;
+				gchar tmp = '\0';
+
+				length = strlen(m_conn->support.prefix.prefixes);
+
+				for (pos = 0; pos < length; pos++)
+				{
+					if (m_cuser->prefix & (1 << pos))
+					{
+						tmp = m_conn->support.prefix.prefixes[pos];
+						break;
+					}
+				}
+
+				if (tmp)
+				{
+					*prefix = g_new(gchar, 2);
+					(*prefix)[0] = tmp;
+					(*prefix)[1] = '\0';
+				}
+				else
+				{
+					*prefix = g_new(gchar, 1);
+					(*prefix)[0] = '\0';
+				}
+			}
 		}
 	}
 
