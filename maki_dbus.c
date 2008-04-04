@@ -205,6 +205,82 @@ gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
 	return TRUE;
 }
 
+gboolean maki_dbus_channel_info (makiDBus* self, gchar* server, gchar* channel, gchar* key, gchar** value, GError** error)
+{
+
+	struct maki_connection* m_conn;
+
+	*value = NULL;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		struct maki_channel* m_chan;
+
+		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		{
+			if (strncmp(key, "topic", 5) == 0)
+			{
+				*value = g_strdup(m_chan->topic);
+			}
+		}
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_channel_user_info (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar* key, gchar** value, GError** error)
+{
+
+	struct maki_connection* m_conn;
+
+	*value = NULL;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		struct maki_channel* m_chan;
+
+		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		{
+			struct maki_channel_user* m_cuser;
+
+			if ((m_cuser = g_hash_table_lookup(m_chan->users, nick)) != NULL)
+			{
+				if (strncmp(key, "prefix", 5) == 0)
+				{
+					gint i;
+					gint length;
+					gchar prefix = '\0';
+
+					length = strlen(m_conn->support.prefix.prefixes);
+
+					for (i = 0; i < length; i++)
+					{
+						if (m_cuser->prefix & (1 << i))
+						{
+							prefix = m_conn->support.prefix.prefixes[i];
+							break;
+						}
+					}
+
+					if (prefix)
+					{
+						*value = g_new(gchar, 2);
+						(*value)[0] = prefix;
+						(*value)[1] = '\0';
+					}
+					else
+					{
+						*value = g_new(gchar, 1);
+						(*value)[0] = '\0';
+					}
+				}
+			}
+		}
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, GError** error)
 {
 	struct maki_connection* m_conn;
