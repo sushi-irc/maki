@@ -528,6 +528,11 @@ gpointer maki_irc_parser (gpointer data)
 					{
 						g_free(m_conn->nick);
 						m_conn->nick = g_strdup(nick);
+
+						if (strcmp(m_conn->nick, m_conn->initial_nick) == 0)
+						{
+							maki_nickserv(m_conn);
+						}
 					}
 
 					maki_dbus_emit_nick(maki->bus, time.tv_sec, m_conn->server, from_nick, nick);
