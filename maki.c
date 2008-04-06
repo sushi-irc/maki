@@ -78,49 +78,6 @@ int maki_daemonize (void)
 	return 0;
 }
 
-void maki_shutdown (struct maki* maki)
-{
-	GTimeVal time;
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
-
-	g_hash_table_iter_init(&iter, maki->connections);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		struct maki_connection* m_conn = value;
-
-		m_conn->reconnect = FALSE;
-
-		sashimi_send(m_conn->connection, "QUIT :" SUSHI_QUIT_MESSAGE);
-
-		g_get_current_time(&time);
-		maki_dbus_emit_quit(maki->bus, time.tv_sec, m_conn->server, m_conn->nick, SUSHI_QUIT_MESSAGE);
-	}
-
-	g_usleep(1000000);
-
-	g_get_current_time(&time);
-	maki_dbus_emit_shutdown(maki->bus, time.tv_sec);
-
-	maki->threads.terminate = TRUE;
-	g_thread_join(maki->threads.messages);
-	g_async_queue_unref(maki->message_queue);
-
-	g_hash_table_destroy(maki->connections);
-
-	g_free(maki->directories.logs);
-	g_free(maki->directories.servers);
-	g_free(maki->directories.sushi);
-
-	dbus_g_connection_unref(maki->bus->bus);
-	g_object_unref(maki->bus);
-
-	g_main_loop_quit(maki->loop);
-	g_main_loop_unref(maki->loop);
-}
-
 int main (int argc, char* argv[])
 {
 	const gchar* home_dir;

@@ -129,4 +129,3 @@ struct maki_channel_user
 };
 
 int maki_daemonize (void);
-void maki_shutdown (struct maki*);

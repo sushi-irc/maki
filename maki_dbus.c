@@ -644,9 +644,59 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_shutdown (makiDBus* self, GError** error)
+gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 {
-	maki_shutdown(self->maki);
+	GTimeVal time;
+	GHashTableIter iter;
+	gpointer key;
+	gpointer value;
+
+	g_hash_table_iter_init(&iter, self->maki->connections);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		struct maki_connection* m_conn = value;
+
+		m_conn->reconnect = FALSE;
+		g_get_current_time(&time);
+
+		if (message[0])
+		{
+			gchar* buffer;
+
+			buffer = g_strdup_printf("QUIT :%s", message);
+			sashimi_send(m_conn->connection, buffer);
+			g_free(buffer);
+
+			maki_dbus_emit_quit(self, time.tv_sec, m_conn->server, m_conn->nick, message);
+		}
+		else
+		{
+			sashimi_send(m_conn->connection, "QUIT :" SUSHI_QUIT_MESSAGE);
+			maki_dbus_emit_quit(self, time.tv_sec, m_conn->server, m_conn->nick, SUSHI_QUIT_MESSAGE);
+		}
+	}
+
+	g_usleep(1000000);
+
+	g_get_current_time(&time);
+	maki_dbus_emit_shutdown(self, time.tv_sec);
+
+	self->maki->threads.terminate = TRUE;
+	g_thread_join(self->maki->threads.messages);
+	g_async_queue_unref(self->maki->message_queue);
+
+	g_hash_table_destroy(self->maki->connections);
+
+	g_free(self->maki->directories.logs);
+	g_free(self->maki->directories.servers);
+	g_free(self->maki->directories.sushi);
+
+	dbus_g_connection_unref(self->bus);
+	g_object_unref(self);
+
+	g_main_loop_quit(self->maki->loop);
+	g_main_loop_unref(self->maki->loop);
 
 	return TRUE;
 }
