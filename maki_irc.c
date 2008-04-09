@@ -767,6 +767,11 @@ gpointer maki_irc_parser (gpointer data)
 								g_free(m_conn->support.chanmodes);
 								m_conn->support.chanmodes = g_strdup(support[1]);
 							}
+							else if (strncmp(support[0], "CHANTYPES", 9) == 0)
+							{
+								g_free(m_conn->support.chantypes);
+								m_conn->support.chantypes = g_strdup(support[1]);
+							}
 							else if (strncmp(support[0], "PREFIX", 6) == 0)
 							{
 								gchar* paren;

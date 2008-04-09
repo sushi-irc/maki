@@ -96,6 +96,7 @@ struct maki_connection
 	struct
 	{
 		gchar* chanmodes;
+		gchar* chantypes;
 
 		struct
 		{

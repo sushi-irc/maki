@@ -180,6 +180,7 @@ struct maki_connection* maki_connection_new (struct maki* maki, const gchar* ser
 	m_conn->commands = NULL;
 	m_conn->ignores = NULL;
 	m_conn->support.chanmodes = NULL;
+	m_conn->support.chantypes = g_strdup("#&");
 	m_conn->support.prefix.modes = g_strdup("ov");
 	m_conn->support.prefix.prefixes = g_strdup("@+");
 
