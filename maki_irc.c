@@ -120,6 +120,11 @@ gboolean maki_mode_has_parameter (struct maki_connection* m_conn, gchar sign, gc
 	return FALSE;
 }
 
+gboolean maki_is_channel(struct maki_connection* m_conn, const gchar* target)
+{
+	return (strchr(m_conn->support.chantypes, target[0]) != NULL);
+}
+
 gint maki_prefix_position (struct maki_connection* m_conn, gboolean is_prefix, gchar prefix)
 {
 	guint pos = 0;
