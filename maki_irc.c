@@ -387,6 +387,57 @@ void maki_irc_quit (struct maki* maki, struct maki_connection* m_conn, glong tim
 	}
 }
 
+void maki_irc_kick (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+{
+	gchar** tmp;
+	gchar* channel;
+	gchar* who;
+	gchar* message;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 3);
+	channel = tmp[0];
+	who = tmp[1];
+	message = maki_remove_colon(tmp[2]);
+
+	if (channel != NULL && who != NULL)
+	{
+		struct maki_channel* m_chan;
+
+		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		{
+			g_hash_table_remove(m_chan->users, who);
+
+			if (strcmp(who, m_conn->nick) == 0)
+			{
+				if (!m_chan->autojoin && m_chan->key == NULL)
+				{
+					g_hash_table_remove(m_conn->channels, channel);
+				}
+				else
+				{
+					m_chan->joined = FALSE;
+				}
+			}
+		}
+
+		if (message != NULL)
+		{
+			maki_dbus_emit_kick(maki->bus, time, m_conn->server, nick, channel, who, message);
+		}
+		else
+		{
+			maki_dbus_emit_kick(maki->bus, time, m_conn->server, nick, channel, who, "");
+		}
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -503,45 +554,9 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_irc_quit(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
-				else if (strncmp(type, "KICK", 4) == 0 && remaining)
+				else if (strncmp(type, "KICK", 4) == 0)
 				{
-					gchar** tmp = g_strsplit(remaining, " ", 3);
-					gchar* channel = tmp[0];
-					gchar* nick = tmp[1];
-					gchar* msg = maki_remove_colon(tmp[2]);
-
-					if (channel != NULL && nick != NULL)
-					{
-						struct maki_channel* m_chan;
-
-						if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
-						{
-							g_hash_table_remove(m_chan->users, nick);
-
-							if (strcmp(nick, m_conn->nick) == 0)
-							{
-								if (!m_chan->autojoin && m_chan->key == NULL)
-								{
-									g_hash_table_remove(m_conn->channels, channel);
-								}
-								else
-								{
-									m_chan->joined = FALSE;
-								}
-							}
-						}
-
-						if (msg != NULL)
-						{
-							maki_dbus_emit_kick(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, nick, msg);
-						}
-						else
-						{
-							maki_dbus_emit_kick(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, nick, "");
-						}
-					}
-
-					g_strfreev(tmp);
+					maki_irc_kick(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "NICK", 4) == 0 && remaining)
 				{
