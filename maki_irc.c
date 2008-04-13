@@ -317,7 +317,7 @@ void maki_irc_join (struct maki* maki, struct maki_connection* m_conn, glong tim
 	maki_dbus_emit_join(maki->bus, time, m_conn->server, nick, channel);
 }
 
-void maki_irc_part (struct maki* maki, struct maki_connection* m_conn, glong time, const gchar* nick, const gchar* remaining)
+void maki_irc_part (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -360,6 +360,31 @@ void maki_irc_part (struct maki* maki, struct maki_connection* m_conn, glong tim
 	}
 
 	g_strfreev(tmp);
+}
+
+void maki_irc_quit (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+{
+	GHashTableIter iter;
+	gpointer key;
+	gpointer value;
+
+	g_hash_table_iter_init(&iter, m_conn->channels);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		struct maki_channel* m_chan = value;
+
+		g_hash_table_remove(m_chan->users, nick);
+	}
+
+	if (remaining)
+	{
+		maki_dbus_emit_quit(maki->bus, time, m_conn->server, nick, maki_remove_colon(remaining));
+	}
+	else
+	{
+		maki_dbus_emit_quit(maki->bus, time, m_conn->server, nick, "");
+	}
 }
 
 /**
@@ -476,27 +501,7 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if (strncmp(type, "QUIT", 4) == 0)
 				{
-					GHashTableIter iter;
-					gpointer key;
-					gpointer value;
-
-					g_hash_table_iter_init(&iter, m_conn->channels);
-
-					while (g_hash_table_iter_next(&iter, &key, &value))
-					{
-						struct maki_channel* m_chan = value;
-
-						g_hash_table_remove(m_chan->users, from_nick);
-					}
-
-					if (remaining)
-					{
-						maki_dbus_emit_quit(maki->bus, time.tv_sec, m_conn->server, from_nick, maki_remove_colon(remaining));
-					}
-					else
-					{
-						maki_dbus_emit_quit(maki->bus, time.tv_sec, m_conn->server, from_nick, "");
-					}
+					maki_irc_quit(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "KICK", 4) == 0 && remaining)
 				{
