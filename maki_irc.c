@@ -475,6 +475,29 @@ void maki_irc_nick (struct maki* maki, struct maki_connection* m_conn, glong tim
 	maki_dbus_emit_nick(maki->bus, time, m_conn->server, nick, new_nick);
 }
 
+void maki_irc_notice (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+{
+	gchar** tmp;
+	gchar* target;
+	gchar* message;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 2);
+	target = tmp[0];
+	message = maki_remove_colon(tmp[1]);
+
+	if (target != NULL && message != NULL)
+	{
+		maki_dbus_emit_notice(maki->bus, time, m_conn->server, nick, target, message);
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -599,18 +622,9 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_irc_nick(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
-				else if (strncmp(type, "NOTICE", 6) == 0 && remaining)
+				else if (strncmp(type, "NOTICE", 6) == 0)
 				{
-					gchar** tmp = g_strsplit(remaining, " ", 2);
-					gchar* target = tmp[0];
-					gchar* msg = maki_remove_colon(tmp[1]);
-
-					if (target != NULL && msg != NULL)
-					{
-						maki_dbus_emit_notice(maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg);
-					}
-
-					g_strfreev(tmp);
+					maki_irc_notice(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if ((strncmp(type, "MODE", 4) == 0 || strncmp(type, IRC_RPL_CHANNELMODEIS, 3) == 0) && remaining)
 				{
