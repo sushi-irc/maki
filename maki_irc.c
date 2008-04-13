@@ -317,6 +317,51 @@ void maki_irc_join (struct maki* maki, struct maki_connection* m_conn, glong tim
 	maki_dbus_emit_join(maki->bus, time, m_conn->server, nick, channel);
 }
 
+void maki_irc_part (struct maki* maki, struct maki_connection* m_conn, glong time, const gchar* nick, const gchar* remaining)
+{
+	gchar** tmp;
+	gchar* channel;
+	gchar* message;
+	struct maki_channel* m_chan;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 2);
+	channel = tmp[0];
+	message = maki_remove_colon(tmp[1]);
+
+	if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+	{
+		g_hash_table_remove(m_chan->users, nick);
+
+		if (strcmp(nick, m_conn->nick) == 0)
+		{
+			if (!m_chan->autojoin && m_chan->key == NULL)
+			{
+				g_hash_table_remove(m_conn->channels, channel);
+			}
+			else
+			{
+				m_chan->joined = FALSE;
+			}
+		}
+	}
+
+	if (message)
+	{
+		maki_dbus_emit_part(maki->bus, time, m_conn->server, nick, channel, message);
+	}
+	else
+	{
+		maki_dbus_emit_part(maki->bus, time, m_conn->server, nick, channel, "");
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -425,40 +470,9 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_irc_join(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
-				else if (strncmp(type, "PART", 4) == 0 && remaining)
+				else if (strncmp(type, "PART", 4) == 0)
 				{
-					gchar** tmp = g_strsplit(remaining, " ", 2);
-					gchar* channel = tmp[0];
-					gchar* msg = maki_remove_colon(tmp[1]);
-					struct maki_channel* m_chan;
-
-					if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
-					{
-						g_hash_table_remove(m_chan->users, from_nick);
-
-						if (strcmp(from_nick, m_conn->nick) == 0)
-						{
-							if (!m_chan->autojoin && m_chan->key == NULL)
-							{
-								g_hash_table_remove(m_conn->channels, channel);
-							}
-							else
-							{
-								m_chan->joined = FALSE;
-							}
-						}
-					}
-
-					if (msg)
-					{
-						maki_dbus_emit_part(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, msg);
-					}
-					else
-					{
-						maki_dbus_emit_part(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, "");
-					}
-
-					g_strfreev(tmp);
+					maki_irc_part(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "QUIT", 4) == 0)
 				{
