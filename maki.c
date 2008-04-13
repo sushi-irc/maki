@@ -88,6 +88,8 @@ void maki_free (struct maki* maki)
 
 	g_main_loop_quit(maki->loop);
 	g_main_loop_unref(maki->loop);
+
+	g_free(maki);
 }
 
 int maki_daemonize (void)
