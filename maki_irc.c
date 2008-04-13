@@ -424,6 +424,57 @@ void maki_irc_kick (struct maki* maki, struct maki_connection* m_conn, glong tim
 	g_strfreev(tmp);
 }
 
+void maki_irc_nick (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+{
+	gchar* new_nick;
+	GHashTableIter iter;
+	gpointer key;
+	gpointer value;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	new_nick = maki_remove_colon(remaining);
+
+	g_hash_table_iter_init(&iter, m_conn->channels);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		struct maki_channel* m_chan = value;
+		struct maki_channel_user* m_cuser;
+
+		if ((m_cuser = g_hash_table_lookup(m_chan->users, nick)) != NULL)
+		{
+			guint prefix;
+			struct maki_user* m_user;
+
+			prefix = m_cuser->prefix;
+
+			g_hash_table_remove(m_chan->users, nick);
+
+			m_user = maki_cache_insert(m_conn->users, new_nick);
+			m_cuser = maki_channel_user_new(m_user);
+			m_cuser->prefix = prefix;
+			g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
+		}
+	}
+
+	if (strcmp(nick, m_conn->nick) == 0)
+	{
+		g_free(m_conn->nick);
+		m_conn->nick = g_strdup(new_nick);
+
+		if (strcmp(m_conn->nick, m_conn->initial_nick) == 0)
+		{
+			maki_nickserv(m_conn);
+		}
+	}
+
+	maki_dbus_emit_nick(maki->bus, time, m_conn->server, nick, new_nick);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -544,48 +595,9 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_irc_kick(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
-				else if (strncmp(type, "NICK", 4) == 0 && remaining)
+				else if (strncmp(type, "NICK", 4) == 0)
 				{
-					gchar* nick = maki_remove_colon(remaining);
-					GHashTableIter iter;
-					gpointer key;
-					gpointer value;
-
-					g_hash_table_iter_init(&iter, m_conn->channels);
-
-					while (g_hash_table_iter_next(&iter, &key, &value))
-					{
-						struct maki_channel* m_chan = value;
-						struct maki_channel_user* m_cuser;
-
-						if ((m_cuser = g_hash_table_lookup(m_chan->users, from_nick)) != NULL)
-						{
-							guint prefix;
-							struct maki_user* m_user;
-
-							prefix = m_cuser->prefix;
-
-							g_hash_table_remove(m_chan->users, from_nick);
-
-							m_user = maki_cache_insert(m_conn->users, nick);
-							m_cuser = maki_channel_user_new(m_user);
-							m_cuser->prefix = prefix;
-							g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
-						}
-					}
-
-					if (strcmp(from_nick, m_conn->nick) == 0)
-					{
-						g_free(m_conn->nick);
-						m_conn->nick = g_strdup(nick);
-
-						if (strcmp(m_conn->nick, m_conn->initial_nick) == 0)
-						{
-							maki_nickserv(m_conn);
-						}
-					}
-
-					maki_dbus_emit_nick(maki->bus, time.tv_sec, m_conn->server, from_nick, nick);
+					maki_irc_nick(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "NOTICE", 6) == 0 && remaining)
 				{
