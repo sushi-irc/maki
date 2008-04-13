@@ -212,6 +212,70 @@ void maki_commands (struct maki_connection* m_conn)
 	}
 }
 
+void maki_irc_privmsg (struct maki* maki, struct maki_connection* m_conn, glong time, const gchar* nick, const gchar* remaining)
+{
+	gchar** tmp;
+	gchar* target;
+	gchar* message;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 2);
+	target = tmp[0];
+	message = maki_remove_colon(tmp[1]);
+
+	if (target != NULL && message != NULL)
+	{
+		if (message[0] == '\1')
+		{
+			++message;
+
+			if (message[0] && message[strlen(message) - 1] == '\1')
+			{
+				message[strlen(message) - 1] = '\0';
+			}
+
+			if (strncmp(message, "ACTION", 6) == 0 && strlen(message) > 6)
+			{
+				maki_dbus_emit_action(maki->bus, time, m_conn->server, nick, target, message + 7);
+			}
+			else
+			{
+				if (strcmp(target, m_conn->nick) == 0)
+				{
+					gchar* buffer = NULL;
+
+					if (strncmp(message, "VERSION", 7) == 0)
+					{
+						buffer = g_strdup_printf("NOTICE %s :\001VERSION %s %s\001", nick, SUSHI_NAME, SUSHI_VERSION);
+					}
+					else if (strncmp(message, "PING", 4) == 0)
+					{
+						buffer = g_strdup_printf("NOTICE %s :\001%s\001", nick, message);
+					}
+
+					if (buffer != NULL)
+					{
+						sashimi_send(m_conn->connection, buffer);
+						g_free(buffer);
+					}
+				}
+
+				maki_dbus_emit_ctcp(maki->bus, time, m_conn->server, nick, target, message);
+			}
+		}
+		else
+		{
+			maki_dbus_emit_message(maki->bus, time, m_conn->server, nick, target, message);
+		}
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -312,59 +376,9 @@ gpointer maki_irc_parser (gpointer data)
 
 			if (from && from_nick && type)
 			{
-				if (strncmp(type, "PRIVMSG", 7) == 0 && remaining)
+				if (strncmp(type, "PRIVMSG", 7) == 0)
 				{
-					gchar** tmp = g_strsplit(remaining, " ", 2);
-					gchar* target = tmp[0];
-					gchar* msg = maki_remove_colon(tmp[1]);
-
-					if (target != NULL && msg != NULL)
-					{
-						if (msg[0] == '\1')
-						{
-							++msg;
-
-							if (msg[0] && msg[strlen(msg) - 1] == '\1')
-							{
-								msg[strlen(msg) - 1] = '\0';
-							}
-
-							if (strncmp(msg, "ACTION", 6) == 0 && strlen(msg) > 6)
-							{
-								maki_dbus_emit_action(maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg + 7);
-							}
-							else
-							{
-								if (strcmp(target, m_conn->nick) == 0)
-								{
-									gchar* buffer = NULL;
-
-									if (strncmp(msg, "VERSION", 7) == 0)
-									{
-										buffer = g_strdup_printf("NOTICE %s :\001VERSION %s %s\001", from_nick, SUSHI_NAME, SUSHI_VERSION);
-									}
-									else if (strncmp(msg, "PING", 4) == 0)
-									{
-										buffer = g_strdup_printf("NOTICE %s :\001%s\001", from_nick, msg);
-									}
-
-									if (buffer != NULL)
-									{
-										sashimi_send(m_conn->connection, buffer);
-										g_free(buffer);
-									}
-								}
-
-								maki_dbus_emit_ctcp(maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg);
-							}
-						}
-						else
-						{
-							maki_dbus_emit_message(maki->bus, time.tv_sec, m_conn->server, from_nick, target, msg);
-						}
-					}
-
-					g_strfreev(tmp);
+					maki_irc_privmsg(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "JOIN", 4) == 0 && remaining)
 				{
