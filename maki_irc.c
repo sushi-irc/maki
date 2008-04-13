@@ -212,7 +212,7 @@ void maki_commands (struct maki_connection* m_conn)
 	}
 }
 
-void maki_irc_privmsg (struct maki* maki, struct maki_connection* m_conn, glong time, const gchar* nick, const gchar* remaining)
+void maki_irc_privmsg (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -274,6 +274,47 @@ void maki_irc_privmsg (struct maki* maki, struct maki_connection* m_conn, glong 
 	}
 
 	g_strfreev(tmp);
+}
+
+void maki_irc_join (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+{
+	gchar* channel;
+	struct maki_channel* m_chan;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	channel = (remaining[0] == ':') ? remaining + 1 : remaining;
+	g_strdelimit(channel, " ", '\0');
+
+	if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+	{
+		struct maki_channel_user* m_cuser;
+		struct maki_user* m_user;
+
+		m_user = maki_cache_insert(m_conn->users, nick);
+		m_cuser = maki_channel_user_new(m_user);
+		g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
+	}
+
+	if (strcmp(nick, m_conn->nick) == 0)
+	{
+		if (m_chan != NULL)
+		{
+			m_chan->joined = TRUE;
+		}
+		else
+		{
+			m_chan = maki_channel_new(channel);
+			m_chan->joined = TRUE;
+
+			g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
+		}
+	}
+
+	maki_dbus_emit_join(maki->bus, time, m_conn->server, nick, channel);
 }
 
 /**
@@ -380,39 +421,9 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_irc_privmsg(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
-				else if (strncmp(type, "JOIN", 4) == 0 && remaining)
+				else if (strncmp(type, "JOIN", 4) == 0)
 				{
-					gchar* channel = (remaining[0] == ':') ? remaining + 1 : remaining;
-					struct maki_channel* m_chan;
-
-					g_strdelimit(channel, " ", '\0');
-
-					if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
-					{
-						struct maki_channel_user* m_cuser;
-						struct maki_user* m_user;
-
-						m_user = maki_cache_insert(m_conn->users, from_nick);
-						m_cuser = maki_channel_user_new(m_user);
-						g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
-					}
-
-					if (strcmp(from_nick, m_conn->nick) == 0)
-					{
-						if (m_chan != NULL)
-						{
-							m_chan->joined = TRUE;
-						}
-						else
-						{
-							m_chan = maki_channel_new(channel);
-							m_chan->joined = TRUE;
-
-							g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
-						}
-					}
-
-					maki_dbus_emit_join(maki->bus, time.tv_sec, m_conn->server, from_nick, channel);
+					maki_irc_join(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "PART", 4) == 0 && remaining)
 				{
