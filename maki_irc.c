@@ -582,6 +582,36 @@ void maki_irc_mode (struct maki* maki, struct maki_connection* m_conn, glong tim
 	g_strfreev(tmp);
 }
 
+void maki_irc_topic (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+{
+	gint offset = 0;
+	gchar** tmp;
+	gchar* channel;
+	gchar* topic;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	if (is_numeric)
+	{
+		offset = 1;
+		nick = "";
+	}
+
+	tmp = g_strsplit(remaining, " ", 2 + offset);
+	channel = tmp[offset];
+	topic = maki_remove_colon(tmp[1 + offset]);
+
+	if (tmp[0] != NULL && channel != NULL && topic != NULL)
+	{
+		maki_dbus_emit_topic(maki->bus, time, m_conn->server, nick, channel, topic);
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -804,29 +834,9 @@ gpointer maki_irc_parser (gpointer data)
 
 					g_strfreev(tmp);
 				}
-				else if ((strncmp(type, IRC_RPL_TOPIC, 3) == 0 || strncmp(type, "TOPIC", 5) == 0) && remaining)
+				else if (strncmp(type, IRC_RPL_TOPIC, 3) == 0 || strncmp(type, "TOPIC", 5) == 0)
 				{
-					gint offset = 0;
-					gchar** tmp;
-					gchar* channel;
-					gchar* topic;
-
-					if (type[0] != 'T')
-					{
-						offset = 1;
-						from_nick = "";
-					}
-
-					tmp = g_strsplit(remaining, " ", 2 + offset);
-					channel = tmp[offset];
-					topic = maki_remove_colon(tmp[1 + offset]);
-
-					if (tmp[0] != NULL && channel != NULL && topic != NULL)
-					{
-						maki_dbus_emit_topic(maki->bus, time.tv_sec, m_conn->server, from_nick, channel, topic);
-					}
-
-					g_strfreev(tmp);
+					maki_irc_topic(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'T'));
 				}
 				else if (strncmp(type, IRC_RPL_ISUPPORT, 3) == 0 && remaining)
 				{
