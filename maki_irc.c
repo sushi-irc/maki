@@ -498,6 +498,90 @@ void maki_irc_notice (struct maki* maki, struct maki_connection* m_conn, glong t
 	g_strfreev(tmp);
 }
 
+void maki_irc_mode (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+{
+	gint offset = 0;
+	gchar** tmp;
+	gchar* target;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	if (is_numeric)
+	{
+		offset = 1;
+		nick = "";
+	}
+
+	tmp = g_strsplit(remaining, " ", 2 + offset);
+	target = tmp[offset];
+
+	if (tmp[0] != NULL && target != NULL && tmp[1 + offset] != NULL)
+	{
+		gchar** modes;
+
+		modes = g_strsplit(maki_remove_colon(tmp[1 + offset]), " ", 0);
+
+		if (modes[0] != NULL)
+		{
+			gint i;
+			gchar sign = '+';
+			gchar buffer[3];
+			gchar* mode;
+
+			for (mode = modes[0], i = 1; *mode != '\0'; ++mode)
+			{
+				if (*mode == '+' || *mode == '-')
+				{
+					sign = *mode;
+					continue;
+				}
+
+				buffer[0] = sign;
+				buffer[1] = *mode;
+				buffer[2] = '\0';
+
+				if (maki_mode_has_parameter(m_conn, sign, *mode) && i < g_strv_length(modes))
+				{
+					gint pos;
+
+					if ((pos = maki_prefix_position(m_conn, FALSE, *mode)) >= 0)
+					{
+						struct maki_channel* m_chan;
+						struct maki_channel_user* m_cuser;
+
+						if ((m_chan = g_hash_table_lookup(m_conn->channels, target)) != NULL
+								&& (m_cuser = g_hash_table_lookup(m_chan->users, modes[i])) != NULL)
+						{
+							if (sign == '+')
+							{
+								m_cuser->prefix |= (1 << pos);
+							}
+							else
+							{
+								m_cuser->prefix &= ~(1 << pos);
+							}
+						}
+					}
+
+					maki_dbus_emit_mode(maki->bus, time, m_conn->server, nick, target, buffer, modes[i]);
+					++i;
+				}
+				else
+				{
+					maki_dbus_emit_mode(maki->bus, time, m_conn->server, nick, target, buffer, "");
+				}
+			}
+		}
+
+		g_strfreev(modes);
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -626,83 +710,9 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_irc_notice(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
-				else if ((strncmp(type, "MODE", 4) == 0 || strncmp(type, IRC_RPL_CHANNELMODEIS, 3) == 0) && remaining)
+				else if (strncmp(type, "MODE", 4) == 0 || strncmp(type, IRC_RPL_CHANNELMODEIS, 3) == 0)
 				{
-					gint offset = 0;
-					gchar** tmp;
-					gchar* target;
-
-					if (type[0] != 'M')
-					{
-						offset = 1;
-						from_nick = "";
-					}
-
-					tmp = g_strsplit(remaining, " ", 2 + offset);
-					target = tmp[offset];
-
-					if (tmp[0] != NULL && target != NULL && tmp[1 + offset] != NULL)
-					{
-						gchar** modes;
-
-						modes = g_strsplit(maki_remove_colon(tmp[1 + offset]), " ", 0);
-
-						if (modes[0] != NULL)
-						{
-							gint i;
-							gchar sign = '+';
-							gchar buffer[3];
-							gchar* mode;
-
-							for (mode = modes[0], i = 1; *mode != '\0'; ++mode)
-							{
-								if (*mode == '+' || *mode == '-')
-								{
-									sign = *mode;
-									continue;
-								}
-
-								buffer[0] = sign;
-								buffer[1] = *mode;
-								buffer[2] = '\0';
-
-								if (maki_mode_has_parameter(m_conn, sign, *mode) && i < g_strv_length(modes))
-								{
-									gint pos;
-
-									if ((pos = maki_prefix_position(m_conn, FALSE, *mode)) >= 0)
-									{
-										struct maki_channel* m_chan;
-										struct maki_channel_user* m_cuser;
-
-										if ((m_chan = g_hash_table_lookup(m_conn->channels, target)) != NULL
-										    && (m_cuser = g_hash_table_lookup(m_chan->users, modes[i])) != NULL)
-										{
-											if (sign == '+')
-											{
-												m_cuser->prefix |= (1 << pos);
-											}
-											else
-											{
-												m_cuser->prefix &= ~(1 << pos);
-											}
-										}
-									}
-
-									maki_dbus_emit_mode(maki->bus, time.tv_sec, m_conn->server, from_nick, target, buffer, modes[i]);
-									++i;
-								}
-								else
-								{
-									maki_dbus_emit_mode(maki->bus, time.tv_sec, m_conn->server, from_nick, target, buffer, "");
-								}
-							}
-						}
-
-						g_strfreev(modes);
-					}
-
-					g_strfreev(tmp);
+					maki_irc_mode(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'M'));
 				}
 				else if (strncmp(type, IRC_RPL_NAMREPLY, 3) == 0 && remaining)
 				{
