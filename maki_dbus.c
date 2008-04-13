@@ -682,21 +682,7 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(self, time.tv_sec);
 
-	self->maki->threads.terminate = TRUE;
-	g_thread_join(self->maki->threads.messages);
-	g_async_queue_unref(self->maki->message_queue);
-
-	g_hash_table_destroy(self->maki->connections);
-
-	g_free(self->maki->directories.logs);
-	g_free(self->maki->directories.servers);
-	g_free(self->maki->directories.sushi);
-
-	dbus_g_connection_unref(self->bus);
-	g_object_unref(self);
-
-	g_main_loop_quit(self->maki->loop);
-	g_main_loop_unref(self->maki->loop);
+	maki_free(self->maki);
 
 	return TRUE;
 }

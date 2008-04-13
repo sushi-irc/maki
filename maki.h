@@ -129,4 +129,6 @@ struct maki_channel_user
 	guint prefix;
 };
 
+struct maki* maki_new (void);
+void maki_free (struct maki*);
 int maki_daemonize (void);
