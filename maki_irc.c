@@ -128,30 +128,16 @@ gboolean maki_is_channel(struct maki_connection* m_conn, const gchar* target)
 gint maki_prefix_position (struct maki_connection* m_conn, gboolean is_prefix, gchar prefix)
 {
 	guint pos = 0;
+	gchar* str = (is_prefix) ? m_conn->support.prefix.prefixes : m_conn->support.prefix.modes;
 
-	if (is_prefix)
+	while (str[pos] != '\0')
 	{
-		while (m_conn->support.prefix.prefixes[pos] != '\0')
+		if (str[pos] == prefix)
 		{
-			if (m_conn->support.prefix.prefixes[pos] == prefix)
-			{
-				return pos;
-			}
-
-			pos++;
+			return pos;
 		}
-	}
-	else
-	{
-		while (m_conn->support.prefix.modes[pos] != '\0')
-		{
-			if (m_conn->support.prefix.modes[pos] == prefix)
-			{
-				return pos;
-			}
 
-			pos++;
-		}
+		pos++;
 	}
 
 	return -1;
