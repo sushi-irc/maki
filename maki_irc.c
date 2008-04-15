@@ -101,14 +101,7 @@ gboolean maki_mode_has_parameter (struct maki_connection* m_conn, gchar sign, gc
 			}
 			else if (type == 2)
 			{
-				if (sign == '+')
-				{
-					return TRUE;
-				}
-				else
-				{
-					return FALSE;
-				}
+				return (sign == '+');
 			}
 			else if (type == 3)
 			{
