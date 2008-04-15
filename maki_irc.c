@@ -669,6 +669,64 @@ void maki_irc_rpl_away (struct maki* maki, struct maki_connection* m_conn, glong
 	g_strfreev(tmp);
 }
 
+void maki_irc_rpl_isupport (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+{
+	gint i;
+	gchar** tmp;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 0);
+
+	for (i = 1; i < g_strv_length(tmp); ++i)
+	{
+		gchar** support;
+
+		if (tmp[i][0] == ':')
+		{
+			break;
+		}
+
+		support = g_strsplit(tmp[i], "=", 2);
+
+		if (support[0] != NULL && support[1] != NULL)
+		{
+			if (strncmp(support[0], "CHANMODES", 9) == 0)
+			{
+				g_free(m_conn->support.chanmodes);
+				m_conn->support.chanmodes = g_strdup(support[1]);
+			}
+			else if (strncmp(support[0], "CHANTYPES", 9) == 0)
+			{
+				g_free(m_conn->support.chantypes);
+				m_conn->support.chantypes = g_strdup(support[1]);
+			}
+			else if (strncmp(support[0], "PREFIX", 6) == 0)
+			{
+				gchar* paren;
+
+				paren = strchr(support[1], ')');
+
+				if (support[1][0] == '(' && paren != NULL)
+				{
+					*paren = '\0';
+					g_free(m_conn->support.prefix.modes);
+					g_free(m_conn->support.prefix.prefixes);
+					m_conn->support.prefix.modes = g_strdup(support[1] + 1);
+					m_conn->support.prefix.prefixes = g_strdup(paren + 1);
+				}
+			}
+		}
+
+		g_strfreev(support);
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -858,57 +916,9 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_irc_topic(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'T'));
 				}
-				else if (strncmp(type, IRC_RPL_ISUPPORT, 3) == 0 && remaining)
+				else if (strncmp(type, IRC_RPL_ISUPPORT, 3) == 0)
 				{
-					gint i;
-					gchar** tmp;
-
-					tmp = g_strsplit(remaining, " ", 0);
-
-					for (i = 1; i < g_strv_length(tmp); ++i)
-					{
-						gchar** support;
-
-						if (tmp[i][0] == ':')
-						{
-							break;
-						}
-
-						support = g_strsplit(tmp[i], "=", 2);
-
-						if (support[0] != NULL && support[1] != NULL)
-						{
-							if (strncmp(support[0], "CHANMODES", 9) == 0)
-							{
-								g_free(m_conn->support.chanmodes);
-								m_conn->support.chanmodes = g_strdup(support[1]);
-							}
-							else if (strncmp(support[0], "CHANTYPES", 9) == 0)
-							{
-								g_free(m_conn->support.chantypes);
-								m_conn->support.chantypes = g_strdup(support[1]);
-							}
-							else if (strncmp(support[0], "PREFIX", 6) == 0)
-							{
-								gchar* paren;
-
-								paren = strchr(support[1], ')');
-
-								if (support[1][0] == '(' && paren != NULL)
-								{
-									*paren = '\0';
-									g_free(m_conn->support.prefix.modes);
-									g_free(m_conn->support.prefix.prefixes);
-									m_conn->support.prefix.modes = g_strdup(support[1] + 1);
-									m_conn->support.prefix.prefixes = g_strdup(paren + 1);
-								}
-							}
-						}
-
-						g_strfreev(support);
-					}
-
-					g_strfreev(tmp);
+					maki_irc_rpl_isupport(maki, m_conn, time.tv_sec, remaining);
 				}
 			}
 
