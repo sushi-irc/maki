@@ -605,6 +605,47 @@ void maki_irc_topic (struct maki* maki, struct maki_connection* m_conn, glong ti
 	g_strfreev(tmp);
 }
 
+void maki_irc_rpl_namreply (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+{
+	gchar** tmp;
+	gchar* channel;
+	gint i;
+	struct maki_channel* m_chan;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 0);
+	channel = tmp[2];
+
+	if (g_strv_length(tmp) > 3 && (m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+	{
+		for (i = 3; i < g_strv_length(tmp); ++i)
+		{
+			gchar* nick = maki_remove_colon(tmp[i]);
+			guint prefix = 0;
+			gint pos;
+			struct maki_channel_user* m_cuser;
+			struct maki_user* m_user;
+
+			if ((pos = maki_prefix_position(m_conn, TRUE, *nick)) >= 0)
+			{
+				prefix |= (1 << pos);
+				++nick;
+			}
+
+			m_user = maki_cache_insert(m_conn->users, nick);
+			m_cuser = maki_channel_user_new(m_user);
+			g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
+			m_cuser->prefix = prefix;
+		}
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -739,35 +780,7 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if (strncmp(type, IRC_RPL_NAMREPLY, 3) == 0 && remaining)
 				{
-					gchar** tmp = g_strsplit(remaining, " ", 0);
-					gchar* channel = tmp[2];
-					gint i;
-					struct maki_channel* m_chan;
-
-					if (g_strv_length(tmp) > 3 && (m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
-					{
-						for (i = 3; i < g_strv_length(tmp); ++i)
-						{
-							gchar* nick = maki_remove_colon(tmp[i]);
-							guint prefix = 0;
-							gint pos;
-							struct maki_channel_user* m_cuser;
-							struct maki_user* m_user;
-
-							if ((pos = maki_prefix_position(m_conn, TRUE, *nick)) >= 0)
-							{
-								prefix |= (1 << pos);
-								++nick;
-							}
-
-							m_user = maki_cache_insert(m_conn->users, nick);
-							m_cuser = maki_channel_user_new(m_user);
-							g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
-							m_cuser->prefix = prefix;
-						}
-					}
-
-					g_strfreev(tmp);
+					maki_irc_rpl_namreply(maki, m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_UNAWAY, 3) == 0)
 				{
