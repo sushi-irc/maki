@@ -646,6 +646,29 @@ void maki_irc_rpl_namreply (struct maki* maki, struct maki_connection* m_conn, g
 	g_strfreev(tmp);
 }
 
+void maki_irc_rpl_away (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+{
+	gchar** tmp;
+	gchar* nick;
+	gchar* message;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 3);
+	nick = tmp[1];
+	message = maki_remove_colon(tmp[2]);
+
+	if (tmp[0] != NULL && nick != NULL && message != NULL)
+	{
+		maki_dbus_emit_away_message(maki->bus, time, m_conn->server, nick, message);
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -778,7 +801,7 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_irc_mode(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'M'));
 				}
-				else if (strncmp(type, IRC_RPL_NAMREPLY, 3) == 0 && remaining)
+				else if (strncmp(type, IRC_RPL_NAMREPLY, 3) == 0)
 				{
 					maki_irc_rpl_namreply(maki, m_conn, time.tv_sec, remaining);
 				}
@@ -790,18 +813,9 @@ gpointer maki_irc_parser (gpointer data)
 				{
 					maki_dbus_emit_away(maki->bus, time.tv_sec, m_conn->server);
 				}
-				else if (strncmp(type, IRC_RPL_AWAY, 3) == 0 && remaining)
+				else if (strncmp(type, IRC_RPL_AWAY, 3) == 0)
 				{
-					gchar** tmp = g_strsplit(remaining, " ", 3);
-					gchar* nick = tmp[1];
-					gchar* msg = maki_remove_colon(tmp[2]);
-
-					if (nick && msg)
-					{
-						maki_dbus_emit_away_message(maki->bus, time.tv_sec, m_conn->server, nick, msg);
-					}
-
-					g_strfreev(tmp);
+					maki_irc_rpl_away(maki, m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || strncmp(type, IRC_ERR_NOMOTD, 3) == 0)
 				{
