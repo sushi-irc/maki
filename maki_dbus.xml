@@ -273,6 +273,13 @@
 			<arg name="message" type="s" />
 		</signal>
 
+		<signal name="query">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" />
+			<arg name="message" type="s" />
+		</signal>
+
 		<signal name="quit">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
