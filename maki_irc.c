@@ -266,7 +266,7 @@ void maki_irc_privmsg (struct maki* maki, struct maki_connection* m_conn, glong 
 			else
 			{
 				maki_log(m_conn, nick, "<%s> %s", nick, message);
-				maki_dbus_emit_query(maki->bus, time, m_conn->server, nick, message);
+				maki_dbus_emit_query(maki->bus, time, m_conn->server, nick, target, message);
 			}
 		}
 	}
