@@ -727,6 +727,25 @@ void maki_irc_rpl_isupport (struct maki* maki, struct maki_connection* m_conn, g
 	g_strfreev(tmp);
 }
 
+void maki_irc_rpl_motd (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+{
+	gchar** tmp;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 2);
+
+	if (tmp[0] != NULL && tmp[1] != NULL)
+	{
+		maki_dbus_emit_motd(maki->bus, time, m_conn->server, maki_remove_colon(tmp[1]));
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -899,18 +918,9 @@ gpointer maki_irc_parser (gpointer data)
 						g_free(buffer);
 					}
 				}
-				else if (strncmp(type, IRC_RPL_MOTD, 3) == 0 && remaining)
+				else if (strncmp(type, IRC_RPL_MOTD, 3) == 0)
 				{
-					gchar** tmp;
-
-					tmp = g_strsplit(remaining, " ", 2);
-
-					if (tmp[1] != NULL)
-					{
-						maki_dbus_emit_motd(maki->bus, time.tv_sec, m_conn->server, maki_remove_colon(tmp[1]));
-					}
-
-					g_strfreev(tmp);
+					maki_irc_rpl_motd(maki, m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_TOPIC, 3) == 0 || strncmp(type, "TOPIC", 5) == 0)
 				{
