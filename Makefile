@@ -5,7 +5,7 @@ CFLAGS := $(subst -pedantic,,$(CFLAGS))
 CFLAGS  += -I../sashimi $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0)
 LDFLAGS += -L../sashimi $(shell pkg-config --libs dbus-glib-1) $(shell pkg-config --libs glib-2.0) -lsashimi
 
-COMPONENTS = cache dbus irc marshal misc servers
+COMPONENTS = cache connection dbus irc marshal misc servers
 OBJECTS = maki.o $(COMPONENTS:%=maki_%.o)
 
 all: maki

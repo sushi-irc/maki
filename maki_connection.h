@@ -25,9 +25,8 @@
  * SUCH DAMAGE.
  */
 
-gpointer maki_user_new (gpointer, gpointer);
-void maki_user_free (gpointer);
-struct maki_channel_user* maki_channel_user_new (struct maki_user*);
-void maki_channel_user_free (gpointer);
-struct maki_channel* maki_channel_new (const gchar*);
-void maki_channel_free (gpointer);
+struct maki_connection* maki_connection_new (struct maki*, const gchar*, const gchar*, gushort, const gchar*, const gchar*);
+void maki_connection_free (gpointer);
+gint maki_connect (struct maki_connection*);
+gint maki_disconnect (struct maki_connection*);
+gboolean maki_disconnect_timeout (gpointer);
