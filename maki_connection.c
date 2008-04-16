@@ -89,7 +89,7 @@ void maki_connection_free (gpointer data)
  * This function is a wrapper around sashimi_connect().
  * It handles the initial login with NICK and USER and emits the connect signal.
  */
-gint maki_connect (struct maki_connection* m_conn)
+gint maki_connection_connect (struct maki_connection* m_conn)
 {
 	gint ret;
 

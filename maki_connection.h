@@ -27,6 +27,6 @@
 
 struct maki_connection* maki_connection_new (struct maki*, const gchar*, const gchar*, gushort, const gchar*, const gchar*);
 void maki_connection_free (gpointer);
-gint maki_connect (struct maki_connection*);
+gint maki_connection_connect (struct maki_connection*);
 gint maki_disconnect (struct maki_connection*);
 gboolean maki_disconnect_timeout (gpointer);

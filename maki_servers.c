@@ -67,7 +67,7 @@ gboolean maki_reconnect (gpointer data)
 	g_get_current_time(&time);
 	maki_dbus_emit_reconnect(m_conn->maki->bus, time.tv_sec, m_conn->server);
 
-	if (maki_connect(m_conn) == 0)
+	if (maki_connection_connect(m_conn) == 0)
 	{
 		return FALSE;
 	}
@@ -143,7 +143,7 @@ struct maki_connection* maki_server_new (struct maki* maki, const gchar* server)
 
 		if (m_conn->autoconnect)
 		{
-			if (maki_connect(m_conn) != 0)
+			if (maki_connection_connect(m_conn) != 0)
 			{
 				maki_reconnect_callback(m_conn);
 			}

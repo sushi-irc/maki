@@ -247,11 +247,11 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
 		/*
-		 * Disconnect, because strange things happen if we call maki_connect() while still connected.
+		 * Disconnect, because strange things happen if we call maki_connection_connect() while still connected.
 		 */
 		maki_disconnect(m_conn);
 
-		if (maki_connect(m_conn) != 0)
+		if (maki_connection_connect(m_conn) != 0)
 		{
 			maki_reconnect_callback(m_conn);
 		}
@@ -262,7 +262,7 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 
 		if (m_conn != NULL && !m_conn->autoconnect)
 		{
-			if (maki_connect(m_conn) != 0)
+			if (maki_connection_connect(m_conn) != 0)
 			{
 				maki_reconnect_callback(m_conn);
 			}
