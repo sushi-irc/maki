@@ -249,7 +249,7 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 		/*
 		 * Disconnect, because strange things happen if we call maki_connection_connect() while still connected.
 		 */
-		maki_disconnect(m_conn);
+		maki_connection_disconnect(m_conn);
 
 		if (maki_connection_connect(m_conn) != 0)
 		{

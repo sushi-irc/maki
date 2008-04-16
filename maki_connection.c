@@ -76,7 +76,7 @@ void maki_connection_free (gpointer data)
 	g_free(m_conn->nickserv.password);
 	g_hash_table_destroy(m_conn->channels);
 	maki_cache_free(m_conn->users);
-	maki_disconnect(m_conn);
+	maki_connection_disconnect(m_conn);
 	sashimi_free(m_conn->connection);
 	g_free(m_conn->name);
 	g_free(m_conn->nick);
@@ -122,7 +122,7 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 /**
  * This function is a wrapper around sashimi_disconnect().
  */
-gint maki_disconnect (struct maki_connection* m_conn)
+gint maki_connection_disconnect (struct maki_connection* m_conn)
 {
 	gint ret;
 
@@ -139,7 +139,7 @@ gboolean maki_disconnect_timeout (gpointer data)
 {
 	struct maki_connection* m_conn = data;
 
-	maki_disconnect(m_conn);
+	maki_connection_disconnect(m_conn);
 
 	return FALSE;
 }

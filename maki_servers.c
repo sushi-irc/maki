@@ -48,7 +48,7 @@ gboolean maki_reconnect (gpointer data)
 		return FALSE;
 	}
 
-	maki_disconnect(m_conn);
+	maki_connection_disconnect(m_conn);
 
 	if (m_conn->retries > 0)
 	{
