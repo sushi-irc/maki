@@ -51,6 +51,7 @@ enum
 	s_motd,
 	s_nick,
 	s_notice,
+	s_own_message,
 	s_own_query,
 	s_part,
 	s_query,
@@ -131,6 +132,11 @@ void maki_dbus_emit_nick (makiDBus* self, gint64 time, const gchar* server, cons
 void maki_dbus_emit_notice (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
 	g_signal_emit(self, signals[s_notice], 0, time, server, nick, target, message);
+}
+
+void maki_dbus_emit_own_message (makiDBus* self, gint64 time, const gchar* server, const gchar* target, const gchar* message)
+{
+	g_signal_emit(self, signals[s_own_message], 0, time, server, target, message);
 }
 
 void maki_dbus_emit_own_query (makiDBus* self, gint64 time, const gchar* server, const gchar* target, const gchar* message)
@@ -431,7 +437,7 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 
 			if (maki_is_channel(m_conn, target))
 			{
-				maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, target, message);
+				maki_dbus_emit_own_message(self, time.tv_sec, server, target, message);
 			}
 			else
 			{
@@ -454,7 +460,7 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 
 					if (maki_is_channel(m_conn, target))
 					{
-						maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, target, *tmp);
+						maki_dbus_emit_own_message(self, time.tv_sec, server, target, *tmp);
 					}
 					else
 					{
@@ -1184,6 +1190,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_own_message] =
+		g_signal_new("own_message",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_own_query] =
 		g_signal_new("own_query",
 		             G_OBJECT_CLASS_TYPE(klass),
