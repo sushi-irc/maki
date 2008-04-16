@@ -429,7 +429,14 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 			sashimi_send(m_conn->connection, buffer);
 			g_free(buffer);
 
-			maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, target, message);
+			if (maki_is_channel(m_conn, target))
+			{
+				maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, target, message);
+			}
+			else
+			{
+				maki_dbus_emit_own_query(self, time.tv_sec, server, target, message);
+			}
 		}
 		else
 		{
@@ -445,7 +452,14 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 					sashimi_queue(m_conn->connection, buffer);
 					g_free(buffer);
 
-					maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, target, *tmp);
+					if (maki_is_channel(m_conn, target))
+					{
+						maki_dbus_emit_message(self, time.tv_sec, server, m_conn->nick, target, *tmp);
+					}
+					else
+					{
+						maki_dbus_emit_own_query(self, time.tv_sec, server, target, *tmp);
+					}
 				}
 			}
 

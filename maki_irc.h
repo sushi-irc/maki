@@ -48,4 +48,5 @@ gchar* maki_remove_colon (gchar*);
 void maki_nickserv (struct maki_connection*);
 gboolean maki_mode_has_parameter (struct maki_connection*, gchar, gchar);
 gboolean maki_join (gpointer);
+gboolean maki_is_channel(struct maki_connection*, const gchar*);
 gpointer maki_irc_parser (gpointer);
