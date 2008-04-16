@@ -31,6 +31,7 @@
 #include "maki.h"
 #include "maki_cache.h"
 #include "maki_irc.h"
+#include "maki_log.h"
 #include "maki_misc.h"
 
 /**
@@ -219,6 +220,15 @@ void maki_irc_privmsg (struct maki* maki, struct maki_connection* m_conn, glong 
 
 			if (strncmp(message, "ACTION", 6) == 0 && strlen(message) > 6)
 			{
+				if (maki_is_channel(m_conn, target))
+				{
+					maki_log(m_conn, target, "%s %s", nick, message + 7);
+				}
+				else
+				{
+					maki_log(m_conn, nick, "%s %s", nick, message + 7);
+				}
+
 				maki_dbus_emit_action(maki->bus, time, m_conn->server, nick, target, message + 7);
 			}
 			else
@@ -248,6 +258,15 @@ void maki_irc_privmsg (struct maki* maki, struct maki_connection* m_conn, glong 
 		}
 		else
 		{
+			if (maki_is_channel(m_conn, target))
+			{
+				maki_log(m_conn, target, "<%s> %s", nick, message);
+			}
+			else
+			{
+				maki_log(m_conn, nick, "<%s> %s", nick, message);
+			}
+
 			maki_dbus_emit_message(maki->bus, time, m_conn->server, nick, target, message);
 		}
 	}

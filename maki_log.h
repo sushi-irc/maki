@@ -25,111 +25,12 @@
  * SUCH DAMAGE.
  */
 
-#include <glib.h>
-
-#include <sashimi.h>
-
-#include "maki_dbus.h"
-
-struct maki
-{
-	makiDBus* bus;
-
-	struct
-	{
-		struct
-		{
-			gint retries;
-			guint timeout;
-		}
-		reconnect;
-	}
-	config;
-
-	GHashTable* connections;
-
-	struct
-	{
-		gchar* logs;
-		gchar* servers;
-		gchar* sushi;
-	}
-	directories;
-
-	GMainLoop* loop;
-
-	GAsyncQueue* message_queue;
-
-	struct
-	{
-		GThread* messages;
-
-		gboolean terminate;
-	}
-	threads;
-};
-
-struct maki_connection
-{
-	struct maki* maki;
-	gchar* server;
-	gchar* initial_nick;
-	gchar* nick;
-	gchar* name;
-	gboolean autoconnect;
-	gboolean connected;
-	gboolean reconnect;
-	gint retries;
-	struct sashimi_connection* connection;
-	GHashTable* channels;
-	struct maki_cache* users;
-	GHashTable* logs;
-
-	struct
-	{
-		gchar* password;
-	}
-	nickserv;
-
-	gchar** commands;
-	gchar** ignores;
-
-	struct
-	{
-		gchar* chanmodes;
-		gchar* chantypes;
-
-		struct
-		{
-			gchar* modes;
-			gchar* prefixes;
-		}
-		prefix;
-	}
-	support;
-};
-
-struct maki_channel
+struct maki_log
 {
 	gchar* name;
-	gboolean autojoin;
-	gboolean joined;
-	gchar* key;
-	GHashTable* users;
+	int fd;
 };
 
-struct maki_user
-{
-	struct maki_connection* connection;
-	gchar* nick;
-};
-
-struct maki_channel_user
-{
-	struct maki_user* user;
-	guint prefix;
-};
-
-struct maki* maki_new (void);
-void maki_free (struct maki*);
-int maki_daemonize (void);
+struct maki_log* maki_log_new (const gchar*, const gchar*, const gchar*);
+void maki_log_free (gpointer);
+void maki_log (struct maki_connection*, const gchar*, const gchar*, ...);
