@@ -33,8 +33,6 @@
 #include <unistd.h>
 
 #include "maki.h"
-#include "maki_log.h"
-#include "maki_misc.h"
 
 struct maki_log* maki_log_new (const gchar* directory, const gchar* server, const gchar* name)
 {

@@ -28,9 +28,6 @@
 #include <string.h>
 
 #include "maki.h"
-#include "maki_cache.h"
-#include "maki_connection.h"
-#include "maki_misc.h"
 
 /**
  * This function handles unexpected reconnects.

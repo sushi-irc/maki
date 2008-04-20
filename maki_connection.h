@@ -25,6 +25,46 @@
  * SUCH DAMAGE.
  */
 
+struct maki_connection
+{
+	struct maki* maki;
+	gchar* server;
+	gchar* initial_nick;
+	gchar* nick;
+	gchar* name;
+	gboolean autoconnect;
+	gboolean connected;
+	gboolean reconnect;
+	gint retries;
+	struct sashimi_connection* connection;
+	GHashTable* channels;
+	struct maki_cache* users;
+	GHashTable* logs;
+
+	struct
+	{
+		gchar* password;
+	}
+	nickserv;
+
+	gchar** commands;
+	gchar** ignores;
+
+	struct
+	{
+		gchar* chanmodes;
+		gchar* chantypes;
+
+		struct
+		{
+			gchar* modes;
+			gchar* prefixes;
+		}
+		prefix;
+	}
+	support;
+};
+
 struct maki_connection* maki_connection_new (struct maki*, const gchar*, const gchar*, gushort, const gchar*, const gchar*);
 void maki_connection_free (gpointer);
 gint maki_connection_connect (struct maki_connection*);

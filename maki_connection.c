@@ -26,10 +26,6 @@
  */
 
 #include "maki.h"
-#include "maki_cache.h"
-#include "maki_connection.h"
-#include "maki_log.h"
-#include "maki_misc.h"
 
 struct maki_connection* maki_connection_new (struct maki* maki, const gchar* server, const gchar* address, gushort port, const gchar* nick, const gchar* name)
 {

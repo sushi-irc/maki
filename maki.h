@@ -29,11 +29,17 @@
 
 #include <sashimi.h>
 
+#include "maki_cache.h"
+#include "maki_connection.h"
+#include "maki_dbus.h"
+#include "maki_irc.h"
+#include "maki_log.h"
+#include "maki_misc.h"
+#include "maki_servers.h"
+
 #define SUSHI_NAME "sushi"
 #define SUSHI_VERSION "0.0.0"
 #define SUSHI_URL "http://sushi.ikkoku.de/"
-
-#include "maki_dbus.h"
 
 struct maki
 {
@@ -71,67 +77,6 @@ struct maki
 		gboolean terminate;
 	}
 	threads;
-};
-
-struct maki_connection
-{
-	struct maki* maki;
-	gchar* server;
-	gchar* initial_nick;
-	gchar* nick;
-	gchar* name;
-	gboolean autoconnect;
-	gboolean connected;
-	gboolean reconnect;
-	gint retries;
-	struct sashimi_connection* connection;
-	GHashTable* channels;
-	struct maki_cache* users;
-	GHashTable* logs;
-
-	struct
-	{
-		gchar* password;
-	}
-	nickserv;
-
-	gchar** commands;
-	gchar** ignores;
-
-	struct
-	{
-		gchar* chanmodes;
-		gchar* chantypes;
-
-		struct
-		{
-			gchar* modes;
-			gchar* prefixes;
-		}
-		prefix;
-	}
-	support;
-};
-
-struct maki_channel
-{
-	gchar* name;
-	gboolean autojoin;
-	gboolean joined;
-	gchar* key;
-	GHashTable* users;
-};
-
-struct maki_user
-{
-	struct maki_connection* connection;
-	gchar* nick;
-};
-
-struct maki_channel_user
-{
-	struct maki_user* user;
-	guint prefix;
 };
 
 struct maki* maki_new (void);

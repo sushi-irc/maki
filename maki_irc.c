@@ -29,10 +29,6 @@
 #include <unistd.h>
 
 #include "maki.h"
-#include "maki_cache.h"
-#include "maki_irc.h"
-#include "maki_log.h"
-#include "maki_misc.h"
 
 /**
  * A convenience function to remove a colon before an argument.

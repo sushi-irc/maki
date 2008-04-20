@@ -33,10 +33,6 @@
 #include <unistd.h>
 
 #include "maki.h"
-#include "maki_connection.h"
-#include "maki_irc.h"
-#include "maki_misc.h"
-#include "maki_servers.h"
 
 struct maki* maki_new (void)
 {

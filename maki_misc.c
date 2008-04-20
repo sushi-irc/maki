@@ -26,7 +26,6 @@
  */
 
 #include "maki.h"
-#include "maki_cache.h"
 
 gpointer maki_user_new (gpointer key, gpointer data)
 {
