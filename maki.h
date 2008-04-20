@@ -29,6 +29,10 @@
 
 #include <sashimi.h>
 
+#define SUSHI_NAME "sushi"
+#define SUSHI_VERSION "1.0-alpha1"
+#define SUSHI_URL "http://sushi.ikkoku.de/"
+
 #include "maki_cache.h"
 #include "maki_connection.h"
 #include "maki_dbus.h"
@@ -36,10 +40,6 @@
 #include "maki_log.h"
 #include "maki_misc.h"
 #include "maki_servers.h"
-
-#define SUSHI_NAME "sushi"
-#define SUSHI_VERSION "1.0-alpha1"
-#define SUSHI_URL "http://sushi.ikkoku.de/"
 
 struct maki
 {
@@ -60,6 +60,7 @@ struct maki
 
 	struct
 	{
+		gchar* config;
 		gchar* logs;
 		gchar* servers;
 		gchar* sushi;

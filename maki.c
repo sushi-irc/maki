@@ -37,6 +37,8 @@
 struct maki* maki_new (void)
 {
 	const gchar* home_dir;
+	gchar* path;
+	GKeyFile* key_file;
 	struct maki* maki;
 
 	maki = g_new(struct maki, 1);
@@ -55,8 +57,46 @@ struct maki* maki_new (void)
 	maki->connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_free);
 
 	maki->directories.sushi = g_build_filename(home_dir, ".sushi", NULL);
+	maki->directories.config = g_build_filename(maki->directories.sushi, "config", NULL);
 	maki->directories.logs = g_build_filename(maki->directories.sushi, "logs", NULL);
 	maki->directories.servers = g_build_filename(maki->directories.sushi, "servers", NULL);
+
+	path = g_build_filename(maki->directories.config, "maki", NULL);
+	key_file = g_key_file_new();
+
+	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+	{
+		gint retries;
+		gint timeout;
+		GError* error = NULL;
+
+		retries = g_key_file_get_integer(key_file, "reconnect", "retries", &error);
+
+		if (error)
+		{
+			g_error_free(error);
+			error = NULL;
+		}
+		else
+		{
+			maki->config.reconnect.retries = retries;
+		}
+
+		timeout = g_key_file_get_integer(key_file, "reconnect", "timeout", &error);
+
+		if (error)
+		{
+			g_error_free(error);
+			error = NULL;
+		}
+		else if (timeout >= 0)
+		{
+			maki->config.reconnect.timeout = timeout;
+		}
+	}
+
+	g_key_file_free(key_file);
+	g_free(path);
 
 	maki->message_queue = g_async_queue_new();
 
@@ -76,6 +116,7 @@ void maki_free (struct maki* maki)
 
 	g_hash_table_destroy(maki->connections);
 
+	g_free(maki->directories.config);
 	g_free(maki->directories.logs);
 	g_free(maki->directories.servers);
 	g_free(maki->directories.sushi);
