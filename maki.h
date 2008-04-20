@@ -38,7 +38,7 @@
 #include "maki_servers.h"
 
 #define SUSHI_NAME "sushi"
-#define SUSHI_VERSION "0.0.0"
+#define SUSHI_VERSION "1.0-alpha1"
 #define SUSHI_URL "http://sushi.ikkoku.de/"
 
 struct maki
