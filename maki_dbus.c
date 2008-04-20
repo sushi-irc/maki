@@ -272,11 +272,9 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 	}
 	else
 	{
-		m_conn = maki_server_new(self->maki, server);
-
-		if (m_conn != NULL && !m_conn->autoconnect)
+		if ((m_conn = maki_connection_new(self->maki, server)) != NULL)
 		{
-			if (maki_connection_connect(m_conn) != 0)
+			if (!m_conn->autoconnect && maki_connection_connect(m_conn) != 0)
 			{
 				maki_reconnect_callback(m_conn);
 			}

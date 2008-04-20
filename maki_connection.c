@@ -25,34 +25,125 @@
  * SUCH DAMAGE.
  */
 
+#include <string.h>
+
 #include "maki.h"
 
-struct maki_connection* maki_connection_new (struct maki* maki, const gchar* server, const gchar* address, gushort port, const gchar* nick, const gchar* name)
+struct maki_connection* maki_connection_new (struct maki* maki, const gchar* server)
 {
-	struct maki_connection* m_conn;
+	gchar* path;
+	GKeyFile* key_file;
+	struct maki_connection* m_conn = NULL;
 
-	m_conn = g_new(struct maki_connection, 1);
-	m_conn->maki = maki;
-	m_conn->server = g_strdup(server);
-	m_conn->initial_nick = g_strdup(nick);
-	m_conn->nick = g_strdup(nick);
-	m_conn->name = g_strdup(name);
-	m_conn->autoconnect = FALSE;
-	m_conn->connected = FALSE;
-	m_conn->reconnect = FALSE;
-	m_conn->retries = maki->config.reconnect.retries;
-	m_conn->connection = sashimi_new(address, port, maki->message_queue, m_conn);
-	m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_free);
-	m_conn->users = maki_cache_new(maki_user_new, maki_user_free, m_conn);
-	m_conn->logs = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_log_free);
+	path = g_build_filename(maki->directories.servers, server, NULL);
+	key_file = g_key_file_new();
 
-	m_conn->nickserv.password = NULL;
-	m_conn->commands = NULL;
-	m_conn->ignores = NULL;
-	m_conn->support.chanmodes = NULL;
-	m_conn->support.chantypes = g_strdup("#&");
-	m_conn->support.prefix.modes = g_strdup("ov");
-	m_conn->support.prefix.prefixes = g_strdup("@+");
+	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+	{
+		gchar** group;
+		gchar** groups;
+		gboolean autoconnect;
+		gchar* address;
+		gchar* nick;
+		gchar* name;
+		gchar* nickserv;
+		gchar** commands;
+		gchar** ignores;
+		gint port;
+
+		autoconnect = g_key_file_get_boolean(key_file, "server", "autoconnect", NULL);
+		address = g_key_file_get_string(key_file, "server", "address", NULL);
+		port = g_key_file_get_integer(key_file, "server", "port", NULL);
+		nick = g_key_file_get_string(key_file, "server", "nick", NULL);
+		name = g_key_file_get_string(key_file, "server", "name", NULL);
+		nickserv = g_key_file_get_string(key_file, "server", "nickserv", NULL);
+		commands = g_key_file_get_string_list(key_file, "server", "commands", NULL, NULL);
+		ignores = g_key_file_get_string_list(key_file, "server", "ignores", NULL, NULL);
+
+		if (port == 0)
+		{
+			port = 6667;
+		}
+
+		if (nick == NULL)
+		{
+			nick = g_strdup(g_get_user_name());
+		}
+
+		if (name == NULL)
+		{
+			name = g_strdup(g_get_real_name());
+		}
+
+		m_conn = g_new(struct maki_connection, 1);
+		m_conn->maki = maki;
+		m_conn->server = g_strdup(server);
+		m_conn->initial_nick = g_strdup(nick);
+		m_conn->nick = g_strdup(nick);
+		m_conn->name = g_strdup(name);
+		m_conn->autoconnect = autoconnect;
+		m_conn->connected = FALSE;
+		m_conn->reconnect = FALSE;
+		m_conn->retries = maki->config.reconnect.retries;
+		m_conn->connection = sashimi_new(address, port, maki->message_queue, m_conn);
+		m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_free);
+		m_conn->users = maki_cache_new(maki_user_new, maki_user_free, m_conn);
+		m_conn->logs = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_log_free);
+
+		m_conn->nickserv.password = g_strdup(nickserv);
+		m_conn->commands = g_strdupv(commands);
+		m_conn->ignores = g_strdupv(ignores);
+		m_conn->support.chanmodes = NULL;
+		m_conn->support.chantypes = g_strdup("#&");
+		m_conn->support.prefix.modes = g_strdup("ov");
+		m_conn->support.prefix.prefixes = g_strdup("@+");
+
+		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
+		sashimi_timeout(m_conn->connection, 60);
+
+		if (m_conn->autoconnect)
+		{
+			if (maki_connection_connect(m_conn) != 0)
+			{
+				maki_reconnect_callback(m_conn);
+			}
+		}
+
+		g_free(address);
+		g_free(nick);
+		g_free(name);
+		g_free(nickserv);
+		g_strfreev(commands);
+		g_strfreev(ignores);
+
+		groups = g_key_file_get_groups(key_file, NULL);
+
+		for (group = groups; *group != NULL; ++group)
+		{
+			if (strncmp(*group, "server", 6) != 0)
+			{
+				gboolean autojoin;
+				gchar* key;
+				struct maki_channel* m_chan;
+
+				autojoin = g_key_file_get_boolean(key_file, *group, "autojoin", NULL);
+				key = g_key_file_get_string(key_file, *group, "key", NULL);
+
+				m_chan = maki_channel_new(*group);
+				m_chan->autojoin = autojoin;
+				m_chan->key = g_strdup(key);
+
+				g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
+
+				g_free(key);
+			}
+		}
+
+		g_strfreev(groups);
+	}
+
+	g_key_file_free(key_file);
+	g_free(path);
 
 	return m_conn;
 }

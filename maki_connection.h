@@ -65,7 +65,7 @@ struct maki_connection
 	support;
 };
 
-struct maki_connection* maki_connection_new (struct maki*, const gchar*, const gchar*, gushort, const gchar*, const gchar*);
+struct maki_connection* maki_connection_new (struct maki*, const gchar*);
 void maki_connection_free (gpointer);
 gint maki_connection_connect (struct maki_connection*);
 gint maki_connection_disconnect (struct maki_connection*);

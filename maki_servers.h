@@ -28,4 +28,3 @@
 gboolean maki_reconnect (gpointer);
 void maki_reconnect_callback (gpointer);
 void maki_servers (struct maki*);
-struct maki_connection* maki_server_new (struct maki*, const gchar*);

@@ -25,8 +25,6 @@
  * SUCH DAMAGE.
  */
 
-#include <string.h>
-
 #include "maki.h"
 
 /**
@@ -83,115 +81,6 @@ void maki_reconnect_callback (gpointer data)
 	g_timeout_add_seconds(m_conn->maki->config.reconnect.timeout, maki_reconnect, m_conn);
 }
 
-struct maki_connection* maki_server_new (struct maki* maki, const gchar* server)
-{
-	gchar* path;
-	GKeyFile* key_file;
-	struct maki_connection* m_conn = NULL;
-
-	path = g_build_filename(maki->directories.servers, server, NULL);
-	key_file = g_key_file_new();
-
-	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
-	{
-		gchar** group;
-		gchar** groups;
-		gboolean autoconnect;
-		gchar* address;
-		gchar* nick;
-		gchar* name;
-		gchar* nickserv;
-		gchar** commands;
-		gchar** ignores;
-		gint port;
-
-		autoconnect = g_key_file_get_boolean(key_file, "server", "autoconnect", NULL);
-		address = g_key_file_get_string(key_file, "server", "address", NULL);
-		port = g_key_file_get_integer(key_file, "server", "port", NULL);
-		nick = g_key_file_get_string(key_file, "server", "nick", NULL);
-		name = g_key_file_get_string(key_file, "server", "name", NULL);
-		nickserv = g_key_file_get_string(key_file, "server", "nickserv", NULL);
-		commands = g_key_file_get_string_list(key_file, "server", "commands", NULL, NULL);
-		ignores = g_key_file_get_string_list(key_file, "server", "ignores", NULL, NULL);
-
-		if (port == 0)
-		{
-			port = 6667;
-		}
-
-		if (nick == NULL)
-		{
-			nick = g_strdup(g_get_user_name());
-		}
-
-		if (name == NULL)
-		{
-			name = g_strdup(g_get_real_name());
-		}
-
-		m_conn = maki_connection_new(maki, server, address, port, nick, name);
-		m_conn->autoconnect = autoconnect;
-		m_conn->commands = g_strdupv(commands);
-		m_conn->ignores = g_strdupv(ignores);
-		m_conn->nickserv.password = g_strdup(nickserv);
-
-		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
-		sashimi_timeout(m_conn->connection, 60);
-
-		if (m_conn->autoconnect)
-		{
-			if (maki_connection_connect(m_conn) != 0)
-			{
-				maki_reconnect_callback(m_conn);
-			}
-		}
-
-		g_hash_table_replace(maki->connections, m_conn->server, m_conn);
-
-		g_free(address);
-		g_free(nick);
-		g_free(name);
-		g_free(nickserv);
-		g_strfreev(commands);
-		g_strfreev(ignores);
-
-		groups = g_key_file_get_groups(key_file, NULL);
-
-		for (group = groups; *group != NULL; ++group)
-		{
-			if (strncmp(*group, "server", 6) != 0)
-			{
-				gboolean autojoin;
-				gchar* key;
-				struct maki_channel* m_chan;
-
-				if (m_conn == NULL)
-				{
-					continue;
-				}
-
-				autojoin = g_key_file_get_boolean(key_file, *group, "autojoin", NULL);
-				key = g_key_file_get_string(key_file, *group, "key", NULL);
-
-				m_chan = maki_channel_new(*group);
-				m_chan->autojoin = autojoin;
-				m_chan->key = g_strdup(key);
-
-				g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
-
-				g_free(key);
-			}
-		}
-
-		g_strfreev(groups);
-	}
-
-	g_key_file_free(key_file);
-	g_free(path);
-
-	return m_conn;
-}
-
 void maki_servers (struct maki* maki)
 {
 	const gchar* file;
@@ -203,7 +92,13 @@ void maki_servers (struct maki* maki)
 
 	while ((file = g_dir_read_name(servers)) != NULL)
 	{
-		maki_server_new(maki, file);
+		struct maki_connection* m_conn;
+
+		if ((m_conn = maki_connection_new(maki, file)) != NULL)
+		{
+			g_hash_table_replace(maki->connections, m_conn->server, m_conn);
+		}
+
 	}
 
 	g_dir_close(servers);
