@@ -28,6 +28,8 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-bindings.h>
 
+#define SUSHI_QUIT_MESSAGE SUSHI_NAME " – " SUSHI_URL
+
 typedef struct
 {
 	GObject parent;

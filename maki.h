@@ -29,6 +29,10 @@
 
 #include <sashimi.h>
 
+#define SUSHI_NAME "sushi"
+#define SUSHI_VERSION "0.0.0"
+#define SUSHI_URL "http://sushi.ikkoku.de/"
+
 #include "maki_dbus.h"
 
 struct maki
