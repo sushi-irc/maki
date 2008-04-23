@@ -188,7 +188,7 @@ void maki_commands (struct maki_connection* m_conn)
 	}
 }
 
-void maki_irc_privmsg (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_privmsg (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -270,7 +270,7 @@ void maki_irc_privmsg (struct maki* maki, struct maki_connection* m_conn, glong 
 	g_strfreev(tmp);
 }
 
-void maki_irc_join (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_join (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar* channel;
 	struct maki_channel* m_chan;
@@ -311,7 +311,7 @@ void maki_irc_join (struct maki* maki, struct maki_connection* m_conn, glong tim
 	maki_dbus_emit_join(maki->bus, time, m_conn->server, nick, channel);
 }
 
-void maki_irc_part (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_part (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -356,7 +356,7 @@ void maki_irc_part (struct maki* maki, struct maki_connection* m_conn, glong tim
 	g_strfreev(tmp);
 }
 
-void maki_irc_quit (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_quit (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	GHashTableIter iter;
 	gpointer key;
@@ -381,7 +381,7 @@ void maki_irc_quit (struct maki* maki, struct maki_connection* m_conn, glong tim
 	}
 }
 
-void maki_irc_kick (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_kick (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -432,7 +432,7 @@ void maki_irc_kick (struct maki* maki, struct maki_connection* m_conn, glong tim
 	g_strfreev(tmp);
 }
 
-void maki_irc_nick (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_nick (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar* new_nick;
 	GHashTableIter iter;
@@ -483,7 +483,7 @@ void maki_irc_nick (struct maki* maki, struct maki_connection* m_conn, glong tim
 	maki_dbus_emit_nick(maki->bus, time, m_conn->server, nick, new_nick);
 }
 
-void maki_irc_notice (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_notice (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -506,7 +506,7 @@ void maki_irc_notice (struct maki* maki, struct maki_connection* m_conn, glong t
 	g_strfreev(tmp);
 }
 
-void maki_irc_mode (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+void maki_in_mode (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gint offset = 0;
 	gchar** tmp;
@@ -590,7 +590,7 @@ void maki_irc_mode (struct maki* maki, struct maki_connection* m_conn, glong tim
 	g_strfreev(tmp);
 }
 
-void maki_irc_topic (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+void maki_in_topic (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gint offset = 0;
 	gchar** tmp;
@@ -620,7 +620,7 @@ void maki_irc_topic (struct maki* maki, struct maki_connection* m_conn, glong ti
 	g_strfreev(tmp);
 }
 
-void maki_irc_rpl_namreply (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+void maki_in_rpl_namreply (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -661,7 +661,7 @@ void maki_irc_rpl_namreply (struct maki* maki, struct maki_connection* m_conn, g
 	g_strfreev(tmp);
 }
 
-void maki_irc_rpl_away (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+void maki_in_rpl_away (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* nick;
@@ -684,7 +684,7 @@ void maki_irc_rpl_away (struct maki* maki, struct maki_connection* m_conn, glong
 	g_strfreev(tmp);
 }
 
-void maki_irc_rpl_isupport (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+void maki_in_rpl_isupport (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gint i;
 	gchar** tmp;
@@ -742,7 +742,7 @@ void maki_irc_rpl_isupport (struct maki* maki, struct maki_connection* m_conn, g
 	g_strfreev(tmp);
 }
 
-void maki_irc_rpl_motd (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+void maki_in_rpl_motd (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gchar** tmp;
 
@@ -765,7 +765,7 @@ void maki_irc_rpl_motd (struct maki* maki, struct maki_connection* m_conn, glong
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
  */
-gpointer maki_irc_parser (gpointer data)
+gpointer maki_in_runner (gpointer data)
 {
 	gchar* message;
 	GTimeVal time;
@@ -863,39 +863,39 @@ gpointer maki_irc_parser (gpointer data)
 			{
 				if (strncmp(type, "PRIVMSG", 7) == 0)
 				{
-					maki_irc_privmsg(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_privmsg(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "JOIN", 4) == 0)
 				{
-					maki_irc_join(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_join(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "PART", 4) == 0)
 				{
-					maki_irc_part(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_part(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "QUIT", 4) == 0)
 				{
-					maki_irc_quit(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_quit(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "KICK", 4) == 0)
 				{
-					maki_irc_kick(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_kick(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "NICK", 4) == 0)
 				{
-					maki_irc_nick(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_nick(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "NOTICE", 6) == 0)
 				{
-					maki_irc_notice(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_notice(maki, m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "MODE", 4) == 0 || strncmp(type, IRC_RPL_CHANNELMODEIS, 3) == 0)
 				{
-					maki_irc_mode(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'M'));
+					maki_in_mode(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'M'));
 				}
 				else if (strncmp(type, IRC_RPL_NAMREPLY, 3) == 0)
 				{
-					maki_irc_rpl_namreply(maki, m_conn, time.tv_sec, remaining);
+					maki_in_rpl_namreply(maki, m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_UNAWAY, 3) == 0)
 				{
@@ -907,7 +907,7 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if (strncmp(type, IRC_RPL_AWAY, 3) == 0)
 				{
-					maki_irc_rpl_away(maki, m_conn, time.tv_sec, remaining);
+					maki_in_rpl_away(maki, m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || strncmp(type, IRC_ERR_NOMOTD, 3) == 0)
 				{
@@ -935,15 +935,15 @@ gpointer maki_irc_parser (gpointer data)
 				}
 				else if (strncmp(type, IRC_RPL_MOTD, 3) == 0)
 				{
-					maki_irc_rpl_motd(maki, m_conn, time.tv_sec, remaining);
+					maki_in_rpl_motd(maki, m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_TOPIC, 3) == 0 || strncmp(type, "TOPIC", 5) == 0)
 				{
-					maki_irc_topic(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'T'));
+					maki_in_topic(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'T'));
 				}
 				else if (strncmp(type, IRC_RPL_ISUPPORT, 3) == 0)
 				{
-					maki_irc_rpl_isupport(maki, m_conn, time.tv_sec, remaining);
+					maki_in_rpl_isupport(maki, m_conn, time.tv_sec, remaining);
 				}
 			}
 

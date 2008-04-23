@@ -36,7 +36,7 @@
 #include "maki_cache.h"
 #include "maki_connection.h"
 #include "maki_dbus.h"
-#include "maki_irc.h"
+#include "maki_in.h"
 #include "maki_log.h"
 #include "maki_misc.h"
 #include "maki_out.h"

@@ -101,7 +101,7 @@ struct maki* maki_new (void)
 	maki->message_queue = g_async_queue_new();
 
 	maki->threads.terminate = FALSE;
-	maki->threads.messages = g_thread_create(maki_irc_parser, maki, TRUE, NULL);
+	maki->threads.messages = g_thread_create(maki_in_runner, maki, TRUE, NULL);
 
 	maki->loop = g_main_loop_new(NULL, FALSE);
 
