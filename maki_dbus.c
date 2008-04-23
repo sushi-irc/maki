@@ -425,18 +425,7 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 
 		if (messages == NULL)
 		{
-			buffer = g_strdup_printf("PRIVMSG %s :%s", target, message);
-			sashimi_send(m_conn->connection, buffer);
-			g_free(buffer);
-
-			if (maki_is_channel(m_conn, target))
-			{
-				maki_dbus_emit_own_message(self, time.tv_sec, server, target, message);
-			}
-			else
-			{
-				maki_dbus_emit_own_query(self, time.tv_sec, server, target, message);
-			}
+			maki_out_privmsg_split(self->maki, m_conn, target, message, FALSE);
 		}
 		else
 		{
@@ -448,18 +437,7 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 
 				if ((*tmp)[0])
 				{
-					buffer = g_strdup_printf("PRIVMSG %s :%s", target, *tmp);
-					sashimi_queue(m_conn->connection, buffer);
-					g_free(buffer);
-
-					if (maki_is_channel(m_conn, target))
-					{
-						maki_dbus_emit_own_message(self, time.tv_sec, server, target, *tmp);
-					}
-					else
-					{
-						maki_dbus_emit_own_query(self, time.tv_sec, server, target, *tmp);
-					}
+					maki_out_privmsg_split(self->maki, m_conn, target, *tmp, TRUE);
 				}
 			}
 
