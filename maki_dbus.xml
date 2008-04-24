@@ -78,6 +78,10 @@
 			<arg name="nicks" type="as" direction="out" />
 		</method>
 
+		<method name="nickserv">
+			<arg name="server" type="s" />
+		</method>
+
 		<method name="notice">
 			<arg name="server" type="s" />
 			<arg name="target" type="s" />

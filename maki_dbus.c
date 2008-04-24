@@ -520,6 +520,18 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 	return TRUE;
 }
 
+gboolean maki_dbus_nickserv (makiDBus* self, gchar* server, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		maki_out_nickserv(m_conn->maki, m_conn);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
 {
 	struct maki_connection* m_conn;
