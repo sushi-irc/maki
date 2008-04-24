@@ -44,29 +44,6 @@ gchar* maki_remove_colon (gchar* string)
 	return string;
 }
 
-void maki_nickserv (struct maki_connection* m_conn)
-{
-	if (m_conn->nickserv.password != NULL)
-	{
-		gchar* buffer;
-
-		if (strcmp(m_conn->nick, m_conn->initial_nick) != 0)
-		{
-			buffer = g_strdup_printf("PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
-			sashimi_send(m_conn->connection, buffer);
-			g_free(buffer);
-
-			buffer = g_strdup_printf("NICK %s", m_conn->initial_nick);
-			sashimi_send(m_conn->connection, buffer);
-			g_free(buffer);
-		}
-
-		buffer = g_strdup_printf("PRIVMSG NickServ :IDENTIFY %s", m_conn->nickserv.password);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
-	}
-}
-
 gboolean maki_mode_has_parameter (struct maki_connection* m_conn, gchar sign, gchar mode)
 {
 	gint type;
@@ -476,7 +453,7 @@ void maki_in_nick (struct maki* maki, struct maki_connection* m_conn, glong time
 
 		if (strcmp(m_conn->nick, m_conn->initial_nick) == 0)
 		{
-			maki_nickserv(m_conn);
+			maki_out_nickserv(maki, m_conn);
 		}
 	}
 
@@ -913,7 +890,7 @@ gpointer maki_in_runner (gpointer data)
 				{
 					m_conn->connected = TRUE;
 					maki_dbus_emit_connected(maki->bus, time.tv_sec, m_conn->server, m_conn->nick);
-					maki_nickserv(m_conn);
+					maki_out_nickserv(maki, m_conn);
 					g_timeout_add_seconds(3, maki_join, m_conn);
 					maki_commands(m_conn);
 				}
