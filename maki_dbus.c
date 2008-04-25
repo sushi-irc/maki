@@ -349,7 +349,6 @@ gboolean maki_dbus_ignores (makiDBus* self, gchar* server, gchar*** ignores, GEr
 
 gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* key, GError** error)
 {
-	gchar* buffer;
 	struct maki_connection* m_conn;
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
@@ -363,17 +362,7 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* k
 			key = m_chan->key;
 		}
 
-		if (key[0])
-		{
-			buffer = g_strdup_printf("JOIN %s %s", channel, key);
-		}
-		else
-		{
-			buffer = g_strdup_printf("JOIN %s", channel);
-		}
-
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_out_join(self->maki, m_conn, channel, key);
 	}
 
 	return TRUE;

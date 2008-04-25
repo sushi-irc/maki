@@ -125,7 +125,6 @@ gboolean maki_join (gpointer data)
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
-		gchar* buffer;
 		struct maki_channel* m_chan = value;
 
 		if (!m_chan->autojoin && !m_chan->joined)
@@ -133,17 +132,7 @@ gboolean maki_join (gpointer data)
 			continue;
 		}
 
-		if (m_chan->key != NULL)
-		{
-			buffer = g_strdup_printf("JOIN %s %s", m_chan->name, m_chan->key);
-		}
-		else
-		{
-			buffer = g_strdup_printf("JOIN %s", m_chan->name);
-		}
-
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_out_join(m_conn->maki, m_conn, m_chan->name, m_chan->key);
 	}
 
 	return FALSE;

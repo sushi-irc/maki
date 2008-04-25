@@ -29,6 +29,23 @@
 
 #include "maki.h"
 
+void maki_out_join (struct maki* maki, struct maki_connection* m_conn, const gchar* channel, const gchar* key)
+{
+	gchar* buffer;
+
+	if (key != NULL && key[0])
+	{
+		buffer = g_strdup_printf("JOIN %s %s", channel, key);
+	}
+	else
+	{
+		buffer = g_strdup_printf("JOIN %s", channel);
+	}
+
+	sashimi_send(m_conn->connection, buffer);
+	g_free(buffer);
+}
+
 void maki_out_nick (struct maki* maki, struct maki_connection* m_conn, const gchar* nick)
 {
 	gchar* buffer;
