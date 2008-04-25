@@ -62,7 +62,9 @@ void maki_log_free (gpointer data)
 	struct maki_log* m_log = data;
 
 	close(m_log->fd);
+
 	g_free(m_log->name);
+	g_free(m_log);
 }
 
 void maki_log (struct maki_connection* m_conn, const gchar* name, const gchar* format, ...)
