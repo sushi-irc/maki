@@ -73,6 +73,11 @@ void maki_log (struct maki_connection* m_conn, const gchar* name, const gchar* f
 	struct maki_log* m_log;
 	va_list args;
 
+	if (!m_conn->maki->config.general.logging)
+	{
+		return;
+	}
+
 	t = time(NULL);
 	strftime(buf, 1024, "[%Y-%m-%d %H:%M:%S] ", localtime(&t));
 

@@ -50,6 +50,11 @@ struct maki
 	{
 		struct
 		{
+			gboolean logging;
+		} general;
+
+		struct
+		{
 			gint retries;
 			guint timeout;
 		}

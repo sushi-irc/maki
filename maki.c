@@ -34,6 +34,8 @@
 
 #include "maki.h"
 
+#define maki_new_config(key, value) if (error) { g_error_free(error); error = NULL; } else { maki->config.key = value; }
+
 struct maki* maki_new (void)
 {
 	const gchar* home_dir;
@@ -51,6 +53,7 @@ struct maki* maki_new (void)
 	maki->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
 	maki->bus->maki = maki;
 
+	maki->config.general.logging = FALSE;
 	maki->config.reconnect.retries = 3;
 	maki->config.reconnect.timeout = 5;
 
@@ -66,33 +69,19 @@ struct maki* maki_new (void)
 
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 	{
+		gboolean logging;
 		gint retries;
 		gint timeout;
 		GError* error = NULL;
 
-		retries = g_key_file_get_integer(key_file, "reconnect", "retries", &error);
+		logging = g_key_file_get_boolean(key_file, "general", "logging", &error);
+		maki_new_config(general.logging, logging);
 
-		if (error)
-		{
-			g_error_free(error);
-			error = NULL;
-		}
-		else
-		{
-			maki->config.reconnect.retries = retries;
-		}
+		retries = g_key_file_get_integer(key_file, "reconnect", "retries", &error);
+		maki_new_config(reconnect.retries, retries);
 
 		timeout = g_key_file_get_integer(key_file, "reconnect", "timeout", &error);
-
-		if (error)
-		{
-			g_error_free(error);
-			error = NULL;
-		}
-		else if (timeout >= 0)
-		{
-			maki->config.reconnect.timeout = timeout;
-		}
+		maki_new_config(reconnect.timeout, timeout);
 	}
 
 	g_key_file_free(key_file);
