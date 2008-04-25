@@ -155,6 +155,12 @@
 			<arg name="pattern" type="s" />
 		</method>
 
+		<method name="user_away">
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" />
+			<arg name="away" type="b" direction="out" />
+		</method>
+
 		<method name="user_channel_mode">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />

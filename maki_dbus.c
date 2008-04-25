@@ -928,6 +928,27 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 	return TRUE;
 }
 
+gboolean maki_dbus_user_away (makiDBus* self, gchar* server, gchar* nick, gboolean* away, GError** error)
+{
+
+	struct maki_connection* m_conn;
+
+	*away = FALSE;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		struct maki_user* m_user;
+
+		if ((m_user = maki_cache_insert(m_conn->users, nick)) != NULL)
+		{
+			*away = m_user->away;
+			maki_cache_remove(m_conn->users, nick);
+		}
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar** mode, GError** error)
 {
 
