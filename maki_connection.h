@@ -30,7 +30,6 @@ struct maki_connection
 	struct maki* maki;
 	gchar* server;
 	gchar* initial_nick;
-	gchar* nick;
 	gchar* name;
 	gboolean autoconnect;
 	gboolean connected;
@@ -40,6 +39,8 @@ struct maki_connection
 	GHashTable* channels;
 	struct maki_cache* users;
 	GHashTable* logs;
+
+	struct maki_user* user;
 
 	struct
 	{

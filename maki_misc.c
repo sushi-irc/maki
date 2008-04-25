@@ -41,6 +41,14 @@ gpointer maki_user_new (gpointer key, gpointer data)
 	return m_user;
 }
 
+void maki_user_copy (struct maki_user* src, struct maki_user* dst)
+{
+	if (src != dst)
+	{
+		dst->away = src->away;
+	}
+}
+
 /**
  * This function gets called when a user is removed from the users hash table.
  */
@@ -60,6 +68,14 @@ struct maki_channel_user* maki_channel_user_new (struct maki_user* m_user)
 	m_cuser->prefix = 0;
 
 	return m_cuser;
+}
+
+void maki_channel_user_copy (struct maki_channel_user* src, struct maki_channel_user* dst)
+{
+	if (src != dst)
+	{
+		dst->prefix = src->prefix;
+	}
 }
 
 void maki_channel_user_free (gpointer data)

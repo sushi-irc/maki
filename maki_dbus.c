@@ -186,7 +186,7 @@ gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar*
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 
-		maki_dbus_emit_action(self, time.tv_sec, server, m_conn->nick, channel, message);
+		maki_dbus_emit_action(self, time.tv_sec, server, m_conn->user->nick, channel, message);
 	}
 
 	return TRUE;
@@ -298,7 +298,7 @@ gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* me
 		g_free(buffer);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_ctcp(self, time.tv_sec, server, m_conn->nick, target, message);
+		maki_dbus_emit_ctcp(self, time.tv_sec, server, m_conn->user->nick, target, message);
 	}
 
 	return TRUE;
@@ -543,7 +543,7 @@ gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* 
 		g_free(buffer);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_notice(self, time.tv_sec, server, m_conn->nick, target, message);
+		maki_dbus_emit_notice(self, time.tv_sec, server, m_conn->user->nick, target, message);
 	}
 
 	return TRUE;
@@ -557,7 +557,7 @@ gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
-		*nick = g_strdup(m_conn->nick);
+		*nick = g_strdup(m_conn->user->nick);
 	}
 
 	return TRUE;
@@ -605,13 +605,13 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 			sashimi_send(m_conn->connection, buffer);
 			g_free(buffer);
 
-			maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, message);
+			maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->user->nick, message);
 		}
 		else
 		{
 			sashimi_send(m_conn->connection, "QUIT :" SUSHI_QUIT_MESSAGE);
 
-			maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->nick, SUSHI_QUIT_MESSAGE);
+			maki_dbus_emit_quit(self, time.tv_sec, server, m_conn->user->nick, SUSHI_QUIT_MESSAGE);
 		}
 
 		g_timeout_add_seconds(1, maki_disconnect_timeout, m_conn);
@@ -682,12 +682,12 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 			sashimi_send(m_conn->connection, buffer);
 			g_free(buffer);
 
-			maki_dbus_emit_quit(self, time.tv_sec, m_conn->server, m_conn->nick, message);
+			maki_dbus_emit_quit(self, time.tv_sec, m_conn->server, m_conn->user->nick, message);
 		}
 		else
 		{
 			sashimi_send(m_conn->connection, "QUIT :" SUSHI_QUIT_MESSAGE);
-			maki_dbus_emit_quit(self, time.tv_sec, m_conn->server, m_conn->nick, SUSHI_QUIT_MESSAGE);
+			maki_dbus_emit_quit(self, time.tv_sec, m_conn->server, m_conn->user->nick, SUSHI_QUIT_MESSAGE);
 		}
 	}
 

@@ -44,7 +44,7 @@ void maki_out_nickserv (struct maki* maki, struct maki_connection* m_conn)
 	{
 		gchar* buffer;
 
-		if (strcmp(m_conn->nick, m_conn->initial_nick) != 0)
+		if (strcmp(m_conn->user->nick, m_conn->initial_nick) != 0)
 		{
 			buffer = g_strdup_printf("PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
 			sashimi_send(m_conn->connection, buffer);
@@ -96,7 +96,7 @@ void maki_out_privmsg_split (struct maki* maki, struct maki_connection* m_conn, 
 
 	/* :nickname!username@hostname PRIVMSG target :message\r\n */
 	length -= 1; /* : */
-	length -= strlen(m_conn->nick); /* nickname */
+	length -= strlen(m_conn->user->nick); /* nickname */
 	length -= 1; /* ! */
 	length -= 9; /* username */
 	length -= 1; /* @ */

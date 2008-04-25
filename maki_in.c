@@ -206,7 +206,7 @@ void maki_in_privmsg (struct maki* maki, struct maki_connection* m_conn, glong t
 			}
 			else
 			{
-				if (strcmp(target, m_conn->nick) == 0)
+				if (strcmp(target, m_conn->user->nick) == 0)
 				{
 					gchar* buffer = NULL;
 
@@ -270,7 +270,7 @@ void maki_in_join (struct maki* maki, struct maki_connection* m_conn, glong time
 		g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
 	}
 
-	if (strcmp(nick, m_conn->nick) == 0)
+	if (strcmp(nick, m_conn->user->nick) == 0)
 	{
 		if (m_chan != NULL)
 		{
@@ -308,7 +308,7 @@ void maki_in_part (struct maki* maki, struct maki_connection* m_conn, glong time
 	{
 		g_hash_table_remove(m_chan->users, nick);
 
-		if (strcmp(nick, m_conn->nick) == 0)
+		if (strcmp(nick, m_conn->user->nick) == 0)
 		{
 			if (!m_chan->autojoin && m_chan->key == NULL)
 			{
@@ -383,7 +383,7 @@ void maki_in_kick (struct maki* maki, struct maki_connection* m_conn, glong time
 		{
 			g_hash_table_remove(m_chan->users, who);
 
-			if (strcmp(who, m_conn->nick) == 0)
+			if (strcmp(who, m_conn->user->nick) == 0)
 			{
 				if (!m_chan->autojoin && m_chan->key == NULL)
 				{
@@ -432,26 +432,30 @@ void maki_in_nick (struct maki* maki, struct maki_connection* m_conn, glong time
 
 		if ((m_cuser = g_hash_table_lookup(m_chan->users, nick)) != NULL)
 		{
-			guint prefix;
+			struct maki_channel_user* tmp;
 			struct maki_user* m_user;
 
-			prefix = m_cuser->prefix;
+			m_user = maki_cache_insert(m_conn->users, new_nick);
+			maki_user_copy(m_cuser->user, m_user);
+
+			tmp = maki_channel_user_new(m_user);
+			maki_channel_user_copy(m_cuser, tmp);
 
 			g_hash_table_remove(m_chan->users, nick);
-
-			m_user = maki_cache_insert(m_conn->users, new_nick);
-			m_cuser = maki_channel_user_new(m_user);
-			m_cuser->prefix = prefix;
-			g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
+			g_hash_table_replace(m_chan->users, tmp->user->nick, tmp);
 		}
 	}
 
-	if (strcmp(nick, m_conn->nick) == 0)
+	if (strcmp(nick, m_conn->user->nick) == 0)
 	{
-		g_free(m_conn->nick);
-		m_conn->nick = g_strdup(new_nick);
+		struct maki_user* m_user;
 
-		if (strcmp(m_conn->nick, m_conn->initial_nick) == 0)
+		m_user = maki_cache_insert(m_conn->users, new_nick);
+		maki_user_copy(m_conn->user, m_user);
+		maki_cache_remove(m_conn->users, m_conn->user->nick);
+		m_conn->user = m_user;
+
+		if (strcmp(m_conn->user->nick, m_conn->initial_nick) == 0)
 		{
 			maki_out_nickserv(maki, m_conn);
 		}
@@ -876,10 +880,12 @@ gpointer maki_in_runner (gpointer data)
 				}
 				else if (strncmp(type, IRC_RPL_UNAWAY, 3) == 0)
 				{
+					m_conn->user->away = FALSE;
 					maki_dbus_emit_back(maki->bus, time.tv_sec, m_conn->server);
 				}
 				else if (strncmp(type, IRC_RPL_NOWAWAY, 3) == 0)
 				{
+					m_conn->user->away = TRUE;
 					maki_dbus_emit_away(maki->bus, time.tv_sec, m_conn->server);
 				}
 				else if (strncmp(type, IRC_RPL_AWAY, 3) == 0)
@@ -889,7 +895,7 @@ gpointer maki_in_runner (gpointer data)
 				else if (strncmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || strncmp(type, IRC_ERR_NOMOTD, 3) == 0)
 				{
 					m_conn->connected = TRUE;
-					maki_dbus_emit_connected(maki->bus, time.tv_sec, m_conn->server, m_conn->nick);
+					maki_dbus_emit_connected(maki->bus, time.tv_sec, m_conn->server, m_conn->user->nick);
 					maki_out_nickserv(maki, m_conn);
 					g_timeout_add_seconds(3, maki_join, m_conn);
 					maki_commands(m_conn);
@@ -900,9 +906,9 @@ gpointer maki_in_runner (gpointer data)
 					{
 						gchar* nick;
 
-						nick = g_strconcat(m_conn->nick, "_", NULL);
-						g_free(m_conn->nick);
-						m_conn->nick = nick;
+						nick = g_strconcat(m_conn->user->nick, "_", NULL);
+						maki_cache_remove(m_conn->users, m_conn->user->nick);
+						m_conn->user = maki_cache_insert(m_conn->users, nick);
 
 						maki_out_nick(maki, m_conn, nick);
 					}

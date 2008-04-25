@@ -79,7 +79,6 @@ struct maki_connection* maki_connection_new (struct maki* maki, const gchar* ser
 		m_conn->maki = maki;
 		m_conn->server = g_strdup(server);
 		m_conn->initial_nick = g_strdup(nick);
-		m_conn->nick = g_strdup(nick);
 		m_conn->name = g_strdup(name);
 		m_conn->autoconnect = autoconnect;
 		m_conn->connected = FALSE;
@@ -89,6 +88,8 @@ struct maki_connection* maki_connection_new (struct maki* maki, const gchar* ser
 		m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_free);
 		m_conn->users = maki_cache_new(maki_user_new, maki_user_free, m_conn);
 		m_conn->logs = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_log_free);
+
+		m_conn->user = maki_cache_insert(m_conn->users, nick);
 
 		m_conn->nickserv.password = g_strdup(nickserv);
 		m_conn->commands = g_strdupv(commands);
@@ -155,6 +156,8 @@ void maki_connection_free (gpointer data)
 {
 	struct maki_connection* m_conn = data;
 
+	maki_cache_remove(m_conn->users, m_conn->user->nick);
+
 	g_free(m_conn->support.prefix.prefixes);
 	g_free(m_conn->support.prefix.modes);
 	g_free(m_conn->support.chanmodes);
@@ -166,7 +169,6 @@ void maki_connection_free (gpointer data)
 	maki_connection_disconnect(m_conn);
 	sashimi_free(m_conn->connection);
 	g_free(m_conn->name);
-	g_free(m_conn->nick);
 	g_free(m_conn->initial_nick);
 	g_free(m_conn->server);
 	g_free(m_conn);
@@ -188,8 +190,8 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 		m_conn->reconnect = TRUE;
 		m_conn->retries = m_conn->maki->config.reconnect.retries;
 
-		g_free(m_conn->nick);
-		m_conn->nick = g_strdup(m_conn->initial_nick);
+		maki_cache_remove(m_conn->users, m_conn->user->nick);
+		m_conn->user = maki_cache_insert(m_conn->users, m_conn->initial_nick);
 
 		maki_out_nick(m_conn->maki, m_conn, m_conn->initial_nick);
 
