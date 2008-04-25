@@ -312,7 +312,7 @@ gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError
 	{
 		if (m_conn->ignores != NULL)
 		{
-			gint length;
+			guint length;
 
 			length = g_strv_length(m_conn->ignores);
 			m_conn->ignores = g_renew(gchar*, m_conn->ignores, length + 2);
@@ -878,7 +878,7 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 		{
 			gint i;
 			gint j;
-			gint length;
+			guint length;
 			gchar** tmp;
 
 			length = g_strv_length(m_conn->ignores);

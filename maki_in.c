@@ -516,9 +516,12 @@ void maki_in_mode (struct maki* maki, struct maki_connection* m_conn, glong time
 		if (modes[0] != NULL)
 		{
 			gint i;
+			guint length;
 			gchar sign = '+';
 			gchar buffer[3];
 			gchar* mode;
+
+			length = g_strv_length(modes);
 
 			for (mode = modes[0], i = 1; *mode != '\0'; ++mode)
 			{
@@ -532,7 +535,7 @@ void maki_in_mode (struct maki* maki, struct maki_connection* m_conn, glong time
 				buffer[1] = *mode;
 				buffer[2] = '\0';
 
-				if (maki_mode_has_parameter(m_conn, sign, *mode) && i < g_strv_length(modes))
+				if (maki_mode_has_parameter(m_conn, sign, *mode) && i < length)
 				{
 					gint pos;
 
@@ -606,6 +609,7 @@ void maki_in_rpl_namreply (struct maki* maki, struct maki_connection* m_conn, gl
 	gchar** tmp;
 	gchar* channel;
 	gint i;
+	guint length;
 	struct maki_channel* m_chan;
 
 	if (!remaining)
@@ -615,10 +619,11 @@ void maki_in_rpl_namreply (struct maki* maki, struct maki_connection* m_conn, gl
 
 	tmp = g_strsplit(remaining, " ", 0);
 	channel = tmp[2];
+	length = g_strv_length(tmp);
 
-	if (g_strv_length(tmp) > 3 && (m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+	if (length > 3 && (m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
 	{
-		for (i = 3; i < g_strv_length(tmp); ++i)
+		for (i = 3; i < length; ++i)
 		{
 			gchar* nick = maki_remove_colon(tmp[i]);
 			guint prefix = 0;
@@ -668,6 +673,7 @@ void maki_in_rpl_away (struct maki* maki, struct maki_connection* m_conn, glong 
 void maki_in_rpl_isupport (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gint i;
+	guint length;
 	gchar** tmp;
 
 	if (!remaining)
@@ -676,8 +682,9 @@ void maki_in_rpl_isupport (struct maki* maki, struct maki_connection* m_conn, gl
 	}
 
 	tmp = g_strsplit(remaining, " ", 0);
+	length = g_strv_length(tmp);
 
-	for (i = 1; i < g_strv_length(tmp); ++i)
+	for (i = 1; i < length; ++i)
 	{
 		gchar** support;
 
@@ -821,8 +828,11 @@ gpointer maki_in_runner (gpointer data)
 			{
 				gboolean match = FALSE;
 				gint i;
+				guint length;
 
-				for (i = 0; i < g_strv_length(m_conn->ignores); ++i)
+				length = g_strv_length(m_conn->ignores);
+
+				for (i = 0; i < length; ++i)
 				{
 					if (g_pattern_match_simple(m_conn->ignores[i], maki_remove_colon(parts[0])))
 					{
