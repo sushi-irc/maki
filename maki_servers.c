@@ -86,8 +86,6 @@ void maki_servers (struct maki* maki)
 	const gchar* file;
 	GDir* servers;
 
-	g_mkdir_with_parents(maki->directories.servers, 0755);
-
 	servers = g_dir_open(maki->directories.servers, 0, NULL);
 
 	while ((file = g_dir_read_name(servers)) != NULL)

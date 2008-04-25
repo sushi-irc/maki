@@ -206,6 +206,14 @@ int main (int argc, char* argv[])
 
 	maki = maki_new();
 
+	if (g_mkdir_with_parents(maki->directories.sushi, 0755) != 0
+	    || g_mkdir_with_parents(maki->directories.config, 0755) != 0
+	    || g_mkdir_with_parents(maki->directories.logs, 0755) != 0
+	    || g_mkdir_with_parents(maki->directories.servers, 0755) != 0)
+	{
+		return 1;
+	}
+
 	maki_servers(maki);
 
 	g_main_loop_run(maki->loop);
