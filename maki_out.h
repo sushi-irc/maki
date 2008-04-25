@@ -29,3 +29,4 @@ void maki_out_nick (struct maki*, struct maki_connection*, const gchar*);
 void maki_out_nickserv (struct maki*, struct maki_connection*);
 void maki_out_privmsg (struct maki*, struct maki_connection*, const gchar*, const gchar*, gboolean);
 void maki_out_privmsg_split (struct maki*, struct maki_connection*, const gchar*, gchar*, gboolean);
+void maki_out_quit (struct maki*, struct maki_connection*, const gchar*);

@@ -139,3 +139,17 @@ void maki_out_privmsg_split (struct maki* maki, struct maki_connection* m_conn, 
 
 	maki_out_privmsg(maki, m_conn, target, message, queue);
 }
+
+void maki_out_quit (struct maki* maki, struct maki_connection* m_conn, const gchar* message)
+{
+	gchar* buffer;
+	GTimeVal time;
+
+	g_get_current_time(&time);
+
+	buffer = g_strdup_printf("QUIT :%s", message);
+	sashimi_send(m_conn->connection, buffer);
+	g_free(buffer);
+
+	maki_dbus_emit_quit(maki->bus, time.tv_sec, m_conn->server, m_conn->user->nick, message);
+}
