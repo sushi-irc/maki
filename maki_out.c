@@ -104,6 +104,8 @@ void maki_out_privmsg (struct maki* maki, struct maki_connection* m_conn, const 
 	{
 		maki_dbus_emit_own_query(maki->bus, time.tv_sec, m_conn->server, target, message);
 	}
+
+	maki_log(m_conn, target, "<%s> %s", m_conn->user->nick, message);
 }
 
 void maki_out_privmsg_split (struct maki* maki, struct maki_connection* m_conn, const gchar* target, gchar* message, gboolean queue)
