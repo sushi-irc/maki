@@ -38,6 +38,7 @@ struct maki_user
 {
 	struct maki_connection* connection;
 	gchar* nick;
+	gboolean away;
 };
 
 struct maki_channel_user

@@ -36,6 +36,7 @@ gpointer maki_user_new (gpointer key, gpointer data)
 	m_user = g_new(struct maki_user, 1);
 	m_user->connection = connection;
 	m_user->nick = nick;
+	m_user->away = FALSE;
 
 	return m_user;
 }
