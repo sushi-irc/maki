@@ -2,11 +2,11 @@ include ../Makefile.common
 
 CFLAGS := $(subst -pedantic,,$(CFLAGS))
 
-CFLAGS  += -I../sashimi $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0)
-LDFLAGS += -L../sashimi $(shell pkg-config --libs dbus-glib-1) $(shell pkg-config --libs glib-2.0) -lsashimi
+CFLAGS  += $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags gthread-2.0)
+LDFLAGS += $(shell pkg-config --libs dbus-glib-1) $(shell pkg-config --libs glib-2.0) $(shell pkg-config --libs gthread-2.0)
 
 COMPONENTS = cache connection dbus in log marshal misc out servers
-OBJECTS = maki.o $(COMPONENTS:%=maki_%.o)
+OBJECTS = maki.o sashimi.o $(COMPONENTS:%=maki_%.o)
 
 all: maki
 
@@ -14,6 +14,7 @@ clean:
 	$(RM) maki
 	$(RM) $(OBJECTS)
 	$(RM) maki_dbus_glue.h maki_marshal.c maki_marshal.h
+	$(RM) libsashimi.so
 
 maki_dbus.c: maki_dbus_glue.h maki_marshal.h
 
@@ -31,3 +32,6 @@ $(OBJECTS): %.o: %.c
 
 maki: $(OBJECTS)
 	$(QUIET_LD) $(CC) $(LDFLAGS) -o $@ $+
+
+libsashimi.so: sashimi.c
+	$(QUIET_CC) $(CC) $(CFLAGS) -fPIC $(LDFLAGS) -shared -Wl,-soname,$@ -o $@ $+

@@ -25,62 +25,25 @@
  * SUCH DAMAGE.
  */
 
-#include <glib.h>
+#ifndef _SASHIMI_H_
+#define _SASHIMI_H_
 
-#include "sashimi.h"
+struct sashimi_connection;
 
-#define SUSHI_NAME "sushi"
-#define SUSHI_VERSION "1.0-alpha1"
-#define SUSHI_URL "http://sushi.ikkoku.de/"
-
-#include "maki_cache.h"
-#include "maki_connection.h"
-#include "maki_dbus.h"
-#include "maki_in.h"
-#include "maki_log.h"
-#include "maki_misc.h"
-#include "maki_out.h"
-#include "maki_servers.h"
-
-struct maki
+struct sashimi_message
 {
-	makiDBus* bus;
-
-	struct
-	{
-		struct
-		{
-			gint retries;
-			guint timeout;
-		}
-		reconnect;
-	}
-	config;
-
-	GHashTable* connections;
-
-	struct
-	{
-		gchar* config;
-		gchar* logs;
-		gchar* servers;
-		gchar* sushi;
-	}
-	directories;
-
-	GMainLoop* loop;
-
-	GAsyncQueue* message_queue;
-
-	struct
-	{
-		GThread* messages;
-
-		gboolean terminate;
-	}
-	threads;
+	gchar* message;
+	gpointer data;
 };
 
-struct maki* maki_new (void);
-void maki_free (struct maki*);
-int maki_daemonize (void);
+
+struct sashimi_connection* sashimi_new (const gchar*, gushort, GAsyncQueue*, gpointer);
+void sashimi_reconnect (struct sashimi_connection*, void (*) (gpointer), gpointer);
+void sashimi_timeout (struct sashimi_connection*, guint);
+int sashimi_connect (struct sashimi_connection*);
+int sashimi_send (struct sashimi_connection*, const gchar*);
+int sashimi_queue (struct sashimi_connection*, const gchar*);
+int sashimi_disconnect (struct sashimi_connection*);
+int sashimi_free (struct sashimi_connection*);
+
+#endif
