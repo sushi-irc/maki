@@ -908,8 +908,9 @@ gpointer maki_in_runner (gpointer data)
 						nick = g_strconcat(m_conn->user->nick, "_", NULL);
 						maki_cache_remove(m_conn->users, m_conn->user->nick);
 						m_conn->user = maki_cache_insert(m_conn->users, nick);
+						g_free(nick);
 
-						maki_out_nick(maki, m_conn, nick);
+						maki_out_nick(maki, m_conn, m_conn->user->nick);
 					}
 				}
 				else if (strncmp(type, IRC_RPL_MOTD, 3) == 0)

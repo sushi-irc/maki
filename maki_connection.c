@@ -160,6 +160,7 @@ void maki_connection_free (gpointer data)
 
 	g_free(m_conn->support.prefix.prefixes);
 	g_free(m_conn->support.prefix.modes);
+	g_free(m_conn->support.chantypes);
 	g_free(m_conn->support.chanmodes);
 	g_strfreev(m_conn->ignores);
 	g_strfreev(m_conn->commands);
