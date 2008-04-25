@@ -898,16 +898,13 @@ gpointer maki_in_runner (gpointer data)
 				{
 					if (!m_conn->connected)
 					{
-						gchar* buffer;
 						gchar* nick;
 
 						nick = g_strconcat(m_conn->nick, "_", NULL);
 						g_free(m_conn->nick);
 						m_conn->nick = nick;
 
-						buffer = g_strdup_printf("NICK %s", m_conn->nick);
-						sashimi_send(m_conn->connection, buffer);
-						g_free(buffer);
+						maki_out_nick(maki, m_conn, nick);
 					}
 				}
 				else if (strncmp(type, IRC_RPL_MOTD, 3) == 0)

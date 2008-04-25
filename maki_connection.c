@@ -191,9 +191,7 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 		g_free(m_conn->nick);
 		m_conn->nick = g_strdup(m_conn->initial_nick);
 
-		buffer = g_strdup_printf("NICK %s", m_conn->initial_nick);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_out_nick(m_conn->maki, m_conn, m_conn->initial_nick);
 
 		buffer = g_strdup_printf("USER %s 0 * :%s", m_conn->initial_nick, m_conn->name);
 		sashimi_send(m_conn->connection, buffer);

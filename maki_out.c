@@ -29,6 +29,36 @@
 
 #include "maki.h"
 
+void maki_out_nick (struct maki* maki, struct maki_connection* m_conn, const gchar* nick)
+{
+	gchar* buffer;
+
+	buffer = g_strdup_printf("NICK %s", nick);
+	sashimi_send(m_conn->connection, buffer);
+	g_free(buffer);
+}
+
+void maki_out_nickserv (struct maki* maki, struct maki_connection* m_conn)
+{
+	if (m_conn->nickserv.password != NULL)
+	{
+		gchar* buffer;
+
+		if (strcmp(m_conn->nick, m_conn->initial_nick) != 0)
+		{
+			buffer = g_strdup_printf("PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
+			sashimi_send(m_conn->connection, buffer);
+			g_free(buffer);
+
+			maki_out_nick(maki, m_conn, m_conn->initial_nick);
+		}
+
+		buffer = g_strdup_printf("PRIVMSG NickServ :IDENTIFY %s", m_conn->nickserv.password);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+}
+
 void maki_out_privmsg (struct maki* maki, struct maki_connection* m_conn, const gchar* target, const gchar* message, gboolean queue)
 {
 	gchar* buffer;
@@ -109,27 +139,3 @@ void maki_out_privmsg_split (struct maki* maki, struct maki_connection* m_conn, 
 
 	maki_out_privmsg(maki, m_conn, target, message, queue);
 }
-
-void maki_out_nickserv (struct maki* maki, struct maki_connection* m_conn)
-{
-	if (m_conn->nickserv.password != NULL)
-	{
-		gchar* buffer;
-
-		if (strcmp(m_conn->nick, m_conn->initial_nick) != 0)
-		{
-			buffer = g_strdup_printf("PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
-			sashimi_send(m_conn->connection, buffer);
-			g_free(buffer);
-
-			buffer = g_strdup_printf("NICK %s", m_conn->initial_nick);
-			sashimi_send(m_conn->connection, buffer);
-			g_free(buffer);
-		}
-
-		buffer = g_strdup_printf("PRIVMSG NickServ :IDENTIFY %s", m_conn->nickserv.password);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
-	}
-}
-

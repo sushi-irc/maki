@@ -474,14 +474,11 @@ gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mo
 
 gboolean maki_dbus_nick (makiDBus* self, gchar* server, gchar* nick, GError** error)
 {
-	gchar* buffer;
 	struct maki_connection* m_conn;
 
 	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
 	{
-		buffer = g_strdup_printf("NICK %s", nick);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_out_nick(self->maki, m_conn, nick);
 	}
 
 	return TRUE;
