@@ -48,7 +48,13 @@ struct maki_log* maki_log_new (const gchar* directory, const gchar* server, cons
 	filename = g_strconcat(m_log->name, ".txt", NULL);
 	path = g_build_filename(dirname, filename, NULL);
 
-	m_log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0644);
+	if ((m_log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0644)) == -1)
+	{
+		g_free(m_log->name);
+		g_free(m_log);
+
+		m_log = NULL;
+	}
 
 	g_free(path);
 	g_free(filename);
