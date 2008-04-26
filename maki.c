@@ -55,7 +55,7 @@ struct maki* maki_new (void)
 
 	maki->config.general.logging = FALSE;
 	maki->config.reconnect.retries = 3;
-	maki->config.reconnect.timeout = 5;
+	maki->config.reconnect.timeout = 10;
 
 	maki->connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_free);
 
