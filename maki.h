@@ -50,8 +50,9 @@ struct maki
 	{
 		struct
 		{
-			gboolean logging;
-		} general;
+			gboolean enabled;
+			gchar* time_format;
+		} logging;
 
 		struct
 		{

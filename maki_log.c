@@ -83,13 +83,13 @@ void maki_log (struct maki_connection* m_conn, const gchar* name, const gchar* f
 	struct maki_log* m_log;
 	va_list args;
 
-	if (!m_conn->maki->config.general.logging)
+	if (!m_conn->maki->config.logging.enabled)
 	{
 		return;
 	}
 
 	t = time(NULL);
-	strftime(buf, 1024, "[%Y-%m-%d %H:%M:%S] ", localtime(&t));
+	strftime(buf, 1024, m_conn->maki->config.logging.time_format, localtime(&t));
 
 	if ((m_log = g_hash_table_lookup(m_conn->logs, name)) == NULL)
 	{
@@ -106,6 +106,7 @@ void maki_log (struct maki_connection* m_conn, const gchar* name, const gchar* f
 	va_end(args);
 
 	write(m_log->fd, buf, strlen(buf));
+	write(m_log->fd, " ", 1);
 	write(m_log->fd, tmp, strlen(tmp));
 	write(m_log->fd, "\n", 1);
 

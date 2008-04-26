@@ -35,6 +35,7 @@
 #include "maki.h"
 
 #define maki_new_config(key, value) if (error) { g_error_free(error); error = NULL; } else { maki->config.key = value; }
+#define maki_new_config_string(key, value) if (error) { g_error_free(error); error = NULL; } else { g_free(maki->config.key); maki->config.key = value; }
 
 struct maki* maki_new (void)
 {
@@ -53,7 +54,8 @@ struct maki* maki_new (void)
 	maki->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
 	maki->bus->maki = maki;
 
-	maki->config.general.logging = FALSE;
+	maki->config.logging.enabled = TRUE;
+	maki->config.logging.time_format = g_strdup("%Y-%m-%d %H:%M:%S");
 	maki->config.reconnect.retries = 3;
 	maki->config.reconnect.timeout = 10;
 
@@ -69,13 +71,17 @@ struct maki* maki_new (void)
 
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 	{
-		gboolean logging;
+		gboolean logging_enabled;
+		gchar* logging_time_format;
 		gint retries;
 		gint timeout;
 		GError* error = NULL;
 
-		logging = g_key_file_get_boolean(key_file, "general", "logging", &error);
-		maki_new_config(general.logging, logging);
+		logging_enabled = g_key_file_get_boolean(key_file, "logging", "enabled", &error);
+		maki_new_config(logging.enabled, logging_enabled);
+
+		logging_time_format = g_key_file_get_string(key_file, "logging", "time_format", &error);
+		maki_new_config_string(logging.time_format, logging_time_format);
 
 		retries = g_key_file_get_integer(key_file, "reconnect", "retries", &error);
 		maki_new_config(reconnect.retries, retries);
