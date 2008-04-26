@@ -310,6 +310,22 @@ gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* me
 	return TRUE;
 }
 
+gboolean maki_dbus_gline (makiDBus* self, gchar* server, gchar* mask, guint64 time, gchar* reason, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar* buffer;
+
+		buffer = g_strdup_printf("GLINE %s %" G_GUINT64_FORMAT " :%s", mask, time, reason);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError** error)
 {
 	struct maki_connection* m_conn;
@@ -885,6 +901,22 @@ gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* 
 			buffer = g_strdup_printf("TOPIC %s", channel);
 		}
 
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_ungline (makiDBus* self, gchar* server, gchar* mask, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar* buffer;
+
+		buffer = g_strdup_printf("GLINE -%s", mask);
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 	}

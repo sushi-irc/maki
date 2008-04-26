@@ -32,6 +32,13 @@
 			<arg name="message" type="s" />
 		</method>
 
+		<method name="gline">
+			<arg name="server" type="s" />
+			<arg name="mask" type="s" />
+			<arg name="time" type="t" />
+			<arg name="reason" type="s" />
+		</method>
+
 		<method name="ignore">
 			<arg name="server" type="s" />
 			<arg name="pattern" type="s" />
@@ -166,6 +173,11 @@
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
 			<arg name="topic" type="s" />
+		</method>
+
+		<method name="ungline">
+			<arg name="server" type="s" />
+			<arg name="mask" type="s" />
 		</method>
 
 		<method name="unignore">
