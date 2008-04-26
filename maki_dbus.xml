@@ -61,6 +61,12 @@
 			<arg name="reason" type="s" />
 		</method>
 
+		<method name="kline">
+			<arg name="server" type="s" />
+			<arg name="mask" type="s" />
+			<arg name="reason" type="s" />
+		</method>
+
 		<method name="message">
 			<arg name="server" type="s" />
 			<arg name="target" type="s" />
@@ -165,6 +171,11 @@
 		<method name="unignore">
 			<arg name="server" type="s" />
 			<arg name="pattern" type="s" />
+		</method>
+
+		<method name="unkline">
+			<arg name="server" type="s" />
+			<arg name="mask" type="s" />
 		</method>
 
 		<method name="user_away">

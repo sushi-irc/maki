@@ -413,6 +413,22 @@ gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reas
 	return TRUE;
 }
 
+gboolean maki_dbus_kline (makiDBus* self, gchar* server, gchar* mask, gchar* reason, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar* buffer;
+
+		buffer = g_strdup_printf("KLINE %s :%s", mask, reason);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
 {
 	gchar* buffer;
@@ -928,6 +944,22 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 			g_free(m_conn->ignores);
 			m_conn->ignores = tmp;
 		}
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_unkline (makiDBus* self, gchar* server, gchar* mask, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar* buffer;
+
+		buffer = g_strdup_printf("UNKLINE %s", mask);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
 	}
 
 	return TRUE;
