@@ -48,6 +48,8 @@ struct maki_log* maki_log_new (const gchar* directory, const gchar* server, cons
 	filename = g_strconcat(m_log->name, ".txt", NULL);
 	path = g_build_filename(dirname, filename, NULL);
 
+	g_mkdir_with_parents(dirname, 0755);
+
 	if ((m_log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0644)) == -1)
 	{
 		g_free(m_log->name);
@@ -91,7 +93,11 @@ void maki_log (struct maki_connection* m_conn, const gchar* name, const gchar* f
 
 	if ((m_log = g_hash_table_lookup(m_conn->logs, name)) == NULL)
 	{
-		m_log = maki_log_new(m_conn->maki->directories.logs, m_conn->server, name);
+		if ((m_log = maki_log_new(m_conn->maki->directories.logs, m_conn->server, name)) == NULL)
+		{
+			return;
+		}
+
 		g_hash_table_replace(m_conn->logs, m_log->name, m_log);
 	}
 
