@@ -32,13 +32,6 @@
 			<arg name="message" type="s" />
 		</method>
 
-		<method name="gline">
-			<arg name="server" type="s" />
-			<arg name="mask" type="s" />
-			<arg name="time" type="t" />
-			<arg name="reason" type="s" />
-		</method>
-
 		<method name="ignore">
 			<arg name="server" type="s" />
 			<arg name="pattern" type="s" />
@@ -65,12 +58,6 @@
 		<method name="kill">
 			<arg name="server" type="s" />
 			<arg name="nick" type="s" />
-			<arg name="reason" type="s" />
-		</method>
-
-		<method name="kline">
-			<arg name="server" type="s" />
-			<arg name="mask" type="s" />
 			<arg name="reason" type="s" />
 		</method>
 
@@ -181,19 +168,9 @@
 			<arg name="topic" type="s" />
 		</method>
 
-		<method name="ungline">
-			<arg name="server" type="s" />
-			<arg name="mask" type="s" />
-		</method>
-
 		<method name="unignore">
 			<arg name="server" type="s" />
 			<arg name="pattern" type="s" />
-		</method>
-
-		<method name="unkline">
-			<arg name="server" type="s" />
-			<arg name="mask" type="s" />
 		</method>
 
 		<method name="user_away">
