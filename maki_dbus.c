@@ -25,7 +25,10 @@
  * SUCH DAMAGE.
  */
 
+#include <fcntl.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "maki.h"
@@ -440,6 +443,68 @@ gboolean maki_dbus_kline (makiDBus* self, gchar* server, gchar* mask, gchar* rea
 		buffer = g_strdup_printf("KLINE %s :%s", mask, reason);
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, gchar*** log, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	*log = NULL;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		int fd;
+		gchar* filename;
+		gchar* path;
+
+		filename = g_strconcat(target, ".txt", NULL);
+		path = g_build_filename(self->maki->directories.logs, server, filename, NULL);
+
+		if ((fd = open(path, O_RDONLY)) != -1)
+		{
+			gint length = 0;
+			gchar* line;
+			gchar** tmp;
+			GIOChannel* io_channel;
+
+			io_channel = g_io_channel_unix_new(fd);
+			g_io_channel_seek_position(io_channel, -10 * 1024, G_SEEK_END, NULL);
+
+			/* Discard the first line. */
+			g_io_channel_read_line(io_channel, &line, NULL, NULL, NULL);
+			g_free(line);
+
+			tmp = g_new(gchar*, length + 1);
+			tmp[length] = NULL;
+
+			while (g_io_channel_read_line(io_channel, &line, NULL, NULL, NULL) == G_IO_STATUS_NORMAL)
+			{
+				g_strchomp(line);
+
+				tmp = g_renew(gchar*, tmp, length + 2);
+				/*
+				 * The DBus specification says that strings may contain only one \0 character.
+				 * Since line contains multiple \0 characters, provide a cleaned-up copy here.
+				 */
+				tmp[length] = g_strdup(line);
+				tmp[length + 1] = NULL;
+
+				g_free(line);
+
+				length++;
+			}
+
+			*log = tmp;
+
+			g_io_channel_shutdown(io_channel, FALSE, NULL);
+			g_io_channel_unref(io_channel);
+		}
+
+		g_free(filename);
+		g_free(path);
 	}
 
 	return TRUE;

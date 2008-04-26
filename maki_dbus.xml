@@ -74,6 +74,12 @@
 			<arg name="reason" type="s" />
 		</method>
 
+		<method name="log">
+			<arg name="server" type="s" />
+			<arg name="target" type="s" />
+			<arg name="log" type="as" direction="out" />
+		</method>
+
 		<method name="message">
 			<arg name="server" type="s" />
 			<arg name="target" type="s" />
