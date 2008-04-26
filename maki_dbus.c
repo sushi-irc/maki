@@ -397,6 +397,22 @@ gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* w
 	return TRUE;
 }
 
+gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reason, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar* buffer;
+
+		buffer = g_strdup_printf("KILL %s :%s", nick, reason);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
 {
 	gchar* buffer;
