@@ -281,6 +281,11 @@
 			<arg name="message" type="s" />
 		</signal>
 
+		<signal name="oper">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+		</signal>
+
 		<signal name="own_message">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />

@@ -925,6 +925,10 @@ gpointer maki_in_runner (gpointer data)
 				{
 					maki_in_rpl_isupport(maki, m_conn, time.tv_sec, remaining);
 				}
+				else if (strncmp(type, IRC_RPL_YOUREOPER, 3) == 0)
+				{
+					maki_dbus_emit_oper(maki->bus, time.tv_sec, m_conn->server);
+				}
 			}
 
 			g_strfreev(from);
