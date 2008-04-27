@@ -312,13 +312,6 @@
 			<arg name="message" type="s" />
 		</signal>
 
-		<signal name="own_query">
-			<arg name="time" type="x" />
-			<arg name="server" type="s" />
-			<arg name="target" type="s" />
-			<arg name="message" type="s" />
-		</signal>
-
 		<signal name="part">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
