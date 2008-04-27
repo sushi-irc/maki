@@ -78,7 +78,7 @@ void maki_reconnect_callback (gpointer data)
 {
 	struct maki_connection* m_conn = data;
 
-	g_timeout_add_seconds(m_conn->maki->config.reconnect.timeout, maki_reconnect, m_conn);
+	g_timeout_add_seconds(m_conn->maki->config->reconnect.timeout, maki_reconnect, m_conn);
 }
 
 void maki_servers (struct maki* maki)

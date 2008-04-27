@@ -25,56 +25,23 @@
  * SUCH DAMAGE.
  */
 
-#include <glib.h>
-
-#include "sashimi.h"
-
-#define SUSHI_NAME "sushi"
-#define SUSHI_VERSION "1.0-alpha1"
-#define SUSHI_URL "http://sushi.ikkoku.de/"
-
-struct maki;
-
-#include "maki_cache.h"
-#include "maki_config.h"
-#include "maki_connection.h"
-#include "maki_dbus.h"
-#include "maki_in.h"
-#include "maki_log.h"
-#include "maki_misc.h"
-#include "maki_out.h"
-#include "maki_servers.h"
-
-struct maki
+struct maki_config
 {
-	makiDBus* bus;
-
-	struct maki_config* config;
-
-	GHashTable* connections;
+	struct
+	{
+		gboolean enabled;
+		gchar* time_format;
+	}
+	logging;
 
 	struct
 	{
-		gchar* config;
-		gchar* logs;
-		gchar* servers;
-		gchar* sushi;
+		gint retries;
+		guint timeout;
 	}
-	directories;
-
-	GMainLoop* loop;
-
-	GAsyncQueue* message_queue;
-
-	struct
-	{
-		GThread* messages;
-
-		gboolean terminate;
-	}
-	threads;
+	reconnect;
 };
 
-struct maki* maki_new (void);
-void maki_free (struct maki*);
-int maki_daemonize (void);
+struct maki_config* maki_config_new (const gchar*);
+void maki_config_reload (struct maki_config*, const gchar*);
+void maki_config_free (struct maki_config*);

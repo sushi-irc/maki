@@ -83,7 +83,7 @@ struct maki_connection* maki_connection_new (struct maki* maki, const gchar* ser
 		m_conn->autoconnect = autoconnect;
 		m_conn->connected = FALSE;
 		m_conn->reconnect = FALSE;
-		m_conn->retries = maki->config.reconnect.retries;
+		m_conn->retries = maki->config->reconnect.retries;
 		m_conn->connection = sashimi_new(address, port, maki->message_queue, m_conn);
 		m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_free);
 		m_conn->users = maki_cache_new(maki_user_new, maki_user_free, m_conn);
@@ -189,7 +189,7 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 		GTimeVal time;
 
 		m_conn->reconnect = TRUE;
-		m_conn->retries = m_conn->maki->config.reconnect.retries;
+		m_conn->retries = m_conn->maki->config->reconnect.retries;
 
 		maki_cache_remove(m_conn->users, m_conn->user->nick);
 		m_conn->user = maki_cache_insert(m_conn->users, m_conn->initial_nick);

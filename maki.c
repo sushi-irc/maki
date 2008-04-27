@@ -34,14 +34,10 @@
 
 #include "maki.h"
 
-#define maki_new_config(key, value) if (error) { g_error_free(error); error = NULL; } else { maki->config.key = value; }
-#define maki_new_config_string(key, value) if (error) { g_error_free(error); error = NULL; } else { g_free(maki->config.key); maki->config.key = value; }
-
 struct maki* maki_new (void)
 {
 	const gchar* home_dir;
-	gchar* path;
-	GKeyFile* key_file;
+	gchar* config_path;
 	struct maki* maki;
 
 	maki = g_new(struct maki, 1);
@@ -54,11 +50,6 @@ struct maki* maki_new (void)
 	maki->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
 	maki->bus->maki = maki;
 
-	maki->config.logging.enabled = TRUE;
-	maki->config.logging.time_format = g_strdup("%Y-%m-%d %H:%M:%S");
-	maki->config.reconnect.retries = 3;
-	maki->config.reconnect.timeout = 10;
-
 	maki->connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_free);
 
 	maki->directories.sushi = g_build_filename(home_dir, ".sushi", NULL);
@@ -66,32 +57,9 @@ struct maki* maki_new (void)
 	maki->directories.logs = g_build_filename(maki->directories.sushi, "logs", NULL);
 	maki->directories.servers = g_build_filename(maki->directories.sushi, "servers", NULL);
 
-	path = g_build_filename(maki->directories.config, "maki", NULL);
-	key_file = g_key_file_new();
-
-	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
-	{
-		gboolean logging_enabled;
-		gchar* logging_time_format;
-		gint retries;
-		gint timeout;
-		GError* error = NULL;
-
-		logging_enabled = g_key_file_get_boolean(key_file, "logging", "enabled", &error);
-		maki_new_config(logging.enabled, logging_enabled);
-
-		logging_time_format = g_key_file_get_string(key_file, "logging", "time_format", &error);
-		maki_new_config_string(logging.time_format, logging_time_format);
-
-		retries = g_key_file_get_integer(key_file, "reconnect", "retries", &error);
-		maki_new_config(reconnect.retries, retries);
-
-		timeout = g_key_file_get_integer(key_file, "reconnect", "timeout", &error);
-		maki_new_config(reconnect.timeout, timeout);
-	}
-
-	g_key_file_free(key_file);
-	g_free(path);
+	config_path = g_build_filename(maki->directories.config, "maki", NULL);
+	maki->config = maki_config_new(config_path);
+	g_free(config_path);
 
 	maki->message_queue = g_async_queue_new();
 
@@ -118,6 +86,8 @@ void maki_free (struct maki* maki)
 
 	dbus_g_connection_unref(maki->bus->bus);
 	g_object_unref(maki->bus);
+
+	maki_config_free(maki->config);
 
 	g_main_loop_quit(maki->loop);
 	g_main_loop_unref(maki->loop);
