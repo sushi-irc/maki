@@ -96,15 +96,7 @@ void maki_out_privmsg (struct maki* maki, struct maki_connection* m_conn, const 
 
 	g_free(buffer);
 
-	if (maki_is_channel(m_conn, target))
-	{
-		maki_dbus_emit_own_message(maki->bus, time.tv_sec, m_conn->server, target, message);
-	}
-	else
-	{
-		maki_dbus_emit_own_query(maki->bus, time.tv_sec, m_conn->server, target, message);
-	}
-
+	maki_dbus_emit_own_message(maki->bus, time.tv_sec, m_conn->server, target, message);
 	maki_log(m_conn, target, "<%s> %s", m_conn->user->nick, message);
 }
 
