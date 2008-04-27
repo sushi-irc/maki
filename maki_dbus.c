@@ -52,9 +52,11 @@ enum
 	s_notice,
 	s_oper,
 	s_own_message,
+	s_own_notice,
 	s_own_query,
 	s_part,
 	s_query,
+	s_query_notice,
 	s_quit,
 	s_reconnect,
 	s_shutdown,
@@ -144,6 +146,11 @@ void maki_dbus_emit_own_message (makiDBus* self, gint64 time, const gchar* serve
 	g_signal_emit(self, signals[s_own_message], 0, time, server, target, message);
 }
 
+void maki_dbus_emit_own_notice (makiDBus* self, gint64 time, const gchar* server, const gchar* target, const gchar* message)
+{
+	g_signal_emit(self, signals[s_own_notice], 0, time, server, target, message);
+}
+
 void maki_dbus_emit_own_query (makiDBus* self, gint64 time, const gchar* server, const gchar* target, const gchar* message)
 {
 	g_signal_emit(self, signals[s_own_query], 0, time, server, target, message);
@@ -157,6 +164,11 @@ void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, cons
 void maki_dbus_emit_query (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
 	g_signal_emit(self, signals[s_query], 0, time, server, nick, message);
+}
+
+void maki_dbus_emit_query_notice (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
+{
+	g_signal_emit(self, signals[s_query_notice], 0, time, server, nick, message);
 }
 
 void maki_dbus_emit_quit (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
@@ -619,7 +631,8 @@ gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* 
 		g_free(buffer);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_notice(self, time.tv_sec, server, m_conn->user->nick, target, message);
+		maki_dbus_emit_own_notice(self, time.tv_sec, m_conn->server, target, message);
+		maki_log(m_conn, target, "-%s- %s", m_conn->user->nick, message);
 	}
 
 	return TRUE;
@@ -1281,6 +1294,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_own_notice] =
+		g_signal_new("own_notice",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_own_query] =
 		g_signal_new("own_query",
 		             G_OBJECT_CLASS_TYPE(klass),
@@ -1299,6 +1320,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_query] =
 		g_signal_new("query",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_query_notice] =
+		g_signal_new("query_notice",
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,

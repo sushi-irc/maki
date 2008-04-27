@@ -305,6 +305,13 @@
 			<arg name="message" type="s" />
 		</signal>
 
+		<signal name="own_notice">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="target" type="s" />
+			<arg name="message" type="s" />
+		</signal>
+
 		<signal name="own_query">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
@@ -321,6 +328,13 @@
 		</signal>
 
 		<signal name="query">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" />
+			<arg name="message" type="s" />
+		</signal>
+
+		<signal name="query_notice">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
 			<arg name="nick" type="s" />

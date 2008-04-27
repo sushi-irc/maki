@@ -470,7 +470,16 @@ void maki_in_notice (struct maki* maki, struct maki_connection* m_conn, glong ti
 
 	if (target != NULL && message != NULL)
 	{
-		maki_dbus_emit_notice(maki->bus, time, m_conn->server, nick, target, message);
+		if (maki_is_channel(m_conn, target))
+		{
+			maki_log(m_conn, target, "-%s- %s", nick, message);
+			maki_dbus_emit_notice(maki->bus, time, m_conn->server, nick, target, message);
+		}
+		else
+		{
+			maki_log(m_conn, nick, "-%s- %s", nick, message);
+			maki_dbus_emit_query_notice(maki->bus, time, m_conn->server, nick, message);
+		}
 	}
 
 	g_strfreev(tmp);
