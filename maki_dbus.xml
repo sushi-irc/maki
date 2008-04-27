@@ -298,6 +298,13 @@
 			<arg name="server" type="s" />
 		</signal>
 
+		<signal name="own_ctcp">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="target" type="s" />
+			<arg name="message" type="s" />
+		</signal>
+
 		<signal name="own_message">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
@@ -321,6 +328,13 @@
 		</signal>
 
 		<signal name="query">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" />
+			<arg name="message" type="s" />
+		</signal>
+
+		<signal name="query_ctcp">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
 			<arg name="nick" type="s" />

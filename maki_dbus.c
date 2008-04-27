@@ -51,10 +51,12 @@ enum
 	s_nick,
 	s_notice,
 	s_oper,
+	s_own_ctcp,
 	s_own_message,
 	s_own_notice,
 	s_part,
 	s_query,
+	s_query_ctcp,
 	s_query_notice,
 	s_quit,
 	s_reconnect,
@@ -140,6 +142,11 @@ void maki_dbus_emit_oper (makiDBus* self, gint64 time, const gchar* server)
 	g_signal_emit(self, signals[s_oper], 0, time, server);
 }
 
+void maki_dbus_emit_own_ctcp (makiDBus* self, gint64 time, const gchar* server, const gchar* target, const gchar* message)
+{
+	g_signal_emit(self, signals[s_own_ctcp], 0, time, server, target, message);
+}
+
 void maki_dbus_emit_own_message (makiDBus* self, gint64 time, const gchar* server, const gchar* target, const gchar* message)
 {
 	g_signal_emit(self, signals[s_own_message], 0, time, server, target, message);
@@ -158,6 +165,11 @@ void maki_dbus_emit_part (makiDBus* self, gint64 time, const gchar* server, cons
 void maki_dbus_emit_query (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
 	g_signal_emit(self, signals[s_query], 0, time, server, nick, message);
+}
+
+void maki_dbus_emit_query_ctcp (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
+{
+	g_signal_emit(self, signals[s_query_ctcp], 0, time, server, nick, message);
 }
 
 void maki_dbus_emit_query_notice (makiDBus* self, gint64 time, const gchar* server, const gchar* nick, const gchar* message)
@@ -313,7 +325,8 @@ gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* me
 		g_free(buffer);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_ctcp(self, time.tv_sec, server, m_conn->user->nick, target, message);
+		maki_dbus_emit_own_ctcp(self, time.tv_sec, server, target, message);
+		maki_log(m_conn, target, "=%s= %s", m_conn->user->nick, message);
 	}
 
 	return TRUE;
@@ -1280,6 +1293,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64_STRING,
 		             G_TYPE_NONE, 2,
 		             G_TYPE_INT64, G_TYPE_STRING);
+	signals[s_own_ctcp] =
+		g_signal_new("own_ctcp",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_own_message] =
 		g_signal_new("own_message",
 		             G_OBJECT_CLASS_TYPE(klass),
@@ -1306,6 +1327,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_query] =
 		g_signal_new("query",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_query_ctcp] =
+		g_signal_new("query_ctcp",
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
