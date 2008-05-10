@@ -68,6 +68,12 @@ struct maki
 
 	struct
 	{
+		gboolean debug;
+	}
+	opt;
+
+	struct
+	{
 		GThread* messages;
 
 		gboolean terminate;

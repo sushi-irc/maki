@@ -815,8 +815,6 @@ gpointer maki_in_runner (gpointer data)
 
 		g_get_current_time(&time);
 
-		g_print("%ld %s %s\n", time.tv_sec, m_conn->server, message);
-
 		if (message[0] == ':')
 		{
 			gchar** parts;
@@ -947,12 +945,20 @@ gpointer maki_in_runner (gpointer data)
 				{
 					maki_dbus_emit_oper(maki->bus, time.tv_sec, m_conn->server);
 				}
+				else if (maki->opt.debug)
+				{
+					g_print("WARN: Unhandled message type '%s'\n", type);
+				}
 			}
 
 			g_strfreev(from);
 			g_strfreev(parts);
 		}
 
+		if (maki->opt.debug)
+		{
+			g_print("IN: [%ld] %s %s\n", time.tv_sec, m_conn->server, message);
+		}
 
 		g_free(message);
 	}

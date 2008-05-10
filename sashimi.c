@@ -354,7 +354,7 @@ int sashimi_send (struct sashimi_connection* connection, const gchar* message)
 	if ((status = g_io_channel_write_chars(connection->channel, tmp, -1, NULL, NULL)) == G_IO_STATUS_NORMAL)
 	{
 		g_io_channel_flush(connection->channel, NULL);
-		g_debug("-> %s", tmp);
+		g_print("OUT: %s", tmp);
 	}
 	else
 	{

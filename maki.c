@@ -63,6 +63,8 @@ struct maki* maki_new (void)
 
 	maki->message_queue = g_async_queue_new();
 
+	maki->opt.debug = FALSE;
+
 	maki->threads.terminate = FALSE;
 	maki->threads.messages = g_thread_create(maki_in_runner, maki, TRUE, NULL);
 
@@ -141,10 +143,12 @@ int main (int argc, char* argv[])
 	struct maki* maki;
 
 	gboolean opt_daemon = FALSE;
+	gboolean opt_debug = FALSE;
 	GOptionContext* context;
 	GOptionEntry entries[] =
 	{
 		{ "daemon", 'd', 0, G_OPTION_ARG_NONE, &opt_daemon, "Run as daemon", NULL },
+		{ "debug", 0, 0, G_OPTION_ARG_NONE, &opt_debug, "Output debug messages", NULL },
 		{ NULL }
 	};
 
@@ -170,6 +174,7 @@ int main (int argc, char* argv[])
 	g_type_init();
 
 	maki = maki_new();
+	maki->opt.debug = opt_debug;
 
 	if (g_mkdir_with_parents(maki->directories.sushi, 0755) != 0
 	    || g_mkdir_with_parents(maki->directories.config, 0755) != 0
