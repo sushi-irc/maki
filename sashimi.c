@@ -261,7 +261,7 @@ int sashimi_connect (struct sashimi_connection* connection)
 
 	name.sin_family = AF_INET;
 	name.sin_port = htons(connection->port);
-	name.sin_addr = *(struct in_addr*)hostinfo->h_addr;
+	name.sin_addr = *(struct in_addr*)hostinfo->h_addr_list[0];
 
 	if (connect(fd, (struct sockaddr*)&name, sizeof(name)) < 0)
 	{
