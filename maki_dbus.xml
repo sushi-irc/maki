@@ -64,6 +64,7 @@
 		<method name="log">
 			<arg name="server" type="s" />
 			<arg name="target" type="s" />
+			<arg name="lines" type="t" />
 			<arg name="log" type="as" direction="out" />
 		</method>
 

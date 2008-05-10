@@ -435,7 +435,7 @@ gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reas
 	return TRUE;
 }
 
-gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, gchar*** log, GError** error)
+gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, guint64 lines, gchar*** log, GError** error)
 {
 	struct maki_connection* m_conn;
 
@@ -452,7 +452,7 @@ gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, gchar*** l
 
 		if ((fd = open(path, O_RDONLY)) != -1)
 		{
-			gint length = 0;
+			guint length = 0;
 			gchar* line;
 			gchar** tmp;
 			GIOChannel* io_channel;
@@ -482,6 +482,32 @@ gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, gchar*** l
 				g_free(line);
 
 				length++;
+			}
+
+			if (length > lines)
+			{
+				guint i;
+				guint j;
+				gchar** trunc;
+
+				trunc = g_new(gchar*, lines + 1);
+
+				for (i = 0; i < length - lines; i++)
+				{
+					g_free(tmp[i]);
+				}
+
+				for (i = length - lines, j = 0; i < length; i++, j++)
+				{
+					trunc[j] = tmp[i];
+				}
+
+				g_free(tmp[length]);
+				g_free(tmp);
+
+				trunc[lines] = NULL;
+
+				tmp = trunc;
 			}
 
 			*log = tmp;
