@@ -42,6 +42,12 @@
 			<arg name="ignores" type="as" direction="out" />
 		</method>
 
+		<method name="invite">
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="who" type="s" />
+		</method>
+
 		<method name="join">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />

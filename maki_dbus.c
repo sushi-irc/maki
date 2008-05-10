@@ -381,6 +381,22 @@ gboolean maki_dbus_ignores (makiDBus* self, gchar* server, gchar*** ignores, GEr
 	return TRUE;
 }
 
+gboolean maki_dbus_invite (makiDBus* self, gchar* server, gchar* channel, gchar* who, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		gchar* buffer;
+
+		buffer = g_strdup_printf("INVITE %s %s", who, channel);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* key, GError** error)
 {
 	struct maki_connection* m_conn;
