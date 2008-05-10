@@ -1141,7 +1141,7 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* ch
 
 #include "maki_dbus_glue.h"
 
-G_DEFINE_TYPE(makiDBus, maki_dbus, G_TYPE_OBJECT);
+G_DEFINE_TYPE(makiDBus, maki_dbus, G_TYPE_OBJECT)
 
 static void maki_dbus_init (makiDBus* obj)
 {
