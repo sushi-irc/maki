@@ -581,6 +581,36 @@ void maki_in_mode (struct maki* maki, struct maki_connection* m_conn, glong time
 	g_strfreev(tmp);
 }
 
+void maki_in_invite (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+{
+	gint offset = 0;
+	gchar** tmp;
+	gchar* channel;
+	gchar* who;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	if (is_numeric)
+	{
+		offset = 1;
+		nick = "";
+	}
+
+	tmp = g_strsplit(remaining, " ", 2 + offset);
+	who = tmp[offset];
+	channel = maki_remove_colon(tmp[1 + offset]);
+
+	if (tmp[0] != NULL && who != NULL && channel != NULL)
+	{
+		maki_dbus_emit_invite(maki->bus, time, m_conn->server, nick, channel, who);
+	}
+
+	g_strfreev(tmp);
+}
+
 void maki_in_topic (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gint offset = 0;
@@ -888,6 +918,10 @@ gpointer maki_in_runner (gpointer data)
 				else if (strncmp(type, "MODE", 4) == 0 || strncmp(type, IRC_RPL_CHANNELMODEIS, 3) == 0)
 				{
 					maki_in_mode(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'M'));
+				}
+				else if (strncmp(type, "INVITE", 6) == 0 || strncmp(type, IRC_RPL_INVITING, 3) == 0)
+				{
+					maki_in_invite(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'I'));
 				}
 				else if (strncmp(type, IRC_RPL_NAMREPLY, 3) == 0)
 				{
