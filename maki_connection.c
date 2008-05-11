@@ -165,6 +165,7 @@ void maki_connection_free (gpointer data)
 	g_strfreev(m_conn->ignores);
 	g_strfreev(m_conn->commands);
 	g_free(m_conn->nickserv.password);
+	g_hash_table_destroy(m_conn->logs);
 	g_hash_table_destroy(m_conn->channels);
 	maki_cache_free(m_conn->users);
 	maki_connection_disconnect(m_conn);
