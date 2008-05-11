@@ -310,14 +310,9 @@ int sashimi_disconnect (struct sashimi_connection* connection)
 
 int sashimi_free (struct sashimi_connection* connection)
 {
-	if (connection == NULL)
-	{
-		return 1;
-	}
+	g_return_val_if_fail(connection != NULL, 1);
 
-	/*
-	 * Clean up the queue.
-	 */
+	/* Clean up the queue. */
 	while (!g_queue_is_empty(connection->queue))
 	{
 		g_free(g_queue_pop_head(connection->queue));
