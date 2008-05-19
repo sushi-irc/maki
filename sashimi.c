@@ -32,11 +32,15 @@
 #endif
 
 #include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <poll.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include <glib.h>
 
@@ -254,6 +258,8 @@ int sashimi_connect (struct sashimi_connection* connection)
 		return 1;
 	}
 
+	fcntl(fd, F_SETFL, O_NONBLOCK);
+
 	if ((hostinfo = gethostbyname(connection->address)) == NULL)
 	{
 		return 1;
@@ -265,7 +271,28 @@ int sashimi_connect (struct sashimi_connection* connection)
 
 	if (connect(fd, (struct sockaddr*)&name, sizeof(name)) < 0)
 	{
-		return 1;
+		if (errno != EINPROGRESS)
+		{
+			close(fd);
+			return 1;
+		}
+		else
+		{
+			int val;
+			socklen_t len = sizeof(val);
+			struct pollfd fds[1];
+
+			fds[0].fd = fd;
+			fds[0].events = POLLOUT;
+
+			poll(fds, 1, 3000);
+
+			if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &val, &len) == -1
+			    || val != 0)
+			{
+				return 1;
+			}
+		}
 	}
 
 	g_get_current_time(&time);
