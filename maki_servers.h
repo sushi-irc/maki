@@ -27,4 +27,4 @@
 
 gboolean maki_reconnect (gpointer);
 void maki_reconnect_callback (gpointer);
-void maki_servers (struct maki*);
+void maki_servers (void);

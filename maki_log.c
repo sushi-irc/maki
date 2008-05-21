@@ -82,18 +82,19 @@ void maki_log (struct maki_connection* m_conn, const gchar* name, const gchar* f
 	time_t t;
 	struct maki_log* m_log;
 	va_list args;
+	struct maki* m = maki();
 
-	if (!m_conn->maki->config->logging.enabled)
+	if (!m->config->logging.enabled)
 	{
 		return;
 	}
 
 	t = time(NULL);
-	strftime(buf, 1024, m_conn->maki->config->logging.time_format, localtime(&t));
+	strftime(buf, 1024, m->config->logging.time_format, localtime(&t));
 
 	if ((m_log = g_hash_table_lookup(m_conn->logs, name)) == NULL)
 	{
-		if ((m_log = maki_log_new(m_conn->maki->directories.logs, m_conn->server, name)) == NULL)
+		if ((m_log = maki_log_new(m->directories.logs, m_conn->server, name)) == NULL)
 		{
 			return;
 		}

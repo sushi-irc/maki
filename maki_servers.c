@@ -34,6 +34,7 @@ gboolean maki_reconnect (gpointer data)
 {
 	GTimeVal time;
 	struct maki_connection* m_conn = data;
+	struct maki* m = maki();
 
 	/*
 	 * m_conn->reconnect is set to FALSE by the quit method.
@@ -54,13 +55,13 @@ gboolean maki_reconnect (gpointer data)
 		/*
 		 * Finally give up and free the connection.
 		 */
-		g_hash_table_remove(m_conn->maki->connections, m_conn->server);
+		g_hash_table_remove(m->connections, m_conn->server);
 
 		return FALSE;
 	}
 
 	g_get_current_time(&time);
-	maki_dbus_emit_reconnect(m_conn->maki->bus, time.tv_sec, m_conn->server);
+	maki_dbus_emit_reconnect(time.tv_sec, m_conn->server);
 
 	if (maki_connection_connect(m_conn) == 0)
 	{
@@ -77,24 +78,26 @@ gboolean maki_reconnect (gpointer data)
 void maki_reconnect_callback (gpointer data)
 {
 	struct maki_connection* m_conn = data;
+	struct maki* m = maki();
 
-	g_timeout_add_seconds(m_conn->maki->config->reconnect.timeout, maki_reconnect, m_conn);
+	g_timeout_add_seconds(m->config->reconnect.timeout, maki_reconnect, m_conn);
 }
 
-void maki_servers (struct maki* maki)
+void maki_servers (void)
 {
 	const gchar* file;
 	GDir* servers;
+	struct maki* m = maki();
 
-	servers = g_dir_open(maki->directories.servers, 0, NULL);
+	servers = g_dir_open(m->directories.servers, 0, NULL);
 
 	while ((file = g_dir_read_name(servers)) != NULL)
 	{
 		struct maki_connection* m_conn;
 
-		if ((m_conn = maki_connection_new(maki, file)) != NULL)
+		if ((m_conn = maki_connection_new(file)) != NULL)
 		{
-			g_hash_table_replace(maki->connections, m_conn->server, m_conn);
+			g_hash_table_replace(m->connections, m_conn->server, m_conn);
 		}
 
 	}

@@ -132,7 +132,7 @@ gboolean maki_join (gpointer data)
 			continue;
 		}
 
-		maki_out_join(m_conn->maki, m_conn, m_chan->name, m_chan->key);
+		maki_out_join(m_conn, m_chan->name, m_chan->key);
 	}
 
 	return FALSE;
@@ -154,7 +154,7 @@ void maki_commands (struct maki_connection* m_conn)
 	}
 }
 
-void maki_in_privmsg (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_privmsg (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -191,7 +191,7 @@ void maki_in_privmsg (struct maki* maki, struct maki_connection* m_conn, glong t
 					maki_log(m_conn, nick, "%s %s", nick, message + 7);
 				}
 
-				maki_dbus_emit_action(maki->bus, time, m_conn->server, nick, target, message + 7);
+				maki_dbus_emit_action(time, m_conn->server, nick, target, message + 7);
 			}
 			else
 			{
@@ -218,12 +218,12 @@ void maki_in_privmsg (struct maki* maki, struct maki_connection* m_conn, glong t
 				if (maki_is_channel(m_conn, target))
 				{
 					maki_log(m_conn, target, "=%s= %s", nick, message);
-					maki_dbus_emit_ctcp(maki->bus, time, m_conn->server, nick, target, message);
+					maki_dbus_emit_ctcp(time, m_conn->server, nick, target, message);
 				}
 				else
 				{
 					maki_log(m_conn, nick, "=%s= %s", nick, message);
-					maki_dbus_emit_query_ctcp(maki->bus, time, m_conn->server, nick, message);
+					maki_dbus_emit_query_ctcp(time, m_conn->server, nick, message);
 				}
 			}
 		}
@@ -232,12 +232,12 @@ void maki_in_privmsg (struct maki* maki, struct maki_connection* m_conn, glong t
 			if (maki_is_channel(m_conn, target))
 			{
 				maki_log(m_conn, target, "<%s> %s", nick, message);
-				maki_dbus_emit_message(maki->bus, time, m_conn->server, nick, target, message);
+				maki_dbus_emit_message(time, m_conn->server, nick, target, message);
 			}
 			else
 			{
 				maki_log(m_conn, nick, "<%s> %s", nick, message);
-				maki_dbus_emit_query(maki->bus, time, m_conn->server, nick, message);
+				maki_dbus_emit_query(time, m_conn->server, nick, message);
 			}
 		}
 	}
@@ -245,7 +245,7 @@ void maki_in_privmsg (struct maki* maki, struct maki_connection* m_conn, glong t
 	g_strfreev(tmp);
 }
 
-void maki_in_join (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_join (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar* channel;
 	struct maki_channel* m_chan;
@@ -283,10 +283,10 @@ void maki_in_join (struct maki* maki, struct maki_connection* m_conn, glong time
 		}
 	}
 
-	maki_dbus_emit_join(maki->bus, time, m_conn->server, nick, channel);
+	maki_dbus_emit_join(time, m_conn->server, nick, channel);
 }
 
-void maki_in_part (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_part (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -321,17 +321,17 @@ void maki_in_part (struct maki* maki, struct maki_connection* m_conn, glong time
 
 	if (message)
 	{
-		maki_dbus_emit_part(maki->bus, time, m_conn->server, nick, channel, message);
+		maki_dbus_emit_part(time, m_conn->server, nick, channel, message);
 	}
 	else
 	{
-		maki_dbus_emit_part(maki->bus, time, m_conn->server, nick, channel, "");
+		maki_dbus_emit_part(time, m_conn->server, nick, channel, "");
 	}
 
 	g_strfreev(tmp);
 }
 
-void maki_in_quit (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_quit (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	GHashTableIter iter;
 	gpointer key;
@@ -348,15 +348,15 @@ void maki_in_quit (struct maki* maki, struct maki_connection* m_conn, glong time
 
 	if (remaining)
 	{
-		maki_dbus_emit_quit(maki->bus, time, m_conn->server, nick, maki_remove_colon(remaining));
+		maki_dbus_emit_quit(time, m_conn->server, nick, maki_remove_colon(remaining));
 	}
 	else
 	{
-		maki_dbus_emit_quit(maki->bus, time, m_conn->server, nick, "");
+		maki_dbus_emit_quit(time, m_conn->server, nick, "");
 	}
 }
 
-void maki_in_kick (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_kick (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -396,18 +396,18 @@ void maki_in_kick (struct maki* maki, struct maki_connection* m_conn, glong time
 
 		if (message != NULL)
 		{
-			maki_dbus_emit_kick(maki->bus, time, m_conn->server, nick, channel, who, message);
+			maki_dbus_emit_kick(time, m_conn->server, nick, channel, who, message);
 		}
 		else
 		{
-			maki_dbus_emit_kick(maki->bus, time, m_conn->server, nick, channel, who, "");
+			maki_dbus_emit_kick(time, m_conn->server, nick, channel, who, "");
 		}
 	}
 
 	g_strfreev(tmp);
 }
 
-void maki_in_nick (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar* new_nick;
 	GHashTableIter iter;
@@ -455,14 +455,14 @@ void maki_in_nick (struct maki* maki, struct maki_connection* m_conn, glong time
 
 		if (strcmp(m_conn->user->nick, m_conn->initial_nick) == 0)
 		{
-			maki_out_nickserv(maki, m_conn);
+			maki_out_nickserv(m_conn);
 		}
 	}
 
-	maki_dbus_emit_nick(maki->bus, time, m_conn->server, nick, new_nick);
+	maki_dbus_emit_nick(time, m_conn->server, nick, new_nick);
 }
 
-void maki_in_notice (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
+void maki_in_notice (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -482,19 +482,19 @@ void maki_in_notice (struct maki* maki, struct maki_connection* m_conn, glong ti
 		if (maki_is_channel(m_conn, target))
 		{
 			maki_log(m_conn, target, "-%s- %s", nick, message);
-			maki_dbus_emit_notice(maki->bus, time, m_conn->server, nick, target, message);
+			maki_dbus_emit_notice(time, m_conn->server, nick, target, message);
 		}
 		else
 		{
 			maki_log(m_conn, nick, "-%s- %s", nick, message);
-			maki_dbus_emit_query_notice(maki->bus, time, m_conn->server, nick, message);
+			maki_dbus_emit_query_notice(time, m_conn->server, nick, message);
 		}
 	}
 
 	g_strfreev(tmp);
 }
 
-void maki_in_mode (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+void maki_in_mode (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gint offset = 0;
 	gchar** tmp;
@@ -565,12 +565,12 @@ void maki_in_mode (struct maki* maki, struct maki_connection* m_conn, glong time
 						}
 					}
 
-					maki_dbus_emit_mode(maki->bus, time, m_conn->server, nick, target, buffer, modes[i]);
+					maki_dbus_emit_mode(time, m_conn->server, nick, target, buffer, modes[i]);
 					++i;
 				}
 				else
 				{
-					maki_dbus_emit_mode(maki->bus, time, m_conn->server, nick, target, buffer, "");
+					maki_dbus_emit_mode(time, m_conn->server, nick, target, buffer, "");
 				}
 			}
 		}
@@ -581,7 +581,7 @@ void maki_in_mode (struct maki* maki, struct maki_connection* m_conn, glong time
 	g_strfreev(tmp);
 }
 
-void maki_in_invite (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+void maki_in_invite (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gint offset = 0;
 	gchar** tmp;
@@ -605,13 +605,13 @@ void maki_in_invite (struct maki* maki, struct maki_connection* m_conn, glong ti
 
 	if (tmp[0] != NULL && who != NULL && channel != NULL)
 	{
-		maki_dbus_emit_invite(maki->bus, time, m_conn->server, nick, channel, who);
+		maki_dbus_emit_invite(time, m_conn->server, nick, channel, who);
 	}
 
 	g_strfreev(tmp);
 }
 
-void maki_in_topic (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+void maki_in_topic (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gint offset = 0;
 	gchar** tmp;
@@ -643,13 +643,13 @@ void maki_in_topic (struct maki* maki, struct maki_connection* m_conn, glong tim
 			m_chan->topic = g_strdup(topic);
 		}
 
-		maki_dbus_emit_topic(maki->bus, time, m_conn->server, nick, channel, topic);
+		maki_dbus_emit_topic(time, m_conn->server, nick, channel, topic);
 	}
 
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_namreply (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+void maki_in_rpl_namreply (struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -692,7 +692,7 @@ void maki_in_rpl_namreply (struct maki* maki, struct maki_connection* m_conn, gl
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_away (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+void maki_in_rpl_away (struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* nick;
@@ -709,13 +709,13 @@ void maki_in_rpl_away (struct maki* maki, struct maki_connection* m_conn, glong 
 
 	if (tmp[0] != NULL && nick != NULL && message != NULL)
 	{
-		maki_dbus_emit_away_message(maki->bus, time, m_conn->server, nick, message);
+		maki_dbus_emit_away_message(time, m_conn->server, nick, message);
 	}
 
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_isupport (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+void maki_in_rpl_isupport (struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gint i;
 	guint length;
@@ -775,7 +775,7 @@ void maki_in_rpl_isupport (struct maki* maki, struct maki_connection* m_conn, gl
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_motd (struct maki* maki, struct maki_connection* m_conn, glong time, gchar* remaining)
+void maki_in_rpl_motd (struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gchar** tmp;
 
@@ -788,7 +788,7 @@ void maki_in_rpl_motd (struct maki* maki, struct maki_connection* m_conn, glong 
 
 	if (tmp[0] != NULL && tmp[1] != NULL)
 	{
-		maki_dbus_emit_motd(maki->bus, time, m_conn->server, maki_remove_colon(tmp[1]));
+		maki_dbus_emit_motd(time, m_conn->server, maki_remove_colon(tmp[1]));
 	}
 
 	g_strfreev(tmp);
@@ -802,7 +802,7 @@ gpointer maki_in_runner (gpointer data)
 {
 	gchar* message;
 	GTimeVal time;
-	struct maki* maki = data;
+	struct maki* m = data;
 	struct maki_connection* m_conn;
 	struct sashimi_message* s_msg;
 
@@ -811,11 +811,11 @@ gpointer maki_in_runner (gpointer data)
 		g_get_current_time(&time);
 		g_time_val_add(&time, 1000000);
 
-		s_msg = g_async_queue_timed_pop(maki->message_queue, &time);
+		s_msg = g_async_queue_timed_pop(m->message_queue, &time);
 
 		if (s_msg == NULL)
 		{
-			if (maki->threads.terminate)
+			if (m->threads.terminate)
 			{
 				g_thread_exit(NULL);
 			}
@@ -897,63 +897,63 @@ gpointer maki_in_runner (gpointer data)
 			{
 				if (strncmp(type, "PRIVMSG", 7) == 0)
 				{
-					maki_in_privmsg(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_privmsg(m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "JOIN", 4) == 0)
 				{
-					maki_in_join(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_join(m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "PART", 4) == 0)
 				{
-					maki_in_part(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_part(m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "QUIT", 4) == 0)
 				{
-					maki_in_quit(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_quit(m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "KICK", 4) == 0)
 				{
-					maki_in_kick(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_kick(m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "NICK", 4) == 0)
 				{
-					maki_in_nick(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_nick(m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "NOTICE", 6) == 0)
 				{
-					maki_in_notice(maki, m_conn, time.tv_sec, from_nick, remaining);
+					maki_in_notice(m_conn, time.tv_sec, from_nick, remaining);
 				}
 				else if (strncmp(type, "MODE", 4) == 0 || strncmp(type, IRC_RPL_CHANNELMODEIS, 3) == 0)
 				{
-					maki_in_mode(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'M'));
+					maki_in_mode(m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'M'));
 				}
 				else if (strncmp(type, "INVITE", 6) == 0 || strncmp(type, IRC_RPL_INVITING, 3) == 0)
 				{
-					maki_in_invite(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'I'));
+					maki_in_invite(m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'I'));
 				}
 				else if (strncmp(type, IRC_RPL_NAMREPLY, 3) == 0)
 				{
-					maki_in_rpl_namreply(maki, m_conn, time.tv_sec, remaining);
+					maki_in_rpl_namreply(m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_UNAWAY, 3) == 0)
 				{
 					m_conn->user->away = FALSE;
-					maki_dbus_emit_back(maki->bus, time.tv_sec, m_conn->server);
+					maki_dbus_emit_back(time.tv_sec, m_conn->server);
 				}
 				else if (strncmp(type, IRC_RPL_NOWAWAY, 3) == 0)
 				{
 					m_conn->user->away = TRUE;
-					maki_dbus_emit_away(maki->bus, time.tv_sec, m_conn->server);
+					maki_dbus_emit_away(time.tv_sec, m_conn->server);
 				}
 				else if (strncmp(type, IRC_RPL_AWAY, 3) == 0)
 				{
-					maki_in_rpl_away(maki, m_conn, time.tv_sec, remaining);
+					maki_in_rpl_away(m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_ENDOFMOTD, 3) == 0 || strncmp(type, IRC_ERR_NOMOTD, 3) == 0)
 				{
 					m_conn->connected = TRUE;
-					maki_dbus_emit_connected(maki->bus, time.tv_sec, m_conn->server, m_conn->user->nick);
-					maki_out_nickserv(maki, m_conn);
+					maki_dbus_emit_connected(time.tv_sec, m_conn->server, m_conn->user->nick);
+					maki_out_nickserv(m_conn);
 					g_timeout_add_seconds(3, maki_join, m_conn);
 					maki_commands(m_conn);
 				}
@@ -968,26 +968,26 @@ gpointer maki_in_runner (gpointer data)
 						m_conn->user = maki_cache_insert(m_conn->users, nick);
 						g_free(nick);
 
-						maki_out_nick(maki, m_conn, m_conn->user->nick);
+						maki_out_nick(m_conn, m_conn->user->nick);
 					}
 				}
 				else if (strncmp(type, IRC_RPL_MOTD, 3) == 0)
 				{
-					maki_in_rpl_motd(maki, m_conn, time.tv_sec, remaining);
+					maki_in_rpl_motd(m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_TOPIC, 3) == 0 || strncmp(type, "TOPIC", 5) == 0)
 				{
-					maki_in_topic(maki, m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'T'));
+					maki_in_topic(m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'T'));
 				}
 				else if (strncmp(type, IRC_RPL_ISUPPORT, 3) == 0)
 				{
-					maki_in_rpl_isupport(maki, m_conn, time.tv_sec, remaining);
+					maki_in_rpl_isupport(m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_YOUREOPER, 3) == 0)
 				{
-					maki_dbus_emit_oper(maki->bus, time.tv_sec, m_conn->server);
+					maki_dbus_emit_oper(time.tv_sec, m_conn->server);
 				}
-				else if (maki->opt.debug)
+				else if (m->opt.debug)
 				{
 					g_print("WARN: Unhandled message type '%s'\n", type);
 				}
@@ -997,7 +997,7 @@ gpointer maki_in_runner (gpointer data)
 			g_strfreev(parts);
 		}
 
-		if (maki->opt.debug)
+		if (m->opt.debug)
 		{
 			g_print("IN: [%ld] %s %s\n", time.tv_sec, m_conn->server, message);
 		}

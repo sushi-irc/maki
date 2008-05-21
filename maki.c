@@ -34,67 +34,78 @@
 
 #include "maki.h"
 
+struct maki* maki (void)
+{
+	static struct maki* m = NULL;
+
+	if (G_UNLIKELY(m == NULL))
+	{
+		m = maki_new();
+	}
+
+	return m;
+}
+
 struct maki* maki_new (void)
 {
 	const gchar* home_dir;
 	gchar* config_path;
-	struct maki* maki;
+	struct maki* m;
 
-	maki = g_new(struct maki, 1);
+	m = g_new(struct maki, 1);
 
 	if ((home_dir = g_getenv("HOME")) == NULL)
 	{
 		home_dir = g_get_home_dir();
 	}
 
-	maki->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
-	maki->bus->maki = maki;
+	m->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
 
-	maki->connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_free);
+	m->connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_free);
 
-	maki->directories.sushi = g_build_filename(home_dir, ".sushi", NULL);
-	maki->directories.config = g_build_filename(maki->directories.sushi, "config", NULL);
-	maki->directories.logs = g_build_filename(maki->directories.sushi, "logs", NULL);
-	maki->directories.servers = g_build_filename(maki->directories.sushi, "servers", NULL);
+	m->directories.sushi = g_build_filename(home_dir, ".sushi", NULL);
+	m->directories.config = g_build_filename(m->directories.sushi, "config", NULL);
+	m->directories.logs = g_build_filename(m->directories.sushi, "logs", NULL);
+	m->directories.servers = g_build_filename(m->directories.sushi, "servers", NULL);
 
-	config_path = g_build_filename(maki->directories.config, "maki", NULL);
-	maki->config = maki_config_new(config_path);
+	config_path = g_build_filename(m->directories.config, "maki", NULL);
+	m->config = maki_config_new(config_path);
 	g_free(config_path);
 
-	maki->message_queue = g_async_queue_new();
+	m->message_queue = g_async_queue_new();
 
-	maki->opt.debug = FALSE;
+	m->opt.debug = FALSE;
 
-	maki->threads.terminate = FALSE;
-	maki->threads.messages = g_thread_create(maki_in_runner, maki, TRUE, NULL);
+	m->threads.terminate = FALSE;
+	m->threads.messages = g_thread_create(maki_in_runner, m, TRUE, NULL);
 
-	maki->loop = g_main_loop_new(NULL, FALSE);
+	m->loop = g_main_loop_new(NULL, FALSE);
 
-	return maki;
+	return m;
 }
 
-void maki_free (struct maki* maki)
+void maki_free (struct maki* m)
 {
-	maki->threads.terminate = TRUE;
-	g_thread_join(maki->threads.messages);
-	g_async_queue_unref(maki->message_queue);
+	m->threads.terminate = TRUE;
+	g_thread_join(m->threads.messages);
+	g_async_queue_unref(m->message_queue);
 
-	g_hash_table_destroy(maki->connections);
+	g_hash_table_destroy(m->connections);
 
-	g_free(maki->directories.config);
-	g_free(maki->directories.logs);
-	g_free(maki->directories.servers);
-	g_free(maki->directories.sushi);
+	g_free(m->directories.config);
+	g_free(m->directories.logs);
+	g_free(m->directories.servers);
+	g_free(m->directories.sushi);
 
-	dbus_g_connection_unref(maki->bus->bus);
-	g_object_unref(maki->bus);
+	dbus_g_connection_unref(m->bus->bus);
+	g_object_unref(m->bus);
 
-	maki_config_free(maki->config);
+	maki_config_free(m->config);
 
-	g_main_loop_quit(maki->loop);
-	g_main_loop_unref(maki->loop);
+	g_main_loop_quit(m->loop);
+	g_main_loop_unref(m->loop);
 
-	g_free(maki);
+	g_free(m);
 }
 
 int maki_daemonize (void)
@@ -140,7 +151,7 @@ int maki_daemonize (void)
 
 int main (int argc, char* argv[])
 {
-	struct maki* maki;
+	struct maki* m;
 
 	gboolean opt_daemon = FALSE;
 	gboolean opt_debug = FALSE;
@@ -173,20 +184,20 @@ int main (int argc, char* argv[])
 	dbus_g_thread_init();
 	g_type_init();
 
-	maki = maki_new();
-	maki->opt.debug = opt_debug;
+	m = maki();
+	m->opt.debug = opt_debug;
 
-	if (g_mkdir_with_parents(maki->directories.sushi, 0755) != 0
-	    || g_mkdir_with_parents(maki->directories.config, 0755) != 0
-	    || g_mkdir_with_parents(maki->directories.logs, 0755) != 0
-	    || g_mkdir_with_parents(maki->directories.servers, 0755) != 0)
+	if (g_mkdir_with_parents(m->directories.sushi, 0755) != 0
+	    || g_mkdir_with_parents(m->directories.config, 0755) != 0
+	    || g_mkdir_with_parents(m->directories.logs, 0755) != 0
+	    || g_mkdir_with_parents(m->directories.servers, 0755) != 0)
 	{
 		return 1;
 	}
 
-	maki_servers(maki);
+	maki_servers();
 
-	g_main_loop_run(maki->loop);
+	g_main_loop_run(m->loop);
 
 	/*
 	g_mkdir_with_parents(logs_dir, 0755);

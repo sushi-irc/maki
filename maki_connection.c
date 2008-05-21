@@ -29,13 +29,14 @@
 
 #include "maki.h"
 
-struct maki_connection* maki_connection_new (struct maki* maki, const gchar* server)
+struct maki_connection* maki_connection_new (const gchar* server)
 {
 	gchar* path;
 	GKeyFile* key_file;
 	struct maki_connection* m_conn = NULL;
+	struct maki* m = maki();
 
-	path = g_build_filename(maki->directories.servers, server, NULL);
+	path = g_build_filename(m->directories.servers, server, NULL);
 	key_file = g_key_file_new();
 
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -76,15 +77,14 @@ struct maki_connection* maki_connection_new (struct maki* maki, const gchar* ser
 		}
 
 		m_conn = g_new(struct maki_connection, 1);
-		m_conn->maki = maki;
 		m_conn->server = g_strdup(server);
 		m_conn->initial_nick = g_strdup(nick);
 		m_conn->name = g_strdup(name);
 		m_conn->autoconnect = autoconnect;
 		m_conn->connected = FALSE;
 		m_conn->reconnect = FALSE;
-		m_conn->retries = maki->config->reconnect.retries;
-		m_conn->connection = sashimi_new(address, port, maki->message_queue, m_conn);
+		m_conn->retries = m->config->reconnect.retries;
+		m_conn->connection = sashimi_new(address, port, m->message_queue, m_conn);
 		m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_free);
 		m_conn->users = maki_cache_new(maki_user_new, maki_user_free, m_conn);
 		m_conn->logs = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_log_free);
@@ -183,6 +183,7 @@ void maki_connection_free (gpointer data)
 gint maki_connection_connect (struct maki_connection* m_conn)
 {
 	gint ret;
+	struct maki* m = maki();
 
 	if ((ret = sashimi_connect(m_conn->connection)) == 0)
 	{
@@ -190,19 +191,19 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 		GTimeVal time;
 
 		m_conn->reconnect = TRUE;
-		m_conn->retries = m_conn->maki->config->reconnect.retries;
+		m_conn->retries = m->config->reconnect.retries;
 
 		maki_cache_remove(m_conn->users, m_conn->user->nick);
 		m_conn->user = maki_cache_insert(m_conn->users, m_conn->initial_nick);
 
-		maki_out_nick(m_conn->maki, m_conn, m_conn->initial_nick);
+		maki_out_nick(m_conn, m_conn->initial_nick);
 
 		buffer = g_strdup_printf("USER %s 0 * :%s", m_conn->initial_nick, m_conn->name);
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_connect(m_conn->maki->bus, time.tv_sec, m_conn->server);
+		maki_dbus_emit_connect(time.tv_sec, m_conn->server);
 	}
 
 	return ret;
