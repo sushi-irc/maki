@@ -36,6 +36,7 @@
 struct maki;
 
 #include "maki_cache.h"
+#include "maki_channel.h"
 #include "maki_config.h"
 #include "maki_connection.h"
 #include "maki_dbus.h"

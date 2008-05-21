@@ -287,6 +287,26 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 	return TRUE;
 }
 
+gboolean maki_dbus_channel_topic (makiDBus* self, gchar* server, gchar* channel, gchar** topic, GError** error)
+{
+	struct maki_connection* m_conn;
+
+	*topic = NULL;
+
+	if ((m_conn = g_hash_table_lookup(self->maki->connections, server)) != NULL)
+	{
+		struct maki_channel* m_chan;
+
+		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL
+		    && m_chan->topic != NULL)
+		{
+			*topic = g_strdup(m_chan->topic);
+		}
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 {
 	struct maki_connection* m_conn;

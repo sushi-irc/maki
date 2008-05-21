@@ -25,15 +25,6 @@
  * SUCH DAMAGE.
  */
 
-struct maki_channel
-{
-	gchar* name;
-	gboolean autojoin;
-	gboolean joined;
-	gchar* key;
-	GHashTable* users;
-};
-
 struct maki_user
 {
 	struct maki_connection* connection;
@@ -53,5 +44,3 @@ void maki_user_free (gpointer);
 struct maki_channel_user* maki_channel_user_new (struct maki_user*);
 void maki_channel_user_copy (struct maki_channel_user*, struct maki_channel_user*);
 void maki_channel_user_free (gpointer);
-struct maki_channel* maki_channel_new (const gchar*);
-void maki_channel_free (gpointer);

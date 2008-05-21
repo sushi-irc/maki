@@ -635,6 +635,14 @@ void maki_in_topic (struct maki* maki, struct maki_connection* m_conn, glong tim
 
 	if (tmp[0] != NULL && channel != NULL && topic != NULL)
 	{
+		struct maki_channel* m_chan;
+
+		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		{
+			g_free(m_chan->topic);
+			m_chan->topic = g_strdup(topic);
+		}
+
 		maki_dbus_emit_topic(maki->bus, time, m_conn->server, nick, channel, topic);
 	}
 
