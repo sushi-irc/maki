@@ -490,6 +490,31 @@ gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reas
 	return TRUE;
 }
 
+gboolean maki_dbus_list (makiDBus* self, gchar* server, gchar* channel, GError** error)
+{
+	struct maki_connection* m_conn;
+	struct maki* m = maki();
+
+	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	{
+		gchar* buffer;
+
+		if (channel[0])
+		{
+			buffer = g_strdup_printf("LIST %s", channel);
+		}
+		else
+		{
+			buffer = g_strdup("LIST");
+		}
+
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, guint64 lines, gchar*** log, GError** error)
 {
 	struct maki_connection* m_conn;
