@@ -30,6 +30,8 @@
 #define IRC_RPL_AWAY "301"
 #define IRC_RPL_UNAWAY "305"
 #define IRC_RPL_NOWAWAY "306"
+#define IRC_RPL_LIST "322"
+#define IRC_RPL_LISTEND "323"
 #define IRC_RPL_CHANNELMODEIS "324"
 #define IRC_RPL_TOPIC "332"
 #define IRC_RPL_INVITING "341"

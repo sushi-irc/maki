@@ -25,6 +25,7 @@
  * SUCH DAMAGE.
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -794,6 +795,31 @@ void maki_in_rpl_motd (struct maki_connection* m_conn, glong time, gchar* remain
 	g_strfreev(tmp);
 }
 
+void maki_in_rpl_list (struct maki_connection* m_conn, glong time, gchar* remaining, gboolean is_end)
+{
+	gchar** tmp;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	if (is_end)
+	{
+		maki_dbus_emit_list(time, m_conn->server, "", -1, "");
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 4);
+
+	if (g_strv_length(tmp) == 4)
+	{
+		maki_dbus_emit_list(time, m_conn->server, tmp[1], atol(tmp[2]), maki_remove_colon(tmp[3]));
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -982,6 +1008,10 @@ gpointer maki_in_runner (gpointer data)
 				else if (strncmp(type, IRC_RPL_ISUPPORT, 3) == 0)
 				{
 					maki_in_rpl_isupport(m_conn, time.tv_sec, remaining);
+				}
+				else if (strncmp(type, IRC_RPL_LIST, 3) == 0 || strncmp(type, IRC_RPL_LISTEND, 3) == 0)
+				{
+					maki_in_rpl_list(m_conn, time.tv_sec, remaining, (type[2] == '3'));
 				}
 				else if (strncmp(type, IRC_RPL_YOUREOPER, 3) == 0)
 				{
