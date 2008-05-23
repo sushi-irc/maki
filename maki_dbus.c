@@ -1055,8 +1055,6 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 		}
 	}
 
-	g_usleep(1000000);
-
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(time.tv_sec);
 
