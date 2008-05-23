@@ -983,7 +983,7 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 			maki_out_quit(m_conn, SUSHI_QUIT_MESSAGE);
 		}
 
-		g_timeout_add_seconds(1, maki_disconnect_timeout, m_conn);
+		maki_connection_disconnect(m_conn);
 	}
 
 	return TRUE;

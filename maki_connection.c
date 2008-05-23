@@ -221,15 +221,3 @@ gint maki_connection_disconnect (struct maki_connection* m_conn)
 
 	return ret;
 }
-
-/**
- * This function gets called by the quit method after a delay.
- */
-gboolean maki_disconnect_timeout (gpointer data)
-{
-	struct maki_connection* m_conn = data;
-
-	maki_connection_disconnect(m_conn);
-
-	return FALSE;
-}
