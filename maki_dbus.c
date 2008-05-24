@@ -705,8 +705,6 @@ gboolean maki_dbus_maki_server_remove (makiDBus* self, gchar* server, gchar* gro
 
 		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 		{
-			gchar* contents;
-
 			if (key[0])
 			{
 				g_key_file_remove_key(key_file, group, key, NULL);
@@ -716,9 +714,7 @@ gboolean maki_dbus_maki_server_remove (makiDBus* self, gchar* server, gchar* gro
 				g_key_file_remove_group(key_file, group, NULL);
 			}
 
-			contents = g_key_file_to_data(key_file, NULL, NULL);
-			g_file_set_contents(path, contents, -1, NULL);
-			g_free(contents);
+			maki_key_file_to_file(key_file, path);
 		}
 
 		g_key_file_free(key_file);
@@ -735,7 +731,6 @@ gboolean maki_dbus_maki_server_remove (makiDBus* self, gchar* server, gchar* gro
 
 gboolean maki_dbus_maki_server_set (makiDBus* self, gchar* server, gchar* group, gchar* key, gchar* value, GError** error)
 {
-	gchar* contents;
 	gchar* path;
 	GKeyFile* key_file;
 	struct maki* m = maki();
@@ -745,9 +740,7 @@ gboolean maki_dbus_maki_server_set (makiDBus* self, gchar* server, gchar* group,
 
 	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
 	g_key_file_set_string(key_file, group, key, value);
-	contents = g_key_file_to_data(key_file, NULL, NULL);
-	g_file_set_contents(path, contents, -1, NULL);
-	g_free(contents);
+	maki_key_file_to_file(key_file, path);
 
 	g_key_file_free(key_file);
 	g_free(path);

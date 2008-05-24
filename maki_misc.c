@@ -86,3 +86,21 @@ void maki_channel_user_free (gpointer data)
 
 	g_free(m_cuser);
 }
+
+gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
+{
+	gboolean ret = FALSE;
+	gchar* contents;
+
+	if ((contents = g_key_file_to_data(key_file, NULL, NULL)) != NULL)
+	{
+		if (g_file_set_contents(file, contents, -1, NULL))
+		{
+			ret = TRUE;
+		}
+
+		g_free(contents);
+	}
+
+	return ret;
+}
