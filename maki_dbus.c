@@ -1061,6 +1061,8 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 		{
 			maki_out_quit(m_conn, SUSHI_QUIT_MESSAGE);
 		}
+
+		maki_connection_disconnect(m_conn);
 	}
 
 	g_get_current_time(&time);
