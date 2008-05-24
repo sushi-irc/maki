@@ -1,0 +1,7 @@
+You will need the development libraries and headers of DBus, GLib and
+DBus-GLib.
+On Debian-based systems these are available in the following packages:
+
+* libdbus-1-dev
+* libglib2.0-dev (>= 2.16)
+* libdbus-glib-1-dev
