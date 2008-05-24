@@ -879,6 +879,11 @@ gpointer maki_in_runner (gpointer data)
 
 		g_get_current_time(&time);
 
+		if (m->opt.debug)
+		{
+			g_print("IN: [%ld] %s %s\n", time.tv_sec, m_conn->server, message);
+		}
+
 		if (message[0] == ':')
 		{
 			gchar** parts;
@@ -1025,11 +1030,6 @@ gpointer maki_in_runner (gpointer data)
 
 			g_strfreev(from);
 			g_strfreev(parts);
-		}
-
-		if (m->opt.debug)
-		{
-			g_print("IN: [%ld] %s %s\n", time.tv_sec, m_conn->server, message);
 		}
 
 		g_free(message);
