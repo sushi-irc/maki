@@ -378,6 +378,9 @@ gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
+		gchar* path;
+		GKeyFile* key_file;
+
 		if (m_conn->ignores != NULL)
 		{
 			guint length;
@@ -393,6 +396,18 @@ gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError
 			m_conn->ignores[0] = g_strdup(pattern);
 			m_conn->ignores[1] = NULL;
 		}
+
+		path = g_build_filename(m->directories.servers, m_conn->server, NULL);
+		key_file = g_key_file_new();
+
+		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+		{
+			g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)m_conn->ignores, g_strv_length(m_conn->ignores));
+			maki_key_file_to_file(key_file, path);
+		}
+
+		g_key_file_free(key_file);
+		g_free(path);
 	}
 
 	return TRUE;
@@ -1092,7 +1107,12 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 			gint i;
 			gint j;
 			guint length;
+			gchar* path;
 			gchar** tmp;
+			GKeyFile* key_file;
+
+			path = g_build_filename(m->directories.servers, m_conn->server, NULL);
+			key_file = g_key_file_new();
 
 			length = g_strv_length(m_conn->ignores);
 
@@ -1108,6 +1128,15 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 			{
 				g_strfreev(m_conn->ignores);
 				m_conn->ignores = NULL;
+
+				if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+				{
+					g_key_file_remove_key(key_file, "server", "ignores", NULL);
+					maki_key_file_to_file(key_file, path);
+				}
+
+				g_key_file_free(key_file);
+				g_free(path);
 
 				return TRUE;
 			}
@@ -1132,6 +1161,15 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 			g_free(m_conn->ignores[length]);
 			g_free(m_conn->ignores);
 			m_conn->ignores = tmp;
+
+			if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+			{
+				g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)m_conn->ignores, g_strv_length(m_conn->ignores));
+				maki_key_file_to_file(key_file, path);
+			}
+
+			g_key_file_free(key_file);
+			g_free(path);
 		}
 	}
 
