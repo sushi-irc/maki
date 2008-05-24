@@ -625,144 +625,6 @@ gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, guint64 li
 	return TRUE;
 }
 
-gboolean maki_dbus_maki_server_get (makiDBus* self, gchar* server, gchar* group, gchar* key, gchar** value, GError** error)
-{
-	gchar* path;
-	GKeyFile* key_file;
-	struct maki* m = maki();
-
-	*value = NULL;
-
-	path = g_build_filename(m->directories.servers, server, NULL);
-	key_file = g_key_file_new();
-
-	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
-	{
-		*value = g_key_file_get_string(key_file, group, key, NULL);
-	}
-
-	g_key_file_free(key_file);
-	g_free(path);
-
-	return TRUE;
-}
-
-gboolean maki_dbus_maki_server_list (makiDBus* self, gchar* server, gchar* group, gchar*** result, GError** error)
-{
-	gchar* path;
-	GDir* dir;
-	struct maki* m = maki();
-
-	*result = NULL;
-
-	if (server[0])
-	{
-		GKeyFile* key_file;
-
-		path = g_build_filename(m->directories.servers, server, NULL);
-		key_file = g_key_file_new();
-
-		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
-		{
-			if (group[0])
-			{
-				*result = g_key_file_get_keys(key_file, group, NULL, NULL);
-			}
-			else
-			{
-				*result = g_key_file_get_groups(key_file, NULL);
-
-			}
-		}
-
-		g_key_file_free(key_file);
-		g_free(path);
-	}
-	else
-	{
-		if ((dir = g_dir_open(m->directories.servers, 0, NULL)) != NULL)
-		{
-			guint i = 0;
-			const gchar* name;
-			gchar** tmp;
-
-			tmp = g_new(gchar*, 1);
-
-			while ((name = g_dir_read_name(dir)) != NULL)
-			{
-				tmp = g_renew(gchar*, tmp, i + 2);
-				tmp[i] = g_strdup(name);
-				++i;
-			}
-
-			tmp[i] = NULL;
-			*result = tmp;
-
-			g_dir_close(dir);
-		}
-	}
-
-	return TRUE;
-}
-
-gboolean maki_dbus_maki_server_remove (makiDBus* self, gchar* server, gchar* group, gchar* key, GError** error)
-{
-	gchar* path;
-	struct maki* m = maki();
-
-	path = g_build_filename(m->directories.servers, server, NULL);
-
-	if (group[0])
-	{
-		GKeyFile* key_file;
-
-		key_file = g_key_file_new();
-
-		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
-		{
-			if (key[0])
-			{
-				g_key_file_remove_key(key_file, group, key, NULL);
-			}
-			else
-			{
-				g_key_file_remove_group(key_file, group, NULL);
-			}
-
-			maki_key_file_to_file(key_file, path);
-		}
-
-		g_key_file_free(key_file);
-	}
-	else
-	{
-		unlink(path);
-	}
-
-	g_free(path);
-
-	return TRUE;
-}
-
-gboolean maki_dbus_maki_server_set (makiDBus* self, gchar* server, gchar* group, gchar* key, gchar* value, GError** error)
-{
-	gchar* path;
-	GKeyFile* key_file;
-	struct maki* m = maki();
-
-	path = g_build_filename(m->directories.servers, server, NULL);
-	key_file = g_key_file_new();
-
-	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
-	g_key_file_set_string(key_file, group, key, value);
-	maki_key_file_to_file(key_file, path);
-
-	g_key_file_free(key_file);
-	g_free(path);
-
-	return TRUE;
-}
-
 gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
 {
 	gchar* buffer;
@@ -1006,6 +868,144 @@ gboolean maki_dbus_raw (makiDBus* self, gchar* server, gchar* command, GError** 
 	{
 		sashimi_send(m_conn->connection, command);
 	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_server_get (makiDBus* self, gchar* server, gchar* group, gchar* key, gchar** value, GError** error)
+{
+	gchar* path;
+	GKeyFile* key_file;
+	struct maki* m = maki();
+
+	*value = NULL;
+
+	path = g_build_filename(m->directories.servers, server, NULL);
+	key_file = g_key_file_new();
+
+	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+	{
+		*value = g_key_file_get_string(key_file, group, key, NULL);
+	}
+
+	g_key_file_free(key_file);
+	g_free(path);
+
+	return TRUE;
+}
+
+gboolean maki_dbus_server_list (makiDBus* self, gchar* server, gchar* group, gchar*** result, GError** error)
+{
+	gchar* path;
+	GDir* dir;
+	struct maki* m = maki();
+
+	*result = NULL;
+
+	if (server[0])
+	{
+		GKeyFile* key_file;
+
+		path = g_build_filename(m->directories.servers, server, NULL);
+		key_file = g_key_file_new();
+
+		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+		{
+			if (group[0])
+			{
+				*result = g_key_file_get_keys(key_file, group, NULL, NULL);
+			}
+			else
+			{
+				*result = g_key_file_get_groups(key_file, NULL);
+
+			}
+		}
+
+		g_key_file_free(key_file);
+		g_free(path);
+	}
+	else
+	{
+		if ((dir = g_dir_open(m->directories.servers, 0, NULL)) != NULL)
+		{
+			guint i = 0;
+			const gchar* name;
+			gchar** tmp;
+
+			tmp = g_new(gchar*, 1);
+
+			while ((name = g_dir_read_name(dir)) != NULL)
+			{
+				tmp = g_renew(gchar*, tmp, i + 2);
+				tmp[i] = g_strdup(name);
+				++i;
+			}
+
+			tmp[i] = NULL;
+			*result = tmp;
+
+			g_dir_close(dir);
+		}
+	}
+
+	return TRUE;
+}
+
+gboolean maki_dbus_server_remove (makiDBus* self, gchar* server, gchar* group, gchar* key, GError** error)
+{
+	gchar* path;
+	struct maki* m = maki();
+
+	path = g_build_filename(m->directories.servers, server, NULL);
+
+	if (group[0])
+	{
+		GKeyFile* key_file;
+
+		key_file = g_key_file_new();
+
+		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+		{
+			if (key[0])
+			{
+				g_key_file_remove_key(key_file, group, key, NULL);
+			}
+			else
+			{
+				g_key_file_remove_group(key_file, group, NULL);
+			}
+
+			maki_key_file_to_file(key_file, path);
+		}
+
+		g_key_file_free(key_file);
+	}
+	else
+	{
+		unlink(path);
+	}
+
+	g_free(path);
+
+	return TRUE;
+}
+
+gboolean maki_dbus_server_set (makiDBus* self, gchar* server, gchar* group, gchar* key, gchar* value, GError** error)
+{
+	gchar* path;
+	GKeyFile* key_file;
+	struct maki* m = maki();
+
+	path = g_build_filename(m->directories.servers, server, NULL);
+	key_file = g_key_file_new();
+
+	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
+	g_key_file_set_string(key_file, group, key, value);
+	maki_key_file_to_file(key_file, path);
+
+	g_key_file_free(key_file);
+	g_free(path);
 
 	return TRUE;
 }

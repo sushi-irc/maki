@@ -85,32 +85,6 @@
 			<arg name="log" type="as" direction="out" />
 		</method>
 
-		<method name="maki_server_get">
-			<arg name="server" type="s" />
-			<arg name="group" type="s" />
-			<arg name="key" type="s" />
-			<arg name="value" type="s" direction="out" />
-		</method>
-
-		<method name="maki_server_list">
-			<arg name="server" type="s" />
-			<arg name="group" type="s" />
-			<arg name="result" type="as" direction="out" />
-		</method>
-
-		<method name="maki_server_remove">
-			<arg name="server" type="s" />
-			<arg name="group" type="s" />
-			<arg name="key" type="s" />
-		</method>
-
-		<method name="maki_server_set">
-			<arg name="server" type="s" />
-			<arg name="group" type="s" />
-			<arg name="key" type="s" />
-			<arg name="value" type="s" />
-		</method>
-
 		<method name="message">
 			<arg name="server" type="s" />
 			<arg name="target" type="s" />
@@ -169,6 +143,32 @@
 		<method name="raw">
 			<arg name="server" type="s" />
 			<arg name="command" type="s" />
+		</method>
+
+		<method name="server_get">
+			<arg name="server" type="s" />
+			<arg name="group" type="s" />
+			<arg name="key" type="s" />
+			<arg name="value" type="s" direction="out" />
+		</method>
+
+		<method name="server_list">
+			<arg name="server" type="s" />
+			<arg name="group" type="s" />
+			<arg name="result" type="as" direction="out" />
+		</method>
+
+		<method name="server_remove">
+			<arg name="server" type="s" />
+			<arg name="group" type="s" />
+			<arg name="key" type="s" />
+		</method>
+
+		<method name="server_set">
+			<arg name="server" type="s" />
+			<arg name="group" type="s" />
+			<arg name="key" type="s" />
+			<arg name="value" type="s" />
 		</method>
 
 		<method name="servers">
