@@ -44,11 +44,7 @@ gboolean maki_reconnect (gpointer data)
 	}
 	else if (m_conn->retries == 0)
 	{
-		/*
-		 * Finally give up and free the connection.
-		 */
-		g_hash_table_remove(m->connections, m_conn->server);
-
+		/* Finally give up. */
 		return FALSE;
 	}
 
