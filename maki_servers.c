@@ -34,7 +34,6 @@ gboolean maki_reconnect (gpointer data)
 {
 	GTimeVal time;
 	struct maki_connection* m_conn = data;
-	struct maki* m = maki();
 
 	maki_connection_disconnect(m_conn);
 
