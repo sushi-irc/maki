@@ -11,8 +11,8 @@ OBJECTS = maki.o sashimi.o $(COMPONENTS:%=maki_%.o)
 all: maki
 
 install: all
-	$(INSTALL) -d -m 755 '$(PREFIX)/bin'
-	$(INSTALL) -m 755 maki '$(PREFIX)/bin'
+	$(INSTALL) -d -m 755 '$(bindir)'
+	$(INSTALL) -m 755 maki '$(bindir)'
 
 clean:
 	$(RM) maki

@@ -11,6 +11,6 @@ On Debian-based systems these are available in the following packages:
 
 Just type "make", followed by "make install". This will install all the
 necessary files in the /usr directory. Other directories can be specified by
-calling make with the PREFIX variable, for example, "make PREFIX=/opt install".
+calling make with the prefix variable, for example, "make prefix=/opt install".
 
 # vi:textwidth=80:expandtab
