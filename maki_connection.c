@@ -197,7 +197,7 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 
 		if (m_conn->reconnect != 0)
 		{
-			g_source_remove(m_conn->remove);
+			g_source_remove(m_conn->reconnect);
 			m_conn->reconnect = 0;
 		}
 
