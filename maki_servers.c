@@ -36,10 +36,8 @@ gboolean maki_reconnect (gpointer data)
 	struct maki_connection* m_conn = data;
 	struct maki* m = maki();
 
-	/*
-	 * m_conn->reconnect is set to FALSE by the quit method.
-	 */
-	if (!m_conn->reconnect)
+	/* m_conn->reconnect is set to 0 by maki_connection_connect(). */
+	if (m_conn->reconnect == 0)
 	{
 		return FALSE;
 	}
@@ -80,12 +78,12 @@ void maki_reconnect_callback (gpointer data)
 	struct maki_connection* m_conn = data;
 	struct maki* m = maki();
 
-	if (!m_conn->reconnect)
+	if (m_conn->reconnect != 0)
 	{
 		return;
 	}
 
-	g_timeout_add_seconds(m->config->reconnect.timeout, maki_reconnect, m_conn);
+	m_conn->reconnect = g_timeout_add_seconds(m->config->reconnect.timeout, maki_reconnect, m_conn);
 }
 
 void maki_servers (void)

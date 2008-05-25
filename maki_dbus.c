@@ -842,7 +842,7 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		m_conn->reconnect = FALSE;
+		sashimi_reconnect(m_conn->connection, NULL, NULL);
 
 		if (message[0])
 		{
@@ -854,6 +854,7 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 		}
 
 		maki_connection_disconnect(m_conn);
+		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 	}
 
 	return TRUE;
@@ -1051,7 +1052,7 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 	{
 		struct maki_connection* m_conn = value;
 
-		m_conn->reconnect = FALSE;
+		sashimi_reconnect(m_conn->connection, NULL, NULL);
 
 		if (message[0])
 		{
@@ -1063,6 +1064,7 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 		}
 
 		maki_connection_disconnect(m_conn);
+		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 	}
 
 	g_get_current_time(&time);

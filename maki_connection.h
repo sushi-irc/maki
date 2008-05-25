@@ -32,7 +32,7 @@ struct maki_connection
 	gchar* name;
 	gboolean autoconnect;
 	gboolean connected;
-	gboolean reconnect;
+	guint reconnect;
 	gint retries;
 	struct sashimi_connection* connection;
 	GHashTable* channels;
