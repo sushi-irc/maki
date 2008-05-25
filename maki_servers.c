@@ -36,12 +36,6 @@ gboolean maki_reconnect (gpointer data)
 	struct maki_connection* m_conn = data;
 	struct maki* m = maki();
 
-	/* m_conn->reconnect is set to 0 by maki_connection_connect(). */
-	if (m_conn->reconnect == 0)
-	{
-		return FALSE;
-	}
-
 	maki_connection_disconnect(m_conn);
 
 	if (m_conn->retries > 0)

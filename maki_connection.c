@@ -156,6 +156,11 @@ void maki_connection_free (gpointer data)
 {
 	struct maki_connection* m_conn = data;
 
+	if (m_conn->reconnect != 0)
+	{
+		g_source_remove(m_conn->reconnect);
+	}
+
 	maki_cache_remove(m_conn->users, m_conn->user->nick);
 
 	g_free(m_conn->support.prefix.prefixes);
@@ -190,7 +195,12 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 		gchar* buffer;
 		GTimeVal time;
 
-		m_conn->reconnect = 0;
+		if (m_conn->reconnect != 0)
+		{
+			g_source_remove(m_conn->remove);
+			m_conn->reconnect = 0;
+		}
+
 		m_conn->retries = m->config->reconnect.retries;
 
 		maki_cache_remove(m_conn->users, m_conn->user->nick);
