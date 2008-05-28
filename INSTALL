@@ -10,7 +10,7 @@ On Debian-based systems these are available in the following packages:
                                   INSTALLATION
 
 Just type "make", followed by "make install". This will install all the
-necessary files in the /usr directory. Other directories can be specified by
-calling make with the prefix variable, for example, "make prefix=/opt install".
+necessary files in your home directory. Other directories can be specified by
+calling make with the prefix variable, for example, "make prefix=/usr install".
 
 # vi:textwidth=80:expandtab
