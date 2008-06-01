@@ -26,6 +26,7 @@
  */
 
 #include <fcntl.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -149,6 +150,34 @@ int maki_daemonize (void)
 	return 0;
 }
 
+static void maki_signal (int signo)
+{
+	GTimeVal time;
+	GHashTableIter iter;
+	gpointer key;
+	gpointer value;
+	struct maki* m = maki();
+
+	g_hash_table_iter_init(&iter, m->connections);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		struct maki_connection* m_conn = value;
+
+		sashimi_reconnect(m_conn->connection, NULL, NULL);
+		maki_out_quit(m_conn, SUSHI_QUIT_MESSAGE);
+		maki_connection_disconnect(m_conn);
+	}
+
+	g_get_current_time(&time);
+	maki_dbus_emit_shutdown(time.tv_sec);
+
+	maki_free(m);
+
+	signal(signo, SIG_DFL);
+	raise(signo);
+}
+
 int main (int argc, char* argv[])
 {
 	struct maki* m;
@@ -186,6 +215,11 @@ int main (int argc, char* argv[])
 
 	m = maki();
 	m->opt.debug = opt_debug;
+
+	signal(SIGINT, maki_signal);
+	signal(SIGHUP, maki_signal);
+	signal(SIGTERM, maki_signal);
+	signal(SIGQUIT, maki_signal);
 
 	if (g_mkdir_with_parents(m->directories.sushi, 0755) != 0
 	    || g_mkdir_with_parents(m->directories.config, 0755) != 0
