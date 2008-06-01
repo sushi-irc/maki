@@ -109,7 +109,7 @@ void maki_free (struct maki* m)
 	g_free(m);
 }
 
-int maki_daemonize (void)
+static int maki_daemonize (void)
 {
 	int fd;
 	pid_t pid;

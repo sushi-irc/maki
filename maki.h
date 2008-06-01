@@ -85,4 +85,3 @@ struct maki
 struct maki* maki (void);
 struct maki* maki_new (void);
 void maki_free (struct maki*);
-int maki_daemonize (void);
