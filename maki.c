@@ -167,9 +167,7 @@ static void maki_signal (int signo)
 	{
 		struct maki_connection* m_conn = value;
 
-		sashimi_reconnect(m_conn->connection, NULL, NULL);
-		maki_out_quit(m_conn, SUSHI_QUIT_MESSAGE);
-		maki_connection_disconnect(m_conn);
+		maki_connection_disconnect(m_conn, SUSHI_QUIT_MESSAGE);
 	}
 
 	g_get_current_time(&time);

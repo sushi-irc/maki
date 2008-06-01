@@ -35,7 +35,7 @@ gboolean maki_reconnect (gpointer data)
 	GTimeVal time;
 	struct maki_connection* m_conn = data;
 
-	maki_connection_disconnect(m_conn);
+	maki_connection_disconnect(m_conn, NULL);
 
 	if (m_conn->retries > 0)
 	{

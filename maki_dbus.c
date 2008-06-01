@@ -328,7 +328,7 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 		/*
 		 * Disconnect, because strange things happen if we call maki_connection_connect() while still connected.
 		 */
-		maki_connection_disconnect(m_conn);
+		maki_connection_disconnect(m_conn, NULL);
 
 		if (maki_connection_connect(m_conn) != 0)
 		{
@@ -842,19 +842,14 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		sashimi_reconnect(m_conn->connection, NULL, NULL);
-
 		if (message[0])
 		{
-			maki_out_quit(m_conn, message);
+			maki_connection_disconnect(m_conn, message);
 		}
 		else
 		{
-			maki_out_quit(m_conn, SUSHI_QUIT_MESSAGE);
+			maki_connection_disconnect(m_conn, SUSHI_QUIT_MESSAGE);
 		}
-
-		maki_connection_disconnect(m_conn);
-		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 	}
 
 	return TRUE;
@@ -1052,19 +1047,14 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 	{
 		struct maki_connection* m_conn = value;
 
-		sashimi_reconnect(m_conn->connection, NULL, NULL);
-
 		if (message[0])
 		{
-			maki_out_quit(m_conn, message);
+			maki_connection_disconnect(m_conn, message);
 		}
 		else
 		{
-			maki_out_quit(m_conn, SUSHI_QUIT_MESSAGE);
+			maki_connection_disconnect(m_conn, SUSHI_QUIT_MESSAGE);
 		}
-
-		maki_connection_disconnect(m_conn);
-		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 	}
 
 	g_get_current_time(&time);

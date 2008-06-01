@@ -99,7 +99,6 @@ struct maki_connection* maki_connection_new (const gchar* server)
 		m_conn->support.prefix.modes = g_strdup("ov");
 		m_conn->support.prefix.prefixes = g_strdup("@+");
 
-		sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 		sashimi_timeout(m_conn->connection, 60);
 
 		if (m_conn->autoconnect)
@@ -173,7 +172,7 @@ void maki_connection_free (gpointer data)
 	g_hash_table_destroy(m_conn->logs);
 	g_hash_table_destroy(m_conn->channels);
 	maki_cache_free(m_conn->users);
-	maki_connection_disconnect(m_conn);
+	maki_connection_disconnect(m_conn, NULL);
 	sashimi_free(m_conn->connection);
 	g_free(m_conn->name);
 	g_free(m_conn->initial_nick);
@@ -189,6 +188,8 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 {
 	gint ret;
 	struct maki* m = maki();
+
+	sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
 
 	if ((ret = sashimi_connect(m_conn->connection)) == 0)
 	{
@@ -222,12 +223,19 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 /**
  * This function is a wrapper around sashimi_disconnect().
  */
-gint maki_connection_disconnect (struct maki_connection* m_conn)
+gint maki_connection_disconnect (struct maki_connection* m_conn, const gchar* message)
 {
 	gint ret;
 	GHashTableIter iter;
 	gpointer key;
 	gpointer value;
+
+	sashimi_reconnect(m_conn->connection, NULL, NULL);
+
+	if (message != NULL)
+	{
+		maki_out_quit(m_conn, message);
+	}
 
 	m_conn->connected = FALSE;
 	ret = sashimi_disconnect(m_conn->connection);
