@@ -53,7 +53,10 @@ struct maki* maki_new (void)
 	gchar* config_path;
 	struct maki* m;
 
-	m = g_new(struct maki, 1);
+	if ((m = g_new(struct maki, 1)) == NULL)
+	{
+		return NULL;
+	}
 
 	if ((home_dir = g_getenv("HOME")) == NULL)
 	{
@@ -197,12 +200,10 @@ int main (int argc, char* argv[])
 	g_option_context_parse(context, &argc, &argv, NULL);
 	g_option_context_free(context);
 
-	if (opt_daemon)
+	if (opt_daemon
+	    && maki_daemonize() != 0)
 	{
-		if (maki_daemonize() != 0)
-		{
-			return 1;
-		}
+		return 1;
 	}
 
 	if (!g_thread_supported())
@@ -213,7 +214,11 @@ int main (int argc, char* argv[])
 	dbus_g_thread_init();
 	g_type_init();
 
-	m = maki();
+	if ((m = maki()) == NULL)
+	{
+		return 1;
+	}
+
 	m->opt.debug = opt_debug;
 
 	signal(SIGINT, maki_signal);
@@ -232,10 +237,6 @@ int main (int argc, char* argv[])
 	maki_servers();
 
 	g_main_loop_run(m->loop);
-
-	/*
-	g_mkdir_with_parents(logs_dir, 0755);
-	*/
 
 	return 0;
 }
