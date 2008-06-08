@@ -282,6 +282,12 @@ void maki_in_join (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 
 			g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
 		}
+
+		maki_log(m_conn, channel, "» You join.");
+	}
+	else
+	{
+		maki_log(m_conn, channel, "» %s joins.", nick);
 	}
 
 	maki_dbus_emit_join(time, m_conn->server, nick, channel);
@@ -306,17 +312,31 @@ void maki_in_part (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 	if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
 	{
 		g_hash_table_remove(m_chan->users, nick);
+	}
 
-		if (strcmp(nick, m_conn->user->nick) == 0)
+	if (strcmp(nick, m_conn->user->nick) == 0)
+	{
+		if (m_chan != NULL)
 		{
+			m_chan->joined = FALSE;
+
 			if (!m_chan->autojoin && m_chan->key == NULL)
 			{
 				g_hash_table_remove(m_conn->channels, channel);
 			}
-			else
-			{
-				m_chan->joined = FALSE;
-			}
+		}
+
+		maki_log(m_conn, channel, "« You part.");
+	}
+	else
+	{
+		if (message)
+		{
+			maki_log(m_conn, channel, "« %s parts (%s).", nick, message);
+		}
+		else
+		{
+			maki_log(m_conn, channel, "« %s parts.", nick);
 		}
 	}
 
@@ -345,6 +365,15 @@ void maki_in_quit (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 		struct maki_channel* m_chan = value;
 
 		g_hash_table_remove(m_chan->users, nick);
+
+		if (remaining)
+		{
+			maki_log(m_conn, m_chan->name, "« %s quits (%s).", nick, maki_remove_colon(remaining));
+		}
+		else
+		{
+			maki_log(m_conn, m_chan->name, "« %s quits.", nick);
+		}
 	}
 
 	if (remaining)
