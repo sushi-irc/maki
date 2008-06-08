@@ -164,6 +164,11 @@
 			<arg name="key" type="s" />
 		</method>
 
+		<method name="server_rename">
+			<arg name="old" type="s" />
+			<arg name="new" type="s" />
+		</method>
+
 		<method name="server_set">
 			<arg name="server" type="s" />
 			<arg name="group" type="s" />

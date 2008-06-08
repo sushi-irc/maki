@@ -25,6 +25,8 @@
  * SUCH DAMAGE.
  */
 
+#include <glib/gstdio.h>
+
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -979,10 +981,27 @@ gboolean maki_dbus_server_remove (makiDBus* self, gchar* server, gchar* group, g
 	}
 	else
 	{
-		unlink(path);
+		g_unlink(path);
 	}
 
 	g_free(path);
+
+	return TRUE;
+}
+
+gboolean maki_dbus_server_rename (makiDBus* self, gchar* old, gchar* new, GError** error)
+{
+	gchar* old_path;
+	gchar* new_path;
+	struct maki* m = maki();
+
+	old_path = g_build_filename(m->directories.servers, old, NULL);
+	new_path = g_build_filename(m->directories.servers, new, NULL);
+
+	g_rename(old_path, new_path);
+
+	g_free(old_path);
+	g_free(new_path);
 
 	return TRUE;
 }
