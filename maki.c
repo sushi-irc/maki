@@ -67,10 +67,9 @@ struct maki* maki_new (void)
 
 	m->connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_connection_free);
 
-	m->directories.sushi = g_build_filename(home_dir, ".sushi", NULL);
-	m->directories.config = g_build_filename(m->directories.sushi, "config", NULL);
-	m->directories.logs = g_build_filename(m->directories.sushi, "logs", NULL);
-	m->directories.servers = g_build_filename(m->directories.sushi, "servers", NULL);
+	m->directories.config = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
+	m->directories.logs = g_build_filename(g_get_user_data_dir(), "sushi", "logs", NULL);
+	m->directories.servers = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
 
 	config_path = g_build_filename(m->directories.config, "maki", NULL);
 	m->config = maki_config_new(config_path);
@@ -99,7 +98,6 @@ void maki_free (struct maki* m)
 	g_free(m->directories.config);
 	g_free(m->directories.logs);
 	g_free(m->directories.servers);
-	g_free(m->directories.sushi);
 
 	dbus_g_connection_unref(m->bus->bus);
 	g_object_unref(m->bus);
@@ -224,10 +222,9 @@ int main (int argc, char* argv[])
 	signal(SIGTERM, maki_signal);
 	signal(SIGQUIT, maki_signal);
 
-	if (g_mkdir_with_parents(m->directories.sushi, 0755) != 0
-	    || g_mkdir_with_parents(m->directories.config, 0755) != 0
-	    || g_mkdir_with_parents(m->directories.logs, 0755) != 0
-	    || g_mkdir_with_parents(m->directories.servers, 0755) != 0)
+	if (g_mkdir_with_parents(m->directories.config, 0700) != 0
+	    || g_mkdir_with_parents(m->directories.logs, 0700) != 0
+	    || g_mkdir_with_parents(m->directories.servers, 0700) != 0)
 	{
 		return 1;
 	}
