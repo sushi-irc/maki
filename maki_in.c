@@ -395,6 +395,7 @@ void maki_in_kick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 	gchar* channel;
 	gchar* who;
 	gchar* message;
+	struct maki_channel* m_chan;
 
 	if (!remaining)
 	{
@@ -402,59 +403,62 @@ void maki_in_kick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 	}
 
 	tmp = g_strsplit(remaining, " ", 3);
+
+	if (g_strv_length(tmp) < 2)
+	{
+		g_strfreev(tmp);
+		return;
+	}
+
 	channel = tmp[0];
 	who = tmp[1];
 	message = maki_remove_colon(tmp[2]);
 
-	if (channel != NULL && who != NULL)
+	if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
 	{
-		struct maki_channel* m_chan;
+		g_hash_table_remove(m_chan->users, who);
+	}
 
-		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+	if (strcmp(who, m_conn->user->nick) == 0)
+	{
+		if (m_chan != NULL)
 		{
-			g_hash_table_remove(m_chan->users, who);
+			m_chan->joined = FALSE;
 
-			if (strcmp(who, m_conn->user->nick) == 0)
+			if (!m_chan->autojoin && m_chan->key == NULL)
 			{
-				if (!m_chan->autojoin && m_chan->key == NULL)
-				{
-					g_hash_table_remove(m_conn->channels, channel);
-				}
-				else
-				{
-					m_chan->joined = FALSE;
-				}
-
-				if (message != NULL)
-				{
-					maki_log(m_conn, m_chan->name, "« %s kicks you (%s).", nick, message);
-				}
-				else
-				{
-					maki_log(m_conn, m_chan->name, "« %s kicks you.", nick);
-				}
-			}
-			else
-			{
-				if (message != NULL)
-				{
-					maki_log(m_conn, m_chan->name, "« %s kicks %s (%s).", nick, who, message);
-				}
-				else
-				{
-					maki_log(m_conn, m_chan->name, "« %s kicks %s.", nick, who);
-				}
+				g_hash_table_remove(m_conn->channels, channel);
 			}
 		}
 
 		if (message != NULL)
 		{
-			maki_dbus_emit_kick(time, m_conn->server, nick, channel, who, message);
+			maki_log(m_conn, channel, "« %s kicks you (%s).", nick, message);
 		}
 		else
 		{
-			maki_dbus_emit_kick(time, m_conn->server, nick, channel, who, "");
+			maki_log(m_conn, channel, "« %s kicks you.", nick);
 		}
+	}
+	else
+	{
+		if (message != NULL)
+		{
+			maki_log(m_conn, channel, "« %s kicks %s (%s).", nick, who, message);
+		}
+		else
+		{
+			maki_log(m_conn, channel, "« %s kicks %s.", nick, who);
+		}
+	}
+
+	if (message != NULL)
+	{
+		maki_dbus_emit_kick(time, m_conn->server, nick, channel, who, message);
+	}
+	else
+	{
+		maki_dbus_emit_kick(time, m_conn->server, nick, channel, who, "");
 	}
 
 	g_strfreev(tmp);
