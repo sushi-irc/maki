@@ -156,11 +156,27 @@ void maki_out_quit (struct maki_connection* m_conn, const gchar* message)
 	gchar* buffer;
 	GTimeVal time;
 
+	GHashTableIter iter;
+	gpointer key;
+	gpointer value;
+
 	g_get_current_time(&time);
 
 	buffer = g_strdup_printf("QUIT :%s", message);
 	sashimi_send(m_conn->connection, buffer);
 	g_free(buffer);
+
+	g_hash_table_iter_init(&iter, m_conn->channels);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		struct maki_channel* m_chan = value;
+
+		if (m_chan->joined)
+		{
+			maki_log(m_conn, m_chan->name, "« You quit (%s).", message);
+		}
+	}
 
 	maki_dbus_emit_quit(time.tv_sec, m_conn->server, m_conn->user->nick, message);
 }
