@@ -96,8 +96,8 @@ void maki_out_privmsg (struct maki_connection* m_conn, const gchar* target, cons
 
 	g_free(buffer);
 
-	maki_dbus_emit_own_message(time.tv_sec, m_conn->server, target, message);
 	maki_log(m_conn, target, "<%s> %s", m_conn->user->nick, message);
+	maki_dbus_emit_own_message(time.tv_sec, m_conn->server, target, message);
 }
 
 void maki_out_privmsg_split (struct maki_connection* m_conn, const gchar* target, gchar* message, gboolean queue)
