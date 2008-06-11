@@ -304,6 +304,13 @@ void maki_in_part (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 	}
 
 	tmp = g_strsplit(remaining, " ", 2);
+
+	if (g_strv_length(tmp) < 1)
+	{
+		g_strfreev(tmp);
+		return;
+	}
+
 	channel = tmp[0];
 	message = maki_remove_colon(tmp[1]);
 
@@ -324,11 +331,18 @@ void maki_in_part (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 			}
 		}
 
-		maki_log(m_conn, channel, "« You part.");
+		if (message != NULL)
+		{
+			maki_log(m_conn, channel, "« You part (%s).", message);
+		}
+		else
+		{
+			maki_log(m_conn, channel, "« You part.");
+		}
 	}
 	else
 	{
-		if (message)
+		if (message != NULL)
 		{
 			maki_log(m_conn, channel, "« %s parts (%s).", nick, message);
 		}
@@ -338,7 +352,7 @@ void maki_in_part (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 		}
 	}
 
-	if (message)
+	if (message != NULL)
 	{
 		maki_dbus_emit_part(time, m_conn->server, nick, channel, message);
 	}
