@@ -424,6 +424,26 @@ void maki_in_kick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 				{
 					m_chan->joined = FALSE;
 				}
+
+				if (message != NULL)
+				{
+					maki_log(m_conn, m_chan->name, "« %s kicks you (%s).", nick, message);
+				}
+				else
+				{
+					maki_log(m_conn, m_chan->name, "« %s kicks you.", nick);
+				}
+			}
+			else
+			{
+				if (message != NULL)
+				{
+					maki_log(m_conn, m_chan->name, "« %s kicks %s (%s).", nick, who, message);
+				}
+				else
+				{
+					maki_log(m_conn, m_chan->name, "« %s kicks %s.", nick, who);
+				}
 			}
 		}
 
