@@ -170,11 +170,11 @@ void maki_in_privmsg (struct maki_connection* m_conn, glong time, gchar* nick, g
 
 	if (target != NULL && message != NULL)
 	{
-		if (message[0] == '\1')
+		if (message[0] == '\001')
 		{
 			++message;
 
-			if (message[0] && message[strlen(message) - 1] == '\1')
+			if (message[0] && message[strlen(message) - 1] == '\001')
 			{
 				message[strlen(message) - 1] = '\0';
 			}

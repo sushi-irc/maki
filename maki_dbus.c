@@ -224,7 +224,7 @@ gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar*
 
 		g_strdelimit(message, "\r\n", ' ');
 
-		buffer = g_strdup_printf("PRIVMSG %s :\1ACTION %s\1", channel, message);
+		buffer = g_strdup_printf("PRIVMSG %s :\001ACTION %s\001", channel, message);
 		sashimi_send(m_conn->connection, buffer);
 		g_free(buffer);
 
