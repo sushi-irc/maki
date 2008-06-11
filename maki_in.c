@@ -128,12 +128,10 @@ gboolean maki_join (gpointer data)
 	{
 		struct maki_channel* m_chan = value;
 
-		if (!m_chan->autojoin && !m_chan->joined)
+		if (m_chan->autojoin || m_chan->joined)
 		{
-			continue;
+			maki_out_join(m_conn, m_chan->name, m_chan->key);
 		}
-
-		maki_out_join(m_conn, m_chan->name, m_chan->key);
 	}
 
 	return FALSE;
