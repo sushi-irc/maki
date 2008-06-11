@@ -362,6 +362,11 @@ void maki_in_quit (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 	{
 		struct maki_channel* m_chan = value;
 
+		if (!m_chan->joined)
+		{
+			continue;
+		}
+
 		g_hash_table_remove(m_chan->users, nick);
 
 		if (remaining)
@@ -455,6 +460,11 @@ void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 	{
 		struct maki_channel* m_chan = value;
 		struct maki_channel_user* m_cuser;
+
+		if (!m_chan->joined)
+		{
+			continue;
+		}
 
 		if ((m_cuser = g_hash_table_lookup(m_chan->users, nick)) != NULL)
 		{
