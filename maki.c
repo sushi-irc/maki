@@ -182,7 +182,7 @@ int main (int argc, char* argv[])
 	struct maki* m;
 
 	gboolean opt_daemon = FALSE;
-	gboolean opt_debug = FALSE;
+	gboolean opt_debug = TRUE;
 	GOptionContext* context;
 	GOptionEntry entries[] =
 	{
