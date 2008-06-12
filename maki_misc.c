@@ -134,6 +134,7 @@ void maki_debug (const gchar* format, ...)
 		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644)) == -1)
 		{
 			g_free(filename);
+			g_free(path);
 			return;
 		}
 
