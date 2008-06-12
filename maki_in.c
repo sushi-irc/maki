@@ -1094,8 +1094,10 @@ gpointer maki_in_runner (gpointer data)
 				{
 					maki_dbus_emit_oper(time.tv_sec, m_conn->server);
 				}
-
-				maki_debug("WARN: Unhandled message type '%s'\n", type);
+				else
+				{
+					maki_debug("WARN: Unhandled message type '%s'\n", type);
+				}
 			}
 
 			g_strfreev(from);
