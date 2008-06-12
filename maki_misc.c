@@ -27,6 +27,12 @@
 
 #include "maki.h"
 
+#include <fcntl.h>
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 gpointer maki_user_new (gpointer key, gpointer data)
 {
 	gchar* nick = key;
@@ -103,4 +109,43 @@ gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
 	}
 
 	return ret;
+}
+
+void maki_debug (const gchar* format, ...)
+{
+	static int fd = -1;
+	gchar* message;
+	va_list args;
+	struct maki* m = maki();
+
+	if (!m->opt.debug)
+	{
+		return;
+	}
+
+	if (G_UNLIKELY(fd == -1))
+	{
+		gchar* filename;
+		gchar* path;
+
+		filename = g_strconcat("maki", ".txt", NULL);
+		path = g_build_filename(m->directories.logs, filename, NULL);
+
+		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644)) == -1)
+		{
+			g_free(filename);
+			return;
+		}
+
+		g_free(filename);
+		g_free(path);
+	}
+
+	va_start(args, format);
+	message = g_strdup_vprintf(format, args);
+	va_end(args);
+
+	write(fd, message, strlen(message));
+
+	g_free(message);
 }

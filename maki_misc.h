@@ -45,3 +45,4 @@ struct maki_channel_user* maki_channel_user_new (struct maki_user*);
 void maki_channel_user_copy (struct maki_channel_user*, struct maki_channel_user*);
 void maki_channel_user_free (gpointer);
 gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
+void maki_debug (const gchar*, ...);
