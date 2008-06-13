@@ -25,6 +25,8 @@
  * SUCH DAMAGE.
  */
 
+#define G_DISABLE_DEPRECATED
+
 #include <glib.h>
 
 #include "sashimi.h"
