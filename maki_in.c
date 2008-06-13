@@ -381,16 +381,19 @@ void maki_in_quit (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 			continue;
 		}
 
-		g_hash_table_remove(m_chan->users, nick);
+		if (g_hash_table_lookup(m_chan->users, nick) != NULL)
+		{
+			if (remaining)
+			{
+				maki_log(m_conn, m_chan->name, "« %s quits (%s).", nick, maki_remove_colon(remaining));
+			}
+			else
+			{
+				maki_log(m_conn, m_chan->name, "« %s quits.", nick);
+			}
+		}
 
-		if (remaining)
-		{
-			maki_log(m_conn, m_chan->name, "« %s quits (%s).", nick, maki_remove_colon(remaining));
-		}
-		else
-		{
-			maki_log(m_conn, m_chan->name, "« %s quits.", nick);
-		}
+		g_hash_table_remove(m_chan->users, nick);
 	}
 
 	if (remaining)
