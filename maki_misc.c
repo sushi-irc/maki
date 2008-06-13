@@ -150,3 +150,20 @@ void maki_debug (const gchar* format, ...)
 
 	g_free(message);
 }
+
+gboolean maki_str_equal (gconstpointer v1, gconstpointer v2)
+{
+	return (g_ascii_strcasecmp(v1, v2) == 0);
+}
+
+guint maki_str_hash (gconstpointer key)
+{
+	guint ret;
+	gchar* tmp;
+
+	tmp = g_ascii_strdown(key, -1);
+	ret = g_str_hash(tmp);
+	g_free(tmp);
+
+	return ret;
+}

@@ -25,8 +25,7 @@
  * SUCH DAMAGE.
  */
 
-#include <glib.h>
-#include "maki_cache.h"
+#include "maki.h"
 
 struct maki_cache_item
 {
@@ -63,7 +62,7 @@ struct maki_cache* maki_cache_new (gpointer (*value_new) (gpointer, gpointer), v
 	m_cache->value_new = value_new;
 	m_cache->value_free = value_free;
 	m_cache->value_data = value_data;
-	m_cache->hash_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, NULL);
+	m_cache->hash_table = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, NULL);
 
 	return m_cache;
 }

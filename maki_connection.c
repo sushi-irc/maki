@@ -85,9 +85,9 @@ struct maki_connection* maki_connection_new (const gchar* server)
 		m_conn->reconnect = 0;
 		m_conn->retries = m->config->reconnect.retries;
 		m_conn->connection = sashimi_new(address, port, m->message_queue, m_conn);
-		m_conn->channels = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_channel_free);
+		m_conn->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_free);
 		m_conn->users = maki_cache_new(maki_user_new, maki_user_free, m_conn);
-		m_conn->logs = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_log_free);
+		m_conn->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_log_free);
 
 		m_conn->user = maki_cache_insert(m_conn->users, nick);
 
