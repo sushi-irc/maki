@@ -2,8 +2,8 @@ include ../Makefile.common
 
 CFLAGS := $(subst -pedantic,,$(CFLAGS))
 
-CFLAGS  += $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags gthread-2.0)
-LDFLAGS += $(shell pkg-config --libs dbus-glib-1) $(shell pkg-config --libs glib-2.0) $(shell pkg-config --libs gthread-2.0)
+CFLAGS  += $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags gobject-2.0) $(shell pkg-config --cflags gthread-2.0)
+LDFLAGS += $(shell pkg-config --libs   dbus-glib-1) $(shell pkg-config --libs   glib-2.0) $(shell pkg-config --libs   gobject-2.0) $(shell pkg-config --libs   gthread-2.0)
 
 COMPONENTS = cache channel config connection dbus in log marshal misc out servers
 OBJECTS = maki.o sashimi.o $(COMPONENTS:%=maki_%.o)
