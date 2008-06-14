@@ -25,8 +25,13 @@
  * SUCH DAMAGE.
  */
 
-gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
-void maki_debug (const gchar*, ...);
-gboolean maki_str_equal (gconstpointer, gconstpointer);
-guint maki_str_hash (gconstpointer);
-gboolean maki_write (gint, const gchar*);
+struct maki_user
+{
+	struct maki_connection* connection;
+	gchar* nick;
+	gboolean away;
+};
+
+gpointer maki_user_new (gpointer, gpointer);
+void maki_user_copy (struct maki_user*, struct maki_user*);
+void maki_user_free (gpointer);

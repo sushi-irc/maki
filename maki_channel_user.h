@@ -25,8 +25,12 @@
  * SUCH DAMAGE.
  */
 
-gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
-void maki_debug (const gchar*, ...);
-gboolean maki_str_equal (gconstpointer, gconstpointer);
-guint maki_str_hash (gconstpointer);
-gboolean maki_write (gint, const gchar*);
+struct maki_channel_user
+{
+	struct maki_user* user;
+	guint prefix;
+};
+
+struct maki_channel_user* maki_channel_user_new (struct maki_user*);
+void maki_channel_user_copy (struct maki_channel_user*, struct maki_channel_user*);
+void maki_channel_user_free (gpointer);

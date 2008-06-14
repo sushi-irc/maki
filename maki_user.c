@@ -25,8 +25,36 @@
  * SUCH DAMAGE.
  */
 
-gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
-void maki_debug (const gchar*, ...);
-gboolean maki_str_equal (gconstpointer, gconstpointer);
-guint maki_str_hash (gconstpointer);
-gboolean maki_write (gint, const gchar*);
+#include "maki.h"
+
+gpointer maki_user_new (gpointer key, gpointer data)
+{
+	gchar* nick = key;
+	struct maki_connection* connection = data;
+	struct maki_user* m_user;
+
+	m_user = g_new(struct maki_user, 1);
+	m_user->connection = connection;
+	m_user->nick = nick;
+	m_user->away = FALSE;
+
+	return m_user;
+}
+
+void maki_user_copy (struct maki_user* src, struct maki_user* dst)
+{
+	if (src != dst)
+	{
+		dst->away = src->away;
+	}
+}
+
+/**
+ * This function gets called when a user is removed from the users hash table.
+ */
+void maki_user_free (gpointer value)
+{
+	struct maki_user* m_user = value;
+
+	g_free(m_user);
+}
