@@ -146,7 +146,7 @@ void maki_debug (const gchar* format, ...)
 	message = g_strdup_vprintf(format, args);
 	va_end(args);
 
-	write(fd, message, strlen(message));
+	maki_write(fd, message);
 
 	g_free(message);
 }
@@ -166,4 +166,24 @@ guint maki_str_hash (gconstpointer key)
 	g_free(tmp);
 
 	return ret;
+}
+
+gboolean maki_write (gint fd, const gchar* buf)
+{
+	gssize size;
+	gssize written;
+
+	size = strlen(buf);
+
+	if (G_UNLIKELY((written = write(fd, buf, size)) != size))
+	{
+		gssize tmp;
+
+		while (written < size && (tmp = write(fd, buf + written, size - written)) > 0)
+		{
+			written += tmp;
+		}
+	}
+
+	return (written >= size);
 }

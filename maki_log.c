@@ -106,10 +106,10 @@ void maki_log (struct maki_connection* m_conn, const gchar* name, const gchar* f
 	tmp = g_strdup_vprintf(format, args);
 	va_end(args);
 
-	write(m_log->fd, buf, strlen(buf));
-	write(m_log->fd, " ", 1);
-	write(m_log->fd, tmp, strlen(tmp));
-	write(m_log->fd, "\n", 1);
+	maki_write(m_log->fd, buf);
+	maki_write(m_log->fd, " ");
+	maki_write(m_log->fd, tmp);
+	maki_write(m_log->fd, "\n");
 
 	g_free(tmp);
 }

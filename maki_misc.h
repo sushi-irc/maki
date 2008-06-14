@@ -48,3 +48,4 @@ gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
 void maki_debug (const gchar*, ...);
 gboolean maki_str_equal (gconstpointer, gconstpointer);
 guint maki_str_hash (gconstpointer);
+gboolean maki_write (gint, const gchar*);
