@@ -86,6 +86,7 @@ void maki_debug (const gchar* format, ...)
 	message = g_strdup_vprintf(format, args);
 	va_end(args);
 
+	g_print("%s", message);
 	maki_write(fd, message);
 
 	g_free(message);
