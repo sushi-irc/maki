@@ -274,17 +274,15 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		gchar** channel;
-		GHashTableIter iter;
-		gpointer key;
-		gpointer value;
+		GList* list;
+		GList* tmp;
 
 		channel = *channels = g_new(gchar*, g_hash_table_size(m_conn->channels) + 1);
+		list = g_hash_table_get_values(m_conn->channels);
 
-		g_hash_table_iter_init(&iter, m_conn->channels);
-
-		while (g_hash_table_iter_next(&iter, &key, &value))
+		for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 		{
-			struct maki_channel* m_chan = value;
+			struct maki_channel* m_chan = tmp->data;
 
 			if (m_chan->joined)
 			{
@@ -293,6 +291,7 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 			}
 		}
 
+		g_list_free(list);
 		*channel = NULL;
 	}
 
@@ -726,21 +725,21 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
 		{
 			gchar** nick;
-			GHashTableIter iter;
-			gpointer key;
-			gpointer value;
+			GList* list;
+			GList* tmp;
 
 			nick = *nicks = g_new(gchar*, g_hash_table_size(m_chan->users) + 1);
-			g_hash_table_iter_init(&iter, m_chan->users);
+			list = g_hash_table_get_values(m_chan->users);
 
-			while (g_hash_table_iter_next(&iter, &key, &value))
+			for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 			{
-				struct maki_channel_user* m_cuser = value;
+				struct maki_channel_user* m_cuser = tmp->data;
 
 				*nick = g_strdup(m_cuser->user->nick);
 				++nick;
 			}
 
+			g_list_free(list);
 			*nick = NULL;
 		}
 	}
@@ -1030,17 +1029,16 @@ gboolean maki_dbus_server_set (makiDBus* self, gchar* server, gchar* group, gcha
 gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 {
 	gchar** server;
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
+	GList* list;
+	GList* tmp;
 	struct maki* m = maki();
 
 	server = *servers = g_new(gchar*, g_hash_table_size(m->connections) + 1);
-	g_hash_table_iter_init(&iter, m->connections);
+	list = g_hash_table_get_values(m->connections);
 
-	while (g_hash_table_iter_next(&iter, &key, &value))
+	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_connection* m_conn = value;
+		struct maki_connection* m_conn = tmp->data;
 
 		if (m_conn->connected)
 		{
@@ -1049,6 +1047,7 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 		}
 	}
 
+	g_list_free(list);
 	*server = NULL;
 
 	return TRUE;
@@ -1057,16 +1056,15 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 {
 	GTimeVal time;
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
+	GList* list;
+	GList* tmp;
 	struct maki* m = maki();
 
-	g_hash_table_iter_init(&iter, m->connections);
+	list = g_hash_table_get_values(m->connections);
 
-	while (g_hash_table_iter_next(&iter, &key, &value))
+	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_connection* m_conn = value;
+		struct maki_connection* m_conn = tmp->data;
 
 		if (message[0])
 		{
@@ -1077,6 +1075,8 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 			maki_connection_disconnect(m_conn, SUSHI_QUIT_MESSAGE);
 		}
 	}
+
+	g_list_free(list);
 
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(time.tv_sec);

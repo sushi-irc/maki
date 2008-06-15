@@ -226,9 +226,8 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 gint maki_connection_disconnect (struct maki_connection* m_conn, const gchar* message)
 {
 	gint ret;
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
+	GList* list;
+	GList* tmp;
 
 	sashimi_reconnect(m_conn->connection, NULL, NULL);
 
@@ -241,14 +240,16 @@ gint maki_connection_disconnect (struct maki_connection* m_conn, const gchar* me
 	ret = sashimi_disconnect(m_conn->connection);
 
 	/* Remove all users from all channels, because otherwise phantom users may be left behind. */
-	g_hash_table_iter_init(&iter, m_conn->channels);
+	list = g_hash_table_get_values(m_conn->channels);
 
-	while (g_hash_table_iter_next(&iter, &key, &value))
+	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* m_chan = value;
+		struct maki_channel* m_chan = tmp->data;
 
 		g_hash_table_remove_all(m_chan->users);
 	}
+
+	g_list_free(list);
 
 	return ret;
 }

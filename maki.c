@@ -154,19 +154,20 @@ static int maki_daemonize (void)
 static void maki_signal (int signo)
 {
 	GTimeVal time;
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
+	GList* list;
+	GList* tmp;
 	struct maki* m = maki();
 
-	g_hash_table_iter_init(&iter, m->connections);
+	list = g_hash_table_get_values(m->connections);
 
-	while (g_hash_table_iter_next(&iter, &key, &value))
+	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_connection* m_conn = value;
+		struct maki_connection* m_conn = tmp->data;
 
 		maki_connection_disconnect(m_conn, SUSHI_QUIT_MESSAGE);
 	}
+
+	g_list_free(list);
 
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(time.tv_sec);

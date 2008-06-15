@@ -117,22 +117,23 @@ gint maki_prefix_position (struct maki_connection* m_conn, gboolean is_prefix, g
  */
 gboolean maki_join (gpointer data)
 {
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
+	GList* list;
+	GList* tmp;
 	struct maki_connection* m_conn = data;
 
-	g_hash_table_iter_init(&iter, m_conn->channels);
+	list = g_hash_table_get_values(m_conn->channels);
 
-	while (g_hash_table_iter_next(&iter, &key, &value))
+	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* m_chan = value;
+		struct maki_channel* m_chan = tmp->data;
 
 		if (m_chan->autojoin || m_chan->joined)
 		{
 			maki_out_join(m_conn, m_chan->name, m_chan->key);
 		}
 	}
+
+	g_list_free(list);
 
 	return FALSE;
 }
@@ -366,15 +367,14 @@ void maki_in_part (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 
 void maki_in_quit (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
+	GList* list;
+	GList* tmp;
 
-	g_hash_table_iter_init(&iter, m_conn->channels);
+	list = g_hash_table_get_values(m_conn->channels);
 
-	while (g_hash_table_iter_next(&iter, &key, &value))
+	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* m_chan = value;
+		struct maki_channel* m_chan = tmp->data;
 
 		if (!m_chan->joined)
 		{
@@ -395,6 +395,8 @@ void maki_in_quit (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 
 		g_hash_table_remove(m_chan->users, nick);
 	}
+
+	g_list_free(list);
 
 	if (remaining)
 	{
@@ -485,9 +487,8 @@ void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 {
 	gboolean own = FALSE;
 	gchar* new_nick;
-	GHashTableIter iter;
-	gpointer key;
-	gpointer value;
+	GList* list;
+	GList* tmp;
 
 	if (!remaining)
 	{
@@ -513,11 +514,11 @@ void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 		own = TRUE;
 	}
 
-	g_hash_table_iter_init(&iter, m_conn->channels);
+	list = g_hash_table_get_values(m_conn->channels);
 
-	while (g_hash_table_iter_next(&iter, &key, &value))
+	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* m_chan = value;
+		struct maki_channel* m_chan = tmp->data;
 		struct maki_channel_user* m_cuser;
 
 		if (!m_chan->joined)
@@ -549,6 +550,8 @@ void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 			}
 		}
 	}
+
+	g_list_free(list);
 
 	maki_dbus_emit_nick(time, m_conn->server, nick, new_nick);
 }
