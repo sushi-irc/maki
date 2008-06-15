@@ -708,6 +708,7 @@ void maki_in_topic (struct maki_connection* m_conn, glong time, gchar* nick, gch
 	gchar** tmp;
 	gchar* channel;
 	gchar* topic;
+	struct maki_channel* m_chan;
 
 	if (!remaining)
 	{
@@ -721,21 +722,39 @@ void maki_in_topic (struct maki_connection* m_conn, glong time, gchar* nick, gch
 	}
 
 	tmp = g_strsplit(remaining, " ", 2 + offset);
+
+	if (g_strv_length(tmp) < 2 + offset)
+	{
+		g_strfreev(tmp);
+		return;
+	}
+
 	channel = tmp[offset];
 	topic = maki_remove_colon(tmp[1 + offset]);
 
-	if (tmp[0] != NULL && channel != NULL && topic != NULL)
+	if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
 	{
-		struct maki_channel* m_chan;
-
-		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
-		{
-			g_free(m_chan->topic);
-			m_chan->topic = g_strdup(topic);
-		}
-
-		maki_dbus_emit_topic(time, m_conn->server, nick, channel, topic);
+		g_free(m_chan->topic);
+		m_chan->topic = g_strdup(topic);
 	}
+
+	if (is_numeric)
+	{
+		maki_log(m_conn, channel, "• Topic: %s", topic);
+	}
+	else
+	{
+		if (strcmp(nick, m_conn->user->nick) == 0)
+		{
+			maki_log(m_conn, channel, "• You change the topic: %s", topic);
+		}
+		else
+		{
+			maki_log(m_conn, channel, "• %s changes the topic: %s", nick, topic);
+		}
+	}
+
+	maki_dbus_emit_topic(time, m_conn->server, nick, channel, topic);
 
 	g_strfreev(tmp);
 }
