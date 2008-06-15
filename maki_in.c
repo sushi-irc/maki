@@ -483,6 +483,7 @@ void maki_in_kick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 
 void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining)
 {
+	gboolean own = FALSE;
 	gchar* new_nick;
 	GHashTableIter iter;
 	gpointer key;
@@ -494,6 +495,23 @@ void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 	}
 
 	new_nick = maki_remove_colon(remaining);
+
+	if (strcmp(nick, m_conn->user->nick) == 0)
+	{
+		struct maki_user* m_user;
+
+		m_user = maki_cache_insert(m_conn->users, new_nick);
+		maki_user_copy(m_conn->user, m_user);
+		maki_cache_remove(m_conn->users, m_conn->user->nick);
+		m_conn->user = m_user;
+
+		if (strcmp(m_conn->user->nick, m_conn->initial_nick) == 0)
+		{
+			maki_out_nickserv(m_conn);
+		}
+
+		own = TRUE;
+	}
 
 	g_hash_table_iter_init(&iter, m_conn->channels);
 
@@ -520,21 +538,15 @@ void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 
 			g_hash_table_remove(m_chan->users, nick);
 			g_hash_table_replace(m_chan->users, tmp->user->nick, tmp);
-		}
-	}
 
-	if (strcmp(nick, m_conn->user->nick) == 0)
-	{
-		struct maki_user* m_user;
-
-		m_user = maki_cache_insert(m_conn->users, new_nick);
-		maki_user_copy(m_conn->user, m_user);
-		maki_cache_remove(m_conn->users, m_conn->user->nick);
-		m_conn->user = m_user;
-
-		if (strcmp(m_conn->user->nick, m_conn->initial_nick) == 0)
-		{
-			maki_out_nickserv(m_conn);
+			if (own)
+			{
+				maki_log(m_conn, m_chan->name, "• You are now known as %s.", new_nick);
+			}
+			else
+			{
+				maki_log(m_conn, m_chan->name, "• %s is now known as %s.", nick, new_nick);
+			}
 		}
 	}
 
