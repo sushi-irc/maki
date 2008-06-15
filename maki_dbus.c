@@ -735,7 +735,9 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 
 			while (g_hash_table_iter_next(&iter, &key, &value))
 			{
-				*nick = g_strdup(key);
+				struct maki_channel_user* m_cuser = value;
+
+				*nick = g_strdup(m_cuser->user->nick);
 				++nick;
 			}
 
@@ -1042,7 +1044,7 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 
 		if (m_conn->connected)
 		{
-			*server = g_strdup(key);
+			*server = g_strdup(m_conn->server);
 			++server;
 		}
 	}
