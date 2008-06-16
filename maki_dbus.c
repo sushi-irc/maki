@@ -340,6 +340,8 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 	{
 		if ((m_conn = maki_connection_new(server)) != NULL)
 		{
+			g_hash_table_replace(m->connections, m_conn->server, m_conn);
+
 			if (!m_conn->autoconnect && maki_connection_connect(m_conn) != 0)
 			{
 				maki_reconnect_callback(m_conn);
