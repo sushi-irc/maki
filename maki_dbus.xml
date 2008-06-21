@@ -57,6 +57,7 @@
 		<method name="join">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
+			<!-- key is optional and can be empty (""). -->
 			<arg name="key" type="s" />
 		</method>
 
@@ -64,6 +65,7 @@
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
 			<arg name="who" type="s" />
+			<!-- message is optional and can be empty (""). -->
 			<arg name="message" type="s" />
 		</method>
 
@@ -75,6 +77,7 @@
 
 		<method name="list">
 			<arg name="server" type="s" />
+			<!-- channel is optional and can be empty (""). -->
 			<arg name="channel" type="s" />
 		</method>
 
@@ -94,6 +97,7 @@
 		<method name="mode">
 			<arg name="server" type="s" />
 			<arg name="target" type="s" />
+			<!-- mode is optional and can be empty (""). This requests the current mode. -->
 			<arg name="mode" type="s" />
 		</method>
 
@@ -132,11 +136,13 @@
 		<method name="part">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
+			<!-- message is optional and can be empty (""). -->
 			<arg name="message" type="s" />
 		</method>
 
 		<method name="quit">
 			<arg name="server" type="s" />
+			<!-- message is optional and can be empty (""). -->
 			<arg name="message" type="s" />
 		</method>
 
@@ -153,14 +159,18 @@
 		</method>
 
 		<method name="server_list">
+			<!-- server is optional and can be empty (""). This lists all servers. -->
 			<arg name="server" type="s" />
+			<!-- group is optional and can be empty (""). This lists all groups. -->
 			<arg name="group" type="s" />
 			<arg name="result" type="as" direction="out" />
 		</method>
 
 		<method name="server_remove">
 			<arg name="server" type="s" />
+			<!-- group is optional and can be empty (""). This removes the whole server. -->
 			<arg name="group" type="s" />
+			<!-- key is optional and can be empty (""). This removes the whole group. -->
 			<arg name="key" type="s" />
 		</method>
 
@@ -181,12 +191,14 @@
 		</method>
 
 		<method name="shutdown">
+			<!-- message is optional and can be empty (""). -->
 			<arg name="message" type="s" />
 		</method>
 
 		<method name="topic">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
+			<!-- topic is optional and can be empty (""). This requests the current topic. -->
 			<arg name="topic" type="s" />
 		</method>
 
