@@ -33,10 +33,7 @@ struct maki_config* maki_config_new (const gchar* path)
 
 	m_config = g_new(struct maki_config, 1);
 
-	m_config->logging.enabled = TRUE;
-	m_config->logging.time_format = g_strdup("%Y-%m-%d %H:%M:%S");
-	m_config->reconnect.retries = 3;
-	m_config->reconnect.timeout = 10;
+	m_config->logging.time_format = NULL;
 
 	maki_config_reload(m_config, path);
 
@@ -49,6 +46,13 @@ struct maki_config* maki_config_new (const gchar* path)
 void maki_config_reload (struct maki_config* m_config, const gchar* path)
 {
 	GKeyFile* key_file;
+
+	m_config->logging.enabled = TRUE;
+	g_free(m_config->logging.time_format);
+	m_config->logging.time_format = g_strdup("%Y-%m-%d %H:%M:%S");
+
+	m_config->reconnect.retries = 3;
+	m_config->reconnect.timeout = 10;
 
 	key_file = g_key_file_new();
 
