@@ -563,6 +563,8 @@ gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, guint64 li
 			GIOChannel* io_channel;
 
 			io_channel = g_io_channel_unix_new(fd);
+			g_io_channel_set_close_on_unref(io_channel, TRUE);
+			g_io_channel_set_encoding(io_channel, NULL, NULL);
 			g_io_channel_seek_position(io_channel, -10 * 1024, G_SEEK_END, NULL);
 
 			/* Discard the first line. */
