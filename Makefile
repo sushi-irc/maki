@@ -8,7 +8,8 @@ LDFLAGS += $(shell pkg-config --libs   dbus-glib-1) $(shell pkg-config --libs   
 dbusdir = $(shell pkg-config --variable session_bus_services_dir dbus-1)
 
 COMPONENTS = cache channel channel_user config connection dbus in log marshal misc out servers user
-OBJECTS = maki.o sashimi.o $(COMPONENTS:%=maki_%.o)
+HEADERS    = maki.h sashimi.h $(COMPONENTS:%=maki_%.h)
+OBJECTS    = maki.o sashimi.o $(COMPONENTS:%=maki_%.o)
 
 all: maki
 
@@ -34,8 +35,8 @@ maki_marshal.c: maki_marshal.list
 maki_marshal.h: maki_marshal.list
 	$(QUIET_GEN) glib-genmarshal --header $+ > $@
 
-$(OBJECTS): %.o: %.c
-	$(QUIET_CC) $(CC) $(CFLAGS) -c -o $@ $+
+$(OBJECTS): %.o: %.c $(HEADERS)
+	$(QUIET_CC) $(CC) $(CFLAGS) -c -o $@ $<
 
 maki: $(OBJECTS)
 	$(QUIET_LD) $(CC) $(LDFLAGS) -o $@ $+
