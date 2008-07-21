@@ -865,13 +865,17 @@ void maki_in_rpl_away (struct maki_connection* m_conn, glong time, gchar* remain
 	}
 
 	tmp = g_strsplit(remaining, " ", 3);
+
+	if (g_strv_length(tmp) < 3)
+	{
+		g_strfreev(tmp);
+		return;
+	}
+
 	nick = tmp[1];
 	message = maki_remove_colon(tmp[2]);
 
-	if (tmp[0] != NULL && nick != NULL && message != NULL)
-	{
-		maki_dbus_emit_away_message(time, m_conn->server, nick, message);
-	}
+	maki_dbus_emit_away_message(time, m_conn->server, nick, message);
 
 	g_strfreev(tmp);
 }
