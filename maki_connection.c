@@ -44,6 +44,7 @@ struct maki_connection* maki_connection_new (const gchar* server)
 		gchar** group;
 		gchar** groups;
 		gboolean autoconnect;
+		gboolean nickserv_ghost;
 		gchar* address;
 		gchar* nick;
 		gchar* name;
@@ -58,6 +59,7 @@ struct maki_connection* maki_connection_new (const gchar* server)
 		nick = g_key_file_get_string(key_file, "server", "nick", NULL);
 		name = g_key_file_get_string(key_file, "server", "name", NULL);
 		nickserv = g_key_file_get_string(key_file, "server", "nickserv", NULL);
+		nickserv_ghost = g_key_file_get_boolean(key_file, "server", "nickserv_ghost", NULL);
 		commands = g_key_file_get_string_list(key_file, "server", "commands", NULL, NULL);
 		ignores = g_key_file_get_string_list(key_file, "server", "ignores", NULL, NULL);
 
@@ -91,6 +93,7 @@ struct maki_connection* maki_connection_new (const gchar* server)
 
 		m_conn->user = maki_cache_insert(m_conn->users, nick);
 
+		m_conn->nickserv.ghost = nickserv_ghost;
 		m_conn->nickserv.password = g_strdup(nickserv);
 		m_conn->commands = g_strdupv(commands);
 		m_conn->ignores = g_strdupv(ignores);

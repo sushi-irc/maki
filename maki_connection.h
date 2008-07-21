@@ -43,6 +43,7 @@ struct maki_connection
 
 	struct
 	{
+		gboolean ghost;
 		gchar* password;
 	}
 	nickserv;

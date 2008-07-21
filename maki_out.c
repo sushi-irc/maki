@@ -63,9 +63,12 @@ void maki_out_nickserv (struct maki_connection* m_conn)
 
 		if (strcmp(m_conn->user->nick, m_conn->initial_nick) != 0)
 		{
-			buffer = g_strdup_printf("PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
-			sashimi_send(m_conn->connection, buffer);
-			g_free(buffer);
+			if (m_conn->nickserv.ghost)
+			{
+				buffer = g_strdup_printf("PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
+				sashimi_send(m_conn->connection, buffer);
+				g_free(buffer);
+			}
 
 			maki_out_nick(m_conn, m_conn->initial_nick);
 		}
