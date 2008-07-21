@@ -734,6 +734,15 @@ void maki_in_invite (struct maki_connection* m_conn, glong time, gchar* nick, gc
 
 	if (tmp[0] != NULL && who != NULL && channel != NULL)
 	{
+		if (is_numeric)
+		{
+			maki_log(m_conn, channel, "• You successfully invite %s.", who);
+		}
+		else
+		{
+			maki_log(m_conn, channel, "• %s invites %s.", nick, who);
+		}
+
 		maki_dbus_emit_invite(time, m_conn->server, nick, channel, who);
 	}
 
