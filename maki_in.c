@@ -590,6 +590,7 @@ void maki_in_notice (struct maki_connection* m_conn, glong time, gchar* nick, gc
 
 void maki_in_mode (struct maki_connection* m_conn, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
+	gboolean own;
 	gint offset = 0;
 	gchar** tmp;
 	gchar* target;
@@ -598,6 +599,8 @@ void maki_in_mode (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 	{
 		return;
 	}
+
+	own = (strcmp(nick, m_conn->user->nick) == 0);
 
 	if (is_numeric)
 	{
@@ -659,11 +662,43 @@ void maki_in_mode (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 						}
 					}
 
+					if (is_numeric)
+					{
+						maki_log(m_conn, target, "• Mode: %s %s", buffer, modes[i]);
+					}
+					else
+					{
+						if (own)
+						{
+							maki_log(m_conn, target, "• You set mode: %s %s", buffer, modes[i]);
+						}
+						else
+						{
+							maki_log(m_conn, target, "• %s sets mode: %s %s", nick, buffer, modes[i]);
+						}
+					}
+
 					maki_dbus_emit_mode(time, m_conn->server, nick, target, buffer, modes[i]);
 					++i;
 				}
 				else
 				{
+					if (is_numeric)
+					{
+						maki_log(m_conn, target, "• Mode: %s", buffer);
+					}
+					else
+					{
+						if (own)
+						{
+							maki_log(m_conn, target, "• You set mode: %s", buffer);
+						}
+						else
+						{
+							maki_log(m_conn, target, "• %s sets mode: %s", nick, buffer);
+						}
+					}
+
 					maki_dbus_emit_mode(time, m_conn->server, nick, target, buffer, "");
 				}
 			}
