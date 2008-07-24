@@ -984,6 +984,46 @@ void maki_in_rpl_list (struct maki_connection* m_conn, glong time, gchar* remain
 	g_strfreev(tmp);
 }
 
+void maki_in_rpl_banlist (struct maki_connection* m_conn, glong time, gchar* remaining, gboolean is_end)
+{
+	gchar** tmp;
+	guint length;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	if (is_end)
+	{
+		tmp = g_strsplit(remaining, " ", 3);
+
+		if (g_strv_length(tmp) >= 2)
+		{
+			maki_dbus_emit_banlist(time, m_conn->server, tmp[1], "", "", -1);
+		}
+
+		g_strfreev(tmp);
+
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 5);
+	length = g_strv_length(tmp);
+
+	if (length == 5)
+	{
+		maki_dbus_emit_banlist(time, m_conn->server, tmp[1], tmp[2], tmp[3], atol(tmp[4]));
+	}
+	else if (length == 3)
+	{
+		/* This is what the RFC specifies. */
+		maki_dbus_emit_banlist(time, m_conn->server, tmp[1], tmp[2], "", 0);
+	}
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -1178,6 +1218,10 @@ gpointer maki_in_runner (gpointer data)
 				else if (strncmp(type, IRC_RPL_LIST, 3) == 0 || strncmp(type, IRC_RPL_LISTEND, 3) == 0)
 				{
 					maki_in_rpl_list(m_conn, time.tv_sec, remaining, (type[2] == '3'));
+				}
+				else if (strncmp(type, IRC_RPL_BANLIST, 3) == 0 || strncmp(type, IRC_RPL_ENDOFBANLIST, 3) == 0)
+				{
+					maki_in_rpl_banlist(m_conn, time.tv_sec, remaining, (type[2] == '8'));
 				}
 				else if (strncmp(type, IRC_RPL_YOUREOPER, 3) == 0)
 				{

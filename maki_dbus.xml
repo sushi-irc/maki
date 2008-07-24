@@ -254,6 +254,18 @@
 			<arg name="server" type="s" />
 		</signal>
 
+		<signal name="banlist">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="mask" type="s" />
+			<!-- who is optional and can be empty (""). -->
+			<arg name="who" type="s" />
+			<!-- when is optional and can be empty (0). -->
+			<arg name="when" type="x" />
+			<!-- mask == "" and who == "" and when == -1 signifies the end of the list. -->
+		</signal>
+
 		<!-- Gets emitted when a connect attempt is made. -->
 		<signal name="connect">
 			<arg name="time" type="x" />
