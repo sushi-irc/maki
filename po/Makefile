@@ -23,6 +23,7 @@ maki.pot: $(C) $(H)
 
 %.po: maki.pot
 	if test -f $@; then \
+		touch $@; \
 		msgmerge --update $@ $<; \
 	else \
 		msginit --input=$< --output=$@; \
