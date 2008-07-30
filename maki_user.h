@@ -30,6 +30,7 @@ struct maki_user
 	struct maki_connection* connection;
 	gchar* nick;
 	gboolean away;
+	gchar* away_message;
 };
 
 gpointer maki_user_new (gpointer, gpointer);

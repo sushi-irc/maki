@@ -198,6 +198,7 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 	{
 		gchar* buffer;
 		GTimeVal time;
+		struct maki_user* m_user;
 
 		if (m_conn->reconnect != 0)
 		{
@@ -207,8 +208,10 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 
 		m_conn->retries = m->config->reconnect.retries;
 
+		m_user = maki_cache_insert(m_conn->users, m_conn->initial_nick);
+		maki_user_copy(m_conn->user, m_user);
 		maki_cache_remove(m_conn->users, m_conn->user->nick);
-		m_conn->user = maki_cache_insert(m_conn->users, m_conn->initial_nick);
+		m_conn->user = m_user;
 
 		maki_out_nick(m_conn, m_conn->initial_nick);
 

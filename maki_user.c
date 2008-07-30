@@ -37,6 +37,7 @@ gpointer maki_user_new (gpointer key, gpointer data)
 	m_user->connection = connection;
 	m_user->nick = nick;
 	m_user->away = FALSE;
+	m_user->away_message = NULL;
 
 	return m_user;
 }
@@ -46,6 +47,7 @@ void maki_user_copy (struct maki_user* src, struct maki_user* dst)
 	if (src != dst)
 	{
 		dst->away = src->away;
+		dst->away_message = g_strdup(src->away_message);
 	}
 }
 
@@ -56,5 +58,6 @@ void maki_user_free (gpointer value)
 {
 	struct maki_user* m_user = value;
 
+	g_free(m_user->away_message);
 	g_free(m_user);
 }

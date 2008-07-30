@@ -248,6 +248,8 @@ gboolean maki_dbus_away (makiDBus* self, gchar* server, gchar* message, GError**
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		maki_out_away(m_conn, message);
+		g_free(m_conn->user->away_message);
+		m_conn->user->away_message = g_strdup(message);
 	}
 
 	return TRUE;

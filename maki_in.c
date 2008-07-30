@@ -1170,6 +1170,8 @@ gpointer maki_in_runner (gpointer data)
 				else if (strncmp(type, IRC_RPL_UNAWAY, 3) == 0)
 				{
 					m_conn->user->away = FALSE;
+					g_free(m_conn->user->away_message);
+					m_conn->user->away_message = NULL;
 					maki_dbus_emit_back(time.tv_sec, m_conn->server);
 				}
 				else if (strncmp(type, IRC_RPL_NOWAWAY, 3) == 0)
@@ -1188,16 +1190,24 @@ gpointer maki_in_runner (gpointer data)
 					maki_out_nickserv(m_conn);
 					g_timeout_add_seconds(3, maki_join, m_conn);
 					maki_commands(m_conn);
+
+					if (m_conn->user->away && m_conn->user->away_message != NULL)
+					{
+						maki_out_away(m_conn, m_conn->user->away_message);
+					}
 				}
 				else if (strncmp(type, IRC_ERR_NICKNAMEINUSE, 3) == 0)
 				{
 					if (!m_conn->connected)
 					{
 						gchar* nick;
+						struct maki_user* m_user;
 
 						nick = g_strconcat(m_conn->user->nick, "_", NULL);
+						m_user = maki_cache_insert(m_conn->users, nick);
+						maki_user_copy(m_conn->user, m_user);
 						maki_cache_remove(m_conn->users, m_conn->user->nick);
-						m_conn->user = maki_cache_insert(m_conn->users, nick);
+						m_conn->user = m_user;
 						g_free(nick);
 
 						maki_out_nick(m_conn, m_conn->user->nick);
