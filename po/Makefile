@@ -12,7 +12,7 @@ install: all
 	done
 
 clean:
-	$(RM) *.pot
+	$(RM) maki.pot
 	$(RM) *.mo
 	$(RM) -r locale
 
