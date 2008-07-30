@@ -25,6 +25,7 @@
  * SUCH DAMAGE.
  */
 
+void maki_out_away (struct maki_connection*, const gchar*);
 void maki_out_join (struct maki_connection*, const gchar*, const gchar*);
 void maki_out_nick (struct maki_connection*, const gchar*);
 void maki_out_nickserv (struct maki_connection*);

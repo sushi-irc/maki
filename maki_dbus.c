@@ -247,11 +247,7 @@ gboolean maki_dbus_away (makiDBus* self, gchar* server, gchar* message, GError**
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		gchar* buffer;
-
-		buffer = g_strdup_printf("AWAY :%s", message);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_out_away(m_conn, message);
 	}
 
 	return TRUE;

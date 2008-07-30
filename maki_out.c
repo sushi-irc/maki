@@ -29,6 +29,15 @@
 
 #include "maki.h"
 
+void maki_out_away (struct maki_connection* m_conn, const gchar* message)
+{
+	gchar* buffer;
+
+	buffer = g_strdup_printf("AWAY :%s", message);
+	sashimi_send(m_conn->connection, buffer);
+	g_free(buffer);
+}
+
 void maki_out_join (struct maki_connection* m_conn, const gchar* channel, const gchar* key)
 {
 	gchar* buffer;
