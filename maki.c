@@ -181,16 +181,33 @@ static void maki_signal (int signo)
 int main (int argc, char* argv[])
 {
 	struct maki* m;
+	gchar* current_dir;
+	gchar* locale_dir;
 
 	gboolean opt_daemon = FALSE;
 	gboolean opt_debug = TRUE;
 	GOptionContext* context;
 	GOptionEntry entries[] =
 	{
-		{ "daemon", 'd', 0, G_OPTION_ARG_NONE, &opt_daemon, "Run as daemon", NULL },
-		{ "debug", 0, 0, G_OPTION_ARG_NONE, &opt_debug, "Output debug messages", NULL },
+		{ "daemon", 'd', 0, G_OPTION_ARG_NONE, &opt_daemon, N_("Run as daemon"), NULL },
+		{ "debug", 0, 0, G_OPTION_ARG_NONE, &opt_debug, N_("Output debug messages"), NULL },
 		{ NULL }
 	};
+
+	current_dir = g_get_current_dir();
+	locale_dir = g_build_filename(current_dir, "po", "locale", NULL);
+
+	if (!g_file_test(locale_dir, G_FILE_TEST_IS_DIR))
+	{
+		/* FIXME global path */
+	}
+
+	setlocale(LC_ALL, "");
+	bindtextdomain(MAKI_NAME, locale_dir);
+	textdomain(MAKI_NAME);
+
+	g_free(current_dir);
+	g_free(locale_dir);
 
 	context = g_option_context_new(NULL);
 	g_option_context_add_main_entries(context, entries, NULL);

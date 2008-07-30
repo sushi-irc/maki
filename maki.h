@@ -28,12 +28,15 @@
 #define G_DISABLE_DEPRECATED
 
 #include <glib.h>
+#include <glib/gi18n.h>
 
 #include "sashimi.h"
 
 #define SUSHI_NAME "sushi"
 #define SUSHI_VERSION "1.0-alpha1"
 #define SUSHI_URL "http://sushi.ikkoku.de/"
+
+#define MAKI_NAME "maki"
 
 struct maki;
 

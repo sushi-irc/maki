@@ -12,17 +12,22 @@ HEADERS    = maki.h sashimi.h $(COMPONENTS:%=maki_%.h)
 OBJECTS    = maki.o sashimi.o $(COMPONENTS:%=maki_%.o)
 
 all: maki
+	$(MAKE) -C po $@
 
 install: all
 	$(INSTALL) -d -m 755 '$(bindir)'
 	$(INSTALL) -m 755 maki '$(bindir)'
 	$(SED) 's#@bindir@#$(bindir)#' 'de.ikkoku.sushi.service' > '$(dbusdir)/de.ikkoku.sushi.service'
 
+	$(MAKE) -C po $@
+
 clean:
 	$(RM) maki
 	$(RM) $(OBJECTS)
 	$(RM) maki_dbus_glue.h maki_marshal.c maki_marshal.h
 	$(RM) libsashimi.so
+
+	$(MAKE) -C po $@
 
 maki_dbus.c: maki_dbus_glue.h maki_marshal.h
 
