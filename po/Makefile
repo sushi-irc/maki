@@ -4,28 +4,26 @@ PO = $(wildcard *.po)
 C  = $(wildcard ../*.c)
 H  = $(wildcard ../*.h)
 
-all: $(PO:%.po=%.mo)
+all: $(PO)
 
-install: all
-	for file in $(PO:%.po=%.mo); do \
-		../../tools/install-mo.sh maki $${file} $(localedir); \
+install: $(PO:%.po=%.mo)
+	for file in $+; do \
+		../../tools/install-mo.sh maki "$${file}" '$(localedir)'; \
 	done
 
 clean:
 	$(RM) maki.pot
 	$(RM) *.mo
 
-update: $(wildcard *.po)
-
 maki.pot: $(C) $(H)
-	$(QUIET_GEN) xgettext --keyword=_ --keyword=N_ --output=$@ $(C) $(H)
+	$(QUIET_GEN) xgettext --keyword=_ --keyword=N_ --output=$@ $+
 
 %.po: maki.pot
 	$(QUIET_GEN) if test -f $@; then \
 		touch $@; \
-		msgmerge --update $@ $<; \
+		msgmerge --update $@ $+; \
 	else \
-		msginit --input=$< --output=$@; \
+		msginit --input=$+ --output=$@; \
 	fi
 
 %.mo: %.po
