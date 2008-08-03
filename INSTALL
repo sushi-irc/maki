@@ -1,11 +1,22 @@
                                   REQUIREMENTS
 
-You will need the development libraries and headers of DBus, GLib and DBus-GLib.
+You will need the DBus, GLib and DBus-GLib libraries.
+On Debian-based systems these are available in the following packages:
+
+* libdbus-1-3
+* libglib2.0-0 (>= 2.16)
+* libdbus-glib-1-2
+
+                               BUILD REQUIREMENTS
+
+You will need the DBus, GLib and DBus-GLib development libraries and headers.
+Additionally, you will need the gettext tools.
 On Debian-based systems these are available in the following packages:
 
 * libdbus-1-dev
 * libglib2.0-dev (>= 2.16)
 * libdbus-glib-1-dev
+* gettext
 
                                   INSTALLATION
 
