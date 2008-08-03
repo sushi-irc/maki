@@ -181,8 +181,6 @@ static void maki_signal (int signo)
 int main (int argc, char* argv[])
 {
 	struct maki* m;
-	gchar* current_dir;
-	gchar* locale_dir;
 
 	gboolean opt_daemon = FALSE;
 	gboolean opt_debug = TRUE;
@@ -194,20 +192,9 @@ int main (int argc, char* argv[])
 		{ NULL }
 	};
 
-	current_dir = g_get_current_dir();
-	locale_dir = g_build_filename(current_dir, "po", "locale", NULL);
-
-	if (!g_file_test(locale_dir, G_FILE_TEST_IS_DIR))
-	{
-		/* FIXME global path */
-	}
-
 	setlocale(LC_ALL, "");
-	bindtextdomain(MAKI_NAME, locale_dir);
+	bindtextdomain(MAKI_NAME, LOCALEDIR);
 	textdomain(MAKI_NAME);
-
-	g_free(current_dir);
-	g_free(locale_dir);
 
 	context = g_option_context_new(NULL);
 	g_option_context_add_main_entries(context, entries, NULL);
