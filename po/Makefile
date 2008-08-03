@@ -14,7 +14,6 @@ install: all
 clean:
 	$(RM) maki.pot
 	$(RM) *.mo
-	$(RM) -r locale
 
 update: $(wildcard *.po)
 
@@ -31,4 +30,3 @@ maki.pot: $(C) $(H)
 
 %.mo: %.po
 	msgfmt --output-file=$@ $+
-	../../tools/install-mo.sh maki $@ locale
