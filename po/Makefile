@@ -18,10 +18,10 @@ clean:
 update: $(wildcard *.po)
 
 maki.pot: $(C) $(H)
-	xgettext --keyword=_ --keyword=N_ --output=$@ $(C) $(H)
+	$(QUIET_GEN) xgettext --keyword=_ --keyword=N_ --output=$@ $(C) $(H)
 
 %.po: maki.pot
-	if test -f $@; then \
+	$(QUIET_GEN) if test -f $@; then \
 		touch $@; \
 		msgmerge --update $@ $<; \
 	else \
@@ -29,4 +29,4 @@ maki.pot: $(C) $(H)
 	fi
 
 %.mo: %.po
-	msgfmt --output-file=$@ $+
+	$(QUIET_GEN) msgfmt --output-file=$@ $+
