@@ -19,7 +19,7 @@ all: maki
 install: all
 	$(INSTALL) -d -m 755 '$(bindir)'
 	$(INSTALL) -m 755 maki '$(bindir)'
-	$(SED) 's#@bindir@#$(bindir)#' 'de.ikkoku.sushi.service' > '$(dbusdir)/de.ikkoku.sushi.service'
+	-$(SED) 's#@bindir@#$(bindir)#' 'de.ikkoku.sushi.service' > '$(dbusdir)/de.ikkoku.sushi.service'
 
 	$(MAKE) -C po $@
 
