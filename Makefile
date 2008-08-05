@@ -16,9 +16,10 @@ OBJECTS    = maki.o sashimi.o $(COMPONENTS:%=maki_%.o)
 all: maki
 
 install: all
-	$(INSTALL) -d -m 755 '$(bindir)'
-	$(INSTALL) -m 755 maki '$(bindir)'
-	-$(SED) 's#@bindir@#$(bindir)#' 'de.ikkoku.sushi.service' > '$(dbusdir)/de.ikkoku.sushi.service'
+	$(INSTALL) -d -m 755 '$(DESTDIR)$(bindir)'
+	$(INSTALL) -d -m 755 '$(DESTDIR)$(dbusdir)'
+	$(INSTALL) -m 755 maki '$(DESTDIR)$(bindir)'
+	-$(SED) 's#@bindir@#$(bindir)#' 'de.ikkoku.sushi.service' > '$(DESTDIR)$(dbusdir)/de.ikkoku.sushi.service'
 
 	$(MAKE) -C po $@
 
