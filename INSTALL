@@ -4,7 +4,7 @@ You will need the DBus, GLib and DBus-GLib libraries.
 On Debian-based systems these are available in the following packages:
 
 * libdbus-1-3
-* libglib2.0-0 (>= 2.16)
+* libglib2.0-0 (>= 2.14)
 * libdbus-glib-1-2
 
                                BUILD REQUIREMENTS
@@ -14,7 +14,7 @@ Additionally, you will need the pkg-config and gettext tools.
 On Debian-based systems these are available in the following packages:
 
 * libdbus-1-dev
-* libglib2.0-dev (>= 2.16)
+* libglib2.0-dev (>= 2.14)
 * libdbus-glib-1-dev
 * pkg-config
 * gettext
