@@ -14,7 +14,6 @@ HEADERS    = maki.h sashimi.h $(COMPONENTS:%=maki_%.h)
 OBJECTS    = maki.o sashimi.o $(COMPONENTS:%=maki_%.o)
 
 all: maki
-	$(MAKE) -C po $@
 
 install: all
 	$(INSTALL) -d -m 755 '$(bindir)'

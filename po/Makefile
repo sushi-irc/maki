@@ -4,7 +4,7 @@ PO = $(wildcard *.po)
 C  = $(wildcard ../*.c)
 H  = $(wildcard ../*.h)
 
-all: $(PO)
+all:
 
 install: $(PO:%.po=%.mo)
 	for file in $+; do \
@@ -26,5 +26,5 @@ maki.pot: $(C) $(H)
 		msginit --input=$+ --output=$@; \
 	fi
 
-%.mo: %.po
-	$(QUIET_GEN) msgfmt --output-file=$@ $+
+%.mo:
+	$(QUIET_GEN) msgfmt --output-file=$@ $(subst .mo,.po,$@)
