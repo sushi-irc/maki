@@ -288,6 +288,12 @@
 			<arg name="message" type="s" />
 		</signal>
 
+		<signal name="invalid_target">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="target" type="s" />
+		</signal>
+
 		<signal name="invite">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />

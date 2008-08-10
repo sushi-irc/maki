@@ -46,6 +46,7 @@ enum
 	s_connect,
 	s_connected,
 	s_ctcp,
+	s_invalid_target,
 	s_invite,
 	s_join,
 	s_kick,
@@ -110,6 +111,11 @@ void maki_dbus_emit_connected (gint64 time, const gchar* server, const gchar* ni
 void maki_dbus_emit_ctcp (gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
 	g_signal_emit(maki()->bus, signals[s_ctcp], 0, time, server, nick, target, message);
+}
+
+void maki_dbus_emit_invalid_target (gint64 time, const gchar* server, const gchar* target)
+{
+	g_signal_emit(maki()->bus, signals[s_invalid_target], 0, time, server, target);
 }
 
 void maki_dbus_emit_invite (gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
@@ -1419,6 +1425,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_invalid_target] =
+		g_signal_new("invalid_target",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING,
+		             G_TYPE_NONE, 3,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_invite] =
 		g_signal_new("invite",
 		             G_OBJECT_CLASS_TYPE(klass),

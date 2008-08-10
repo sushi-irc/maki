@@ -1024,6 +1024,30 @@ void maki_in_rpl_banlist (struct maki_connection* m_conn, glong time, gchar* rem
 	g_strfreev(tmp);
 }
 
+void maki_in_err_nosuchnick (struct maki_connection* m_conn, glong time, gchar* remaining)
+{
+	gchar** tmp;
+	guint length;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 3);
+	length = g_strv_length(tmp);
+
+	if (length < 2)
+	{
+		g_strfreev(tmp);
+		return;
+	}
+
+	maki_dbus_emit_invalid_target(time, m_conn->server, tmp[1]);
+
+	g_strfreev(tmp);
+}
+
 /**
  * This function is run in its own thread.
  * It receives and handles all messages from sashimi.
@@ -1212,6 +1236,10 @@ gpointer maki_in_runner (gpointer data)
 
 						maki_out_nick(m_conn, m_conn->user->nick);
 					}
+				}
+				else if (strncmp(type, IRC_ERR_NOSUCHNICK, 3) == 0)
+				{
+					maki_in_err_nosuchnick(m_conn, time.tv_sec, remaining);
 				}
 				else if (strncmp(type, IRC_RPL_MOTD, 3) == 0)
 				{
