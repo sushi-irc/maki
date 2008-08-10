@@ -14,6 +14,7 @@ install: $(PO:%.po=%.mo)
 clean:
 	$(RM) maki.pot
 	$(RM) *.mo
+	$(RM) *.po~
 
 maki.pot: $(C) $(H)
 	$(QUIET_GEN) xgettext --keyword=_ --keyword=N_ --output=$@ $+
