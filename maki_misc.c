@@ -27,13 +27,15 @@
 
 #include "maki.h"
 
+#include <glib/gstdio.h>
+
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
+gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file, int mode)
 {
 	gboolean ret = FALSE;
 	gchar* contents;
@@ -42,6 +44,7 @@ gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
 	{
 		if (g_file_set_contents(file, contents, -1, NULL))
 		{
+			g_chmod(file, mode);
 			ret = TRUE;
 		}
 
@@ -71,7 +74,7 @@ void maki_debug (const gchar* format, ...)
 		filename = g_strconcat("maki", ".txt", NULL);
 		path = g_build_filename(m->directories.logs, filename, NULL);
 
-		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644)) == -1)
+		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
 		{
 			g_free(filename);
 			g_free(path);

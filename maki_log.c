@@ -50,7 +50,7 @@ struct maki_log* maki_log_new (const gchar* directory, const gchar* server, cons
 
 	g_mkdir_with_parents(dirname, 0755);
 
-	if ((m_log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0644)) == -1)
+	if ((m_log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
 	{
 		g_free(m_log->name);
 		g_free(m_log);

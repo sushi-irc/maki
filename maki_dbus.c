@@ -410,7 +410,7 @@ gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError
 		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 		{
 			g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)m_conn->ignores, g_strv_length(m_conn->ignores));
-			maki_key_file_to_file(key_file, path);
+			maki_key_file_to_file(key_file, path, S_IRUSR | S_IWUSR);
 		}
 
 		g_key_file_free(key_file);
@@ -983,7 +983,7 @@ gboolean maki_dbus_server_remove (makiDBus* self, gchar* server, gchar* group, g
 				g_key_file_remove_group(key_file, group, NULL);
 			}
 
-			maki_key_file_to_file(key_file, path);
+			maki_key_file_to_file(key_file, path, S_IRUSR | S_IWUSR);
 		}
 
 		g_key_file_free(key_file);
@@ -1026,7 +1026,7 @@ gboolean maki_dbus_server_set (makiDBus* self, gchar* server, gchar* group, gcha
 
 	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
 	g_key_file_set_string(key_file, group, key, value);
-	maki_key_file_to_file(key_file, path);
+	maki_key_file_to_file(key_file, path, S_IRUSR | S_IWUSR);
 
 	g_key_file_free(key_file);
 	g_free(path);
@@ -1155,7 +1155,7 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 				if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 				{
 					g_key_file_remove_key(key_file, "server", "ignores", NULL);
-					maki_key_file_to_file(key_file, path);
+					maki_key_file_to_file(key_file, path, S_IRUSR | S_IWUSR);
 				}
 
 				g_key_file_free(key_file);
@@ -1188,7 +1188,7 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 			if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 			{
 				g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)m_conn->ignores, g_strv_length(m_conn->ignores));
-				maki_key_file_to_file(key_file, path);
+				maki_key_file_to_file(key_file, path, S_IRUSR | S_IWUSR);
 			}
 
 			g_key_file_free(key_file);
