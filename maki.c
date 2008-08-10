@@ -227,9 +227,9 @@ int main (int argc, char* argv[])
 	signal(SIGTERM, maki_signal);
 	signal(SIGQUIT, maki_signal);
 
-	if (g_mkdir_with_parents(m->directories.config, 0700) != 0
-	    || g_mkdir_with_parents(m->directories.logs, 0700) != 0
-	    || g_mkdir_with_parents(m->directories.servers, 0700) != 0)
+	if (g_mkdir_with_parents(m->directories.config, S_IRUSR | S_IWUSR | S_IXUSR) != 0
+	    || g_mkdir_with_parents(m->directories.logs, S_IRUSR | S_IWUSR | S_IXUSR) != 0
+	    || g_mkdir_with_parents(m->directories.servers, S_IRUSR | S_IWUSR | S_IXUSR) != 0)
 	{
 		return 1;
 	}

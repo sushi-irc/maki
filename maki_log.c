@@ -48,7 +48,7 @@ struct maki_log* maki_log_new (const gchar* directory, const gchar* server, cons
 	filename = g_strconcat(m_log->name, ".txt", NULL);
 	path = g_build_filename(dirname, filename, NULL);
 
-	g_mkdir_with_parents(dirname, 0755);
+	g_mkdir_with_parents(dirname, S_IRUSR | S_IWUSR | S_IXUSR);
 
 	if ((m_log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
 	{
