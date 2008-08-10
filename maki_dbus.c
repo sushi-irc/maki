@@ -1424,7 +1424,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_join] =
