@@ -76,9 +76,7 @@ void maki_debug (const gchar* format, ...)
 
 		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
 		{
-			g_free(filename);
-			g_free(path);
-			return;
+			g_print(_("Could not open debug log file.\n"));
 		}
 
 		g_free(filename);
@@ -90,7 +88,11 @@ void maki_debug (const gchar* format, ...)
 	va_end(args);
 
 	g_print("%s", message);
-	maki_write(fd, message);
+
+	if (G_LIKELY(fd != -1))
+	{
+		maki_write(fd, message);
+	}
 
 	g_free(message);
 }
