@@ -1100,6 +1100,21 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 	return TRUE;
 }
 
+gboolean maki_dbus_support_chantypes (makiDBus* self, gchar* server, gchar** chantypes, GError** error)
+{
+	struct maki_connection* m_conn;
+	struct maki* m = maki();
+
+	*chantypes = NULL;
+
+	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	{
+		*chantypes = g_strdup(m_conn->support.chantypes);
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* topic, GError** error)
 {
 	gchar* buffer;
