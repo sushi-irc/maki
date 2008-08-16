@@ -1342,6 +1342,23 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* ch
 	return TRUE;
 }
 
+gboolean maki_dbus_whois (makiDBus* self, gchar* server, gchar* mask, GError** error)
+{
+	struct maki_connection* m_conn;
+	struct maki* m = maki();
+
+	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	{
+		gchar* buffer;
+
+		buffer = g_strdup_printf("WHOIS %s", mask);
+		sashimi_send(m_conn->connection, buffer);
+		g_free(buffer);
+	}
+
+	return TRUE;
+}
+
 #include "maki_dbus_glue.h"
 
 G_DEFINE_TYPE(makiDBus, maki_dbus, G_TYPE_OBJECT)

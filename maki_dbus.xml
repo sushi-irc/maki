@@ -232,6 +232,11 @@
 			<arg name="prefix" type="s" direction="out" />
 		</method>
 
+		<method name="whois">
+			<arg name="server" type="s" />
+			<arg name="mask" type="s" />
+		</method>
+
 
 
 		<signal name="action">
