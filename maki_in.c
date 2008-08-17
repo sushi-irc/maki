@@ -1024,6 +1024,38 @@ void maki_in_rpl_banlist (struct maki_connection* m_conn, glong time, gchar* rem
 	g_strfreev(tmp);
 }
 
+void maki_in_rpl_whois (struct maki_connection* m_conn, glong time, gchar* remaining, gboolean is_end)
+{
+	gchar** tmp;
+	guint length;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 3);
+	length = g_strv_length(tmp);
+
+	if (length < 3)
+	{
+		return;
+	}
+
+	if (is_end)
+	{
+		maki_dbus_emit_whois(time, m_conn->server, tmp[1], "");
+
+		g_strfreev(tmp);
+
+		return;
+	}
+
+	maki_dbus_emit_whois(time, m_conn->server, tmp[1], tmp[2]);
+
+	g_strfreev(tmp);
+}
+
 void maki_in_err_nosuchnick (struct maki_connection* m_conn, glong time, gchar* remaining)
 {
 	gchar** tmp;
@@ -1248,6 +1280,15 @@ gpointer maki_in_runner (gpointer data)
 				else if (strncmp(type, IRC_RPL_TOPIC, 3) == 0 || strncmp(type, "TOPIC", 5) == 0)
 				{
 					maki_in_topic(m_conn, time.tv_sec, from_nick, remaining, (type[0] != 'T'));
+				}
+				else if (strncmp(type, IRC_RPL_WHOISUSER, 3) == 0
+				         || strncmp(type, IRC_RPL_WHOISSERVER, 3) == 0
+				         || strncmp(type, IRC_RPL_WHOISOPERATOR, 3) == 0
+				         || strncmp(type, IRC_RPL_WHOISIDLE, 3) == 0
+				         || strncmp(type, IRC_RPL_ENDOFWHOIS, 3) == 0
+				         || strncmp(type, IRC_RPL_WHOISCHANNELS, 3) == 0)
+				{
+					maki_in_rpl_whois(m_conn, time.tv_sec, remaining, (type[2] == '8'));
 				}
 				else if (strncmp(type, IRC_RPL_ISUPPORT, 3) == 0)
 				{
