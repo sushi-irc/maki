@@ -68,6 +68,7 @@ enum
 	s_reconnect,
 	s_shutdown,
 	s_topic,
+	s_whois,
 	s_last
 };
 
@@ -221,6 +222,11 @@ void maki_dbus_emit_shutdown (gint64 time)
 void maki_dbus_emit_topic (gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* topic)
 {
 	g_signal_emit(maki()->bus, signals[s_topic], 0, time, server, nick, channel, topic);
+}
+
+void maki_dbus_emit_whois (gint64 time, const gchar* server, const gchar* nick, const gchar* message)
+{
+	g_signal_emit(maki()->bus, signals[s_whois], 0, time, server, nick, message);
 }
 
 gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
@@ -1633,4 +1639,12 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_whois] =
+		g_signal_new("whois",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 }

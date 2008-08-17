@@ -82,3 +82,4 @@ void maki_dbus_emit_quit (gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_reconnect (gint64, const gchar*);
 void maki_dbus_emit_shutdown (gint64);
 void maki_dbus_emit_topic (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
+void maki_dbus_emit_whois (gint64, const gchar*, const gchar*, const gchar*);

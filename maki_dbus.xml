@@ -462,5 +462,13 @@
 			<arg name="channel" type="s" />
 			<arg name="topic" type="s" />
 		</signal>
+
+		<signal name="whois">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="nick" type="s" />
+			<arg name="message" type="s" />
+			<!-- message == "" signifies the end of the list. -->
+		</signal>
 	</interface>
 </node>
