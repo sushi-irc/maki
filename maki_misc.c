@@ -133,3 +133,19 @@ gboolean maki_write (gint fd, const gchar* buf)
 
 	return (written >= size);
 }
+
+gint maki_send_printf (struct maki_connection* m_conn, const gchar* format, ...)
+{
+	gint ret;
+	gchar* buffer;
+	va_list args;
+
+	va_start(args, format);
+	buffer = g_strdup_vprintf(format, args);
+	va_end(args);
+
+	ret = sashimi_send(m_conn->connection, buffer);
+	g_free(buffer);
+
+	return ret;
+}

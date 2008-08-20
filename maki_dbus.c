@@ -231,7 +231,6 @@ void maki_dbus_emit_whois (gint64 time, const gchar* server, const gchar* nick, 
 
 gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
 {
-	gchar* buffer;
 	GTimeVal time;
 	struct maki_connection* m_conn;
 	struct maki* m = maki();
@@ -242,9 +241,7 @@ gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar*
 
 		g_strdelimit(message, "\r\n", ' ');
 
-		buffer = g_strdup_printf("PRIVMSG %s :\001ACTION %s\001", channel, message);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_send_printf(m_conn, "PRIVMSG %s :\001ACTION %s\001", channel, message);
 
 		maki_dbus_emit_action(time.tv_sec, server, m_conn->user->nick, channel, message);
 	}
@@ -375,12 +372,9 @@ gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* me
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		gchar* buffer;
 		GTimeVal time;
 
-		buffer = g_strdup_printf("PRIVMSG %s :\1%s\1", target, message);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_send_printf(m_conn, "PRIVMSG %s :\1%s\1", target, message);
 
 		g_get_current_time(&time);
 		maki_dbus_emit_own_ctcp(time.tv_sec, server, target, message);
@@ -457,11 +451,7 @@ gboolean maki_dbus_invite (makiDBus* self, gchar* server, gchar* channel, gchar*
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		gchar* buffer;
-
-		buffer = g_strdup_printf("INVITE %s %s", who, channel);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_send_printf(m_conn, "INVITE %s %s", who, channel);
 	}
 
 	return TRUE;
@@ -491,7 +481,6 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* k
 
 gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* who, gchar* message, GError** error)
 {
-	gchar* buffer;
 	struct maki_connection* m_conn;
 	struct maki* m = maki();
 
@@ -499,15 +488,12 @@ gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* w
 	{
 		if (message[0])
 		{
-			buffer = g_strdup_printf("KICK %s %s :%s", channel, who, message);
+			maki_send_printf(m_conn, "KICK %s %s :%s", channel, who, message);
 		}
 		else
 		{
-			buffer = g_strdup_printf("KICK %s %s", channel, who);
+			maki_send_printf(m_conn, "KICK %s %s", channel, who);
 		}
-
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
 	}
 
 	return TRUE;
@@ -520,11 +506,7 @@ gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reas
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		gchar* buffer;
-
-		buffer = g_strdup_printf("KILL %s :%s", nick, reason);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_send_printf(m_conn, "KILL %s :%s", nick, reason);
 	}
 
 	return TRUE;
@@ -537,19 +519,14 @@ gboolean maki_dbus_list (makiDBus* self, gchar* server, gchar* channel, GError**
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		gchar* buffer;
-
 		if (channel[0])
 		{
-			buffer = g_strdup_printf("LIST %s", channel);
+			maki_send_printf(m_conn, "LIST %s", channel);
 		}
 		else
 		{
-			buffer = g_strdup("LIST");
+			maki_send_printf(m_conn, "LIST");
 		}
-
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
 	}
 
 	return TRUE;
@@ -700,19 +677,14 @@ gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mo
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		gchar* buffer;
-
 		if (mode[0])
 		{
-			buffer = g_strdup_printf("MODE %s %s", target, mode);
+			maki_send_printf(m_conn, "MODE %s %s", target, mode);
 		}
 		else
 		{
-			buffer = g_strdup_printf("MODE %s", target);
+			maki_send_printf(m_conn, "MODE %s", target);
 		}
-
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
 	}
 
 	return TRUE;
@@ -787,12 +759,9 @@ gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* 
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		gchar* buffer;
 		GTimeVal time;
 
-		buffer = g_strdup_printf("NOTICE %s :%s", target, message);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_send_printf(m_conn, "NOTICE %s :%s", target, message);
 
 		g_get_current_time(&time);
 		maki_dbus_emit_own_notice(time.tv_sec, m_conn->server, target, message);
@@ -809,11 +778,7 @@ gboolean maki_dbus_oper (makiDBus* self, gchar* server, gchar* name, gchar* pass
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		gchar* buffer;
-
-		buffer = g_strdup_printf("OPER %s %s", name, password);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_send_printf(m_conn, "OPER %s %s", name, password);
 	}
 
 	return TRUE;
@@ -836,7 +801,6 @@ gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError
 
 gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
 {
-	gchar* buffer;
 	struct maki_connection* m_conn;
 	struct maki* m = maki();
 
@@ -844,15 +808,12 @@ gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, gchar* m
 	{
 		if (message[0])
 		{
-			buffer = g_strdup_printf("PART %s :%s", channel, message);
+			maki_send_printf(m_conn, "PART %s :%s", channel, message);
 		}
 		else
 		{
-			buffer = g_strdup_printf("PART %s", channel);
+			maki_send_printf(m_conn, "PART %s", channel);
 		}
-
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
 	}
 
 	return TRUE;
@@ -1123,7 +1084,6 @@ gboolean maki_dbus_support_chantypes (makiDBus* self, gchar* server, gchar** cha
 
 gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* topic, GError** error)
 {
-	gchar* buffer;
 	struct maki_connection* m_conn;
 	struct maki* m = maki();
 
@@ -1131,15 +1091,12 @@ gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* 
 	{
 		if (topic[0])
 		{
-			buffer = g_strdup_printf("TOPIC %s :%s", channel, topic);
+			maki_send_printf(m_conn, "TOPIC %s :%s", channel, topic);
 		}
 		else
 		{
-			buffer = g_strdup_printf("TOPIC %s", channel);
+			maki_send_printf(m_conn, "TOPIC %s", channel);
 		}
-
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
 	}
 
 	return TRUE;
@@ -1355,11 +1312,7 @@ gboolean maki_dbus_whois (makiDBus* self, gchar* server, gchar* mask, GError** e
 
 	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		gchar* buffer;
-
-		buffer = g_strdup_printf("WHOIS %s", mask);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_send_printf(m_conn, "WHOIS %s", mask);
 	}
 
 	return TRUE;

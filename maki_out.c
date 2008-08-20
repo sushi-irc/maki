@@ -31,60 +31,41 @@
 
 void maki_out_away (struct maki_connection* m_conn, const gchar* message)
 {
-	gchar* buffer;
-
-	buffer = g_strdup_printf("AWAY :%s", message);
-	sashimi_send(m_conn->connection, buffer);
-	g_free(buffer);
+	maki_send_printf(m_conn, "AWAY :%s", message);
 }
 
 void maki_out_join (struct maki_connection* m_conn, const gchar* channel, const gchar* key)
 {
-	gchar* buffer;
-
 	if (key != NULL && key[0])
 	{
-		buffer = g_strdup_printf("JOIN %s %s", channel, key);
+		maki_send_printf(m_conn, "JOIN %s %s", channel, key);
 	}
 	else
 	{
-		buffer = g_strdup_printf("JOIN %s", channel);
+		maki_send_printf(m_conn, "JOIN %s", channel);
 	}
-
-	sashimi_send(m_conn->connection, buffer);
-	g_free(buffer);
 }
 
 void maki_out_nick (struct maki_connection* m_conn, const gchar* nick)
 {
-	gchar* buffer;
-
-	buffer = g_strdup_printf("NICK %s", nick);
-	sashimi_send(m_conn->connection, buffer);
-	g_free(buffer);
+	maki_send_printf(m_conn, "NICK %s", nick);
 }
 
 void maki_out_nickserv (struct maki_connection* m_conn)
 {
 	if (m_conn->nickserv.password != NULL)
 	{
-		gchar* buffer;
-
 		if (strcmp(m_conn->user->nick, m_conn->initial_nick) != 0)
 		{
 			if (m_conn->nickserv.ghost)
 			{
-				buffer = g_strdup_printf("PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
-				sashimi_send(m_conn->connection, buffer);
-				g_free(buffer);
+				maki_send_printf(m_conn, "PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
 			}
 
 			maki_out_nick(m_conn, m_conn->initial_nick);
 		}
 
-		buffer = g_strdup_printf("PRIVMSG NickServ :IDENTIFY %s", m_conn->nickserv.password);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_send_printf(m_conn, "PRIVMSG NickServ :IDENTIFY %s", m_conn->nickserv.password);
 	}
 }
 
@@ -165,7 +146,6 @@ void maki_out_privmsg (struct maki_connection* m_conn, const gchar* target, gcha
 
 void maki_out_quit (struct maki_connection* m_conn, const gchar* message)
 {
-	gchar* buffer;
 	GTimeVal time;
 
 	GList* list;
@@ -173,9 +153,7 @@ void maki_out_quit (struct maki_connection* m_conn, const gchar* message)
 
 	g_get_current_time(&time);
 
-	buffer = g_strdup_printf("QUIT :%s", message);
-	sashimi_send(m_conn->connection, buffer);
-	g_free(buffer);
+	maki_send_printf(m_conn, "QUIT :%s", message);
 
 	list = g_hash_table_get_values(m_conn->channels);
 
