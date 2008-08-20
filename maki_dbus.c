@@ -670,7 +670,7 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 
 		if (messages == NULL)
 		{
-			maki_out_privmsg_split(m_conn, target, message, FALSE);
+			maki_out_privmsg(m_conn, target, message, FALSE);
 		}
 		else
 		{
@@ -682,7 +682,7 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 
 				if ((*tmp)[0])
 				{
-					maki_out_privmsg_split(m_conn, target, *tmp, TRUE);
+					maki_out_privmsg(m_conn, target, *tmp, TRUE);
 				}
 			}
 

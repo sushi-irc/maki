@@ -88,7 +88,7 @@ void maki_out_nickserv (struct maki_connection* m_conn)
 	}
 }
 
-void maki_out_privmsg (struct maki_connection* m_conn, const gchar* target, const gchar* message, gboolean queue)
+static void maki_out_privmsg_internal (struct maki_connection* m_conn, const gchar* target, const gchar* message, gboolean queue)
 {
 	gchar* buffer;
 	GTimeVal time;
@@ -112,7 +112,7 @@ void maki_out_privmsg (struct maki_connection* m_conn, const gchar* target, cons
 	maki_dbus_emit_own_message(time.tv_sec, m_conn->server, target, message);
 }
 
-void maki_out_privmsg_split (struct maki_connection* m_conn, const gchar* target, gchar* message, gboolean queue)
+void maki_out_privmsg (struct maki_connection* m_conn, const gchar* target, gchar* message, gboolean queue)
 {
 	gchar tmp = '\0';
 	gint length = 512;
@@ -154,13 +154,13 @@ void maki_out_privmsg_split (struct maki_connection* m_conn, const gchar* target
 		tmp = message[i];
 		message[i] = '\0';
 
-		maki_out_privmsg(m_conn, target, message, queue);
+		maki_out_privmsg_internal(m_conn, target, message, queue);
 
 		message[i] = tmp;
 		message += i;
 	}
 
-	maki_out_privmsg(m_conn, target, message, queue);
+	maki_out_privmsg_internal(m_conn, target, message, queue);
 }
 
 void maki_out_quit (struct maki_connection* m_conn, const gchar* message)
