@@ -1086,17 +1086,18 @@ void maki_in_err_nosuchnick (struct maki_connection* m_conn, glong time, gchar* 
  */
 gpointer maki_in_runner (gpointer data)
 {
-	gchar* message;
-	GTimeVal time;
 	struct maki* m = data;
-	struct maki_connection* m_conn;
-	struct sashimi_message* s_msg;
 
 	for (;;)
 	{
+		gchar* message;
+		GTimeVal time;
+		struct maki_connection* m_conn;
+		struct sashimi_message* s_msg;
+
 		s_msg = g_async_queue_pop(m->message_queue);
 
-		if (s_msg->message == NULL && s_msg->data == NULL)
+		if (G_UNLIKELY(s_msg->message == NULL && s_msg->data == NULL))
 		{
 			sashimi_message_free(s_msg);
 			g_thread_exit(NULL);
@@ -1127,7 +1128,7 @@ gpointer maki_in_runner (gpointer data)
 
 		maki_debug("IN: [%ld] %s %s\n", time.tv_sec, m_conn->server, message);
 
-		if (message[0] == ':')
+		if (G_LIKELY(message[0] == ':'))
 		{
 			gchar** parts;
 			gchar** from;
