@@ -163,6 +163,8 @@ void maki_connection_free (gpointer data)
 		g_source_remove(m_conn->reconnect);
 	}
 
+	maki_connection_disconnect(m_conn, NULL);
+
 	maki_cache_remove(m_conn->users, m_conn->user->nick);
 
 	g_free(m_conn->support.prefix.prefixes);
@@ -175,7 +177,6 @@ void maki_connection_free (gpointer data)
 	g_hash_table_destroy(m_conn->logs);
 	g_hash_table_destroy(m_conn->channels);
 	maki_cache_free(m_conn->users);
-	maki_connection_disconnect(m_conn, NULL);
 	sashimi_free(m_conn->connection);
 	g_free(m_conn->name);
 	g_free(m_conn->initial_nick);
