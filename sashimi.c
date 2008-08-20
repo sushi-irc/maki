@@ -80,6 +80,25 @@ struct sashimi_connection
 	reconnect;
 };
 
+struct sashimi_message* sashimi_message_new (gchar* message, gpointer data)
+{
+	struct sashimi_message* s_msg;
+
+	s_msg = g_new(struct sashimi_message, 1);
+	s_msg->message = message;
+	s_msg->data = data;
+
+	return s_msg;
+}
+
+void sashimi_message_free (gpointer data)
+{
+	struct sashimi_message* s_msg = data;
+
+	g_free(s_msg->message);
+	g_free(s_msg);
+}
+
 static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpointer data)
 {
 	GIOStatus status;
@@ -120,9 +139,7 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 			continue;
 		}
 
-		message = g_new(struct sashimi_message, 1);
-		message->message = buffer;
-		message->data = connection->message_data;
+		message = sashimi_message_new(buffer, connection->message_data);
 
 		g_async_queue_push(connection->message_queue, message);
 	}

@@ -75,7 +75,7 @@ struct maki* maki_new (void)
 	m->config = maki_config_new(config_path);
 	g_free(config_path);
 
-	m->message_queue = g_async_queue_new();
+	m->message_queue = g_async_queue_new_full(sashimi_message_free);
 
 	m->opt.debug = FALSE;
 

@@ -37,6 +37,9 @@ struct sashimi_message
 };
 
 
+struct sashimi_message* sashimi_message_new (gchar*, gpointer);
+void sashimi_message_free (gpointer);
+
 struct sashimi_connection* sashimi_new (const gchar*, gushort, GAsyncQueue*, gpointer);
 void sashimi_reconnect (struct sashimi_connection*, void (*) (gpointer), gpointer);
 void sashimi_timeout (struct sashimi_connection*, guint);
