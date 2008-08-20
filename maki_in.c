@@ -1094,45 +1094,31 @@ gpointer maki_in_runner (gpointer data)
 
 	for (;;)
 	{
-		g_get_current_time(&time);
-		g_time_val_add(&time, 1000000);
+		s_msg = g_async_queue_pop(m->message_queue);
 
-		s_msg = g_async_queue_timed_pop(m->message_queue, &time);
-
-		if (s_msg == NULL)
+		if (s_msg->message == NULL && s_msg->data == NULL)
 		{
-			if (m->threads.terminate)
-			{
-				g_thread_exit(NULL);
-			}
-
-			continue;
+			sashimi_message_free(s_msg);
+			g_thread_exit(NULL);
 		}
 
 		m_conn = s_msg->data;
 		message = s_msg->message;
 
-		g_free(s_msg);
-
-		/*
-		 * Check for valid UTF-8, because strange crashes can occur otherwise.
-		 */
+		/* Check for valid UTF-8, because strange crashes can occur otherwise. */
 		if (!g_utf8_validate(message, -1, NULL))
 		{
 			gchar* tmp;
 
-			/*
-			 * If the message is not in UTF-8 we will just assume that it is in ISO-8859-1.
-			 */
+			/* If the message is not in UTF-8 we will just assume that it is in ISO-8859-1. */
 			if ((tmp = g_convert_with_fallback(message, -1, "UTF-8", "ISO-8859-1", "?", NULL, NULL, NULL)) != NULL)
 			{
 				g_free(message);
-				message = tmp;
+				s_msg->message = message = tmp;
 			}
 			else
 			{
-				g_free(message);
-
+				sashimi_message_free(s_msg);
 				continue;
 			}
 		}
@@ -1176,7 +1162,7 @@ gpointer maki_in_runner (gpointer data)
 				{
 					g_strfreev(from);
 					g_strfreev(parts);
-					g_free(message);
+					sashimi_message_free(s_msg);
 					continue;
 				}
 			}
@@ -1316,6 +1302,6 @@ gpointer maki_in_runner (gpointer data)
 			g_strfreev(parts);
 		}
 
-		g_free(message);
+		sashimi_message_free(s_msg);
 	}
 }

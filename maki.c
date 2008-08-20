@@ -79,7 +79,6 @@ struct maki* maki_new (void)
 
 	m->opt.debug = FALSE;
 
-	m->threads.terminate = FALSE;
 	m->threads.messages = g_thread_create(maki_in_runner, m, TRUE, NULL);
 
 	m->loop = g_main_loop_new(NULL, FALSE);
@@ -89,7 +88,13 @@ struct maki* maki_new (void)
 
 void maki_free (struct maki* m)
 {
-	m->threads.terminate = TRUE;
+	struct sashimi_message* s_msg;
+
+	/* Send a bogus message so the messages thread wakes up. */
+	s_msg = sashimi_message_new(NULL, NULL);
+
+	g_async_queue_push(m->message_queue, s_msg);
+
 	g_thread_join(m->threads.messages);
 	g_async_queue_unref(m->message_queue);
 

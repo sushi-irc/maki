@@ -83,8 +83,6 @@ struct maki
 	struct
 	{
 		GThread* messages;
-
-		gboolean terminate;
 	}
 	threads;
 };
