@@ -1082,6 +1082,24 @@ gboolean maki_dbus_support_chantypes (makiDBus* self, gchar* server, gchar** cha
 	return TRUE;
 }
 
+gboolean maki_dbus_support_prefix (makiDBus* self, gchar* server, gchar*** prefix, GError** error)
+{
+	struct maki_connection* m_conn;
+	struct maki* m = maki();
+
+	*prefix = NULL;
+
+	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	{
+		*prefix = g_new(gchar*, 3);
+		(*prefix)[0] = g_strdup(m_conn->support.prefix.modes);
+		(*prefix)[1] = g_strdup(m_conn->support.prefix.prefixes);
+		(*prefix)[2] = NULL;
+	}
+
+	return TRUE;
+}
+
 gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* topic, GError** error)
 {
 	struct maki_connection* m_conn;

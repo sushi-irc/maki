@@ -200,6 +200,11 @@
 			<arg name="chantypes" type="s" direction="out" />
 		</method>
 
+		<method name="support_prefix">
+			<arg name="server" type="s" />
+			<arg name="prefix" type="as" direction="out" />
+		</method>
+
 		<method name="topic">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
