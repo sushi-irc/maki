@@ -1,4 +1,4 @@
 maki
-maki_dbus_glue.h
-maki_marshal.c
-maki_marshal.h
+dbus_glue.h
+marshal.c
+marshal.h
