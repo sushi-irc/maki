@@ -197,7 +197,6 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 
 	if ((ret = sashimi_connect(m_conn->connection)) == 0)
 	{
-		gchar* buffer;
 		GTimeVal time;
 		struct maki_user* m_user;
 
@@ -216,9 +215,7 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 
 		maki_out_nick(m_conn, m_conn->initial_nick);
 
-		buffer = g_strdup_printf("USER %s 0 * :%s", m_conn->initial_nick, m_conn->name);
-		sashimi_send(m_conn->connection, buffer);
-		g_free(buffer);
+		maki_send_printf(m_conn, "USER %s 0 * :%s", m_conn->initial_nick, m_conn->name);
 
 		g_get_current_time(&time);
 		maki_dbus_emit_connect(time.tv_sec, m_conn->server);
