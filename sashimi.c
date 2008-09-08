@@ -417,3 +417,15 @@ int sashimi_queue (struct sashimi_connection* connection, const gchar* message)
 
 	return 0;
 }
+
+int sashimi_send_or_queue (struct sashimi_connection* connection, const gchar* message)
+{
+	if (g_queue_is_empty(connection->queue))
+	{
+		return sashimi_send(connection, message);
+	}
+	else
+	{
+		return sashimi_queue(connection, message);
+	}
+}

@@ -46,6 +46,7 @@ void sashimi_timeout (struct sashimi_connection*, guint);
 int sashimi_connect (struct sashimi_connection*);
 int sashimi_send (struct sashimi_connection*, const gchar*);
 int sashimi_queue (struct sashimi_connection*, const gchar*);
+int sashimi_send_or_queue (struct sashimi_connection*, const gchar*);
 int sashimi_disconnect (struct sashimi_connection*);
 int sashimi_free (struct sashimi_connection*);
 

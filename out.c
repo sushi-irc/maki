@@ -84,7 +84,7 @@ static void maki_out_privmsg_internal (struct maki_connection* m_conn, const gch
 	}
 	else
 	{
-		sashimi_send(m_conn->connection, buffer);
+		sashimi_send_or_queue(m_conn->connection, buffer);
 	}
 
 	g_free(buffer);
