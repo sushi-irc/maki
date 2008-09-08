@@ -10,8 +10,8 @@ CFLAGS += -DLOCALEDIR='"$(localedir)"'
 dbusdir = $(shell pkg-config --variable session_bus_services_dir dbus-1)
 
 COMPONENTS = cache channel channel_user config connection dbus in log marshal misc out servers user
-HEADERS    = maki.h sashimi.h $(COMPONENTS:%=maki_%.h) maki_dbus_glue.h
-OBJECTS    = maki.o sashimi.o $(COMPONENTS:%=maki_%.o)
+HEADERS    = maki.h sashimi.h $(COMPONENTS:%=%.h) dbus_glue.h
+OBJECTS    = maki.o sashimi.o $(COMPONENTS:%=%.o)
 
 all: maki
 
@@ -26,20 +26,20 @@ install: all
 clean:
 	$(RM) maki
 	$(RM) $(OBJECTS)
-	$(RM) maki_dbus_glue.h maki_marshal.c maki_marshal.h
+	$(RM) dbus_glue.h marshal.c marshal.h
 	$(RM) libsashimi.so
 
 	$(MAKE) -C po $@
 
-maki_dbus.c: maki_dbus_glue.h maki_marshal.h
+dbus.c: dbus_glue.h marshal.h
 
-maki_dbus_glue.h: maki_dbus.xml
+dbus_glue.h: dbus.xml
 	$(QUIET_GEN) dbus-binding-tool --mode=glib-server --prefix=maki_dbus $+ > $@
 
-maki_marshal.c: maki_marshal.list
+marshal.c: marshal.list
 	$(QUIET_GEN) glib-genmarshal --body $+ > $@
 
-maki_marshal.h: maki_marshal.list
+marshal.h: marshal.list
 	$(QUIET_GEN) glib-genmarshal --header $+ > $@
 
 $(OBJECTS): %.o: %.c $(HEADERS)

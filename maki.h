@@ -40,18 +40,18 @@
 
 struct maki;
 
-#include "maki_cache.h"
-#include "maki_channel.h"
-#include "maki_channel_user.h"
-#include "maki_config.h"
-#include "maki_connection.h"
-#include "maki_dbus.h"
-#include "maki_in.h"
-#include "maki_log.h"
-#include "maki_misc.h"
-#include "maki_out.h"
-#include "maki_servers.h"
-#include "maki_user.h"
+#include "cache.h"
+#include "channel.h"
+#include "channel_user.h"
+#include "config.h"
+#include "connection.h"
+#include "dbus.h"
+#include "in.h"
+#include "log.h"
+#include "misc.h"
+#include "out.h"
+#include "servers.h"
+#include "user.h"
 
 struct maki
 {

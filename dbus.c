@@ -34,7 +34,7 @@
 #include <unistd.h>
 
 #include "maki.h"
-#include "maki_marshal.h"
+#include "marshal.h"
 
 enum
 {
@@ -1336,7 +1336,7 @@ gboolean maki_dbus_whois (makiDBus* self, gchar* server, gchar* mask, GError** e
 	return TRUE;
 }
 
-#include "maki_dbus_glue.h"
+#include "dbus_glue.h"
 
 G_DEFINE_TYPE(makiDBus, maki_dbus, G_TYPE_OBJECT)
 
