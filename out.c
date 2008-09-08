@@ -55,7 +55,7 @@ void maki_out_nickserv (struct maki_connection* m_conn)
 {
 	if (m_conn->nickserv.password != NULL)
 	{
-		if (strcmp(m_conn->user->nick, m_conn->initial_nick) != 0)
+		if (g_ascii_strcasecmp(m_conn->user->nick, m_conn->initial_nick) != 0)
 		{
 			if (m_conn->nickserv.ghost)
 			{

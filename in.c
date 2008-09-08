@@ -195,7 +195,7 @@ void maki_in_privmsg (struct maki_connection* m_conn, glong time, gchar* nick, g
 			}
 			else
 			{
-				if (strcmp(target, m_conn->user->nick) == 0)
+				if (g_ascii_strcasecmp(target, m_conn->user->nick) == 0)
 				{
 					if (strncmp(message, "VERSION", 7) == 0)
 					{
@@ -260,7 +260,7 @@ void maki_in_join (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 		g_hash_table_replace(m_chan->users, m_cuser->user->nick, m_cuser);
 	}
 
-	if (strcmp(nick, m_conn->user->nick) == 0)
+	if (g_ascii_strcasecmp(nick, m_conn->user->nick) == 0)
 	{
 		if (m_chan != NULL)
 		{
@@ -312,7 +312,7 @@ void maki_in_part (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 		g_hash_table_remove(m_chan->users, nick);
 	}
 
-	if (strcmp(nick, m_conn->user->nick) == 0)
+	if (g_ascii_strcasecmp(nick, m_conn->user->nick) == 0)
 	{
 		if (m_chan != NULL)
 		{
@@ -430,7 +430,7 @@ void maki_in_kick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 		g_hash_table_remove(m_chan->users, who);
 	}
 
-	if (strcmp(who, m_conn->user->nick) == 0)
+	if (g_ascii_strcasecmp(who, m_conn->user->nick) == 0)
 	{
 		if (m_chan != NULL)
 		{
@@ -489,7 +489,7 @@ void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 
 	new_nick = maki_remove_colon(remaining);
 
-	if (strcmp(nick, m_conn->user->nick) == 0)
+	if (g_ascii_strcasecmp(nick, m_conn->user->nick) == 0)
 	{
 		struct maki_user* m_user;
 
@@ -498,7 +498,7 @@ void maki_in_nick (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 		maki_cache_remove(m_conn->users, m_conn->user->nick);
 		m_conn->user = m_user;
 
-		if (strcmp(m_conn->user->nick, m_conn->initial_nick) == 0)
+		if (g_ascii_strcasecmp(m_conn->user->nick, m_conn->initial_nick) == 0)
 		{
 			maki_out_nickserv(m_conn);
 		}
@@ -592,7 +592,7 @@ void maki_in_mode (struct maki_connection* m_conn, glong time, gchar* nick, gcha
 		return;
 	}
 
-	own = (strcmp(nick, m_conn->user->nick) == 0);
+	own = (g_ascii_strcasecmp(nick, m_conn->user->nick) == 0);
 
 	if (is_numeric)
 	{
@@ -787,7 +787,7 @@ void maki_in_topic (struct maki_connection* m_conn, glong time, gchar* nick, gch
 	}
 	else
 	{
-		if (strcmp(nick, m_conn->user->nick) == 0)
+		if (g_ascii_strcasecmp(nick, m_conn->user->nick) == 0)
 		{
 			maki_log(m_conn, channel, "• You change the topic: %s", topic);
 		}
