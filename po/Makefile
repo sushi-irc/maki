@@ -14,7 +14,6 @@ install: $(PO:%.po=%.mo)
 clean:
 	$(RM) maki.pot
 	$(RM) *.mo
-	$(RM) *.po~
 
 maki.pot: $(C) $(H)
 	$(QUIET_GEN) xgettext --keyword=_ --keyword=N_ --output=$@ $+
@@ -22,7 +21,7 @@ maki.pot: $(C) $(H)
 %.po: maki.pot
 	$(QUIET_GEN) if test -f $@; then \
 		touch $@; \
-		msgmerge --update $@ $+; \
+		msgmerge --update --backup=off $@ $+; \
 	else \
 		msginit --input=$+ --output=$@; \
 	fi
