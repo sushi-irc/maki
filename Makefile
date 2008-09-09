@@ -26,15 +26,19 @@ install: all
 clean:
 	$(RM) maki
 	$(RM) $(OBJECTS)
-	$(RM) dbus_glue.h marshal.c marshal.h
+	$(RM) dbus_glue.h marshal.list marshal.c marshal.h
 	$(RM) libsashimi.so
 
 	$(MAKE) -C po $@
 
-dbus.c: dbus_glue.h marshal.h
-
 dbus_glue.h: dbus.xml
 	$(QUIET_GEN) dbus-binding-tool --mode=glib-server --prefix=maki_dbus $+ > $@
+
+marshal.list: dbus.c
+	$(QUIET_GEN) grep -E -h -o 'g_cclosure_user_marshal_[0-9A-Z]+__([0-9A-Z]+_?)+' $+ \
+		| sed -e 's/^g_cclosure_user_marshal_//' -e 's/__/:/' -e 's/_/,/g' \
+		| sort -u \
+		> $@
 
 marshal.c: marshal.list
 	$(QUIET_GEN) glib-genmarshal --body $+ > $@
