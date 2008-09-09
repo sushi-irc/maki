@@ -1375,7 +1375,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_away] =
@@ -1383,7 +1383,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING,
+		             maki_marshal_VOID__INT64_STRING,
 		             G_TYPE_NONE, 2,
 		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_away_message] =
@@ -1391,7 +1391,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_back] =
@@ -1399,7 +1399,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING,
+		             maki_marshal_VOID__INT64_STRING,
 		             G_TYPE_NONE, 2,
 		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_banlist] =
@@ -1407,7 +1407,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING_INT64,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_INT64,
 		             G_TYPE_NONE, 6,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT64);
 	signals[s_connect] =
@@ -1415,7 +1415,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING,
+		             maki_marshal_VOID__INT64_STRING,
 		             G_TYPE_NONE, 2,
 		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_connected] =
@@ -1423,7 +1423,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING,
 		             G_TYPE_NONE, 3,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_ctcp] =
@@ -1431,7 +1431,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_invalid_target] =
@@ -1439,7 +1439,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING,
 		             G_TYPE_NONE, 3,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_invite] =
@@ -1447,7 +1447,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_join] =
@@ -1455,7 +1455,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_kick] =
@@ -1463,7 +1463,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 6,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_list] =
@@ -1471,7 +1471,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_INT64_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_INT64_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_message] =
@@ -1479,7 +1479,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_mode] =
@@ -1487,7 +1487,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 6,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_motd] =
@@ -1495,7 +1495,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING,
 		             G_TYPE_NONE, 3,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_nick] =
@@ -1503,7 +1503,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_notice] =
@@ -1511,7 +1511,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_oper] =
@@ -1519,7 +1519,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING,
+		             maki_marshal_VOID__INT64_STRING,
 		             G_TYPE_NONE, 2,
 		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_own_ctcp] =
@@ -1527,7 +1527,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_own_message] =
@@ -1535,7 +1535,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_own_notice] =
@@ -1543,7 +1543,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_part] =
@@ -1551,7 +1551,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_query] =
@@ -1559,7 +1559,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_query_ctcp] =
@@ -1567,7 +1567,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_query_notice] =
@@ -1575,7 +1575,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_quit] =
@@ -1583,7 +1583,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_reconnect] =
@@ -1591,7 +1591,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING,
+		             maki_marshal_VOID__INT64_STRING,
 		             G_TYPE_NONE, 2,
 		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_shutdown] =
@@ -1599,7 +1599,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64,
+		             maki_marshal_VOID__INT64,
 		             G_TYPE_NONE, 1,
 		             G_TYPE_INT64);
 	signals[s_topic] =
@@ -1607,7 +1607,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_whois] =
@@ -1615,7 +1615,7 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
-		             g_cclosure_user_marshal_VOID__INT64_STRING_STRING_STRING,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 }

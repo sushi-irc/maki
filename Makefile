@@ -35,16 +35,16 @@ dbus_glue.h: dbus.xml
 	$(QUIET_GEN) dbus-binding-tool --mode=glib-server --prefix=maki_dbus $+ > $@
 
 marshal.list: dbus.c
-	$(QUIET_GEN) grep -E -h -o 'g_cclosure_user_marshal_[0-9A-Z]+__([0-9A-Z]+_?)+' $+ \
-		| sed -e 's/^g_cclosure_user_marshal_//' -e 's/__/:/' -e 's/_/,/g' \
+	$(QUIET_GEN) grep -E -h -o 'maki_marshal_[0-9A-Z]+__([0-9A-Z]+_?)+' $+ \
+		| sed -e 's/^maki_marshal_//' -e 's/__/:/' -e 's/_/,/g' \
 		| sort -u \
 		> $@
 
 marshal.c: marshal.list
-	$(QUIET_GEN) glib-genmarshal --body $+ > $@
+	$(QUIET_GEN) glib-genmarshal --body --prefix=maki_marshal $+ > $@
 
 marshal.h: marshal.list
-	$(QUIET_GEN) glib-genmarshal --header $+ > $@
+	$(QUIET_GEN) glib-genmarshal --header --prefix=maki_marshal $+ > $@
 
 $(OBJECTS): %.o: %.c $(HEADERS)
 	$(QUIET_CC) $(CC) $(CFLAGS) -c -o $@ $<
