@@ -33,7 +33,7 @@ struct maki_connection* maki_connection_new (const gchar* server)
 {
 	gchar* path;
 	GKeyFile* key_file;
-	struct maki_connection* m_conn = NULL;
+	struct maki_connection* conn = NULL;
 	struct maki* m = maki();
 
 	path = g_build_filename(m->directories.servers, server, NULL);
@@ -78,37 +78,37 @@ struct maki_connection* maki_connection_new (const gchar* server)
 			name = g_strdup(g_get_real_name());
 		}
 
-		m_conn = g_new(struct maki_connection, 1);
-		m_conn->server = g_strdup(server);
-		m_conn->initial_nick = g_strdup(nick);
-		m_conn->name = g_strdup(name);
-		m_conn->autoconnect = autoconnect;
-		m_conn->connected = FALSE;
-		m_conn->reconnect = 0;
-		m_conn->retries = m->config->reconnect.retries;
-		m_conn->connection = sashimi_new(address, port, m->message_queue, m_conn);
-		m_conn->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_free);
-		m_conn->users = maki_cache_new(maki_user_new, maki_user_free, m_conn);
-		m_conn->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_log_free);
+		conn = g_new(struct maki_connection, 1);
+		conn->server = g_strdup(server);
+		conn->initial_nick = g_strdup(nick);
+		conn->name = g_strdup(name);
+		conn->autoconnect = autoconnect;
+		conn->connected = FALSE;
+		conn->reconnect = 0;
+		conn->retries = m->config->reconnect.retries;
+		conn->connection = sashimi_new(address, port, m->message_queue, conn);
+		conn->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_free);
+		conn->users = maki_cache_new(maki_user_new, maki_user_free, conn);
+		conn->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_log_free);
 
-		m_conn->user = maki_cache_insert(m_conn->users, nick);
+		conn->user = maki_cache_insert(conn->users, nick);
 
-		m_conn->nickserv.ghost = nickserv_ghost;
-		m_conn->nickserv.password = g_strdup(nickserv);
-		m_conn->commands = g_strdupv(commands);
-		m_conn->ignores = g_strdupv(ignores);
-		m_conn->support.chanmodes = NULL;
-		m_conn->support.chantypes = g_strdup("#&");
-		m_conn->support.prefix.modes = g_strdup("ov");
-		m_conn->support.prefix.prefixes = g_strdup("@+");
+		conn->nickserv.ghost = nickserv_ghost;
+		conn->nickserv.password = g_strdup(nickserv);
+		conn->commands = g_strdupv(commands);
+		conn->ignores = g_strdupv(ignores);
+		conn->support.chanmodes = NULL;
+		conn->support.chantypes = g_strdup("#&");
+		conn->support.prefix.modes = g_strdup("ov");
+		conn->support.prefix.prefixes = g_strdup("@+");
 
-		sashimi_timeout(m_conn->connection, 60);
+		sashimi_timeout(conn->connection, 60);
 
-		if (m_conn->autoconnect)
+		if (conn->autoconnect)
 		{
-			if (maki_connection_connect(m_conn) != 0)
+			if (maki_connection_connect(conn) != 0)
 			{
-				maki_reconnect_callback(m_conn);
+				maki_reconnect_callback(conn);
 			}
 		}
 
@@ -127,16 +127,16 @@ struct maki_connection* maki_connection_new (const gchar* server)
 			{
 				gboolean autojoin;
 				gchar* key;
-				struct maki_channel* m_chan;
+				struct maki_channel* chan;
 
 				autojoin = g_key_file_get_boolean(key_file, *group, "autojoin", NULL);
 				key = g_key_file_get_string(key_file, *group, "key", NULL);
 
-				m_chan = maki_channel_new(*group);
-				m_chan->autojoin = autojoin;
-				m_chan->key = g_strdup(key);
+				chan = maki_channel_new(*group);
+				chan->autojoin = autojoin;
+				chan->key = g_strdup(key);
 
-				g_hash_table_replace(m_conn->channels, m_chan->name, m_chan);
+				g_hash_table_replace(conn->channels, chan->name, chan);
 
 				g_free(key);
 			}
@@ -148,7 +148,7 @@ struct maki_connection* maki_connection_new (const gchar* server)
 	g_key_file_free(key_file);
 	g_free(path);
 
-	return m_conn;
+	return conn;
 }
 
 /**
@@ -156,69 +156,69 @@ struct maki_connection* maki_connection_new (const gchar* server)
  */
 void maki_connection_free (gpointer data)
 {
-	struct maki_connection* m_conn = data;
+	struct maki_connection* conn = data;
 
-	if (m_conn->reconnect != 0)
+	if (conn->reconnect != 0)
 	{
-		g_source_remove(m_conn->reconnect);
+		g_source_remove(conn->reconnect);
 	}
 
-	maki_connection_disconnect(m_conn, NULL);
+	maki_connection_disconnect(conn, NULL);
 
-	maki_cache_remove(m_conn->users, m_conn->user->nick);
+	maki_cache_remove(conn->users, conn->user->nick);
 
-	g_free(m_conn->support.prefix.prefixes);
-	g_free(m_conn->support.prefix.modes);
-	g_free(m_conn->support.chantypes);
-	g_free(m_conn->support.chanmodes);
-	g_strfreev(m_conn->ignores);
-	g_strfreev(m_conn->commands);
-	g_free(m_conn->nickserv.password);
-	g_hash_table_destroy(m_conn->logs);
-	g_hash_table_destroy(m_conn->channels);
-	maki_cache_free(m_conn->users);
-	sashimi_free(m_conn->connection);
-	g_free(m_conn->name);
-	g_free(m_conn->initial_nick);
-	g_free(m_conn->server);
-	g_free(m_conn);
+	g_free(conn->support.prefix.prefixes);
+	g_free(conn->support.prefix.modes);
+	g_free(conn->support.chantypes);
+	g_free(conn->support.chanmodes);
+	g_strfreev(conn->ignores);
+	g_strfreev(conn->commands);
+	g_free(conn->nickserv.password);
+	g_hash_table_destroy(conn->logs);
+	g_hash_table_destroy(conn->channels);
+	maki_cache_free(conn->users);
+	sashimi_free(conn->connection);
+	g_free(conn->name);
+	g_free(conn->initial_nick);
+	g_free(conn->server);
+	g_free(conn);
 }
 
 /**
  * This function is a wrapper around sashimi_connect().
  * It handles the initial login with NICK and USER and emits the connect signal.
  */
-gint maki_connection_connect (struct maki_connection* m_conn)
+gint maki_connection_connect (struct maki_connection* conn)
 {
 	gint ret;
 	struct maki* m = maki();
 
-	sashimi_reconnect(m_conn->connection, maki_reconnect_callback, m_conn);
+	sashimi_reconnect(conn->connection, maki_reconnect_callback, conn);
 
-	if ((ret = sashimi_connect(m_conn->connection)) == 0)
+	if ((ret = sashimi_connect(conn->connection)) == 0)
 	{
 		GTimeVal time;
-		struct maki_user* m_user;
+		struct maki_user* user;
 
-		if (m_conn->reconnect != 0)
+		if (conn->reconnect != 0)
 		{
-			g_source_remove(m_conn->reconnect);
-			m_conn->reconnect = 0;
+			g_source_remove(conn->reconnect);
+			conn->reconnect = 0;
 		}
 
-		m_conn->retries = m->config->reconnect.retries;
+		conn->retries = m->config->reconnect.retries;
 
-		m_user = maki_cache_insert(m_conn->users, m_conn->initial_nick);
-		maki_user_copy(m_conn->user, m_user);
-		maki_cache_remove(m_conn->users, m_conn->user->nick);
-		m_conn->user = m_user;
+		user = maki_cache_insert(conn->users, conn->initial_nick);
+		maki_user_copy(conn->user, user);
+		maki_cache_remove(conn->users, conn->user->nick);
+		conn->user = user;
 
-		maki_out_nick(m_conn, m_conn->initial_nick);
+		maki_out_nick(conn, conn->initial_nick);
 
-		maki_send_printf(m_conn, "USER %s 0 * :%s", m_conn->initial_nick, m_conn->name);
+		maki_send_printf(conn, "USER %s 0 * :%s", conn->initial_nick, conn->name);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_connect(time.tv_sec, m_conn->server);
+		maki_dbus_emit_connect(time.tv_sec, conn->server);
 	}
 
 	return ret;
@@ -227,30 +227,30 @@ gint maki_connection_connect (struct maki_connection* m_conn)
 /**
  * This function is a wrapper around sashimi_disconnect().
  */
-gint maki_connection_disconnect (struct maki_connection* m_conn, const gchar* message)
+gint maki_connection_disconnect (struct maki_connection* conn, const gchar* message)
 {
 	gint ret;
 	GList* list;
 	GList* tmp;
 
-	sashimi_reconnect(m_conn->connection, NULL, NULL);
+	sashimi_reconnect(conn->connection, NULL, NULL);
 
 	if (message != NULL)
 	{
-		maki_out_quit(m_conn, message);
+		maki_out_quit(conn, message);
 	}
 
-	m_conn->connected = FALSE;
-	ret = sashimi_disconnect(m_conn->connection);
+	conn->connected = FALSE;
+	ret = sashimi_disconnect(conn->connection);
 
 	/* Remove all users from all channels, because otherwise phantom users may be left behind. */
-	list = g_hash_table_get_values(m_conn->channels);
+	list = g_hash_table_get_values(conn->channels);
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* m_chan = tmp->data;
+		struct maki_channel* chan = tmp->data;
 
-		g_hash_table_remove_all(m_chan->users);
+		g_hash_table_remove_all(chan->users);
 	}
 
 	g_list_free(list);

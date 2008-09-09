@@ -168,9 +168,9 @@ static void maki_signal (int signo)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_connection* m_conn = tmp->data;
+		struct maki_connection* conn = tmp->data;
 
-		maki_connection_disconnect(m_conn, SUSHI_QUIT_MESSAGE);
+		maki_connection_disconnect(conn, SUSHI_QUIT_MESSAGE);
 	}
 
 	g_list_free(list);

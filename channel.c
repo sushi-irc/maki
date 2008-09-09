@@ -29,18 +29,18 @@
 
 struct maki_channel* maki_channel_new (const gchar* name)
 {
-	struct maki_channel* m_chan;
+	struct maki_channel* chan;
 
-	m_chan = g_new(struct maki_channel, 1);
+	chan = g_new(struct maki_channel, 1);
 
-	m_chan->name = g_strdup(name);
-	m_chan->autojoin = FALSE;
-	m_chan->joined = FALSE;
-	m_chan->key = NULL;
-	m_chan->users = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_user_free);
-	m_chan->topic = NULL;
+	chan->name = g_strdup(name);
+	chan->autojoin = FALSE;
+	chan->joined = FALSE;
+	chan->key = NULL;
+	chan->users = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_user_free);
+	chan->topic = NULL;
 
-	return m_chan;
+	return chan;
 }
 
 /**
@@ -48,13 +48,13 @@ struct maki_channel* maki_channel_new (const gchar* name)
  */
 void maki_channel_free (gpointer data)
 {
-	struct maki_channel* m_chan = data;
+	struct maki_channel* chan = data;
 
-	g_hash_table_destroy(m_chan->users);
+	g_hash_table_destroy(chan->users);
 
-	g_free(m_chan->topic);
-	g_free(m_chan->key);
-	g_free(m_chan->name);
+	g_free(chan->topic);
+	g_free(chan->key);
+	g_free(chan->name);
 
-	g_free(m_chan);
+	g_free(chan);
 }

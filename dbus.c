@@ -232,18 +232,18 @@ void maki_dbus_emit_whois (gint64 time, const gchar* server, const gchar* nick, 
 gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
 {
 	GTimeVal time;
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		g_get_current_time(&time);
 
 		g_strdelimit(message, "\r\n", ' ');
 
-		maki_send_printf(m_conn, "PRIVMSG %s :\001ACTION %s\001", channel, message);
+		maki_send_printf(conn, "PRIVMSG %s :\001ACTION %s\001", channel, message);
 
-		maki_dbus_emit_action(time.tv_sec, server, m_conn->user->nick, channel, message);
+		maki_dbus_emit_action(time.tv_sec, server, conn->user->nick, channel, message);
 	}
 
 	return TRUE;
@@ -251,14 +251,14 @@ gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar*
 
 gboolean maki_dbus_away (makiDBus* self, gchar* server, gchar* message, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		maki_out_away(m_conn, message);
-		g_free(m_conn->user->away_message);
-		m_conn->user->away_message = g_strdup(message);
+		maki_out_away(conn, message);
+		g_free(conn->user->away_message);
+		conn->user->away_message = g_strdup(message);
 	}
 
 	return TRUE;
@@ -266,12 +266,12 @@ gboolean maki_dbus_away (makiDBus* self, gchar* server, gchar* message, GError**
 
 gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		sashimi_send(m_conn->connection, "AWAY");
+		sashimi_send(conn->connection, "AWAY");
 	}
 
 	return TRUE;
@@ -279,27 +279,27 @@ gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
 
 gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*channels = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		gchar** channel;
 		GList* list;
 		GList* tmp;
 
-		channel = *channels = g_new(gchar*, g_hash_table_size(m_conn->channels) + 1);
-		list = g_hash_table_get_values(m_conn->channels);
+		channel = *channels = g_new(gchar*, g_hash_table_size(conn->channels) + 1);
+		list = g_hash_table_get_values(conn->channels);
 
 		for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 		{
-			struct maki_channel* m_chan = tmp->data;
+			struct maki_channel* chan = tmp->data;
 
-			if (m_chan->joined)
+			if (chan->joined)
 			{
-				*channel = g_strdup(m_chan->name);
+				*channel = g_strdup(chan->name);
 				++channel;
 			}
 		}
@@ -313,19 +313,19 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 
 gboolean maki_dbus_channel_topic (makiDBus* self, gchar* server, gchar* channel, gchar** topic, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*topic = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		struct maki_channel* m_chan;
+		struct maki_channel* chan;
 
-		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL
-		    && m_chan->topic != NULL)
+		if ((chan = g_hash_table_lookup(conn->channels, channel)) != NULL
+		    && chan->topic != NULL)
 		{
-			*topic = g_strdup(m_chan->topic);
+			*topic = g_strdup(chan->topic);
 		}
 	}
 
@@ -334,30 +334,30 @@ gboolean maki_dbus_channel_topic (makiDBus* self, gchar* server, gchar* channel,
 
 gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		/*
 		 * Disconnect, because strange things happen if we call maki_connection_connect() while still connected.
 		 */
-		maki_connection_disconnect(m_conn, NULL);
+		maki_connection_disconnect(conn, NULL);
 
-		if (maki_connection_connect(m_conn) != 0)
+		if (maki_connection_connect(conn) != 0)
 		{
-			maki_reconnect_callback(m_conn);
+			maki_reconnect_callback(conn);
 		}
 	}
 	else
 	{
-		if ((m_conn = maki_connection_new(server)) != NULL)
+		if ((conn = maki_connection_new(server)) != NULL)
 		{
-			g_hash_table_replace(m->connections, m_conn->server, m_conn);
+			g_hash_table_replace(m->connections, conn->server, conn);
 
-			if (!m_conn->autoconnect && maki_connection_connect(m_conn) != 0)
+			if (!conn->autoconnect && maki_connection_connect(conn) != 0)
 			{
-				maki_reconnect_callback(m_conn);
+				maki_reconnect_callback(conn);
 			}
 		}
 	}
@@ -367,18 +367,18 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 
 gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		GTimeVal time;
 
-		maki_send_printf(m_conn, "PRIVMSG %s :\1%s\1", target, message);
+		maki_send_printf(conn, "PRIVMSG %s :\1%s\1", target, message);
 
 		g_get_current_time(&time);
 		maki_dbus_emit_own_ctcp(time.tv_sec, server, target, message);
-		maki_log(m_conn, target, "=%s= %s", m_conn->user->nick, message);
+		maki_log(conn, target, "=%s= %s", conn->user->nick, message);
 	}
 
 	return TRUE;
@@ -386,36 +386,36 @@ gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* me
 
 gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		gchar* path;
 		GKeyFile* key_file;
 
-		if (m_conn->ignores != NULL)
+		if (conn->ignores != NULL)
 		{
 			guint length;
 
-			length = g_strv_length(m_conn->ignores);
-			m_conn->ignores = g_renew(gchar*, m_conn->ignores, length + 2);
-			m_conn->ignores[length] = g_strdup(pattern);
-			m_conn->ignores[length + 1] = NULL;
+			length = g_strv_length(conn->ignores);
+			conn->ignores = g_renew(gchar*, conn->ignores, length + 2);
+			conn->ignores[length] = g_strdup(pattern);
+			conn->ignores[length + 1] = NULL;
 		}
 		else
 		{
-			m_conn->ignores = g_new(gchar*, 2);
-			m_conn->ignores[0] = g_strdup(pattern);
-			m_conn->ignores[1] = NULL;
+			conn->ignores = g_new(gchar*, 2);
+			conn->ignores[0] = g_strdup(pattern);
+			conn->ignores[1] = NULL;
 		}
 
-		path = g_build_filename(m->directories.servers, m_conn->server, NULL);
+		path = g_build_filename(m->directories.servers, conn->server, NULL);
 		key_file = g_key_file_new();
 
 		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 		{
-			g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)m_conn->ignores, g_strv_length(m_conn->ignores));
+			g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)conn->ignores, g_strv_length(conn->ignores));
 			maki_key_file_to_file(key_file, path, S_IRUSR | S_IWUSR);
 		}
 
@@ -428,16 +428,16 @@ gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError
 
 gboolean maki_dbus_ignores (makiDBus* self, gchar* server, gchar*** ignores, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*ignores = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		if (m_conn->ignores != NULL)
+		if (conn->ignores != NULL)
 		{
-			*ignores = g_strdupv(m_conn->ignores);
+			*ignores = g_strdupv(conn->ignores);
 		}
 	}
 
@@ -446,12 +446,12 @@ gboolean maki_dbus_ignores (makiDBus* self, gchar* server, gchar*** ignores, GEr
 
 gboolean maki_dbus_invite (makiDBus* self, gchar* server, gchar* channel, gchar* who, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		maki_send_printf(m_conn, "INVITE %s %s", who, channel);
+		maki_send_printf(conn, "INVITE %s %s", who, channel);
 	}
 
 	return TRUE;
@@ -459,21 +459,21 @@ gboolean maki_dbus_invite (makiDBus* self, gchar* server, gchar* channel, gchar*
 
 gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* key, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		struct maki_channel* m_chan;
+		struct maki_channel* chan;
 
-		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL
-		    && m_chan->key != NULL
+		if ((chan = g_hash_table_lookup(conn->channels, channel)) != NULL
+		    && chan->key != NULL
 		    && !key[0])
 		{
-			key = m_chan->key;
+			key = chan->key;
 		}
 
-		maki_out_join(m_conn, channel, key);
+		maki_out_join(conn, channel, key);
 	}
 
 	return TRUE;
@@ -481,18 +481,18 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* k
 
 gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* who, gchar* message, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		if (message[0])
 		{
-			maki_send_printf(m_conn, "KICK %s %s :%s", channel, who, message);
+			maki_send_printf(conn, "KICK %s %s :%s", channel, who, message);
 		}
 		else
 		{
-			maki_send_printf(m_conn, "KICK %s %s", channel, who);
+			maki_send_printf(conn, "KICK %s %s", channel, who);
 		}
 	}
 
@@ -501,12 +501,12 @@ gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* w
 
 gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reason, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		maki_send_printf(m_conn, "KILL %s :%s", nick, reason);
+		maki_send_printf(conn, "KILL %s :%s", nick, reason);
 	}
 
 	return TRUE;
@@ -514,18 +514,18 @@ gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reas
 
 gboolean maki_dbus_list (makiDBus* self, gchar* server, gchar* channel, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		if (channel[0])
 		{
-			maki_send_printf(m_conn, "LIST %s", channel);
+			maki_send_printf(conn, "LIST %s", channel);
 		}
 		else
 		{
-			maki_send_printf(m_conn, "LIST");
+			maki_send_printf(conn, "LIST");
 		}
 	}
 
@@ -534,12 +534,12 @@ gboolean maki_dbus_list (makiDBus* self, gchar* server, gchar* channel, GError**
 
 gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, guint64 lines, gchar*** log, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*log = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		int fd;
 		gchar* filename;
@@ -627,10 +627,10 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 {
 	gchar* buffer;
 	GTimeVal time;
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		gchar** messages = NULL;
 
@@ -647,7 +647,7 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 
 		if (messages == NULL)
 		{
-			maki_out_privmsg(m_conn, target, message, FALSE);
+			maki_out_privmsg(conn, target, message, FALSE);
 		}
 		else
 		{
@@ -659,7 +659,7 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 
 				if ((*tmp)[0])
 				{
-					maki_out_privmsg(m_conn, target, *tmp, TRUE);
+					maki_out_privmsg(conn, target, *tmp, TRUE);
 				}
 			}
 
@@ -672,18 +672,18 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 
 gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mode, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		if (mode[0])
 		{
-			maki_send_printf(m_conn, "MODE %s %s", target, mode);
+			maki_send_printf(conn, "MODE %s %s", target, mode);
 		}
 		else
 		{
-			maki_send_printf(m_conn, "MODE %s", target);
+			maki_send_printf(conn, "MODE %s", target);
 		}
 	}
 
@@ -692,12 +692,12 @@ gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mo
 
 gboolean maki_dbus_nick (makiDBus* self, gchar* server, gchar* nick, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		maki_out_nick(m_conn, nick);
+		maki_out_nick(conn, nick);
 	}
 
 	return TRUE;
@@ -705,29 +705,29 @@ gboolean maki_dbus_nick (makiDBus* self, gchar* server, gchar* nick, GError** er
 
 gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar*** nicks, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*nicks = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		struct maki_channel* m_chan;
+		struct maki_channel* chan;
 
-		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		if ((chan = g_hash_table_lookup(conn->channels, channel)) != NULL)
 		{
 			gchar** nick;
 			GList* list;
 			GList* tmp;
 
-			nick = *nicks = g_new(gchar*, g_hash_table_size(m_chan->users) + 1);
-			list = g_hash_table_get_values(m_chan->users);
+			nick = *nicks = g_new(gchar*, g_hash_table_size(chan->users) + 1);
+			list = g_hash_table_get_values(chan->users);
 
 			for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 			{
-				struct maki_channel_user* m_cuser = tmp->data;
+				struct maki_channel_user* cuser = tmp->data;
 
-				*nick = g_strdup(m_cuser->user->nick);
+				*nick = g_strdup(cuser->user->nick);
 				++nick;
 			}
 
@@ -741,12 +741,12 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 
 gboolean maki_dbus_nickserv (makiDBus* self, gchar* server, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		maki_out_nickserv(m_conn);
+		maki_out_nickserv(conn);
 	}
 
 	return TRUE;
@@ -754,18 +754,18 @@ gboolean maki_dbus_nickserv (makiDBus* self, gchar* server, GError** error)
 
 gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		GTimeVal time;
 
-		maki_send_printf(m_conn, "NOTICE %s :%s", target, message);
+		maki_send_printf(conn, "NOTICE %s :%s", target, message);
 
 		g_get_current_time(&time);
-		maki_dbus_emit_own_notice(time.tv_sec, m_conn->server, target, message);
-		maki_log(m_conn, target, "-%s- %s", m_conn->user->nick, message);
+		maki_dbus_emit_own_notice(time.tv_sec, conn->server, target, message);
+		maki_log(conn, target, "-%s- %s", conn->user->nick, message);
 	}
 
 	return TRUE;
@@ -773,12 +773,12 @@ gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* 
 
 gboolean maki_dbus_oper (makiDBus* self, gchar* server, gchar* name, gchar* password, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		maki_send_printf(m_conn, "OPER %s %s", name, password);
+		maki_send_printf(conn, "OPER %s %s", name, password);
 	}
 
 	return TRUE;
@@ -786,14 +786,14 @@ gboolean maki_dbus_oper (makiDBus* self, gchar* server, gchar* name, gchar* pass
 
 gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*nick = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		*nick = g_strdup(m_conn->user->nick);
+		*nick = g_strdup(conn->user->nick);
 	}
 
 	return TRUE;
@@ -801,18 +801,18 @@ gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError
 
 gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		if (message[0])
 		{
-			maki_send_printf(m_conn, "PART %s :%s", channel, message);
+			maki_send_printf(conn, "PART %s :%s", channel, message);
 		}
 		else
 		{
-			maki_send_printf(m_conn, "PART %s", channel);
+			maki_send_printf(conn, "PART %s", channel);
 		}
 	}
 
@@ -821,18 +821,18 @@ gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, gchar* m
 
 gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		if (message[0])
 		{
-			maki_connection_disconnect(m_conn, message);
+			maki_connection_disconnect(conn, message);
 		}
 		else
 		{
-			maki_connection_disconnect(m_conn, SUSHI_QUIT_MESSAGE);
+			maki_connection_disconnect(conn, SUSHI_QUIT_MESSAGE);
 		}
 	}
 
@@ -841,12 +841,12 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 
 gboolean maki_dbus_raw (makiDBus* self, gchar* server, gchar* command, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		sashimi_send(m_conn->connection, command);
+		sashimi_send(conn->connection, command);
 	}
 
 	return TRUE;
@@ -1019,11 +1019,11 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_connection* m_conn = tmp->data;
+		struct maki_connection* conn = tmp->data;
 
-		if (m_conn->connected)
+		if (conn->connected)
 		{
-			*server = g_strdup(m_conn->server);
+			*server = g_strdup(conn->server);
 			++server;
 		}
 	}
@@ -1045,15 +1045,15 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_connection* m_conn = tmp->data;
+		struct maki_connection* conn = tmp->data;
 
 		if (message[0])
 		{
-			maki_connection_disconnect(m_conn, message);
+			maki_connection_disconnect(conn, message);
 		}
 		else
 		{
-			maki_connection_disconnect(m_conn, SUSHI_QUIT_MESSAGE);
+			maki_connection_disconnect(conn, SUSHI_QUIT_MESSAGE);
 		}
 	}
 
@@ -1069,14 +1069,14 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 
 gboolean maki_dbus_support_chantypes (makiDBus* self, gchar* server, gchar** chantypes, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*chantypes = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		*chantypes = g_strdup(m_conn->support.chantypes);
+		*chantypes = g_strdup(conn->support.chantypes);
 	}
 
 	return TRUE;
@@ -1084,16 +1084,16 @@ gboolean maki_dbus_support_chantypes (makiDBus* self, gchar* server, gchar** cha
 
 gboolean maki_dbus_support_prefix (makiDBus* self, gchar* server, gchar*** prefix, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*prefix = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		*prefix = g_new(gchar*, 3);
-		(*prefix)[0] = g_strdup(m_conn->support.prefix.modes);
-		(*prefix)[1] = g_strdup(m_conn->support.prefix.prefixes);
+		(*prefix)[0] = g_strdup(conn->support.prefix.modes);
+		(*prefix)[1] = g_strdup(conn->support.prefix.prefixes);
 		(*prefix)[2] = NULL;
 	}
 
@@ -1102,18 +1102,18 @@ gboolean maki_dbus_support_prefix (makiDBus* self, gchar* server, gchar*** prefi
 
 gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* topic, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
 		if (topic[0])
 		{
-			maki_send_printf(m_conn, "TOPIC %s :%s", channel, topic);
+			maki_send_printf(conn, "TOPIC %s :%s", channel, topic);
 		}
 		else
 		{
-			maki_send_printf(m_conn, "TOPIC %s", channel);
+			maki_send_printf(conn, "TOPIC %s", channel);
 		}
 	}
 
@@ -1122,12 +1122,12 @@ gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* 
 
 gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		if (m_conn->ignores != NULL)
+		if (conn->ignores != NULL)
 		{
 			gint i;
 			gint j;
@@ -1136,14 +1136,14 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 			gchar** tmp;
 			GKeyFile* key_file;
 
-			path = g_build_filename(m->directories.servers, m_conn->server, NULL);
+			path = g_build_filename(m->directories.servers, conn->server, NULL);
 			key_file = g_key_file_new();
 
-			length = g_strv_length(m_conn->ignores);
+			length = g_strv_length(conn->ignores);
 
 			for (i = 0, j = 0; i < length; ++i)
 			{
-				if (strcmp(m_conn->ignores[i], pattern) == 0)
+				if (strcmp(conn->ignores[i], pattern) == 0)
 				{
 					++j;
 				}
@@ -1151,8 +1151,8 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 
 			if (length - j == 0)
 			{
-				g_strfreev(m_conn->ignores);
-				m_conn->ignores = NULL;
+				g_strfreev(conn->ignores);
+				conn->ignores = NULL;
 
 				if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 				{
@@ -1170,26 +1170,26 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 
 			for (i = 0, j = 0; i < length; ++i)
 			{
-				if (strcmp(m_conn->ignores[i], pattern) != 0)
+				if (strcmp(conn->ignores[i], pattern) != 0)
 				{
-					tmp[j] = m_conn->ignores[i];
+					tmp[j] = conn->ignores[i];
 					++j;
 				}
 				else
 				{
-					g_free(m_conn->ignores[i]);
+					g_free(conn->ignores[i]);
 				}
 			}
 
 			tmp[j] = NULL;
 
-			g_free(m_conn->ignores[length]);
-			g_free(m_conn->ignores);
-			m_conn->ignores = tmp;
+			g_free(conn->ignores[length]);
+			g_free(conn->ignores);
+			conn->ignores = tmp;
 
 			if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 			{
-				g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)m_conn->ignores, g_strv_length(m_conn->ignores));
+				g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)conn->ignores, g_strv_length(conn->ignores));
 				maki_key_file_to_file(key_file, path, S_IRUSR | S_IWUSR);
 			}
 
@@ -1204,19 +1204,19 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 gboolean maki_dbus_user_away (makiDBus* self, gchar* server, gchar* nick, gboolean* away, GError** error)
 {
 
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*away = FALSE;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		struct maki_user* m_user;
+		struct maki_user* user;
 
-		if ((m_user = maki_cache_insert(m_conn->users, nick)) != NULL)
+		if ((user = maki_cache_insert(conn->users, nick)) != NULL)
 		{
-			*away = m_user->away;
-			maki_cache_remove(m_conn->users, nick);
+			*away = user->away;
+			maki_cache_remove(conn->users, nick);
 		}
 	}
 
@@ -1225,32 +1225,32 @@ gboolean maki_dbus_user_away (makiDBus* self, gchar* server, gchar* nick, gboole
 
 gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar** mode, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*mode = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		struct maki_channel* m_chan;
+		struct maki_channel* chan;
 
-		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		if ((chan = g_hash_table_lookup(conn->channels, channel)) != NULL)
 		{
-			struct maki_channel_user* m_cuser;
+			struct maki_channel_user* cuser;
 
-			if ((m_cuser = g_hash_table_lookup(m_chan->users, nick)) != NULL)
+			if ((cuser = g_hash_table_lookup(chan->users, nick)) != NULL)
 			{
 				gint pos;
 				gint length;
 				gchar tmp = '\0';
 
-				length = strlen(m_conn->support.prefix.prefixes);
+				length = strlen(conn->support.prefix.prefixes);
 
 				for (pos = 0; pos < length; pos++)
 				{
-					if (m_cuser->prefix & (1 << pos))
+					if (cuser->prefix & (1 << pos))
 					{
-						tmp = m_conn->support.prefix.modes[pos];
+						tmp = conn->support.prefix.modes[pos];
 						break;
 					}
 				}
@@ -1275,32 +1275,32 @@ gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* chan
 
 gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar** prefix, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
 	*prefix = NULL;
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		struct maki_channel* m_chan;
+		struct maki_channel* chan;
 
-		if ((m_chan = g_hash_table_lookup(m_conn->channels, channel)) != NULL)
+		if ((chan = g_hash_table_lookup(conn->channels, channel)) != NULL)
 		{
-			struct maki_channel_user* m_cuser;
+			struct maki_channel_user* cuser;
 
-			if ((m_cuser = g_hash_table_lookup(m_chan->users, nick)) != NULL)
+			if ((cuser = g_hash_table_lookup(chan->users, nick)) != NULL)
 			{
 				gint pos;
 				gint length;
 				gchar tmp = '\0';
 
-				length = strlen(m_conn->support.prefix.prefixes);
+				length = strlen(conn->support.prefix.prefixes);
 
 				for (pos = 0; pos < length; pos++)
 				{
-					if (m_cuser->prefix & (1 << pos))
+					if (cuser->prefix & (1 << pos))
 					{
-						tmp = m_conn->support.prefix.prefixes[pos];
+						tmp = conn->support.prefix.prefixes[pos];
 						break;
 					}
 				}
@@ -1325,12 +1325,12 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* ch
 
 gboolean maki_dbus_whois (makiDBus* self, gchar* server, gchar* mask, GError** error)
 {
-	struct maki_connection* m_conn;
+	struct maki_connection* conn;
 	struct maki* m = maki();
 
-	if ((m_conn = g_hash_table_lookup(m->connections, server)) != NULL)
+	if ((conn = g_hash_table_lookup(m->connections, server)) != NULL)
 	{
-		maki_send_printf(m_conn, "WHOIS %s", mask);
+		maki_send_printf(conn, "WHOIS %s", mask);
 	}
 
 	return TRUE;

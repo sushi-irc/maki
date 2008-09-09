@@ -29,30 +29,30 @@
 
 struct maki_config* maki_config_new (const gchar* path)
 {
-	struct maki_config* m_config;
+	struct maki_config* config;
 
-	m_config = g_new(struct maki_config, 1);
+	config = g_new(struct maki_config, 1);
 
-	m_config->logging.time_format = NULL;
+	config->logging.time_format = NULL;
 
-	maki_config_reload(m_config, path);
+	maki_config_reload(config, path);
 
-	return m_config;
+	return config;
 }
 
-#define maki_config_value(key, value) if (error) { g_error_free(error); error = NULL; } else { m_config->key = value; }
-#define maki_config_string(key, value) if (error) { g_error_free(error); error = NULL; } else { g_free(m_config->key); m_config->key = value; }
+#define maki_config_value(key, value) if (error) { g_error_free(error); error = NULL; } else { config->key = value; }
+#define maki_config_string(key, value) if (error) { g_error_free(error); error = NULL; } else { g_free(config->key); config->key = value; }
 
-void maki_config_reload (struct maki_config* m_config, const gchar* path)
+void maki_config_reload (struct maki_config* config, const gchar* path)
 {
 	GKeyFile* key_file;
 
-	m_config->logging.enabled = TRUE;
-	g_free(m_config->logging.time_format);
-	m_config->logging.time_format = g_strdup("%Y-%m-%d %H:%M:%S");
+	config->logging.enabled = TRUE;
+	g_free(config->logging.time_format);
+	config->logging.time_format = g_strdup("%Y-%m-%d %H:%M:%S");
 
-	m_config->reconnect.retries = 3;
-	m_config->reconnect.timeout = 10;
+	config->reconnect.retries = 3;
+	config->reconnect.timeout = 10;
 
 	key_file = g_key_file_new();
 
@@ -80,9 +80,9 @@ void maki_config_reload (struct maki_config* m_config, const gchar* path)
 	g_key_file_free(key_file);
 }
 
-void maki_config_free (struct maki_config* m_config)
+void maki_config_free (struct maki_config* config)
 {
-	g_free(m_config->logging.time_format);
+	g_free(config->logging.time_format);
 
-	g_free(m_config);
+	g_free(config);
 }

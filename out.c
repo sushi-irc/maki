@@ -29,47 +29,47 @@
 
 #include "maki.h"
 
-void maki_out_away (struct maki_connection* m_conn, const gchar* message)
+void maki_out_away (struct maki_connection* conn, const gchar* message)
 {
-	maki_send_printf(m_conn, "AWAY :%s", message);
+	maki_send_printf(conn, "AWAY :%s", message);
 }
 
-void maki_out_join (struct maki_connection* m_conn, const gchar* channel, const gchar* key)
+void maki_out_join (struct maki_connection* conn, const gchar* channel, const gchar* key)
 {
 	if (key != NULL && key[0])
 	{
-		maki_send_printf(m_conn, "JOIN %s %s", channel, key);
+		maki_send_printf(conn, "JOIN %s %s", channel, key);
 	}
 	else
 	{
-		maki_send_printf(m_conn, "JOIN %s", channel);
+		maki_send_printf(conn, "JOIN %s", channel);
 	}
 }
 
-void maki_out_nick (struct maki_connection* m_conn, const gchar* nick)
+void maki_out_nick (struct maki_connection* conn, const gchar* nick)
 {
-	maki_send_printf(m_conn, "NICK %s", nick);
+	maki_send_printf(conn, "NICK %s", nick);
 }
 
-void maki_out_nickserv (struct maki_connection* m_conn)
+void maki_out_nickserv (struct maki_connection* conn)
 {
-	if (m_conn->nickserv.password != NULL)
+	if (conn->nickserv.password != NULL)
 	{
-		if (g_ascii_strcasecmp(m_conn->user->nick, m_conn->initial_nick) != 0)
+		if (g_ascii_strcasecmp(conn->user->nick, conn->initial_nick) != 0)
 		{
-			if (m_conn->nickserv.ghost)
+			if (conn->nickserv.ghost)
 			{
-				maki_send_printf(m_conn, "PRIVMSG NickServ :GHOST %s %s", m_conn->initial_nick, m_conn->nickserv.password);
+				maki_send_printf(conn, "PRIVMSG NickServ :GHOST %s %s", conn->initial_nick, conn->nickserv.password);
 			}
 
-			maki_out_nick(m_conn, m_conn->initial_nick);
+			maki_out_nick(conn, conn->initial_nick);
 		}
 
-		maki_send_printf(m_conn, "PRIVMSG NickServ :IDENTIFY %s", m_conn->nickserv.password);
+		maki_send_printf(conn, "PRIVMSG NickServ :IDENTIFY %s", conn->nickserv.password);
 	}
 }
 
-static void maki_out_privmsg_internal (struct maki_connection* m_conn, const gchar* target, const gchar* message, gboolean queue)
+static void maki_out_privmsg_internal (struct maki_connection* conn, const gchar* target, const gchar* message, gboolean queue)
 {
 	gchar* buffer;
 	GTimeVal time;
@@ -80,27 +80,27 @@ static void maki_out_privmsg_internal (struct maki_connection* m_conn, const gch
 
 	if (queue)
 	{
-		sashimi_queue(m_conn->connection, buffer);
+		sashimi_queue(conn->connection, buffer);
 	}
 	else
 	{
-		sashimi_send_or_queue(m_conn->connection, buffer);
+		sashimi_send_or_queue(conn->connection, buffer);
 	}
 
 	g_free(buffer);
 
-	maki_log(m_conn, target, "<%s> %s", m_conn->user->nick, message);
-	maki_dbus_emit_own_message(time.tv_sec, m_conn->server, target, message);
+	maki_log(conn, target, "<%s> %s", conn->user->nick, message);
+	maki_dbus_emit_own_message(time.tv_sec, conn->server, target, message);
 }
 
-void maki_out_privmsg (struct maki_connection* m_conn, const gchar* target, gchar* message, gboolean queue)
+void maki_out_privmsg (struct maki_connection* conn, const gchar* target, gchar* message, gboolean queue)
 {
 	gchar tmp = '\0';
 	gint length = 512;
 
 	/* :nickname!username@hostname PRIVMSG target :message\r\n */
 	length -= 1; /* : */
-	length -= strlen(m_conn->user->nick); /* nickname */
+	length -= strlen(conn->user->nick); /* nickname */
 	length -= 1; /* ! */
 	length -= 9; /* username */
 	length -= 1; /* @ */
@@ -135,16 +135,16 @@ void maki_out_privmsg (struct maki_connection* m_conn, const gchar* target, gcha
 		tmp = message[i];
 		message[i] = '\0';
 
-		maki_out_privmsg_internal(m_conn, target, message, queue);
+		maki_out_privmsg_internal(conn, target, message, queue);
 
 		message[i] = tmp;
 		message += i;
 	}
 
-	maki_out_privmsg_internal(m_conn, target, message, queue);
+	maki_out_privmsg_internal(conn, target, message, queue);
 }
 
-void maki_out_quit (struct maki_connection* m_conn, const gchar* message)
+void maki_out_quit (struct maki_connection* conn, const gchar* message)
 {
 	GTimeVal time;
 
@@ -153,21 +153,21 @@ void maki_out_quit (struct maki_connection* m_conn, const gchar* message)
 
 	g_get_current_time(&time);
 
-	maki_send_printf(m_conn, "QUIT :%s", message);
+	maki_send_printf(conn, "QUIT :%s", message);
 
-	list = g_hash_table_get_values(m_conn->channels);
+	list = g_hash_table_get_values(conn->channels);
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* m_chan = tmp->data;
+		struct maki_channel* chan = tmp->data;
 
-		if (m_chan->joined)
+		if (chan->joined)
 		{
-			maki_log(m_conn, m_chan->name, "« You quit (%s).", message);
+			maki_log(conn, chan->name, "« You quit (%s).", message);
 		}
 	}
 
 	g_list_free(list);
 
-	maki_dbus_emit_quit(time.tv_sec, m_conn->server, m_conn->user->nick, message);
+	maki_dbus_emit_quit(time.tv_sec, conn->server, conn->user->nick, message);
 }

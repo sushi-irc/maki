@@ -36,35 +36,35 @@ struct maki_cache_item
 
 static struct maki_cache_item* maki_cache_item_new (gpointer key, gpointer value)
 {
-	struct maki_cache_item* m_citem;
+	struct maki_cache_item* item;
 
-	m_citem = g_new(struct maki_cache_item, 1);
-	m_citem->ref_count = 1;
-	m_citem->key = key;
-	m_citem->value = value;
+	item = g_new(struct maki_cache_item, 1);
+	item->ref_count = 1;
+	item->key = key;
+	item->value = value;
 
-	return m_citem;
+	return item;
 }
 
-static void maki_cache_item_free (struct maki_cache_item* m_citem)
+static void maki_cache_item_free (struct maki_cache_item* item)
 {
-	g_free(m_citem);
+	g_free(item);
 }
 
 struct maki_cache* maki_cache_new (gpointer (*value_new) (gpointer, gpointer), void (*value_free) (gpointer), gpointer value_data)
 {
-	struct maki_cache* m_cache;
+	struct maki_cache* cache;
 
 	g_return_val_if_fail(value_new != NULL, NULL);
 	g_return_val_if_fail(value_free != NULL, NULL);
 
-	m_cache = g_new(struct maki_cache, 1);
-	m_cache->value_new = value_new;
-	m_cache->value_free = value_free;
-	m_cache->value_data = value_data;
-	m_cache->hash_table = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, NULL);
+	cache = g_new(struct maki_cache, 1);
+	cache->value_new = value_new;
+	cache->value_free = value_free;
+	cache->value_data = value_data;
+	cache->hash_table = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, NULL);
 
-	return m_cache;
+	return cache;
 }
 
 void maki_cache_free (struct maki_cache* cache)
@@ -78,24 +78,24 @@ void maki_cache_free (struct maki_cache* cache)
 gpointer maki_cache_insert (struct maki_cache* cache, gpointer key)
 {
 	gpointer value;
-	struct maki_cache_item* m_citem;
+	struct maki_cache_item* item;
 
 	g_return_val_if_fail(cache != NULL, NULL);
 
-	if ((m_citem = g_hash_table_lookup(cache->hash_table, key)) != NULL)
+	if ((item = g_hash_table_lookup(cache->hash_table, key)) != NULL)
 	{
-		m_citem->ref_count++;
+		item->ref_count++;
 
-		return m_citem->value;
+		return item->value;
 	}
 	else
 	{
 		key = g_strdup(key);
 		value = (*cache->value_new)(key, cache->value_data);
 
-		m_citem = maki_cache_item_new(key, value);
+		item = maki_cache_item_new(key, value);
 
-		g_hash_table_insert(cache->hash_table, key, m_citem);
+		g_hash_table_insert(cache->hash_table, key, item);
 
 		return value;
 	}
@@ -103,20 +103,20 @@ gpointer maki_cache_insert (struct maki_cache* cache, gpointer key)
 
 void maki_cache_remove (struct maki_cache* cache, gpointer key)
 {
-	struct maki_cache_item* m_citem;
+	struct maki_cache_item* item;
 
 	g_return_if_fail(cache != NULL);
 
-	if ((m_citem = g_hash_table_lookup(cache->hash_table, key)) != NULL)
+	if ((item = g_hash_table_lookup(cache->hash_table, key)) != NULL)
 	{
-		m_citem->ref_count--;
+		item->ref_count--;
 
-		if (m_citem->ref_count == 0)
+		if (item->ref_count == 0)
 		{
-			g_hash_table_remove(cache->hash_table, m_citem->key);
-			(*cache->value_free)(m_citem->value);
-			g_free(m_citem->key);
-			maki_cache_item_free(m_citem);
+			g_hash_table_remove(cache->hash_table, item->key);
+			(*cache->value_free)(item->value);
+			g_free(item->key);
+			maki_cache_item_free(item);
 		}
 	}
 }

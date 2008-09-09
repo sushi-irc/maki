@@ -39,48 +39,48 @@ struct maki_log* maki_log_new (const gchar* directory, const gchar* server, cons
 	gchar* dirname;
 	gchar* filename;
 	gchar* path;
-	struct maki_log* m_log;
+	struct maki_log* log;
 
-	m_log = g_new(struct maki_log, 1);
-	m_log->name = g_strdup(name);
+	log = g_new(struct maki_log, 1);
+	log->name = g_strdup(name);
 
 	dirname = g_build_filename(directory, server, NULL);
-	filename = g_strconcat(m_log->name, ".txt", NULL);
+	filename = g_strconcat(log->name, ".txt", NULL);
 	path = g_build_filename(dirname, filename, NULL);
 
 	g_mkdir_with_parents(dirname, S_IRUSR | S_IWUSR | S_IXUSR);
 
-	if ((m_log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
+	if ((log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
 	{
-		g_free(m_log->name);
-		g_free(m_log);
+		g_free(log->name);
+		g_free(log);
 
-		m_log = NULL;
+		log = NULL;
 	}
 
 	g_free(path);
 	g_free(filename);
 	g_free(dirname);
 
-	return m_log;
+	return log;
 }
 
 void maki_log_free (gpointer data)
 {
-	struct maki_log* m_log = data;
+	struct maki_log* log = data;
 
-	close(m_log->fd);
+	close(log->fd);
 
-	g_free(m_log->name);
-	g_free(m_log);
+	g_free(log->name);
+	g_free(log);
 }
 
-void maki_log (struct maki_connection* m_conn, const gchar* name, const gchar* format, ...)
+void maki_log (struct maki_connection* conn, const gchar* name, const gchar* format, ...)
 {
 	gchar buf[1024];
 	gchar* tmp;
 	time_t t;
-	struct maki_log* m_log;
+	struct maki_log* log;
 	va_list args;
 	struct maki* m = maki();
 
@@ -92,24 +92,24 @@ void maki_log (struct maki_connection* m_conn, const gchar* name, const gchar* f
 	t = time(NULL);
 	strftime(buf, 1024, m->config->logging.time_format, localtime(&t));
 
-	if ((m_log = g_hash_table_lookup(m_conn->logs, name)) == NULL)
+	if ((log = g_hash_table_lookup(conn->logs, name)) == NULL)
 	{
-		if ((m_log = maki_log_new(m->directories.logs, m_conn->server, name)) == NULL)
+		if ((log = maki_log_new(m->directories.logs, conn->server, name)) == NULL)
 		{
 			return;
 		}
 
-		g_hash_table_replace(m_conn->logs, m_log->name, m_log);
+		g_hash_table_replace(conn->logs, log->name, log);
 	}
 
 	va_start(args, format);
 	tmp = g_strdup_vprintf(format, args);
 	va_end(args);
 
-	maki_write(m_log->fd, buf);
-	maki_write(m_log->fd, " ");
-	maki_write(m_log->fd, tmp);
-	maki_write(m_log->fd, "\n");
+	maki_write(log->fd, buf);
+	maki_write(log->fd, " ");
+	maki_write(log->fd, tmp);
+	maki_write(log->fd, "\n");
 
 	g_free(tmp);
 }
