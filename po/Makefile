@@ -19,13 +19,5 @@ clean:
 maki.pot: $(C) $(H)
 	$(QUIET_GEN) xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --output=$@ $+
 
-%.po: maki.pot
-	$(QUIET_GEN) if test -f $@; then \
-		touch $@; \
-		msgmerge --update --backup=off $@ $+; \
-	else \
-		msginit --input=$+ --output=$@; \
-	fi
-
-%.mo:
-	$(QUIET_GEN) msgfmt --output-file=$@ $(subst .mo,.po,$@)
+%.mo: %.po
+	$(QUIET_GEN) msgfmt --output-file=$@ $+
