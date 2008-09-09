@@ -1,8 +1,9 @@
 include ../../Makefile.common
 
-PO = $(wildcard *.po)
-C  = $(wildcard ../*.c)
-H  = $(wildcard ../*.h)
+LANGUAGES = de
+PO        = $(LANGUAGES:%=%.po)
+C         = $(wildcard ../*.c)
+H         = $(wildcard ../*.h)
 
 all:
 
