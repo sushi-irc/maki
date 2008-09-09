@@ -163,7 +163,7 @@ void maki_out_quit (struct maki_connection* conn, const gchar* message)
 
 		if (chan->joined)
 		{
-			maki_log(conn, chan->name, "« You quit (%s).", message);
+			maki_log(conn, chan->name, _("« You quit (%s)."), message);
 		}
 	}
 

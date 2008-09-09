@@ -16,7 +16,7 @@ clean:
 	$(RM) *.mo
 
 maki.pot: $(C) $(H)
-	$(QUIET_GEN) xgettext --keyword=_ --keyword=N_ --output=$@ $+
+	$(QUIET_GEN) xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --output=$@ $+
 
 %.po: maki.pot
 	$(QUIET_GEN) if test -f $@; then \

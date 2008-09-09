@@ -274,11 +274,11 @@ void maki_in_join (struct maki_connection* conn, glong time, gchar* nick, gchar*
 			g_hash_table_replace(conn->channels, chan->name, chan);
 		}
 
-		maki_log(conn, channel, "» You join.");
+		maki_log(conn, channel, _("» You join."));
 	}
 	else
 	{
-		maki_log(conn, channel, "» %s joins.", nick);
+		maki_log(conn, channel, _("» %s joins."), nick);
 	}
 
 	maki_dbus_emit_join(time, conn->server, nick, channel);
@@ -326,22 +326,22 @@ void maki_in_part (struct maki_connection* conn, glong time, gchar* nick, gchar*
 
 		if (message != NULL)
 		{
-			maki_log(conn, channel, "« You part (%s).", message);
+			maki_log(conn, channel, _("« You part (%s)."), message);
 		}
 		else
 		{
-			maki_log(conn, channel, "« You part.");
+			maki_log(conn, channel, _("« You part."));
 		}
 	}
 	else
 	{
 		if (message != NULL)
 		{
-			maki_log(conn, channel, "« %s parts (%s).", nick, message);
+			maki_log(conn, channel, _("« %s parts (%s)."), nick, message);
 		}
 		else
 		{
-			maki_log(conn, channel, "« %s parts.", nick);
+			maki_log(conn, channel, _("« %s parts."), nick);
 		}
 	}
 
@@ -377,11 +377,11 @@ void maki_in_quit (struct maki_connection* conn, glong time, gchar* nick, gchar*
 		{
 			if (remaining)
 			{
-				maki_log(conn, chan->name, "« %s quits (%s).", nick, maki_remove_colon(remaining));
+				maki_log(conn, chan->name, _("« %s quits (%s)."), nick, maki_remove_colon(remaining));
 			}
 			else
 			{
-				maki_log(conn, chan->name, "« %s quits.", nick);
+				maki_log(conn, chan->name, _("« %s quits."), nick);
 			}
 		}
 
@@ -444,22 +444,22 @@ void maki_in_kick (struct maki_connection* conn, glong time, gchar* nick, gchar*
 
 		if (message != NULL)
 		{
-			maki_log(conn, channel, "« %s kicks you (%s).", nick, message);
+			maki_log(conn, channel, _("« %s kicks you (%s)."), nick, message);
 		}
 		else
 		{
-			maki_log(conn, channel, "« %s kicks you.", nick);
+			maki_log(conn, channel, _("« %s kicks you."), nick);
 		}
 	}
 	else
 	{
 		if (message != NULL)
 		{
-			maki_log(conn, channel, "« %s kicks %s (%s).", nick, who, message);
+			maki_log(conn, channel, _("« %s kicks %s (%s)."), nick, who, message);
 		}
 		else
 		{
-			maki_log(conn, channel, "« %s kicks %s.", nick, who);
+			maki_log(conn, channel, _("« %s kicks %s."), nick, who);
 		}
 	}
 
@@ -534,11 +534,11 @@ void maki_in_nick (struct maki_connection* conn, glong time, gchar* nick, gchar*
 
 			if (own)
 			{
-				maki_log(conn, chan->name, "• You are now known as %s.", new_nick);
+				maki_log(conn, chan->name, _("• You are now known as %s."), new_nick);
 			}
 			else
 			{
-				maki_log(conn, chan->name, "• %s is now known as %s.", nick, new_nick);
+				maki_log(conn, chan->name, _("• %s is now known as %s."), nick, new_nick);
 			}
 		}
 	}
@@ -656,17 +656,17 @@ void maki_in_mode (struct maki_connection* conn, glong time, gchar* nick, gchar*
 
 					if (is_numeric)
 					{
-						maki_log(conn, target, "• Mode: %s %s", buffer, modes[i]);
+						maki_log(conn, target, _("• Mode: %s %s"), buffer, modes[i]);
 					}
 					else
 					{
 						if (own)
 						{
-							maki_log(conn, target, "• You set mode: %s %s", buffer, modes[i]);
+							maki_log(conn, target, _("• You set mode: %s %s"), buffer, modes[i]);
 						}
 						else
 						{
-							maki_log(conn, target, "• %s sets mode: %s %s", nick, buffer, modes[i]);
+							maki_log(conn, target, _("• %s sets mode: %s %s"), nick, buffer, modes[i]);
 						}
 					}
 
@@ -677,17 +677,17 @@ void maki_in_mode (struct maki_connection* conn, glong time, gchar* nick, gchar*
 				{
 					if (is_numeric)
 					{
-						maki_log(conn, target, "• Mode: %s", buffer);
+						maki_log(conn, target, _("• Mode: %s"), buffer);
 					}
 					else
 					{
 						if (own)
 						{
-							maki_log(conn, target, "• You set mode: %s", buffer);
+							maki_log(conn, target, _("• You set mode: %s"), buffer);
 						}
 						else
 						{
-							maki_log(conn, target, "• %s sets mode: %s", nick, buffer);
+							maki_log(conn, target, _("• %s sets mode: %s"), nick, buffer);
 						}
 					}
 
@@ -733,11 +733,11 @@ void maki_in_invite (struct maki_connection* conn, glong time, gchar* nick, gcha
 
 	if (is_numeric)
 	{
-		maki_log(conn, channel, "• You successfully invite %s.", who);
+		maki_log(conn, channel, _("• You successfully invite %s."), who);
 	}
 	else
 	{
-		maki_log(conn, channel, "• %s invites %s.", nick, who);
+		maki_log(conn, channel, _("• %s invites %s."), nick, who);
 	}
 
 	maki_dbus_emit_invite(time, conn->server, nick, channel, who);
@@ -783,17 +783,17 @@ void maki_in_topic (struct maki_connection* conn, glong time, gchar* nick, gchar
 
 	if (is_numeric)
 	{
-		maki_log(conn, channel, "• Topic: %s", topic);
+		maki_log(conn, channel, _("• Topic: %s"), topic);
 	}
 	else
 	{
 		if (g_ascii_strcasecmp(nick, conn->user->nick) == 0)
 		{
-			maki_log(conn, channel, "• You change the topic: %s", topic);
+			maki_log(conn, channel, _("• You change the topic: %s"), topic);
 		}
 		else
 		{
-			maki_log(conn, channel, "• %s changes the topic: %s", nick, topic);
+			maki_log(conn, channel, _("• %s changes the topic: %s"), nick, topic);
 		}
 	}
 
