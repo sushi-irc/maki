@@ -84,8 +84,8 @@ struct maki_server* maki_server_new (const gchar* server)
 		serv->name = name;
 		serv->autoconnect = autoconnect;
 		serv->connected = FALSE;
-		serv->reconnect = 0;
-		serv->retries = m->config->reconnect.retries;
+		serv->reconnect.source = 0;
+		serv->reconnect.retries = m->config->reconnect.retries;
 		serv->connection = sashimi_new(address, port, m->message_queue, serv);
 		serv->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_free);
 		serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
@@ -151,9 +151,9 @@ void maki_server_free (gpointer data)
 {
 	struct maki_server* serv = data;
 
-	if (serv->reconnect != 0)
+	if (serv->reconnect.source != 0)
 	{
-		g_source_remove(serv->reconnect);
+		g_source_remove(serv->reconnect.source);
 	}
 
 	maki_server_disconnect(serv, NULL);
@@ -193,13 +193,13 @@ gint maki_server_connect (struct maki_server* serv)
 		GTimeVal time;
 		struct maki_user* user;
 
-		if (serv->reconnect != 0)
+		if (serv->reconnect.source != 0)
 		{
-			g_source_remove(serv->reconnect);
-			serv->reconnect = 0;
+			g_source_remove(serv->reconnect.source);
+			serv->reconnect.source = 0;
 		}
 
-		serv->retries = m->config->reconnect.retries;
+		serv->reconnect.retries = m->config->reconnect.retries;
 
 		user = maki_cache_insert(serv->users, serv->initial_nick);
 		maki_user_copy(serv->user, user);
@@ -259,11 +259,11 @@ static gboolean maki_server_reconnect (gpointer data)
 
 	maki_server_disconnect(serv, NULL);
 
-	if (serv->retries > 0)
+	if (serv->reconnect.retries > 0)
 	{
-		serv->retries--;
+		serv->reconnect.retries--;
 	}
-	else if (serv->retries == 0)
+	else if (serv->reconnect.retries == 0)
 	{
 		/* Finally give up. */
 		return FALSE;
@@ -287,10 +287,10 @@ void maki_server_reconnect_callback (gpointer data)
 	struct maki_server* serv = data;
 	struct maki* m = maki();
 
-	if (serv->reconnect != 0)
+	if (serv->reconnect.source != 0)
 	{
 		return;
 	}
 
-	serv->reconnect = g_timeout_add_seconds(m->config->reconnect.timeout, maki_server_reconnect, serv);
+	serv->reconnect.source = g_timeout_add_seconds(m->config->reconnect.timeout, maki_server_reconnect, serv);
 }

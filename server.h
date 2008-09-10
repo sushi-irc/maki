@@ -32,8 +32,6 @@ struct maki_server
 	gchar* name;
 	gboolean autoconnect;
 	gboolean connected;
-	guint reconnect;
-	gint retries;
 	struct sashimi_connection* connection;
 	GHashTable* channels;
 	struct maki_cache* users;
@@ -50,6 +48,13 @@ struct maki_server
 
 	gchar** commands;
 	gchar** ignores;
+
+	struct
+	{
+		gint retries;
+		guint source;
+	}
+	reconnect;
 
 	struct
 	{
