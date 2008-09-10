@@ -108,7 +108,7 @@ struct maki_server* maki_server_new (const gchar* server)
 		{
 			if (maki_server_connect(serv) != 0)
 			{
-				maki_reconnect_callback(serv);
+				maki_server_reconnect_callback(serv);
 			}
 		}
 
@@ -186,7 +186,7 @@ gint maki_server_connect (struct maki_server* serv)
 	gint ret;
 	struct maki* m = maki();
 
-	sashimi_reconnect(serv->connection, maki_reconnect_callback, serv);
+	sashimi_reconnect(serv->connection, maki_server_reconnect_callback, serv);
 
 	if ((ret = sashimi_connect(serv->connection)) == 0)
 	{
@@ -249,4 +249,48 @@ gint maki_server_disconnect (struct maki_server* serv, const gchar* message)
 	g_list_free(list);
 
 	return ret;
+}
+
+/* This function handles unexpected reconnects. */
+static gboolean maki_server_reconnect (gpointer data)
+{
+	GTimeVal time;
+	struct maki_server* serv = data;
+
+	maki_server_disconnect(serv, NULL);
+
+	if (serv->retries > 0)
+	{
+		serv->retries--;
+	}
+	else if (serv->retries == 0)
+	{
+		/* Finally give up. */
+		return FALSE;
+	}
+
+	g_get_current_time(&time);
+	maki_dbus_emit_reconnect(time.tv_sec, serv->server);
+
+	if (maki_server_connect(serv) == 0)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+/* This function is called by sashimi if the connection drops.
+ * It schedules maki_server_reconnect() to be called regularly. */
+void maki_server_reconnect_callback (gpointer data)
+{
+	struct maki_server* serv = data;
+	struct maki* m = maki();
+
+	if (serv->reconnect != 0)
+	{
+		return;
+	}
+
+	serv->reconnect = g_timeout_add_seconds(m->config->reconnect.timeout, maki_server_reconnect, serv);
 }

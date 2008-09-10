@@ -70,3 +70,4 @@ struct maki_server* maki_server_new (const gchar*);
 void maki_server_free (gpointer);
 gint maki_server_connect (struct maki_server*);
 gint maki_server_disconnect (struct maki_server*, const gchar*);
+void maki_server_reconnect_callback (gpointer);

@@ -50,7 +50,6 @@ struct maki;
 #include "log.h"
 #include "misc.h"
 #include "out.h"
-#include "servers.h"
 #include "user.h"
 
 struct maki

@@ -178,6 +178,8 @@ static void maki_signal (int signo)
 
 int main (int argc, char* argv[])
 {
+	const gchar* file;
+	GDir* servers;
 	struct maki* m;
 
 	gboolean opt_daemon = FALSE;
@@ -231,7 +233,20 @@ int main (int argc, char* argv[])
 		return 1;
 	}
 
-	maki_servers();
+	servers = g_dir_open(m->directories.servers, 0, NULL);
+
+	while ((file = g_dir_read_name(servers)) != NULL)
+	{
+		struct maki_server* serv;
+
+		if ((serv = maki_server_new(file)) != NULL)
+		{
+			g_hash_table_replace(m->servers, serv->server, serv);
+		}
+
+	}
+
+	g_dir_close(servers);
 
 	g_main_loop_run(m->loop);
 

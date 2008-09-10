@@ -346,7 +346,7 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 
 		if (maki_server_connect(serv) != 0)
 		{
-			maki_reconnect_callback(serv);
+			maki_server_reconnect_callback(serv);
 		}
 	}
 	else
@@ -357,7 +357,7 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 
 			if (!serv->autoconnect && maki_server_connect(serv) != 0)
 			{
-				maki_reconnect_callback(serv);
+				maki_server_reconnect_callback(serv);
 			}
 		}
 	}
