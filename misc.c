@@ -134,7 +134,7 @@ gboolean maki_write (gint fd, const gchar* buf)
 	return (written >= size);
 }
 
-gint maki_send_printf (struct maki_connection* conn, const gchar* format, ...)
+gint maki_send_printf (struct maki_server* conn, const gchar* format, ...)
 {
 	gint ret;
 	gchar* buffer;

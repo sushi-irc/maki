@@ -29,11 +29,11 @@
 
 #include "maki.h"
 
-struct maki_connection* maki_connection_new (const gchar* server)
+struct maki_server* maki_server_new (const gchar* server)
 {
 	gchar* path;
 	GKeyFile* key_file;
-	struct maki_connection* conn = NULL;
+	struct maki_server* conn = NULL;
 	struct maki* m = maki();
 
 	path = g_build_filename(m->directories.servers, server, NULL);
@@ -78,7 +78,7 @@ struct maki_connection* maki_connection_new (const gchar* server)
 			name = g_strdup(g_get_real_name());
 		}
 
-		conn = g_new(struct maki_connection, 1);
+		conn = g_new(struct maki_server, 1);
 		conn->server = g_strdup(server);
 		conn->initial_nick = g_strdup(nick);
 		conn->name = g_strdup(name);
@@ -106,7 +106,7 @@ struct maki_connection* maki_connection_new (const gchar* server)
 
 		if (conn->autoconnect)
 		{
-			if (maki_connection_connect(conn) != 0)
+			if (maki_server_connect(conn) != 0)
 			{
 				maki_reconnect_callback(conn);
 			}
@@ -154,16 +154,16 @@ struct maki_connection* maki_connection_new (const gchar* server)
 /**
  * This function gets called when a connection is removed from the connections hash table.
  */
-void maki_connection_free (gpointer data)
+void maki_server_free (gpointer data)
 {
-	struct maki_connection* conn = data;
+	struct maki_server* conn = data;
 
 	if (conn->reconnect != 0)
 	{
 		g_source_remove(conn->reconnect);
 	}
 
-	maki_connection_disconnect(conn, NULL);
+	maki_server_disconnect(conn, NULL);
 
 	maki_cache_remove(conn->users, conn->user->nick);
 
@@ -188,7 +188,7 @@ void maki_connection_free (gpointer data)
  * This function is a wrapper around sashimi_connect().
  * It handles the initial login with NICK and USER and emits the connect signal.
  */
-gint maki_connection_connect (struct maki_connection* conn)
+gint maki_server_connect (struct maki_server* conn)
 {
 	gint ret;
 	struct maki* m = maki();
@@ -227,7 +227,7 @@ gint maki_connection_connect (struct maki_connection* conn)
 /**
  * This function is a wrapper around sashimi_disconnect().
  */
-gint maki_connection_disconnect (struct maki_connection* conn, const gchar* message)
+gint maki_server_disconnect (struct maki_server* conn, const gchar* message)
 {
 	gint ret;
 	GList* list;

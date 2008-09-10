@@ -25,9 +25,9 @@
  * SUCH DAMAGE.
  */
 
-void maki_out_away (struct maki_connection*, const gchar*);
-void maki_out_join (struct maki_connection*, const gchar*, const gchar*);
-void maki_out_nick (struct maki_connection*, const gchar*);
-void maki_out_nickserv (struct maki_connection*);
-void maki_out_privmsg (struct maki_connection*, const gchar*, gchar*, gboolean);
-void maki_out_quit (struct maki_connection*, const gchar*);
+void maki_out_away (struct maki_server*, const gchar*);
+void maki_out_join (struct maki_server*, const gchar*, const gchar*);
+void maki_out_nick (struct maki_server*, const gchar*);
+void maki_out_nickserv (struct maki_server*);
+void maki_out_privmsg (struct maki_server*, const gchar*, gchar*, gboolean);
+void maki_out_quit (struct maki_server*, const gchar*);

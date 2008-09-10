@@ -29,12 +29,12 @@
 
 #include "maki.h"
 
-void maki_out_away (struct maki_connection* conn, const gchar* message)
+void maki_out_away (struct maki_server* conn, const gchar* message)
 {
 	maki_send_printf(conn, "AWAY :%s", message);
 }
 
-void maki_out_join (struct maki_connection* conn, const gchar* channel, const gchar* key)
+void maki_out_join (struct maki_server* conn, const gchar* channel, const gchar* key)
 {
 	if (key != NULL && key[0])
 	{
@@ -46,12 +46,12 @@ void maki_out_join (struct maki_connection* conn, const gchar* channel, const gc
 	}
 }
 
-void maki_out_nick (struct maki_connection* conn, const gchar* nick)
+void maki_out_nick (struct maki_server* conn, const gchar* nick)
 {
 	maki_send_printf(conn, "NICK %s", nick);
 }
 
-void maki_out_nickserv (struct maki_connection* conn)
+void maki_out_nickserv (struct maki_server* conn)
 {
 	if (conn->nickserv.password != NULL)
 	{
@@ -69,7 +69,7 @@ void maki_out_nickserv (struct maki_connection* conn)
 	}
 }
 
-static void maki_out_privmsg_internal (struct maki_connection* conn, const gchar* target, const gchar* message, gboolean queue)
+static void maki_out_privmsg_internal (struct maki_server* conn, const gchar* target, const gchar* message, gboolean queue)
 {
 	gchar* buffer;
 	GTimeVal time;
@@ -93,7 +93,7 @@ static void maki_out_privmsg_internal (struct maki_connection* conn, const gchar
 	maki_dbus_emit_own_message(time.tv_sec, conn->server, target, message);
 }
 
-void maki_out_privmsg (struct maki_connection* conn, const gchar* target, gchar* message, gboolean queue)
+void maki_out_privmsg (struct maki_server* conn, const gchar* target, gchar* message, gboolean queue)
 {
 	gchar tmp = '\0';
 	gint length = 512;
@@ -144,7 +144,7 @@ void maki_out_privmsg (struct maki_connection* conn, const gchar* target, gchar*
 	maki_out_privmsg_internal(conn, target, message, queue);
 }
 
-void maki_out_quit (struct maki_connection* conn, const gchar* message)
+void maki_out_quit (struct maki_server* conn, const gchar* message)
 {
 	GTimeVal time;
 

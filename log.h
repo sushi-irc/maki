@@ -33,4 +33,4 @@ struct maki_log
 
 struct maki_log* maki_log_new (const gchar*, const gchar*, const gchar*);
 void maki_log_free (gpointer);
-void maki_log (struct maki_connection*, const gchar*, const gchar*, ...);
+void maki_log (struct maki_server*, const gchar*, const gchar*, ...);

@@ -33,9 +33,9 @@
 gboolean maki_reconnect (gpointer data)
 {
 	GTimeVal time;
-	struct maki_connection* conn = data;
+	struct maki_server* conn = data;
 
-	maki_connection_disconnect(conn, NULL);
+	maki_server_disconnect(conn, NULL);
 
 	if (conn->retries > 0)
 	{
@@ -50,7 +50,7 @@ gboolean maki_reconnect (gpointer data)
 	g_get_current_time(&time);
 	maki_dbus_emit_reconnect(time.tv_sec, conn->server);
 
-	if (maki_connection_connect(conn) == 0)
+	if (maki_server_connect(conn) == 0)
 	{
 		return FALSE;
 	}
@@ -64,7 +64,7 @@ gboolean maki_reconnect (gpointer data)
  */
 void maki_reconnect_callback (gpointer data)
 {
-	struct maki_connection* conn = data;
+	struct maki_server* conn = data;
 	struct maki* m = maki();
 
 	if (conn->reconnect != 0)
@@ -85,9 +85,9 @@ void maki_servers (void)
 
 	while ((file = g_dir_read_name(servers)) != NULL)
 	{
-		struct maki_connection* conn;
+		struct maki_server* conn;
 
-		if ((conn = maki_connection_new(file)) != NULL)
+		if ((conn = maki_server_new(file)) != NULL)
 		{
 			g_hash_table_replace(m->connections, conn->server, conn);
 		}

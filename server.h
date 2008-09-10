@@ -25,7 +25,7 @@
  * SUCH DAMAGE.
  */
 
-struct maki_connection
+struct maki_server
 {
 	gchar* server;
 	gchar* initial_nick;
@@ -66,7 +66,7 @@ struct maki_connection
 	support;
 };
 
-struct maki_connection* maki_connection_new (const gchar*);
-void maki_connection_free (gpointer);
-gint maki_connection_connect (struct maki_connection*);
-gint maki_connection_disconnect (struct maki_connection*, const gchar*);
+struct maki_server* maki_server_new (const gchar*);
+void maki_server_free (gpointer);
+gint maki_server_connect (struct maki_server*);
+gint maki_server_disconnect (struct maki_server*, const gchar*);

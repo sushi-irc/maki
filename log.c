@@ -75,7 +75,7 @@ void maki_log_free (gpointer data)
 	g_free(log);
 }
 
-void maki_log (struct maki_connection* conn, const gchar* name, const gchar* format, ...)
+void maki_log (struct maki_server* conn, const gchar* name, const gchar* format, ...)
 {
 	gchar buf[1024];
 	gchar* tmp;
