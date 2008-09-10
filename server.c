@@ -80,8 +80,8 @@ struct maki_server* maki_server_new (const gchar* server)
 
 		serv = g_new(struct maki_server, 1);
 		serv->server = g_strdup(server);
-		serv->initial_nick = g_strdup(nick);
-		serv->name = g_strdup(name);
+		serv->initial_nick = nick;
+		serv->name = name;
 		serv->autoconnect = autoconnect;
 		serv->connected = FALSE;
 		serv->reconnect = 0;
@@ -91,12 +91,12 @@ struct maki_server* maki_server_new (const gchar* server)
 		serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
 		serv->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_log_free);
 
-		serv->user = maki_cache_insert(serv->users, nick);
+		serv->user = maki_cache_insert(serv->users, serv->initial_nick);
 
 		serv->nickserv.ghost = nickserv_ghost;
-		serv->nickserv.password = g_strdup(nickserv);
-		serv->commands = g_strdupv(commands);
-		serv->ignores = g_strdupv(ignores);
+		serv->nickserv.password = nickserv;
+		serv->commands = commands;
+		serv->ignores = ignores;
 		serv->support.chanmodes = NULL;
 		serv->support.chantypes = g_strdup("#&");
 		serv->support.prefix.modes = g_strdup("ov");
@@ -113,11 +113,6 @@ struct maki_server* maki_server_new (const gchar* server)
 		}
 
 		g_free(address);
-		g_free(nick);
-		g_free(name);
-		g_free(nickserv);
-		g_strfreev(commands);
-		g_strfreev(ignores);
 
 		groups = g_key_file_get_groups(key_file, NULL);
 
@@ -134,11 +129,9 @@ struct maki_server* maki_server_new (const gchar* server)
 
 				chan = maki_channel_new(*group);
 				chan->autojoin = autojoin;
-				chan->key = g_strdup(key);
+				chan->key = key;
 
 				g_hash_table_replace(serv->channels, chan->name, chan);
-
-				g_free(key);
 			}
 		}
 
