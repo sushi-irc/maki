@@ -50,18 +50,12 @@ struct maki* maki (void)
 
 struct maki* maki_new (void)
 {
-	const gchar* home_dir;
 	gchar* config_path;
 	struct maki* m;
 
 	if ((m = g_new(struct maki, 1)) == NULL)
 	{
 		return NULL;
-	}
-
-	if ((home_dir = g_getenv("HOME")) == NULL)
-	{
-		home_dir = g_get_home_dir();
 	}
 
 	m->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
