@@ -75,7 +75,7 @@ void maki_log_free (gpointer data)
 	g_free(log);
 }
 
-void maki_log (struct maki_server* conn, const gchar* name, const gchar* format, ...)
+void maki_log (struct maki_server* serv, const gchar* name, const gchar* format, ...)
 {
 	gchar buf[1024];
 	gchar* tmp;
@@ -92,14 +92,14 @@ void maki_log (struct maki_server* conn, const gchar* name, const gchar* format,
 	t = time(NULL);
 	strftime(buf, 1024, m->config->logging.time_format, localtime(&t));
 
-	if ((log = g_hash_table_lookup(conn->logs, name)) == NULL)
+	if ((log = g_hash_table_lookup(serv->logs, name)) == NULL)
 	{
-		if ((log = maki_log_new(m->config->directories.logs, conn->server, name)) == NULL)
+		if ((log = maki_log_new(m->config->directories.logs, serv->server, name)) == NULL)
 		{
 			return;
 		}
 
-		g_hash_table_replace(conn->logs, log->name, log);
+		g_hash_table_replace(serv->logs, log->name, log);
 	}
 
 	va_start(args, format);

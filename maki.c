@@ -160,9 +160,9 @@ static void maki_signal (int signo)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_server* conn = tmp->data;
+		struct maki_server* serv = tmp->data;
 
-		maki_server_disconnect(conn, SUSHI_QUIT_MESSAGE);
+		maki_server_disconnect(serv, SUSHI_QUIT_MESSAGE);
 	}
 
 	g_list_free(list);

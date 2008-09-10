@@ -33,24 +33,24 @@
 gboolean maki_reconnect (gpointer data)
 {
 	GTimeVal time;
-	struct maki_server* conn = data;
+	struct maki_server* serv = data;
 
-	maki_server_disconnect(conn, NULL);
+	maki_server_disconnect(serv, NULL);
 
-	if (conn->retries > 0)
+	if (serv->retries > 0)
 	{
-		conn->retries--;
+		serv->retries--;
 	}
-	else if (conn->retries == 0)
+	else if (serv->retries == 0)
 	{
 		/* Finally give up. */
 		return FALSE;
 	}
 
 	g_get_current_time(&time);
-	maki_dbus_emit_reconnect(time.tv_sec, conn->server);
+	maki_dbus_emit_reconnect(time.tv_sec, serv->server);
 
-	if (maki_server_connect(conn) == 0)
+	if (maki_server_connect(serv) == 0)
 	{
 		return FALSE;
 	}
@@ -64,15 +64,15 @@ gboolean maki_reconnect (gpointer data)
  */
 void maki_reconnect_callback (gpointer data)
 {
-	struct maki_server* conn = data;
+	struct maki_server* serv = data;
 	struct maki* m = maki();
 
-	if (conn->reconnect != 0)
+	if (serv->reconnect != 0)
 	{
 		return;
 	}
 
-	conn->reconnect = g_timeout_add_seconds(m->config->reconnect.timeout, maki_reconnect, conn);
+	serv->reconnect = g_timeout_add_seconds(m->config->reconnect.timeout, maki_reconnect, serv);
 }
 
 void maki_servers (void)
@@ -85,11 +85,11 @@ void maki_servers (void)
 
 	while ((file = g_dir_read_name(servers)) != NULL)
 	{
-		struct maki_server* conn;
+		struct maki_server* serv;
 
-		if ((conn = maki_server_new(file)) != NULL)
+		if ((serv = maki_server_new(file)) != NULL)
 		{
-			g_hash_table_replace(m->servers, conn->server, conn);
+			g_hash_table_replace(m->servers, serv->server, serv);
 		}
 
 	}
