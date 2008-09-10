@@ -36,9 +36,9 @@ dbus_glue.h: dbus.xml
 	$(QUIET_GEN) dbus-binding-tool --mode=glib-server --prefix=maki_dbus $+ > $@
 
 marshal.list: dbus.c
-	$(QUIET_GEN) grep -E -h -o 'maki_marshal_[0-9A-Z]+__([0-9A-Z]+_)*[0-9A-Z]+' $+ \
-		| sed -e 's/^maki_marshal_//' -e 's/__/:/' -e 's/_/,/g' \
-		| sort -u \
+	$(QUIET_GEN) $(GREP) -E -h -o 'maki_marshal_[0-9A-Z]+__([0-9A-Z]+_)*[0-9A-Z]+' $+ \
+		| $(SED) -e 's/^maki_marshal_//' -e 's/__/:/' -e 's/_/,/g' \
+		| $(SORT) -u \
 		> $@
 
 marshal.c: marshal.list
