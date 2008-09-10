@@ -546,7 +546,7 @@ gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, guint64 li
 		gchar* path;
 
 		filename = g_strconcat(target, ".txt", NULL);
-		path = g_build_filename(m->directories.logs, server, filename, NULL);
+		path = g_build_filename(m->config->directories.logs, server, filename, NULL);
 
 		if ((fd = open(path, O_RDONLY)) != -1)
 		{

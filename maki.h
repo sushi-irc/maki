@@ -64,7 +64,6 @@ struct maki
 	struct
 	{
 		gchar* config;
-		gchar* logs;
 		gchar* servers;
 	}
 	directories;

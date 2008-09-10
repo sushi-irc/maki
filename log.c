@@ -94,7 +94,7 @@ void maki_log (struct maki_connection* conn, const gchar* name, const gchar* for
 
 	if ((log = g_hash_table_lookup(conn->logs, name)) == NULL)
 	{
-		if ((log = maki_log_new(m->directories.logs, conn->server, name)) == NULL)
+		if ((log = maki_log_new(m->config->directories.logs, conn->server, name)) == NULL)
 		{
 			return;
 		}

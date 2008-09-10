@@ -29,6 +29,12 @@ struct maki_config
 {
 	struct
 	{
+		gchar* logs;
+	}
+	directories;
+
+	struct
+	{
 		gboolean enabled;
 		gchar* time_format;
 	}

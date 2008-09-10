@@ -25,6 +25,9 @@
  * SUCH DAMAGE.
  */
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "maki.h"
 
 struct maki_config* maki_config_new (const gchar* path)
@@ -33,6 +36,7 @@ struct maki_config* maki_config_new (const gchar* path)
 
 	config = g_new(struct maki_config, 1);
 
+	config->directories.logs = NULL;
 	config->logging.time_format = NULL;
 
 	maki_config_reload(config, path);
@@ -47,6 +51,9 @@ void maki_config_reload (struct maki_config* config, const gchar* path)
 {
 	GKeyFile* key_file;
 
+	g_free(config->directories.logs);
+	config->directories.logs = g_build_filename(g_get_user_data_dir(), "sushi", "logs", NULL);
+
 	config->logging.enabled = TRUE;
 	g_free(config->logging.time_format);
 	config->logging.time_format = g_strdup("%Y-%m-%d %H:%M:%S");
@@ -58,11 +65,15 @@ void maki_config_reload (struct maki_config* config, const gchar* path)
 
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 	{
+		gchar* directories_logs;
 		gboolean logging_enabled;
 		gchar* logging_time_format;
 		gint reconnect_retries;
 		gint reconnect_timeout;
 		GError* error = NULL;
+
+		directories_logs = g_key_file_get_string(key_file, "directories", "logs", &error);
+		maki_config_string(directories.logs, directories_logs);
 
 		logging_enabled = g_key_file_get_boolean(key_file, "logging", "enabled", &error);
 		maki_config_value(logging.enabled, logging_enabled);
@@ -77,11 +88,24 @@ void maki_config_reload (struct maki_config* config, const gchar* path)
 		maki_config_value(reconnect.timeout, reconnect_timeout);
 	}
 
+	if (!g_path_is_absolute(config->directories.logs))
+	{
+		gchar* tmp;
+
+		tmp = config->directories.logs;
+		config->directories.logs = g_build_filename(g_get_home_dir(), config->directories.logs, NULL);
+		g_free(tmp);
+	}
+
+	g_mkdir_with_parents(config->directories.logs, S_IRUSR | S_IWUSR | S_IXUSR);
+
 	g_key_file_free(key_file);
 }
 
 void maki_config_free (struct maki_config* config)
 {
+	g_free(config->directories.logs);
+
 	g_free(config->logging.time_format);
 
 	g_free(config);
