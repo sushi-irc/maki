@@ -9,7 +9,7 @@ CFLAGS += -DLOCALEDIR='"$(localedir)"'
 
 dbusdir = $(shell pkg-config --variable session_bus_services_dir dbus-1)
 
-COMPONENTS = cache channel channel_user config connection dbus in log marshal misc out servers user
+COMPONENTS = cache channel channel_user config dbus in log marshal misc out server servers user
 HEADERS    = maki.h sashimi.h $(COMPONENTS:%=%.h) dbus_glue.h
 OBJECTS    = maki.o sashimi.o $(COMPONENTS:%=%.o)
 

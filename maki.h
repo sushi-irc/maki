@@ -44,7 +44,7 @@ struct maki;
 #include "channel.h"
 #include "channel_user.h"
 #include "config.h"
-#include "connection.h"
+#include "server.h"
 #include "dbus.h"
 #include "in.h"
 #include "log.h"
