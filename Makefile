@@ -1,11 +1,12 @@
 include ../Makefile.common
 
-CFLAGS := $(subst -pedantic,,$(CFLAGS))
+# To quiet warnings from generated code.
+SUSHI_CFLAGS := $(subst -pedantic,,$(SUSHI_CFLAGS))
 
-CFLAGS  += $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags gobject-2.0) $(shell pkg-config --cflags gthread-2.0)
-LDFLAGS += $(shell pkg-config --libs   dbus-glib-1) $(shell pkg-config --libs   glib-2.0) $(shell pkg-config --libs   gobject-2.0) $(shell pkg-config --libs   gthread-2.0)
+SUSHI_CFLAGS  += $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags gobject-2.0) $(shell pkg-config --cflags gthread-2.0)
+SUSHI_LDFLAGS += $(shell pkg-config --libs   dbus-glib-1) $(shell pkg-config --libs   glib-2.0) $(shell pkg-config --libs   gobject-2.0) $(shell pkg-config --libs   gthread-2.0)
 
-CFLAGS += -DLOCALEDIR='"$(localedir)"'
+SUSHI_CFLAGS += -DLOCALEDIR='"$(localedir)"'
 
 dbusdir = $(shell pkg-config --variable session_bus_services_dir dbus-1)
 
@@ -47,10 +48,10 @@ marshal.h: marshal.list
 	$(QUIET_GEN) glib-genmarshal --header --prefix=maki_marshal $+ > $@
 
 $(OBJECTS): %.o: %.c $(HEADERS)
-	$(QUIET_CC) $(CC) $(CFLAGS) -c -o $@ $<
+	$(QUIET_CC) $(CC) $(SUSHI_CFLAGS) -c -o $@ $<
 
 maki: $(OBJECTS)
-	$(QUIET_LD) $(CC) $(LDFLAGS) -o $@ $+
+	$(QUIET_LD) $(CC) $(SUSHI_LDFLAGS) -o $@ $+
 
 libsashimi.so: sashimi.c
-	$(QUIET_CC) $(CC) $(CFLAGS) -fPIC $(LDFLAGS) -shared -Wl,-soname,$@ -o $@ $+
+	$(QUIET_CC) $(CC) $(SUSHI_CFLAGS) -fPIC $(SUSHI_LDFLAGS) -shared -Wl,-soname,$@ -o $@ $+
