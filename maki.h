@@ -59,7 +59,7 @@ struct maki
 
 	struct maki_config* config;
 
-	GHashTable* connections;
+	GHashTable* servers;
 
 	struct
 	{

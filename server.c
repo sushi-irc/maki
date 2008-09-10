@@ -152,7 +152,7 @@ struct maki_server* maki_server_new (const gchar* server)
 }
 
 /**
- * This function gets called when a connection is removed from the connections hash table.
+ * This function gets called when a connection is removed from the servers hash table.
  */
 void maki_server_free (gpointer data)
 {

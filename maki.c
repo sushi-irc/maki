@@ -60,7 +60,7 @@ struct maki* maki_new (void)
 
 	m->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
 
-	m->connections = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
+	m->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
 
 	m->directories.config = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
 	m->directories.servers = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
@@ -92,7 +92,7 @@ void maki_free (struct maki* m)
 	g_thread_join(m->threads.messages);
 	g_async_queue_unref(m->message_queue);
 
-	g_hash_table_destroy(m->connections);
+	g_hash_table_destroy(m->servers);
 
 	g_free(m->directories.config);
 	g_free(m->directories.servers);
@@ -156,7 +156,7 @@ static void maki_signal (int signo)
 	GList* tmp;
 	struct maki* m = maki();
 
-	list = g_hash_table_get_values(m->connections);
+	list = g_hash_table_get_values(m->servers);
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{

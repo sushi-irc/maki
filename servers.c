@@ -89,7 +89,7 @@ void maki_servers (void)
 
 		if ((conn = maki_server_new(file)) != NULL)
 		{
-			g_hash_table_replace(m->connections, conn->server, conn);
+			g_hash_table_replace(m->servers, conn->server, conn);
 		}
 
 	}
