@@ -34,17 +34,18 @@
 
 #include "maki.h"
 
-makiLog* maki_log_new (const gchar* directory, const gchar* server, const gchar* name)
+makiLog* maki_log_new (const gchar* server, const gchar* name)
 {
 	gchar* dirname;
 	gchar* filename;
 	gchar* path;
 	makiLog* log;
+	struct maki* m = maki();
 
 	log = g_new(makiLog, 1);
 	log->name = g_strdup(name);
 
-	dirname = g_build_filename(directory, server, NULL);
+	dirname = g_build_filename(maki_config_get(m->config, "directories", "logs"), server, NULL);
 	filename = g_strconcat(log->name, ".txt", NULL);
 	path = g_build_filename(dirname, filename, NULL);
 
@@ -95,7 +96,7 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 
 	if ((log = g_hash_table_lookup(serv->logs, name)) == NULL)
 	{
-		if ((log = maki_log_new(maki_config_get(m->config, "directories", "logs"), serv->server, name)) == NULL)
+		if ((log = maki_log_new(serv->server, name)) == NULL)
 		{
 			return;
 		}

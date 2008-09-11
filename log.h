@@ -33,6 +33,6 @@ struct maki_log
 
 typedef struct maki_log makiLog;
 
-makiLog* maki_log_new (const gchar*, const gchar*, const gchar*);
+makiLog* maki_log_new (const gchar*, const gchar*);
 void maki_log_free (gpointer);
 void maki_log (makiServer*, const gchar*, const gchar*, ...);
