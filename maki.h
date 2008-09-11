@@ -61,7 +61,7 @@ struct maki
 {
 	makiDBus* bus;
 
-	struct maki_config* config;
+	makiConfig* config;
 
 	GHashTable* servers;
 

@@ -54,7 +54,7 @@ static void maki_config_group_free (gpointer data)
 	g_free(grp);
 }
 
-static void maki_config_set_from_key_file (GKeyFile* key_file, struct maki_config* conf, const gchar* group, const gchar* key)
+static void maki_config_set_from_key_file (GKeyFile* key_file, makiConfig* conf, const gchar* group, const gchar* key)
 {
 	gchar* value;
 	GError* error = NULL;
@@ -76,13 +76,13 @@ static void maki_config_set_from_key_file (GKeyFile* key_file, struct maki_confi
 	}
 }
 
-struct maki_config* maki_config_new (struct maki* m)
+makiConfig* maki_config_new (struct maki* m)
 {
 	gchar* path;
-	struct maki_config* conf;
+	makiConfig* conf;
 	GKeyFile* key_file;
 
-	conf = g_new(struct maki_config, 1);
+	conf = g_new(makiConfig, 1);
 	conf->groups = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_config_group_free);
 
 	/* Create groups and set default values. */
@@ -136,7 +136,7 @@ struct maki_config* maki_config_new (struct maki* m)
 	return conf;
 }
 
-const gchar* maki_config_get (struct maki_config* conf, const gchar* group, const gchar* key)
+const gchar* maki_config_get (makiConfig* conf, const gchar* group, const gchar* key)
 {
 	struct maki_config_group* grp;
 
@@ -148,12 +148,12 @@ const gchar* maki_config_get (struct maki_config* conf, const gchar* group, cons
 	return NULL;
 }
 
-gint maki_config_get_int (struct maki_config* conf, const gchar* group, const gchar* key)
+gint maki_config_get_int (makiConfig* conf, const gchar* group, const gchar* key)
 {
 	return atoi(maki_config_get(conf, group, key));
 }
 
-void maki_config_set (struct maki_config* conf, const gchar* group, const gchar* key, const gchar* value)
+void maki_config_set (makiConfig* conf, const gchar* group, const gchar* key, const gchar* value)
 {
 	struct maki_config_group* grp;
 
@@ -177,7 +177,7 @@ void maki_config_set (struct maki_config* conf, const gchar* group, const gchar*
 	}
 }
 
-void maki_config_free (struct maki_config* conf)
+void maki_config_free (makiConfig* conf)
 {
 	g_hash_table_destroy(conf->groups);
 
