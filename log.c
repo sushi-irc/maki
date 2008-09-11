@@ -34,14 +34,14 @@
 
 #include "maki.h"
 
-struct maki_log* maki_log_new (const gchar* directory, const gchar* server, const gchar* name)
+makiLog* maki_log_new (const gchar* directory, const gchar* server, const gchar* name)
 {
 	gchar* dirname;
 	gchar* filename;
 	gchar* path;
-	struct maki_log* log;
+	makiLog* log;
 
-	log = g_new(struct maki_log, 1);
+	log = g_new(makiLog, 1);
 	log->name = g_strdup(name);
 
 	dirname = g_build_filename(directory, server, NULL);
@@ -67,7 +67,7 @@ struct maki_log* maki_log_new (const gchar* directory, const gchar* server, cons
 
 void maki_log_free (gpointer data)
 {
-	struct maki_log* log = data;
+	makiLog* log = data;
 
 	close(log->fd);
 
@@ -80,7 +80,7 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 	gchar buf[1024];
 	gchar* tmp;
 	time_t t;
-	struct maki_log* log;
+	makiLog* log;
 	va_list args;
 	struct maki* m = maki();
 
