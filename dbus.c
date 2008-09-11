@@ -722,7 +722,7 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 
 			for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 			{
-				struct maki_channel_user* cuser = tmp->data;
+				makiChannelUser* cuser = tmp->data;
 
 				*nick = g_strdup(cuser->user->nick);
 				++nick;
@@ -1233,7 +1233,7 @@ gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* chan
 
 		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
 		{
-			struct maki_channel_user* cuser;
+			makiChannelUser* cuser;
 
 			if ((cuser = g_hash_table_lookup(chan->users, nick)) != NULL)
 			{
@@ -1283,7 +1283,7 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* ch
 
 		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
 		{
-			struct maki_channel_user* cuser;
+			makiChannelUser* cuser;
 
 			if ((cuser = g_hash_table_lookup(chan->users, nick)) != NULL)
 			{

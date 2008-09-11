@@ -27,18 +27,18 @@
 
 #include "maki.h"
 
-struct maki_channel_user* maki_channel_user_new (struct maki_user* user)
+makiChannelUser* maki_channel_user_new (struct maki_user* user)
 {
-	struct maki_channel_user* cuser;
+	makiChannelUser* cuser;
 
-	cuser = g_new(struct maki_channel_user, 1);
+	cuser = g_new(makiChannelUser, 1);
 	cuser->user = user;
 	cuser->prefix = 0;
 
 	return cuser;
 }
 
-void maki_channel_user_copy (struct maki_channel_user* src, struct maki_channel_user* dst)
+void maki_channel_user_copy (makiChannelUser* src, makiChannelUser* dst)
 {
 	if (src != dst)
 	{
@@ -48,7 +48,7 @@ void maki_channel_user_copy (struct maki_channel_user* src, struct maki_channel_
 
 void maki_channel_user_free (gpointer data)
 {
-	struct maki_channel_user* cuser = data;
+	makiChannelUser* cuser = data;
 
 	maki_cache_remove(cuser->user->server->users, cuser->user->nick);
 
