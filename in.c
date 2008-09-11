@@ -123,7 +123,7 @@ gboolean maki_join (gpointer data)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* chan = tmp->data;
+		makiChannel* chan = tmp->data;
 
 		if (chan->autojoin || chan->joined)
 		{
@@ -238,7 +238,7 @@ void maki_in_privmsg (makiServer* serv, glong time, gchar* nick, gchar* remainin
 void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gchar* channel;
-	struct maki_channel* chan;
+	makiChannel* chan;
 
 	if (!remaining)
 	{
@@ -288,7 +288,7 @@ void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	gchar** tmp;
 	gchar* channel;
 	gchar* message;
-	struct maki_channel* chan;
+	makiChannel* chan;
 
 	if (!remaining)
 	{
@@ -365,7 +365,7 @@ void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* chan = tmp->data;
+		makiChannel* chan = tmp->data;
 
 		if (!chan->joined)
 		{
@@ -405,7 +405,7 @@ void maki_in_kick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	gchar* channel;
 	gchar* who;
 	gchar* message;
-	struct maki_channel* chan;
+	makiChannel* chan;
 
 	if (!remaining)
 	{
@@ -509,7 +509,7 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* chan = tmp->data;
+		makiChannel* chan = tmp->data;
 		struct maki_channel_user* cuser;
 
 		if (!chan->joined)
@@ -636,7 +636,7 @@ void maki_in_mode (makiServer* serv, glong time, gchar* nick, gchar* remaining, 
 
 					if ((pos = maki_prefix_position(serv, FALSE, *mode)) >= 0)
 					{
-						struct maki_channel* chan;
+						makiChannel* chan;
 						struct maki_channel_user* cuser;
 
 						if ((chan = g_hash_table_lookup(serv->channels, target)) != NULL
@@ -750,7 +750,7 @@ void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining,
 	gchar** tmp;
 	gchar* channel;
 	gchar* topic;
-	struct maki_channel* chan;
+	makiChannel* chan;
 
 	if (!remaining)
 	{
@@ -807,7 +807,7 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
 	gchar* channel;
 	gint i;
 	guint length;
-	struct maki_channel* chan;
+	makiChannel* chan;
 
 	if (!remaining)
 	{

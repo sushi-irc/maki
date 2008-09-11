@@ -159,7 +159,7 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* chan = tmp->data;
+		makiChannel* chan = tmp->data;
 
 		if (chan->joined)
 		{

@@ -292,7 +292,7 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 
 		for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 		{
-			struct maki_channel* chan = tmp->data;
+			makiChannel* chan = tmp->data;
 
 			if (chan->joined)
 			{
@@ -317,7 +317,7 @@ gboolean maki_dbus_channel_topic (makiDBus* self, gchar* server, gchar* channel,
 
 	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
 	{
-		struct maki_channel* chan;
+		makiChannel* chan;
 
 		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL
 		    && chan->topic != NULL)
@@ -461,7 +461,7 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* k
 
 	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
 	{
-		struct maki_channel* chan;
+		makiChannel* chan;
 
 		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL
 		    && chan->key != NULL
@@ -709,7 +709,7 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 
 	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
 	{
-		struct maki_channel* chan;
+		makiChannel* chan;
 
 		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
 		{
@@ -1229,7 +1229,7 @@ gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* chan
 
 	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
 	{
-		struct maki_channel* chan;
+		makiChannel* chan;
 
 		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
 		{
@@ -1279,7 +1279,7 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* ch
 
 	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
 	{
-		struct maki_channel* chan;
+		makiChannel* chan;
 
 		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
 		{

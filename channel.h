@@ -35,5 +35,7 @@ struct maki_channel
 	gchar* topic;
 };
 
-struct maki_channel* maki_channel_new (const gchar*);
+typedef struct maki_channel makiChannel;
+
+makiChannel* maki_channel_new (const gchar*);
 void maki_channel_free (gpointer);

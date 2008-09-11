@@ -27,11 +27,11 @@
 
 #include "maki.h"
 
-struct maki_channel* maki_channel_new (const gchar* name)
+makiChannel* maki_channel_new (const gchar* name)
 {
-	struct maki_channel* chan;
+	makiChannel* chan;
 
-	chan = g_new(struct maki_channel, 1);
+	chan = g_new(makiChannel, 1);
 
 	chan->name = g_strdup(name);
 	chan->autojoin = FALSE;
@@ -48,7 +48,7 @@ struct maki_channel* maki_channel_new (const gchar* name)
  */
 void maki_channel_free (gpointer data)
 {
-	struct maki_channel* chan = data;
+	makiChannel* chan = data;
 
 	g_hash_table_destroy(chan->users);
 

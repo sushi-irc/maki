@@ -122,7 +122,7 @@ makiServer* maki_server_new (const gchar* server)
 			{
 				gboolean autojoin;
 				gchar* key;
-				struct maki_channel* chan;
+				makiChannel* chan;
 
 				autojoin = g_key_file_get_boolean(key_file, *group, "autojoin", NULL);
 				key = g_key_file_get_string(key_file, *group, "key", NULL);
@@ -241,7 +241,7 @@ gint maki_server_disconnect (makiServer* serv, const gchar* message)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_channel* chan = tmp->data;
+		makiChannel* chan = tmp->data;
 
 		g_hash_table_remove_all(chan->users);
 	}
