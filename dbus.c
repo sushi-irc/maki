@@ -338,6 +338,15 @@ gboolean maki_dbus_config_get (makiDBus* self, gchar* group, gchar* key, gchar**
 	return TRUE;
 }
 
+gboolean maki_dbus_config_set (makiDBus* self, gchar* group, gchar* key, gchar* value, GError** error)
+{
+	struct maki* m = maki();
+
+	maki_config_set(m->config, group, key, value);
+
+	return TRUE;
+}
+
 gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 {
 	makiServer* serv;
