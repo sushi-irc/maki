@@ -52,5 +52,4 @@
 #define IRC_ERR_NOMOTD "422"
 #define IRC_ERR_NICKNAMEINUSE "433"
 
-gchar* maki_remove_colon (gchar*);
 gpointer maki_in_runner (gpointer);

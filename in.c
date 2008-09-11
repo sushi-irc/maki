@@ -33,7 +33,7 @@
 
 /* A convenience function to remove a colon before an argument.
  * It also checks for NULL. */
-gchar* maki_remove_colon (gchar* string)
+static gchar* maki_remove_colon (gchar* string)
 {
 	if (string != NULL && string[0] == ':')
 	{
