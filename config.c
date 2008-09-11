@@ -31,6 +31,11 @@
 
 #include "maki.h"
 
+struct maki_config
+{
+	GHashTable* groups;
+};
+
 struct maki_config_group
 {
 	GHashTable* keys;

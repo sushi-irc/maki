@@ -25,10 +25,7 @@
  * SUCH DAMAGE.
  */
 
-struct maki_config
-{
-	GHashTable* groups;
-};
+struct maki_config;
 
 typedef struct maki_config makiConfig;
 
