@@ -329,6 +329,15 @@ gboolean maki_dbus_channel_topic (makiDBus* self, gchar* server, gchar* channel,
 	return TRUE;
 }
 
+gboolean maki_dbus_config_get (makiDBus* self, gchar* group, gchar* key, gchar** value, GError** error)
+{
+	struct maki* m = maki();
+
+	*value = g_strdup(maki_config_get(m->config, group, key));
+
+	return TRUE;
+}
+
 gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 {
 	makiServer* serv;

@@ -28,6 +28,12 @@
 			<arg name="topic" type="s" direction="out" />
 		</method>
 
+		<method name="config_get">
+			<arg name="group" type="s" />
+			<arg name="key" type="s" />
+			<arg name="value" type="s" direction="out" />
+		</method>
+
 		<method name="connect">
 			<arg name="server" type="s" />
 		</method>
