@@ -54,5 +54,4 @@
 
 gchar* maki_remove_colon (gchar*);
 gboolean maki_mode_has_parameter (makiServer*, gchar, gchar);
-gboolean maki_is_channel(makiServer*, const gchar*);
 gpointer maki_in_runner (gpointer);

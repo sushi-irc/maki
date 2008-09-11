@@ -86,7 +86,7 @@ gboolean maki_mode_has_parameter (makiServer* serv, gchar sign, gchar mode)
 	return FALSE;
 }
 
-gboolean maki_is_channel(makiServer* serv, const gchar* target)
+static gboolean maki_is_channel(makiServer* serv, const gchar* target)
 {
 	return (strchr(serv->support.chantypes, target[0]) != NULL);
 }
