@@ -84,17 +84,18 @@ void maki_log (struct maki_server* serv, const gchar* name, const gchar* format,
 	va_list args;
 	struct maki* m = maki();
 
-	if (!m->config->logging.enabled)
+	/* FIXME */
+	if (strcmp(maki_config_get(m->config, "logging", "enabled"), "true") != 0)
 	{
 		return;
 	}
 
 	t = time(NULL);
-	strftime(buf, 1024, m->config->logging.time_format, localtime(&t));
+	strftime(buf, 1024, "%Y-%m-%d %H:%M:%S", localtime(&t));
 
 	if ((log = g_hash_table_lookup(serv->logs, name)) == NULL)
 	{
-		if ((log = maki_log_new(m->config->directories.logs, serv->server, name)) == NULL)
+		if ((log = maki_log_new(maki_config_get(m->config, "directories", "logs"), serv->server, name)) == NULL)
 		{
 			return;
 		}

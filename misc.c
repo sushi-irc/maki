@@ -72,7 +72,7 @@ void maki_debug (const gchar* format, ...)
 		gchar* path;
 
 		filename = g_strconcat("maki", ".txt", NULL);
-		path = g_build_filename(m->config->directories.logs, filename, NULL);
+		path = g_build_filename(maki_config_get(m->config, "directories", "logs"), filename, NULL);
 
 		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
 		{

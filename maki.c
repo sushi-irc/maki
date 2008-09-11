@@ -50,7 +50,6 @@ struct maki* maki (void)
 
 struct maki* maki_new (void)
 {
-	gchar* config_path;
 	struct maki* m;
 
 	if ((m = g_new(struct maki, 1)) == NULL)
@@ -65,9 +64,7 @@ struct maki* maki_new (void)
 	m->directories.config = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
 	m->directories.servers = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
 
-	config_path = g_build_filename(m->directories.config, "maki", NULL);
-	m->config = maki_config_new(config_path);
-	g_free(config_path);
+	m->config = maki_config_new(m);
 
 	m->message_queue = g_async_queue_new_full(sashimi_message_free);
 

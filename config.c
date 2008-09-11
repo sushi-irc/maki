@@ -25,88 +25,161 @@
  * SUCH DAMAGE.
  */
 
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include "maki.h"
 
-struct maki_config* maki_config_new (const gchar* path)
+struct maki_config_group
 {
-	struct maki_config* config;
+	GHashTable* keys;
+};
 
-	config = g_new(struct maki_config, 1);
+static struct maki_config_group* maki_config_group_new (void)
+{
+	struct maki_config_group* grp;
 
-	config->directories.logs = NULL;
-	config->logging.time_format = NULL;
+	grp = g_new(struct maki_config_group, 1);
+	grp->keys = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
-	maki_config_reload(config, path);
-
-	return config;
+	return grp;
 }
 
-#define maki_config_value(key, value) if (error) { g_error_free(error); error = NULL; } else { config->key = value; }
-#define maki_config_string(key, value) if (error) { g_error_free(error); error = NULL; } else { g_free(config->key); config->key = value; }
-
-void maki_config_reload (struct maki_config* config, const gchar* path)
+static void maki_config_group_free (gpointer data)
 {
+	struct maki_config_group* grp = data;
+
+	g_hash_table_destroy(grp->keys);
+	g_free(grp);
+}
+
+static void maki_config_set_from_key_file (GKeyFile* key_file, struct maki_config* conf, const gchar* group, const gchar* key)
+{
+	gchar* value;
+	GError* error = NULL;
+
+	value = g_key_file_get_string(key_file, group, key, &error);
+
+	if (error)
+	{
+		g_error_free(error);
+	}
+	else
+	{
+		struct maki_config_group* grp;
+
+		if ((grp = g_hash_table_lookup(conf->groups, group)) != NULL)
+		{
+			g_hash_table_insert(grp->keys, g_strdup(key), value);
+		}
+	}
+}
+
+struct maki_config* maki_config_new (struct maki* m)
+{
+	gchar* path;
+	struct maki_config* conf;
 	GKeyFile* key_file;
 
-	g_free(config->directories.logs);
-	config->directories.logs = g_build_filename(g_get_user_data_dir(), "sushi", "logs", NULL);
+	conf = g_new(struct maki_config, 1);
+	conf->groups = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_config_group_free);
 
-	config->logging.enabled = TRUE;
-	g_free(config->logging.time_format);
-	config->logging.time_format = g_strdup("%Y-%m-%d %H:%M:%S");
+	/* Create groups and set default values. */
+	{
+		struct maki_config_group* group;
 
-	config->reconnect.retries = 3;
-	config->reconnect.timeout = 10;
+		group = maki_config_group_new();
+		g_hash_table_insert(conf->groups, g_strdup("directories"), group);
+		g_hash_table_insert(group->keys, g_strdup("logs"), g_build_filename(g_get_user_data_dir(), "sushi", "logs", NULL));
+
+		group = maki_config_group_new();
+		g_hash_table_insert(conf->groups, g_strdup("logging"), group);
+		g_hash_table_insert(group->keys, g_strdup("enabled"), g_strdup("true"));
+
+		group = maki_config_group_new();
+		g_hash_table_insert(conf->groups, g_strdup("reconnect"), group);
+		g_hash_table_insert(group->keys, g_strdup("retries"), g_strdup("3"));
+		g_hash_table_insert(group->keys, g_strdup("timeout"), g_strdup("10"));
+	}
 
 	key_file = g_key_file_new();
+	path = g_build_filename(m->directories.config, "maki", NULL);
 
+	/* Read values from config file. */
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
 	{
-		gchar* directories_logs;
-		gboolean logging_enabled;
-		gchar* logging_time_format;
-		gint reconnect_retries;
-		gint reconnect_timeout;
-		GError* error = NULL;
+		maki_config_set_from_key_file(key_file, conf, "directories", "logs");
 
-		directories_logs = g_key_file_get_string(key_file, "directories", "logs", &error);
-		maki_config_string(directories.logs, directories_logs);
+		maki_config_set_from_key_file(key_file, conf, "logging", "enabled");
 
-		logging_enabled = g_key_file_get_boolean(key_file, "logging", "enabled", &error);
-		maki_config_value(logging.enabled, logging_enabled);
-
-		logging_time_format = g_key_file_get_string(key_file, "logging", "time_format", &error);
-		maki_config_string(logging.time_format, logging_time_format);
-
-		reconnect_retries = g_key_file_get_integer(key_file, "reconnect", "retries", &error);
-		maki_config_value(reconnect.retries, reconnect_retries);
-
-		reconnect_timeout = g_key_file_get_integer(key_file, "reconnect", "timeout", &error);
-		maki_config_value(reconnect.timeout, reconnect_timeout);
+		maki_config_set_from_key_file(key_file, conf, "reconnect", "retries");
+		maki_config_set_from_key_file(key_file, conf, "reconnect", "timeout");
 	}
-
-	if (!g_path_is_absolute(config->directories.logs))
-	{
-		gchar* tmp;
-
-		tmp = config->directories.logs;
-		config->directories.logs = g_build_filename(g_get_home_dir(), config->directories.logs, NULL);
-		g_free(tmp);
-	}
-
-	g_mkdir_with_parents(config->directories.logs, S_IRUSR | S_IWUSR | S_IXUSR);
 
 	g_key_file_free(key_file);
+	g_free(path);
+
+	{
+		const gchar* logs;
+
+		logs = maki_config_get(conf, "directories", "logs");
+
+		if (!g_path_is_absolute(logs))
+		{
+			maki_config_set(conf, "directories", "logs", g_build_filename(g_get_home_dir(), logs, NULL));
+		}
+
+		g_mkdir_with_parents(maki_config_get(conf, "directories", "logs"), S_IRUSR | S_IWUSR | S_IXUSR);
+	}
+
+	return conf;
 }
 
-void maki_config_free (struct maki_config* config)
+const gchar* maki_config_get (struct maki_config* conf, const gchar* group, const gchar* key)
 {
-	g_free(config->directories.logs);
+	struct maki_config_group* grp;
 
-	g_free(config->logging.time_format);
+	if ((grp = g_hash_table_lookup(conf->groups, group)) != NULL)
+	{
+		return g_hash_table_lookup(grp->keys, key);
+	}
 
-	g_free(config);
+	return NULL;
+}
+
+gint maki_config_get_int (struct maki_config* conf, const gchar* group, const gchar* key)
+{
+	return atoi(maki_config_get(conf, group, key));
+}
+
+void maki_config_set (struct maki_config* conf, const gchar* group, const gchar* key, const gchar* value)
+{
+	struct maki_config_group* grp;
+
+	if ((grp = g_hash_table_lookup(conf->groups, group)) != NULL)
+	{
+		gchar* path;
+		GKeyFile* key_file;
+		struct maki* m = maki();
+
+		g_hash_table_insert(grp->keys, g_strdup(key), g_strdup(value));
+
+		key_file = g_key_file_new();
+		path = g_build_filename(m->directories.config, "maki", NULL);
+
+		g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
+		g_key_file_set_string(key_file, group, key, value);
+		maki_key_file_to_file(key_file, path);
+
+		g_key_file_free(key_file);
+		g_free(path);
+	}
+}
+
+void maki_config_free (struct maki_config* conf)
+{
+	g_hash_table_destroy(conf->groups);
+
+	g_free(conf);
 }

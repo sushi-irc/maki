@@ -27,27 +27,11 @@
 
 struct maki_config
 {
-	struct
-	{
-		gchar* logs;
-	}
-	directories;
-
-	struct
-	{
-		gboolean enabled;
-		gchar* time_format;
-	}
-	logging;
-
-	struct
-	{
-		gint retries;
-		guint timeout;
-	}
-	reconnect;
+	GHashTable* groups;
 };
 
-struct maki_config* maki_config_new (const gchar*);
-void maki_config_reload (struct maki_config*, const gchar*);
+struct maki_config* maki_config_new (struct maki*);
+const gchar* maki_config_get (struct maki_config*, const gchar*, const gchar*);
+gint maki_config_get_int (struct maki_config*, const gchar*, const gchar*);
+void maki_config_set (struct maki_config*, const gchar*, const gchar*, const gchar*);
 void maki_config_free (struct maki_config*);
