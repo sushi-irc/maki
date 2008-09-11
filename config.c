@@ -36,11 +36,13 @@ struct maki_config_group
 	GHashTable* keys;
 };
 
-static struct maki_config_group* maki_config_group_new (void)
-{
-	struct maki_config_group* grp;
+typedef struct maki_config_group makiConfigGroup;
 
-	grp = g_new(struct maki_config_group, 1);
+static makiConfigGroup* maki_config_group_new (void)
+{
+	makiConfigGroup* grp;
+
+	grp = g_new(makiConfigGroup, 1);
 	grp->keys = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
 	return grp;
@@ -48,7 +50,7 @@ static struct maki_config_group* maki_config_group_new (void)
 
 static void maki_config_group_free (gpointer data)
 {
-	struct maki_config_group* grp = data;
+	makiConfigGroup* grp = data;
 
 	g_hash_table_destroy(grp->keys);
 	g_free(grp);
@@ -67,7 +69,7 @@ static void maki_config_set_from_key_file (GKeyFile* key_file, makiConfig* conf,
 	}
 	else
 	{
-		struct maki_config_group* grp;
+		makiConfigGroup* grp;
 
 		if ((grp = g_hash_table_lookup(conf->groups, group)) != NULL)
 		{
@@ -87,7 +89,7 @@ makiConfig* maki_config_new (struct maki* m)
 
 	/* Create groups and set default values. */
 	{
-		struct maki_config_group* group;
+		makiConfigGroup* group;
 
 		group = maki_config_group_new();
 		g_hash_table_insert(conf->groups, g_strdup("directories"), group);
@@ -138,7 +140,7 @@ makiConfig* maki_config_new (struct maki* m)
 
 const gchar* maki_config_get (makiConfig* conf, const gchar* group, const gchar* key)
 {
-	struct maki_config_group* grp;
+	makiConfigGroup* grp;
 
 	if ((grp = g_hash_table_lookup(conf->groups, group)) != NULL)
 	{
@@ -155,7 +157,7 @@ gint maki_config_get_int (makiConfig* conf, const gchar* group, const gchar* key
 
 void maki_config_set (makiConfig* conf, const gchar* group, const gchar* key, const gchar* value)
 {
-	struct maki_config_group* grp;
+	makiConfigGroup* grp;
 
 	if ((grp = g_hash_table_lookup(conf->groups, group)) != NULL)
 	{
