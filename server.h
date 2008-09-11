@@ -34,7 +34,7 @@ struct maki_server
 	gboolean connected;
 	struct sashimi_connection* connection;
 	GHashTable* channels;
-	struct maki_cache* users;
+	makiCache* users;
 	GHashTable* logs;
 
 	/* FIXME */

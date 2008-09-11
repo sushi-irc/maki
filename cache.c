@@ -51,14 +51,14 @@ static void maki_cache_item_free (struct maki_cache_item* item)
 	g_free(item);
 }
 
-struct maki_cache* maki_cache_new (gpointer (*value_new) (gpointer, gpointer), void (*value_free) (gpointer), gpointer value_data)
+makiCache* maki_cache_new (gpointer (*value_new) (gpointer, gpointer), void (*value_free) (gpointer), gpointer value_data)
 {
-	struct maki_cache* cache;
+	makiCache* cache;
 
 	g_return_val_if_fail(value_new != NULL, NULL);
 	g_return_val_if_fail(value_free != NULL, NULL);
 
-	cache = g_new(struct maki_cache, 1);
+	cache = g_new(makiCache, 1);
 	cache->value_new = value_new;
 	cache->value_free = value_free;
 	cache->value_data = value_data;
@@ -67,7 +67,7 @@ struct maki_cache* maki_cache_new (gpointer (*value_new) (gpointer, gpointer), v
 	return cache;
 }
 
-void maki_cache_free (struct maki_cache* cache)
+void maki_cache_free (makiCache* cache)
 {
 	g_return_if_fail(cache != NULL);
 
@@ -75,7 +75,7 @@ void maki_cache_free (struct maki_cache* cache)
 	g_free(cache);
 }
 
-gpointer maki_cache_insert (struct maki_cache* cache, gpointer key)
+gpointer maki_cache_insert (makiCache* cache, gpointer key)
 {
 	gpointer value;
 	struct maki_cache_item* item;
@@ -101,7 +101,7 @@ gpointer maki_cache_insert (struct maki_cache* cache, gpointer key)
 	}
 }
 
-void maki_cache_remove (struct maki_cache* cache, gpointer key)
+void maki_cache_remove (makiCache* cache, gpointer key)
 {
 	struct maki_cache_item* item;
 

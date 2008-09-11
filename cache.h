@@ -34,8 +34,9 @@ struct maki_cache
 	GHashTable* hash_table;
 };
 
+typedef struct maki_cache makiCache;
 
-struct maki_cache* maki_cache_new (gpointer (*) (gpointer, gpointer), void (*) (gpointer), gpointer);
-void maki_cache_free (struct maki_cache*);
-gpointer maki_cache_insert (struct maki_cache*, gpointer);
-void maki_cache_remove (struct maki_cache*, gpointer);
+makiCache* maki_cache_new (gpointer (*) (gpointer, gpointer), void (*) (gpointer), gpointer);
+void maki_cache_free (makiCache*);
+gpointer maki_cache_insert (makiCache*, gpointer);
+void maki_cache_remove (makiCache*, gpointer);
