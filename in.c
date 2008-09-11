@@ -109,11 +109,9 @@ gint maki_prefix_position (makiServer* serv, gboolean is_prefix, gchar prefix)
 	return -1;
 }
 
-/**
- * This function gets called after a successful login.
- * It joins all configured channels.
- */
-gboolean maki_join (gpointer data)
+/* This function gets called after a successful login.
+ * It joins all configured channels. */
+static gboolean maki_join (gpointer data)
 {
 	GList* list;
 	GList* tmp;
