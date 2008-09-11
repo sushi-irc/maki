@@ -27,7 +27,7 @@
 
 struct maki_user
 {
-	struct maki_server* connection;
+	struct maki_server* server;
 	gchar* nick;
 	gboolean away;
 	gchar* away_message;
