@@ -31,15 +31,13 @@
 
 #include "maki.h"
 
-/**
- * A convenience function to remove a colon before an argument.
- * It also checks for NULL.
- */
+/* A convenience function to remove a colon before an argument.
+ * It also checks for NULL. */
 gchar* maki_remove_colon (gchar* string)
 {
 	if (string != NULL && string[0] == ':')
 	{
-		++string;
+		return (string + 1);
 	}
 
 	return string;
@@ -247,7 +245,8 @@ void maki_in_join (struct maki_server* serv, glong time, gchar* nick, gchar* rem
 		return;
 	}
 
-	channel = (remaining[0] == ':') ? remaining + 1 : remaining;
+	channel = maki_remove_colon(remaining);
+	/* XXX */
 	g_strdelimit(channel, " ", '\0');
 
 	if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
