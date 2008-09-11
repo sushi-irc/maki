@@ -1084,18 +1084,18 @@ gpointer maki_in_runner (gpointer data)
 		gchar* message;
 		GTimeVal time;
 		makiServer* serv;
-		sashimiMessage* s_msg;
+		sashimiMessage* msg;
 
-		s_msg = g_async_queue_pop(m->message_queue);
+		msg = g_async_queue_pop(m->message_queue);
 
-		if (G_UNLIKELY(s_msg->message == NULL && s_msg->data == NULL))
+		if (G_UNLIKELY(msg->message == NULL && msg->data == NULL))
 		{
-			sashimi_message_free(s_msg);
+			sashimi_message_free(msg);
 			g_thread_exit(NULL);
 		}
 
-		serv = s_msg->data;
-		message = s_msg->message;
+		serv = msg->data;
+		message = msg->message;
 
 		/* Check for valid UTF-8, because strange crashes can occur otherwise. */
 		if (!g_utf8_validate(message, -1, NULL))
@@ -1106,11 +1106,11 @@ gpointer maki_in_runner (gpointer data)
 			if ((tmp = g_convert_with_fallback(message, -1, "UTF-8", "ISO-8859-1", "?", NULL, NULL, NULL)) != NULL)
 			{
 				g_free(message);
-				s_msg->message = message = tmp;
+				msg->message = message = tmp;
 			}
 			else
 			{
-				sashimi_message_free(s_msg);
+				sashimi_message_free(msg);
 				continue;
 			}
 		}
@@ -1154,7 +1154,7 @@ gpointer maki_in_runner (gpointer data)
 				{
 					g_strfreev(from);
 					g_strfreev(parts);
-					sashimi_message_free(s_msg);
+					sashimi_message_free(msg);
 					continue;
 				}
 			}
@@ -1294,6 +1294,6 @@ gpointer maki_in_runner (gpointer data)
 			g_strfreev(parts);
 		}
 
-		sashimi_message_free(s_msg);
+		sashimi_message_free(msg);
 	}
 }

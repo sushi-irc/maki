@@ -82,21 +82,21 @@ struct sashimi_connection
 
 sashimiMessage* sashimi_message_new (gchar* message, gpointer data)
 {
-	sashimiMessage* s_msg;
+	sashimiMessage* msg;
 
-	s_msg = g_new(sashimiMessage, 1);
-	s_msg->message = message;
-	s_msg->data = data;
+	msg = g_new(sashimiMessage, 1);
+	msg->message = message;
+	msg->data = data;
 
-	return s_msg;
+	return msg;
 }
 
 void sashimi_message_free (gpointer data)
 {
-	sashimiMessage* s_msg = data;
+	sashimiMessage* msg = data;
 
-	g_free(s_msg->message);
-	g_free(s_msg);
+	g_free(msg->message);
+	g_free(msg);
 }
 
 static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpointer data)

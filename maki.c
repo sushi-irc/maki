@@ -79,12 +79,12 @@ struct maki* maki_new (void)
 
 void maki_free (struct maki* m)
 {
-	sashimiMessage* s_msg;
+	sashimiMessage* msg;
 
 	/* Send a bogus message so the messages thread wakes up. */
-	s_msg = sashimi_message_new(NULL, NULL);
+	msg = sashimi_message_new(NULL, NULL);
 
-	g_async_queue_push(m->message_queue, s_msg);
+	g_async_queue_push(m->message_queue, msg);
 
 	g_thread_join(m->threads.messages);
 	g_async_queue_unref(m->message_queue);
