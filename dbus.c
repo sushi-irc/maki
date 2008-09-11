@@ -359,7 +359,7 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 		 */
 		maki_server_disconnect(serv, NULL);
 
-		if (maki_server_connect(serv) != 0)
+		if (!maki_server_connect(serv))
 		{
 			maki_server_reconnect_callback(serv);
 		}
@@ -370,7 +370,7 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 		{
 			g_hash_table_replace(m->servers, serv->server, serv);
 
-			if (!serv->autoconnect && maki_server_connect(serv) != 0)
+			if (!serv->autoconnect && !maki_server_connect(serv))
 			{
 				maki_server_reconnect_callback(serv);
 			}

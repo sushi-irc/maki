@@ -106,7 +106,7 @@ makiServer* maki_server_new (const gchar* server)
 
 		if (serv->autoconnect)
 		{
-			if (maki_server_connect(serv) != 0)
+			if (!maki_server_connect(serv))
 			{
 				maki_server_reconnect_callback(serv);
 			}
@@ -188,7 +188,7 @@ gboolean maki_server_connect (makiServer* serv)
 
 	sashimi_reconnect(serv->connection, maki_server_reconnect_callback, serv);
 
-	if ((ret = sashimi_connect(serv->connection)) == 0)
+	if ((ret = sashimi_connect(serv->connection)))
 	{
 		GTimeVal time;
 		makiUser* user;
@@ -272,7 +272,7 @@ static gboolean maki_server_reconnect (gpointer data)
 	g_get_current_time(&time);
 	maki_dbus_emit_reconnect(time.tv_sec, serv->server);
 
-	if (maki_server_connect(serv) == 0)
+	if (maki_server_connect(serv))
 	{
 		return FALSE;
 	}
