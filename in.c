@@ -1084,7 +1084,7 @@ gpointer maki_in_runner (gpointer data)
 		gchar* message;
 		GTimeVal time;
 		makiServer* serv;
-		struct sashimi_message* s_msg;
+		sashimiMessage* s_msg;
 
 		s_msg = g_async_queue_pop(m->message_queue);
 

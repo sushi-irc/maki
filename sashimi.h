@@ -41,7 +41,7 @@ struct sashimi_message
 typedef struct sashimi_message sashimiMessage;
 
 
-struct sashimi_message* sashimi_message_new (gchar*, gpointer);
+sashimiMessage* sashimi_message_new (gchar*, gpointer);
 void sashimi_message_free (gpointer);
 
 sashimiConnection* sashimi_new (const gchar*, gushort, GAsyncQueue*, gpointer);

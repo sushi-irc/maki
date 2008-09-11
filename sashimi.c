@@ -80,11 +80,11 @@ struct sashimi_connection
 	reconnect;
 };
 
-struct sashimi_message* sashimi_message_new (gchar* message, gpointer data)
+sashimiMessage* sashimi_message_new (gchar* message, gpointer data)
 {
-	struct sashimi_message* s_msg;
+	sashimiMessage* s_msg;
 
-	s_msg = g_new(struct sashimi_message, 1);
+	s_msg = g_new(sashimiMessage, 1);
 	s_msg->message = message;
 	s_msg->data = data;
 
@@ -93,7 +93,7 @@ struct sashimi_message* sashimi_message_new (gchar* message, gpointer data)
 
 void sashimi_message_free (gpointer data)
 {
-	struct sashimi_message* s_msg = data;
+	sashimiMessage* s_msg = data;
 
 	g_free(s_msg->message);
 	g_free(s_msg);
@@ -115,7 +115,7 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 
 	while ((status = g_io_channel_read_line(connection->channel, &buffer, NULL, NULL, NULL)) == G_IO_STATUS_NORMAL)
 	{
-		struct sashimi_message* message;
+		sashimiMessage* message;
 
 		connection->last_activity = time.tv_sec;
 

@@ -79,7 +79,7 @@ struct maki* maki_new (void)
 
 void maki_free (struct maki* m)
 {
-	struct sashimi_message* s_msg;
+	sashimiMessage* s_msg;
 
 	/* Send a bogus message so the messages thread wakes up. */
 	s_msg = sashimi_message_new(NULL, NULL);
