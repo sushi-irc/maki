@@ -41,16 +41,21 @@
 struct maki;
 
 #include "cache.h"
-#include "channel.h"
-#include "channel_user.h"
-#include "config.h"
+
 #include "server.h"
+
+#include "user.h"
+#include "channel_user.h"
+
+#include "channel.h"
+#include "config.h"
+
 #include "dbus.h"
+
 #include "in.h"
 #include "log.h"
 #include "misc.h"
 #include "out.h"
-#include "user.h"
 
 struct maki
 {
