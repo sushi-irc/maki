@@ -25,14 +25,7 @@
  * SUCH DAMAGE.
  */
 
-struct maki_cache
-{
-	gpointer (*value_new) (gpointer, gpointer);
-	void (*value_free) (gpointer);
-	gpointer value_data;
-
-	GHashTable* hash_table;
-};
+struct maki_cache;
 
 typedef struct maki_cache makiCache;
 
