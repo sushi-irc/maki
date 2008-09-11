@@ -1208,7 +1208,7 @@ gboolean maki_dbus_user_away (makiDBus* self, gchar* server, gchar* nick, gboole
 
 	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
 	{
-		struct maki_user* user;
+		makiUser* user;
 
 		if ((user = maki_cache_insert(serv->users, nick)) != NULL)
 		{

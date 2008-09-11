@@ -31,9 +31,9 @@ gpointer maki_user_new (gpointer key, gpointer data)
 {
 	gchar* nick = key;
 	makiServer* serv = data;
-	struct maki_user* user;
+	makiUser* user;
 
-	user = g_new(struct maki_user, 1);
+	user = g_new(makiUser, 1);
 	user->server = serv;
 	user->nick = nick;
 	user->away = FALSE;
@@ -42,7 +42,7 @@ gpointer maki_user_new (gpointer key, gpointer data)
 	return user;
 }
 
-void maki_user_copy (struct maki_user* src, struct maki_user* dst)
+void maki_user_copy (makiUser* src, makiUser* dst)
 {
 	if (src != dst)
 	{
@@ -56,7 +56,7 @@ void maki_user_copy (struct maki_user* src, struct maki_user* dst)
  */
 void maki_user_free (gpointer value)
 {
-	struct maki_user* user = value;
+	makiUser* user = value;
 
 	g_free(user->away_message);
 	g_free(user);

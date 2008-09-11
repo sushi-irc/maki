@@ -27,12 +27,12 @@
 
 struct maki_channel_user
 {
-	struct maki_user* user;
+	makiUser* user;
 	guint prefix;
 };
 
 typedef struct maki_channel_user makiChannelUser;
 
-makiChannelUser* maki_channel_user_new (struct maki_user*);
+makiChannelUser* maki_channel_user_new (makiUser*);
 void maki_channel_user_copy (makiChannelUser*, makiChannelUser*);
 void maki_channel_user_free (gpointer);

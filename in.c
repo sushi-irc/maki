@@ -252,7 +252,7 @@ void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
 	{
 		makiChannelUser* cuser;
-		struct maki_user* user;
+		makiUser* user;
 
 		user = maki_cache_insert(serv->users, nick);
 		cuser = maki_channel_user_new(user);
@@ -490,7 +490,7 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 	if (g_ascii_strcasecmp(nick, serv->user->nick) == 0)
 	{
-		struct maki_user* user;
+		makiUser* user;
 
 		user = maki_cache_insert(serv->users, new_nick);
 		maki_user_copy(serv->user, user);
@@ -520,7 +520,7 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		if ((cuser = g_hash_table_lookup(chan->users, nick)) != NULL)
 		{
 			makiChannelUser* tmp;
-			struct maki_user* user;
+			makiUser* user;
 
 			user = maki_cache_insert(serv->users, new_nick);
 			maki_user_copy(cuser->user, user);
@@ -826,7 +826,7 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
 			guint prefix = 0;
 			gint pos;
 			makiChannelUser* cuser;
-			struct maki_user* user;
+			makiUser* user;
 
 			if ((pos = maki_prefix_position(serv, TRUE, *nick)) >= 0)
 			{
@@ -1235,7 +1235,7 @@ gpointer maki_in_runner (gpointer data)
 					if (!serv->connected)
 					{
 						gchar* nick;
-						struct maki_user* user;
+						makiUser* user;
 
 						nick = g_strconcat(serv->user->nick, "_", NULL);
 						user = maki_cache_insert(serv->users, nick);

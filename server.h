@@ -37,6 +37,7 @@ struct maki_server
 	struct maki_cache* users;
 	GHashTable* logs;
 
+	/* FIXME */
 	struct maki_user* user;
 
 	struct

@@ -27,7 +27,7 @@
 
 #include "maki.h"
 
-makiChannelUser* maki_channel_user_new (struct maki_user* user)
+makiChannelUser* maki_channel_user_new (makiUser* user)
 {
 	makiChannelUser* cuser;
 

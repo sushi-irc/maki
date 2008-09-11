@@ -191,7 +191,7 @@ gint maki_server_connect (makiServer* serv)
 	if ((ret = sashimi_connect(serv->connection)) == 0)
 	{
 		GTimeVal time;
-		struct maki_user* user;
+		makiUser* user;
 
 		if (serv->reconnect.source != 0)
 		{
