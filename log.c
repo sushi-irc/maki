@@ -76,11 +76,23 @@ void maki_log_free (gpointer data)
 	g_free(log);
 }
 
-void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
+void maki_log_write (makiLog* log, const gchar* message)
 {
 	gchar buf[1024];
-	gchar* tmp;
 	time_t t;
+
+	t = time(NULL);
+	strftime(buf, 1024, "%Y-%m-%d %H:%M:%S", localtime(&t));
+
+	maki_write(log->fd, buf);
+	maki_write(log->fd, " ");
+	maki_write(log->fd, message);
+	maki_write(log->fd, "\n");
+}
+
+void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
+{
+	gchar* tmp;
 	makiLog* log;
 	va_list args;
 	struct maki* m = maki();
@@ -90,9 +102,6 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 	{
 		return;
 	}
-
-	t = time(NULL);
-	strftime(buf, 1024, "%Y-%m-%d %H:%M:%S", localtime(&t));
 
 	if ((log = g_hash_table_lookup(serv->logs, name)) == NULL)
 	{
@@ -108,10 +117,7 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 	tmp = g_strdup_vprintf(format, args);
 	va_end(args);
 
-	maki_write(log->fd, buf);
-	maki_write(log->fd, " ");
-	maki_write(log->fd, tmp);
-	maki_write(log->fd, "\n");
+	maki_log_write(log, tmp);
 
 	g_free(tmp);
 }
