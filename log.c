@@ -34,6 +34,11 @@
 
 #include "maki.h"
 
+struct maki_log
+{
+	int fd;
+};
+
 makiLog* maki_log_new (const gchar* server, const gchar* name)
 {
 	gchar* dirname;
@@ -43,17 +48,15 @@ makiLog* maki_log_new (const gchar* server, const gchar* name)
 	struct maki* m = maki();
 
 	log = g_new(makiLog, 1);
-	log->name = g_strdup(name);
 
 	dirname = g_build_filename(maki_config_get(m->config, "directories", "logs"), server, NULL);
-	filename = g_strconcat(log->name, ".txt", NULL);
+	filename = g_strconcat(name, ".txt", NULL);
 	path = g_build_filename(dirname, filename, NULL);
 
 	g_mkdir_with_parents(dirname, S_IRUSR | S_IWUSR | S_IXUSR);
 
 	if ((log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
 	{
-		g_free(log->name);
 		g_free(log);
 
 		log = NULL;
@@ -72,7 +75,6 @@ void maki_log_free (gpointer data)
 
 	close(log->fd);
 
-	g_free(log->name);
 	g_free(log);
 }
 
@@ -88,36 +90,4 @@ void maki_log_write (makiLog* log, const gchar* message)
 	maki_write(log->fd, " ");
 	maki_write(log->fd, message);
 	maki_write(log->fd, "\n");
-}
-
-void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
-{
-	gchar* tmp;
-	makiLog* log;
-	va_list args;
-	struct maki* m = maki();
-
-	/* FIXME */
-	if (strcmp(maki_config_get(m->config, "logging", "enabled"), "true") != 0)
-	{
-		return;
-	}
-
-	if ((log = g_hash_table_lookup(serv->logs, name)) == NULL)
-	{
-		if ((log = maki_log_new(serv->server, name)) == NULL)
-		{
-			return;
-		}
-
-		g_hash_table_replace(serv->logs, log->name, log);
-	}
-
-	va_start(args, format);
-	tmp = g_strdup_vprintf(format, args);
-	va_end(args);
-
-	maki_log_write(log, tmp);
-
-	g_free(tmp);
 }

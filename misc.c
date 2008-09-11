@@ -149,3 +149,35 @@ gboolean maki_send_printf (makiServer* serv, const gchar* format, ...)
 
 	return ret;
 }
+
+void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
+{
+	gchar* tmp;
+	makiLog* log;
+	va_list args;
+	struct maki* m = maki();
+
+	/* FIXME */
+	if (strcmp(maki_config_get(m->config, "logging", "enabled"), "true") != 0)
+	{
+		return;
+	}
+
+	if ((log = g_hash_table_lookup(serv->logs, name)) == NULL)
+	{
+		if ((log = maki_log_new(serv->server, name)) == NULL)
+		{
+			return;
+		}
+
+		g_hash_table_insert(serv->logs, g_strdup(name), log);
+	}
+
+	va_start(args, format);
+	tmp = g_strdup_vprintf(format, args);
+	va_end(args);
+
+	maki_log_write(log, tmp);
+
+	g_free(tmp);
+}

@@ -89,7 +89,7 @@ makiServer* maki_server_new (const gchar* server)
 		serv->connection = sashimi_new(address, port, m->message_queue, serv);
 		serv->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_free);
 		serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
-		serv->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_log_free);
+		serv->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_log_free);
 
 		serv->user = maki_cache_insert(serv->users, serv->initial_nick);
 
