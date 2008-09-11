@@ -30,24 +30,28 @@
 
 struct sashimi_connection;
 
+typedef struct sashimi_connection sashimiConnection;
+
 struct sashimi_message
 {
 	gchar* message;
 	gpointer data;
 };
 
+typedef struct sashimi_message sashimiMessage;
+
 
 struct sashimi_message* sashimi_message_new (gchar*, gpointer);
 void sashimi_message_free (gpointer);
 
-struct sashimi_connection* sashimi_new (const gchar*, gushort, GAsyncQueue*, gpointer);
-void sashimi_reconnect (struct sashimi_connection*, void (*) (gpointer), gpointer);
-void sashimi_timeout (struct sashimi_connection*, guint);
-gboolean sashimi_connect (struct sashimi_connection*);
-gboolean sashimi_send (struct sashimi_connection*, const gchar*);
-gboolean sashimi_queue (struct sashimi_connection*, const gchar*);
-gboolean sashimi_send_or_queue (struct sashimi_connection*, const gchar*);
-gboolean sashimi_disconnect (struct sashimi_connection*);
-void sashimi_free (struct sashimi_connection*);
+sashimiConnection* sashimi_new (const gchar*, gushort, GAsyncQueue*, gpointer);
+void sashimi_reconnect (sashimiConnection*, void (*) (gpointer), gpointer);
+void sashimi_timeout (sashimiConnection*, guint);
+gboolean sashimi_connect (sashimiConnection*);
+gboolean sashimi_send (sashimiConnection*, const gchar*);
+gboolean sashimi_queue (sashimiConnection*, const gchar*);
+gboolean sashimi_send_or_queue (sashimiConnection*, const gchar*);
+gboolean sashimi_disconnect (sashimiConnection*);
+void sashimi_free (sashimiConnection*);
 
 #endif

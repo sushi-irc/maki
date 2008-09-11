@@ -32,7 +32,7 @@ struct maki_server
 	gchar* name;
 	gboolean autoconnect;
 	gboolean connected;
-	struct sashimi_connection* connection;
+	sashimiConnection* connection;
 	GHashTable* channels;
 	makiCache* users;
 	GHashTable* logs;

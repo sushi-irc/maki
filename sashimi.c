@@ -104,7 +104,7 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 	GIOStatus status;
 	GTimeVal time;
 	gchar* buffer;
-	struct sashimi_connection* connection = data;
+	sashimiConnection* connection = data;
 
 	if (condition & G_IO_HUP)
 	{
@@ -169,7 +169,7 @@ reconnect:
 static gboolean sashimi_ping (gpointer data)
 {
 	GTimeVal time;
-	struct sashimi_connection* connection = data;
+	sashimiConnection* connection = data;
 
 	g_get_current_time(&time);
 
@@ -192,7 +192,7 @@ static gboolean sashimi_ping (gpointer data)
 
 static gboolean sashimi_queue_runner (gpointer data)
 {
-	struct sashimi_connection* connection = data;
+	sashimiConnection* connection = data;
 
 	if (!g_queue_is_empty(connection->queue))
 	{
@@ -212,15 +212,15 @@ static gboolean sashimi_queue_runner (gpointer data)
 	return TRUE;
 }
 
-struct sashimi_connection* sashimi_new (const gchar* address, gushort port, GAsyncQueue* message_queue, gpointer message_data)
+sashimiConnection* sashimi_new (const gchar* address, gushort port, GAsyncQueue* message_queue, gpointer message_data)
 {
 	gint i;
-	struct sashimi_connection* connection;
+	sashimiConnection* connection;
 
 	g_return_val_if_fail(address != NULL, NULL);
 	g_return_val_if_fail(message_queue != NULL, NULL);
 
-	connection = g_new(struct sashimi_connection, 1);
+	connection = g_new(sashimiConnection, 1);
 
 	connection->address = g_strdup(address);
 	connection->port = port;
@@ -246,7 +246,7 @@ struct sashimi_connection* sashimi_new (const gchar* address, gushort port, GAsy
 	return connection;
 }
 
-void sashimi_reconnect (struct sashimi_connection* connection, void (*callback) (gpointer), gpointer data)
+void sashimi_reconnect (sashimiConnection* connection, void (*callback) (gpointer), gpointer data)
 {
 	g_return_if_fail(connection != NULL);
 
@@ -254,14 +254,14 @@ void sashimi_reconnect (struct sashimi_connection* connection, void (*callback) 
 	connection->reconnect.data = data;
 }
 
-void sashimi_timeout (struct sashimi_connection* connection, guint timeout)
+void sashimi_timeout (sashimiConnection* connection, guint timeout)
 {
 	g_return_if_fail(connection != NULL);
 
 	connection->timeout = timeout;
 }
 
-gboolean sashimi_connect (struct sashimi_connection* connection)
+gboolean sashimi_connect (sashimiConnection* connection)
 {
 	int fd;
 	GTimeVal time;
@@ -327,7 +327,7 @@ gboolean sashimi_connect (struct sashimi_connection* connection)
 	return TRUE;
 }
 
-gboolean sashimi_disconnect (struct sashimi_connection* connection)
+gboolean sashimi_disconnect (sashimiConnection* connection)
 {
 	gint i;
 
@@ -352,7 +352,7 @@ gboolean sashimi_disconnect (struct sashimi_connection* connection)
 	return TRUE;
 }
 
-void sashimi_free (struct sashimi_connection* connection)
+void sashimi_free (sashimiConnection* connection)
 {
 	g_return_if_fail(connection != NULL);
 
@@ -372,7 +372,7 @@ void sashimi_free (struct sashimi_connection* connection)
 	g_free(connection);
 }
 
-gboolean sashimi_send (struct sashimi_connection* connection, const gchar* message)
+gboolean sashimi_send (sashimiConnection* connection, const gchar* message)
 {
 	GIOStatus status;
 	gint ret = TRUE;
@@ -404,7 +404,7 @@ gboolean sashimi_send (struct sashimi_connection* connection, const gchar* messa
 	return ret;
 }
 
-gboolean sashimi_queue (struct sashimi_connection* connection, const gchar* message)
+gboolean sashimi_queue (sashimiConnection* connection, const gchar* message)
 {
 	g_return_val_if_fail(connection != NULL, FALSE);
 	g_return_val_if_fail(message != NULL, FALSE);
@@ -416,7 +416,7 @@ gboolean sashimi_queue (struct sashimi_connection* connection, const gchar* mess
 	return TRUE;
 }
 
-gboolean sashimi_send_or_queue (struct sashimi_connection* connection, const gchar* message)
+gboolean sashimi_send_or_queue (sashimiConnection* connection, const gchar* message)
 {
 	if (g_queue_is_empty(connection->queue))
 	{
