@@ -35,7 +35,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file, int mode)
+gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
 {
 	gboolean ret = FALSE;
 	gchar* contents;
@@ -44,7 +44,7 @@ gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file, int mode)
 	{
 		if (g_file_set_contents(file, contents, -1, NULL))
 		{
-			g_chmod(file, mode);
+			g_chmod(file, S_IRUSR | S_IWUSR);
 			ret = TRUE;
 		}
 

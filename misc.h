@@ -25,7 +25,7 @@
  * SUCH DAMAGE.
  */
 
-gboolean maki_key_file_to_file (GKeyFile*, const gchar*, int);
+gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
 void maki_debug (const gchar*, ...);
 gboolean maki_str_equal (gconstpointer, gconstpointer);
 guint maki_str_hash (gconstpointer);
