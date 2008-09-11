@@ -53,5 +53,4 @@
 #define IRC_ERR_NICKNAMEINUSE "433"
 
 gchar* maki_remove_colon (gchar*);
-gboolean maki_mode_has_parameter (makiServer*, gchar, gchar);
 gpointer maki_in_runner (gpointer);

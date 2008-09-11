@@ -43,7 +43,7 @@ gchar* maki_remove_colon (gchar* string)
 	return string;
 }
 
-gboolean maki_mode_has_parameter (makiServer* serv, gchar sign, gchar mode)
+static gboolean maki_mode_has_parameter (makiServer* serv, gchar sign, gchar mode)
 {
 	gint type;
 	gchar* chanmode;
