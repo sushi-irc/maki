@@ -134,9 +134,9 @@ gboolean maki_write (gint fd, const gchar* buf)
 	return (written >= size);
 }
 
-gint maki_send_printf (makiServer* serv, const gchar* format, ...)
+gboolean maki_send_printf (makiServer* serv, const gchar* format, ...)
 {
-	gint ret;
+	gboolean ret;
 	gchar* buffer;
 	va_list args;
 

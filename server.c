@@ -181,9 +181,9 @@ void maki_server_free (gpointer data)
  * This function is a wrapper around sashimi_connect().
  * It handles the initial login with NICK and USER and emits the connect signal.
  */
-gint maki_server_connect (makiServer* serv)
+gboolean maki_server_connect (makiServer* serv)
 {
-	gint ret;
+	gboolean ret;
 	struct maki* m = maki();
 
 	sashimi_reconnect(serv->connection, maki_server_reconnect_callback, serv);
@@ -220,9 +220,9 @@ gint maki_server_connect (makiServer* serv)
 /**
  * This function is a wrapper around sashimi_disconnect().
  */
-gint maki_server_disconnect (makiServer* serv, const gchar* message)
+gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 {
-	gint ret;
+	gboolean ret;
 	GList* list;
 	GList* tmp;
 

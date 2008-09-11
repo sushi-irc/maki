@@ -76,6 +76,6 @@ typedef struct maki_server makiServer;
 
 makiServer* maki_server_new (const gchar*);
 void maki_server_free (gpointer);
-gint maki_server_connect (makiServer*);
-gint maki_server_disconnect (makiServer*, const gchar*);
+gboolean maki_server_connect (makiServer*);
+gboolean maki_server_disconnect (makiServer*, const gchar*);
 void maki_server_reconnect_callback (gpointer);

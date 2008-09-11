@@ -200,7 +200,7 @@ static gboolean sashimi_queue_runner (gpointer data)
 
 		message = g_queue_peek_head(connection->queue);
 
-		if (sashimi_send(connection, message) == 0)
+		if (sashimi_send(connection, message))
 		{
 			g_mutex_lock(connection->queue_mutex);
 			g_queue_pop_head(connection->queue);
@@ -261,25 +261,25 @@ void sashimi_timeout (struct sashimi_connection* connection, guint timeout)
 	connection->timeout = timeout;
 }
 
-int sashimi_connect (struct sashimi_connection* connection)
+gboolean sashimi_connect (struct sashimi_connection* connection)
 {
 	int fd;
 	GTimeVal time;
 	struct hostent* hostinfo;
 	struct sockaddr_in name;
 
-	g_return_val_if_fail(connection != NULL, 1);
+	g_return_val_if_fail(connection != NULL, FALSE);
 
 	if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		return 1;
+		return FALSE;
 	}
 
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 
 	if ((hostinfo = gethostbyname(connection->address)) == NULL)
 	{
-		return 1;
+		return FALSE;
 	}
 
 	name.sin_family = AF_INET;
@@ -291,7 +291,7 @@ int sashimi_connect (struct sashimi_connection* connection)
 		if (errno != EINPROGRESS)
 		{
 			close(fd);
-			return 1;
+			return FALSE;
 		}
 		else
 		{
@@ -307,7 +307,7 @@ int sashimi_connect (struct sashimi_connection* connection)
 			if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &val, &len) == -1
 			    || val != 0)
 			{
-				return 1;
+				return FALSE;
 			}
 		}
 	}
@@ -324,14 +324,14 @@ int sashimi_connect (struct sashimi_connection* connection)
 	connection->sources[s_ping] = g_timeout_add_seconds(1, sashimi_ping, connection);
 	connection->sources[s_queue] = g_timeout_add_seconds(1, sashimi_queue_runner, connection);
 
-	return 0;
+	return TRUE;
 }
 
-int sashimi_disconnect (struct sashimi_connection* connection)
+gboolean sashimi_disconnect (struct sashimi_connection* connection)
 {
 	gint i;
 
-	g_return_val_if_fail(connection != NULL, 1);
+	g_return_val_if_fail(connection != NULL, FALSE);
 
 	for (i = 0; i < s_last; ++i)
 	{
@@ -349,12 +349,12 @@ int sashimi_disconnect (struct sashimi_connection* connection)
 		connection->channel = NULL;
 	}
 
-	return 0;
+	return TRUE;
 }
 
-int sashimi_free (struct sashimi_connection* connection)
+void sashimi_free (struct sashimi_connection* connection)
 {
-	g_return_val_if_fail(connection != NULL, 1);
+	g_return_if_fail(connection != NULL);
 
 	/* Clean up the queue. */
 	while (!g_queue_is_empty(connection->queue))
@@ -370,22 +370,20 @@ int sashimi_free (struct sashimi_connection* connection)
 	g_free(connection->address);
 
 	g_free(connection);
-
-	return 0;
 }
 
-int sashimi_send (struct sashimi_connection* connection, const gchar* message)
+gboolean sashimi_send (struct sashimi_connection* connection, const gchar* message)
 {
 	GIOStatus status;
-	gint ret = 0;
+	gint ret = TRUE;
 	gchar* tmp;
 
-	g_return_val_if_fail(connection != NULL, 1);
-	g_return_val_if_fail(message != NULL, 1);
+	g_return_val_if_fail(connection != NULL, FALSE);
+	g_return_val_if_fail(message != NULL, FALSE);
 
 	if (connection->channel == NULL)
 	{
-		return 1;
+		return FALSE;
 	}
 
 	tmp = g_strconcat(message, "\r\n", NULL);
@@ -398,7 +396,7 @@ int sashimi_send (struct sashimi_connection* connection, const gchar* message)
 	else
 	{
 		g_print("WRITE_STATUS %d\n", status);
-		ret = 1;
+		ret = FALSE;
 	}
 
 	g_free(tmp);
@@ -406,19 +404,19 @@ int sashimi_send (struct sashimi_connection* connection, const gchar* message)
 	return ret;
 }
 
-int sashimi_queue (struct sashimi_connection* connection, const gchar* message)
+gboolean sashimi_queue (struct sashimi_connection* connection, const gchar* message)
 {
-	g_return_val_if_fail(connection != NULL, 1);
-	g_return_val_if_fail(message != NULL, 1);
+	g_return_val_if_fail(connection != NULL, FALSE);
+	g_return_val_if_fail(message != NULL, FALSE);
 
 	g_mutex_lock(connection->queue_mutex);
 	g_queue_push_tail(connection->queue, g_strdup(message));
 	g_mutex_unlock(connection->queue_mutex);
 
-	return 0;
+	return TRUE;
 }
 
-int sashimi_send_or_queue (struct sashimi_connection* connection, const gchar* message)
+gboolean sashimi_send_or_queue (struct sashimi_connection* connection, const gchar* message)
 {
 	if (g_queue_is_empty(connection->queue))
 	{

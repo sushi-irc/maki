@@ -43,11 +43,11 @@ void sashimi_message_free (gpointer);
 struct sashimi_connection* sashimi_new (const gchar*, gushort, GAsyncQueue*, gpointer);
 void sashimi_reconnect (struct sashimi_connection*, void (*) (gpointer), gpointer);
 void sashimi_timeout (struct sashimi_connection*, guint);
-int sashimi_connect (struct sashimi_connection*);
-int sashimi_send (struct sashimi_connection*, const gchar*);
-int sashimi_queue (struct sashimi_connection*, const gchar*);
-int sashimi_send_or_queue (struct sashimi_connection*, const gchar*);
-int sashimi_disconnect (struct sashimi_connection*);
-int sashimi_free (struct sashimi_connection*);
+gboolean sashimi_connect (struct sashimi_connection*);
+gboolean sashimi_send (struct sashimi_connection*, const gchar*);
+gboolean sashimi_queue (struct sashimi_connection*, const gchar*);
+gboolean sashimi_send_or_queue (struct sashimi_connection*, const gchar*);
+gboolean sashimi_disconnect (struct sashimi_connection*);
+void sashimi_free (struct sashimi_connection*);
 
 #endif
