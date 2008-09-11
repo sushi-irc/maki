@@ -30,7 +30,7 @@
 gpointer maki_user_new (gpointer key, gpointer data)
 {
 	gchar* nick = key;
-	struct maki_server* serv = data;
+	makiServer* serv = data;
 	struct maki_user* user;
 
 	user = g_new(struct maki_user, 1);

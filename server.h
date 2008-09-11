@@ -71,8 +71,10 @@ struct maki_server
 	support;
 };
 
-struct maki_server* maki_server_new (const gchar*);
+typedef struct maki_server makiServer;
+
+makiServer* maki_server_new (const gchar*);
 void maki_server_free (gpointer);
-gint maki_server_connect (struct maki_server*);
-gint maki_server_disconnect (struct maki_server*, const gchar*);
+gint maki_server_connect (makiServer*);
+gint maki_server_disconnect (makiServer*, const gchar*);
 void maki_server_reconnect_callback (gpointer);

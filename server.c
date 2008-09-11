@@ -29,11 +29,11 @@
 
 #include "maki.h"
 
-struct maki_server* maki_server_new (const gchar* server)
+makiServer* maki_server_new (const gchar* server)
 {
 	gchar* path;
 	GKeyFile* key_file;
-	struct maki_server* serv = NULL;
+	makiServer* serv = NULL;
 	struct maki* m = maki();
 
 	path = g_build_filename(m->directories.servers, server, NULL);
@@ -78,7 +78,7 @@ struct maki_server* maki_server_new (const gchar* server)
 			name = g_strdup(g_get_real_name());
 		}
 
-		serv = g_new(struct maki_server, 1);
+		serv = g_new(makiServer, 1);
 		serv->server = g_strdup(server);
 		serv->initial_nick = nick;
 		serv->name = name;
@@ -149,7 +149,7 @@ struct maki_server* maki_server_new (const gchar* server)
  */
 void maki_server_free (gpointer data)
 {
-	struct maki_server* serv = data;
+	makiServer* serv = data;
 
 	if (serv->reconnect.source != 0)
 	{
@@ -181,7 +181,7 @@ void maki_server_free (gpointer data)
  * This function is a wrapper around sashimi_connect().
  * It handles the initial login with NICK and USER and emits the connect signal.
  */
-gint maki_server_connect (struct maki_server* serv)
+gint maki_server_connect (makiServer* serv)
 {
 	gint ret;
 	struct maki* m = maki();
@@ -220,7 +220,7 @@ gint maki_server_connect (struct maki_server* serv)
 /**
  * This function is a wrapper around sashimi_disconnect().
  */
-gint maki_server_disconnect (struct maki_server* serv, const gchar* message)
+gint maki_server_disconnect (makiServer* serv, const gchar* message)
 {
 	gint ret;
 	GList* list;
@@ -255,7 +255,7 @@ gint maki_server_disconnect (struct maki_server* serv, const gchar* message)
 static gboolean maki_server_reconnect (gpointer data)
 {
 	GTimeVal time;
-	struct maki_server* serv = data;
+	makiServer* serv = data;
 
 	maki_server_disconnect(serv, NULL);
 
@@ -284,7 +284,7 @@ static gboolean maki_server_reconnect (gpointer data)
  * It schedules maki_server_reconnect() to be called regularly. */
 void maki_server_reconnect_callback (gpointer data)
 {
-	struct maki_server* serv = data;
+	makiServer* serv = data;
 	struct maki* m = maki();
 
 	if (serv->reconnect.source != 0)

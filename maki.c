@@ -157,7 +157,7 @@ static void maki_signal (int signo)
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
-		struct maki_server* serv = tmp->data;
+		makiServer* serv = tmp->data;
 
 		maki_server_disconnect(serv, SUSHI_QUIT_MESSAGE);
 	}
@@ -234,7 +234,7 @@ int main (int argc, char* argv[])
 
 	while ((file = g_dir_read_name(servers)) != NULL)
 	{
-		struct maki_server* serv;
+		makiServer* serv;
 
 		if ((serv = maki_server_new(file)) != NULL)
 		{

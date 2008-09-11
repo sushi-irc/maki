@@ -53,7 +53,7 @@
 #define IRC_ERR_NICKNAMEINUSE "433"
 
 gchar* maki_remove_colon (gchar*);
-gboolean maki_mode_has_parameter (struct maki_server*, gchar, gchar);
+gboolean maki_mode_has_parameter (makiServer*, gchar, gchar);
 gboolean maki_join (gpointer);
-gboolean maki_is_channel(struct maki_server*, const gchar*);
+gboolean maki_is_channel(makiServer*, const gchar*);
 gpointer maki_in_runner (gpointer);
