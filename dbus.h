@@ -30,27 +30,20 @@
 
 #define SUSHI_QUIT_MESSAGE SUSHI_NAME " – " SUSHI_URL
 
-typedef struct
-{
-	GObject parent;
-	DBusGConnection* bus;
-}
-makiDBus;
+struct maki_dbus;
+struct maki_dbus_class;
 
-typedef struct
-{
-	GObjectClass parent;
-}
-makiDBusClass;
+typedef struct maki_dbus makiDBus;
+typedef struct maki_dbus_class makiDBusClass;
 
 GType maki_dbus_get_type (void);
 
-#define MAKI_DBUS_TYPE            (maki_dbus_get_type())
-#define MAKI_DBUS(object)         (G_TYPE_CHECK_INSTANCE_CAST((object), MAKI_DBUS_TYPE, makiDBus))
-#define MAKI_DBUS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass), MAKI_DBUS_TYPE, makiDBusClass))
-#define IS_MAKI_DBUS(object)      (G_TYPE_CHECK_INSTANCE_TYPE((object), MAKI_DBUS_TYPE))
-#define IS_MAKI_DBUS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), MAKI_DBUS_TYPE))
-#define MAKI_DBUS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), MAKI_DBUS_TYPE, makiDBus))
+#define MAKI_DBUS_TYPE              (maki_dbus_get_type())
+#define MAKI_DBUS(object)           (G_TYPE_CHECK_INSTANCE_CAST((object), MAKI_DBUS_TYPE, makiDBus))
+#define MAKI_DBUS_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST((klass), MAKI_DBUS_TYPE, makiDBusClass))
+#define IS_MAKI_DBUS(object)        (G_TYPE_CHECK_INSTANCE_TYPE((object), MAKI_DBUS_TYPE))
+#define IS_MAKI_DBUS_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE((klass), MAKI_DBUS_TYPE))
+#define MAKI_DBUS_GET_CLASS(object) (G_TYPE_INSTANCE_GET_CLASS((object), MAKI_DBUS_TYPE, makiDBus))
 
 void maki_dbus_emit_action (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_away (gint64, const gchar*);

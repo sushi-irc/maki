@@ -33,6 +33,17 @@
 #include "maki.h"
 #include "marshal.h"
 
+struct maki_dbus
+{
+	GObject parent;
+	DBusGConnection* bus;
+};
+
+struct maki_dbus_class
+{
+	GObjectClass parent;
+};
+
 enum
 {
 	s_action,
@@ -1355,17 +1366,17 @@ gboolean maki_dbus_whois (makiDBus* self, gchar* server, gchar* mask, GError** e
 
 G_DEFINE_TYPE(makiDBus, maki_dbus, G_TYPE_OBJECT)
 
-static void maki_dbus_init (makiDBus* obj)
+static void maki_dbus_init (makiDBus* self)
 {
 	DBusGProxy* proxy;
 	GError* error = NULL;
 	guint request_name_result;
 
-	if ((obj->bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error)) != NULL)
+	if ((self->bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error)) != NULL)
 	{
-		dbus_g_connection_register_g_object(obj->bus, "/de/ikkoku/sushi", G_OBJECT(obj));
+		dbus_g_connection_register_g_object(self->bus, "/de/ikkoku/sushi", G_OBJECT(self));
 
-		if ((proxy = dbus_g_proxy_new_for_name(obj->bus, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS)) != NULL)
+		if ((proxy = dbus_g_proxy_new_for_name(self->bus, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS)) != NULL)
 		{
 			if (!org_freedesktop_DBus_request_name(proxy, "de.ikkoku.sushi", 0, &request_name_result, &error))
 			{
@@ -1381,11 +1392,11 @@ static void maki_dbus_init (makiDBus* obj)
 	}
 }
 
-static void maki_dbus_finalize (GObject* o)
+static void maki_dbus_finalize (GObject* object)
 {
-	makiDBus* obj = MAKI_DBUS(o);
+	makiDBus* self = MAKI_DBUS(object);
 
-	dbus_g_connection_unref(obj->bus);
+	dbus_g_connection_unref(self->bus);
 }
 
 static void maki_dbus_class_init (makiDBusClass* klass)
