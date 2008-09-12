@@ -94,7 +94,6 @@ void maki_free (struct maki* m)
 	g_free(m->directories.config);
 	g_free(m->directories.servers);
 
-	dbus_g_connection_unref(m->bus->bus);
 	g_object_unref(m->bus);
 
 	maki_config_free(m->config);

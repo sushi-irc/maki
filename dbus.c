@@ -1381,8 +1381,20 @@ static void maki_dbus_init (makiDBus* obj)
 	}
 }
 
+static void maki_dbus_finalize (GObject* o)
+{
+	makiDBus* obj = MAKI_DBUS(o);
+
+	dbus_g_connection_unref(obj->bus);
+}
+
 static void maki_dbus_class_init (makiDBusClass* klass)
 {
+	GObjectClass* object_class;
+
+	object_class = G_OBJECT_CLASS(klass);
+	object_class->finalize = maki_dbus_finalize;
+
 	dbus_g_object_type_install_info(MAKI_DBUS_TYPE, &dbus_glib_maki_dbus_object_info);
 
 	signals[s_action] =
