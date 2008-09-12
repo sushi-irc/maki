@@ -28,8 +28,6 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-bindings.h>
 
-#define SUSHI_QUIT_MESSAGE SUSHI_NAME " – " SUSHI_URL
-
 struct maki_dbus;
 struct maki_dbus_class;
 
