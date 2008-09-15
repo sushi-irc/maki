@@ -241,9 +241,9 @@ gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar*
 {
 	GTimeVal time;
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		g_get_current_time(&time);
 
@@ -260,9 +260,9 @@ gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar*
 gboolean maki_dbus_away (makiDBus* self, gchar* server, gchar* message, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		maki_out_away(serv, message);
 		g_free(serv->user->away_message);
@@ -275,9 +275,9 @@ gboolean maki_dbus_away (makiDBus* self, gchar* server, gchar* message, GError**
 gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		sashimi_send(serv->connection, "AWAY");
 	}
@@ -288,11 +288,11 @@ gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
 gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*channels = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		gchar** channel;
 		GList* list;
@@ -322,11 +322,11 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 gboolean maki_dbus_channel_topic (makiDBus* self, gchar* server, gchar* channel, gchar** topic, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*topic = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		makiChannel* chan;
 
@@ -342,18 +342,18 @@ gboolean maki_dbus_channel_topic (makiDBus* self, gchar* server, gchar* channel,
 
 gboolean maki_dbus_config_get (makiDBus* self, gchar* group, gchar* key, gchar** value, GError** error)
 {
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	*value = g_strdup(maki_config_get(m->config, group, key));
+	*value = g_strdup(maki_config_get(inst->config, group, key));
 
 	return TRUE;
 }
 
 gboolean maki_dbus_config_set (makiDBus* self, gchar* group, gchar* key, gchar* value, GError** error)
 {
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	maki_config_set(m->config, group, key, value);
+	maki_config_set(inst->config, group, key, value);
 
 	return TRUE;
 }
@@ -361,9 +361,9 @@ gboolean maki_dbus_config_set (makiDBus* self, gchar* group, gchar* key, gchar* 
 gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		/*
 		 * Disconnect, because strange things happen if we call maki_server_connect() while still connected.
@@ -379,7 +379,7 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 	{
 		if ((serv = maki_server_new(server)) != NULL)
 		{
-			g_hash_table_replace(m->servers, serv->server, serv);
+			g_hash_table_replace(inst->servers, serv->server, serv);
 
 			if (!serv->autoconnect && !maki_server_connect(serv))
 			{
@@ -394,9 +394,9 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		GTimeVal time;
 
@@ -413,9 +413,9 @@ gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* me
 gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		gchar* path;
 		GKeyFile* key_file;
@@ -436,7 +436,7 @@ gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError
 			serv->ignores[1] = NULL;
 		}
 
-		path = g_build_filename(m->directories.servers, serv->server, NULL);
+		path = g_build_filename(inst->directories.servers, serv->server, NULL);
 		key_file = g_key_file_new();
 
 		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -455,11 +455,11 @@ gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError
 gboolean maki_dbus_ignores (makiDBus* self, gchar* server, gchar*** ignores, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*ignores = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		if (serv->ignores != NULL)
 		{
@@ -473,9 +473,9 @@ gboolean maki_dbus_ignores (makiDBus* self, gchar* server, gchar*** ignores, GEr
 gboolean maki_dbus_invite (makiDBus* self, gchar* server, gchar* channel, gchar* who, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		maki_send_printf(serv, "INVITE %s %s", who, channel);
 	}
@@ -486,9 +486,9 @@ gboolean maki_dbus_invite (makiDBus* self, gchar* server, gchar* channel, gchar*
 gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* key, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		makiChannel* chan;
 
@@ -508,9 +508,9 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* k
 gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* who, gchar* message, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		if (message[0])
 		{
@@ -528,9 +528,9 @@ gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* w
 gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reason, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		maki_send_printf(serv, "KILL %s :%s", nick, reason);
 	}
@@ -541,9 +541,9 @@ gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reas
 gboolean maki_dbus_list (makiDBus* self, gchar* server, gchar* channel, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		if (channel[0])
 		{
@@ -561,18 +561,18 @@ gboolean maki_dbus_list (makiDBus* self, gchar* server, gchar* channel, GError**
 gboolean maki_dbus_log (makiDBus* self, gchar* server, gchar* target, guint64 lines, gchar*** log, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*log = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		int fd;
 		gchar* filename;
 		gchar* path;
 
 		filename = g_strconcat(target, ".txt", NULL);
-		path = g_build_filename(maki_config_get(m->config, "directories", "logs"), server, filename, NULL);
+		path = g_build_filename(maki_config_get(inst->config, "directories", "logs"), server, filename, NULL);
 
 		if ((fd = open(path, O_RDONLY)) != -1)
 		{
@@ -654,9 +654,9 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 	gchar* buffer;
 	GTimeVal time;
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		gchar** messages = NULL;
 
@@ -699,9 +699,9 @@ gboolean maki_dbus_message (makiDBus* self, gchar* server, gchar* target, gchar*
 gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mode, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		if (mode[0])
 		{
@@ -719,9 +719,9 @@ gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mo
 gboolean maki_dbus_nick (makiDBus* self, gchar* server, gchar* nick, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		maki_out_nick(serv, nick);
 	}
@@ -732,11 +732,11 @@ gboolean maki_dbus_nick (makiDBus* self, gchar* server, gchar* nick, GError** er
 gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar*** nicks, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*nicks = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		makiChannel* chan;
 
@@ -768,9 +768,9 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 gboolean maki_dbus_nickserv (makiDBus* self, gchar* server, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		maki_out_nickserv(serv);
 	}
@@ -781,9 +781,9 @@ gboolean maki_dbus_nickserv (makiDBus* self, gchar* server, GError** error)
 gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* message, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		GTimeVal time;
 
@@ -800,9 +800,9 @@ gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* 
 gboolean maki_dbus_oper (makiDBus* self, gchar* server, gchar* name, gchar* password, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		maki_send_printf(serv, "OPER %s %s", name, password);
 	}
@@ -813,11 +813,11 @@ gboolean maki_dbus_oper (makiDBus* self, gchar* server, gchar* name, gchar* pass
 gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*nick = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		*nick = g_strdup(serv->user->nick);
 	}
@@ -828,9 +828,9 @@ gboolean maki_dbus_own_nick (makiDBus* self, gchar* server, gchar** nick, GError
 gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		if (message[0])
 		{
@@ -848,9 +848,9 @@ gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, gchar* m
 gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		if (message[0])
 		{
@@ -868,9 +868,9 @@ gboolean maki_dbus_quit (makiDBus* self, gchar* server, gchar* message, GError**
 gboolean maki_dbus_raw (makiDBus* self, gchar* server, gchar* command, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		sashimi_send(serv->connection, command);
 	}
@@ -882,11 +882,11 @@ gboolean maki_dbus_server_get (makiDBus* self, gchar* server, gchar* group, gcha
 {
 	gchar* path;
 	GKeyFile* key_file;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*value = NULL;
 
-	path = g_build_filename(m->directories.servers, server, NULL);
+	path = g_build_filename(inst->directories.servers, server, NULL);
 	key_file = g_key_file_new();
 
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -904,7 +904,7 @@ gboolean maki_dbus_server_list (makiDBus* self, gchar* server, gchar* group, gch
 {
 	gchar* path;
 	GDir* dir;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*result = NULL;
 
@@ -912,7 +912,7 @@ gboolean maki_dbus_server_list (makiDBus* self, gchar* server, gchar* group, gch
 	{
 		GKeyFile* key_file;
 
-		path = g_build_filename(m->directories.servers, server, NULL);
+		path = g_build_filename(inst->directories.servers, server, NULL);
 		key_file = g_key_file_new();
 
 		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -933,7 +933,7 @@ gboolean maki_dbus_server_list (makiDBus* self, gchar* server, gchar* group, gch
 	}
 	else
 	{
-		if ((dir = g_dir_open(m->directories.servers, 0, NULL)) != NULL)
+		if ((dir = g_dir_open(inst->directories.servers, 0, NULL)) != NULL)
 		{
 			guint i = 0;
 			const gchar* name;
@@ -961,9 +961,9 @@ gboolean maki_dbus_server_list (makiDBus* self, gchar* server, gchar* group, gch
 gboolean maki_dbus_server_remove (makiDBus* self, gchar* server, gchar* group, gchar* key, GError** error)
 {
 	gchar* path;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	path = g_build_filename(m->directories.servers, server, NULL);
+	path = g_build_filename(inst->directories.servers, server, NULL);
 
 	if (group[0])
 	{
@@ -1001,10 +1001,10 @@ gboolean maki_dbus_server_rename (makiDBus* self, gchar* old, gchar* new, GError
 {
 	gchar* old_path;
 	gchar* new_path;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	old_path = g_build_filename(m->directories.servers, old, NULL);
-	new_path = g_build_filename(m->directories.servers, new, NULL);
+	old_path = g_build_filename(inst->directories.servers, old, NULL);
+	new_path = g_build_filename(inst->directories.servers, new, NULL);
 
 	g_rename(old_path, new_path);
 
@@ -1018,9 +1018,9 @@ gboolean maki_dbus_server_set (makiDBus* self, gchar* server, gchar* group, gcha
 {
 	gchar* path;
 	GKeyFile* key_file;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	path = g_build_filename(m->directories.servers, server, NULL);
+	path = g_build_filename(inst->directories.servers, server, NULL);
 	key_file = g_key_file_new();
 
 	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
@@ -1038,10 +1038,10 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 	gchar** server;
 	GList* list;
 	GList* tmp;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	server = *servers = g_new(gchar*, g_hash_table_size(m->servers) + 1);
-	list = g_hash_table_get_values(m->servers);
+	server = *servers = g_new(gchar*, g_hash_table_size(inst->servers) + 1);
+	list = g_hash_table_get_values(inst->servers);
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
@@ -1065,9 +1065,9 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 	GTimeVal time;
 	GList* list;
 	GList* tmp;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	list = g_hash_table_get_values(m->servers);
+	list = g_hash_table_get_values(inst->servers);
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
@@ -1088,7 +1088,7 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(time.tv_sec);
 
-	maki_instance_free(m);
+	maki_instance_free(inst);
 
 	return TRUE;
 }
@@ -1096,11 +1096,11 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 gboolean maki_dbus_support_chantypes (makiDBus* self, gchar* server, gchar** chantypes, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*chantypes = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		*chantypes = g_strdup(serv->support.chantypes);
 	}
@@ -1111,11 +1111,11 @@ gboolean maki_dbus_support_chantypes (makiDBus* self, gchar* server, gchar** cha
 gboolean maki_dbus_support_prefix (makiDBus* self, gchar* server, gchar*** prefix, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*prefix = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		*prefix = g_new(gchar*, 3);
 		(*prefix)[0] = g_strdup(serv->support.prefix.modes);
@@ -1129,9 +1129,9 @@ gboolean maki_dbus_support_prefix (makiDBus* self, gchar* server, gchar*** prefi
 gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* topic, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		if (topic[0])
 		{
@@ -1149,9 +1149,9 @@ gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* 
 gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		if (serv->ignores != NULL)
 		{
@@ -1162,7 +1162,7 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 			gchar** tmp;
 			GKeyFile* key_file;
 
-			path = g_build_filename(m->directories.servers, serv->server, NULL);
+			path = g_build_filename(inst->directories.servers, serv->server, NULL);
 			key_file = g_key_file_new();
 
 			length = g_strv_length(serv->ignores);
@@ -1231,11 +1231,11 @@ gboolean maki_dbus_user_away (makiDBus* self, gchar* server, gchar* nick, gboole
 {
 
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*away = FALSE;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		makiUser* user;
 
@@ -1252,11 +1252,11 @@ gboolean maki_dbus_user_away (makiDBus* self, gchar* server, gchar* nick, gboole
 gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar** mode, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*mode = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		makiChannel* chan;
 
@@ -1302,11 +1302,11 @@ gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* chan
 gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* channel, gchar* nick, gchar** prefix, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	*prefix = NULL;
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		makiChannel* chan;
 
@@ -1352,9 +1352,9 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* ch
 gboolean maki_dbus_whois (makiDBus* self, gchar* server, gchar* mask, GError** error)
 {
 	makiServer* serv;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(m->servers, server)) != NULL)
+	if ((serv = g_hash_table_lookup(inst->servers, server)) != NULL)
 	{
 		maki_send_printf(serv, "WHOIS %s", mask);
 	}

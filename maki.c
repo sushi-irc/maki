@@ -82,9 +82,9 @@ static void maki_signal (int signo)
 	GTimeVal time;
 	GList* list;
 	GList* tmp;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	list = g_hash_table_get_values(m->servers);
+	list = g_hash_table_get_values(inst->servers);
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
@@ -98,7 +98,7 @@ static void maki_signal (int signo)
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(time.tv_sec);
 
-	maki_instance_free(m);
+	maki_instance_free(inst);
 
 	signal(signo, SIG_DFL);
 	raise(signo);
@@ -108,7 +108,7 @@ int main (int argc, char* argv[])
 {
 	const gchar* file;
 	GDir* servers;
-	makiInstance* m;
+	makiInstance* inst;
 
 	gboolean opt_daemon = FALSE;
 	gboolean opt_debug = TRUE;
@@ -143,25 +143,25 @@ int main (int argc, char* argv[])
 	dbus_g_thread_init();
 	g_type_init();
 
-	if ((m = maki_instance_get_default()) == NULL)
+	if ((inst = maki_instance_get_default()) == NULL)
 	{
 		return 1;
 	}
 
-	m->opt.debug = opt_debug;
+	inst->opt.debug = opt_debug;
 
 	signal(SIGINT, maki_signal);
 	signal(SIGHUP, maki_signal);
 	signal(SIGTERM, maki_signal);
 	signal(SIGQUIT, maki_signal);
 
-	if (g_mkdir_with_parents(m->directories.config, S_IRUSR | S_IWUSR | S_IXUSR) != 0
-	    || g_mkdir_with_parents(m->directories.servers, S_IRUSR | S_IWUSR | S_IXUSR) != 0)
+	if (g_mkdir_with_parents(inst->directories.config, S_IRUSR | S_IWUSR | S_IXUSR) != 0
+	    || g_mkdir_with_parents(inst->directories.servers, S_IRUSR | S_IWUSR | S_IXUSR) != 0)
 	{
 		return 1;
 	}
 
-	servers = g_dir_open(m->directories.servers, 0, NULL);
+	servers = g_dir_open(inst->directories.servers, 0, NULL);
 
 	while ((file = g_dir_read_name(servers)) != NULL)
 	{
@@ -169,14 +169,14 @@ int main (int argc, char* argv[])
 
 		if ((serv = maki_server_new(file)) != NULL)
 		{
-			g_hash_table_replace(m->servers, serv->server, serv);
+			g_hash_table_replace(inst->servers, serv->server, serv);
 		}
 
 	}
 
 	g_dir_close(servers);
 
-	g_main_loop_run(m->loop);
+	g_main_loop_run(inst->loop);
 
 	return 0;
 }

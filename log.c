@@ -45,11 +45,11 @@ makiLog* maki_log_new (const gchar* server, const gchar* name)
 	gchar* filename;
 	gchar* path;
 	makiLog* log;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	log = g_new(makiLog, 1);
 
-	dirname = g_build_filename(maki_config_get(m->config, "directories", "logs"), server, NULL);
+	dirname = g_build_filename(maki_config_get(inst->config, "directories", "logs"), server, NULL);
 	filename = g_strconcat(name, ".txt", NULL);
 	path = g_build_filename(dirname, filename, NULL);
 

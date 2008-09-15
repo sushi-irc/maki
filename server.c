@@ -34,9 +34,9 @@ makiServer* maki_server_new (const gchar* server)
 	gchar* path;
 	GKeyFile* key_file;
 	makiServer* serv = NULL;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
-	path = g_build_filename(m->directories.servers, server, NULL);
+	path = g_build_filename(inst->directories.servers, server, NULL);
 	key_file = g_key_file_new();
 
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -85,8 +85,8 @@ makiServer* maki_server_new (const gchar* server)
 		serv->autoconnect = autoconnect;
 		serv->connected = FALSE;
 		serv->reconnect.source = 0;
-		serv->reconnect.retries = maki_config_get_int(m->config, "reconnect" ,"retries");
-		serv->connection = sashimi_new(address, port, m->message_queue, serv);
+		serv->reconnect.retries = maki_config_get_int(inst->config, "reconnect" ,"retries");
+		serv->connection = sashimi_new(address, port, inst->message_queue, serv);
 		serv->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_free);
 		serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
 		serv->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_log_free);
@@ -184,7 +184,7 @@ void maki_server_free (gpointer data)
 gboolean maki_server_connect (makiServer* serv)
 {
 	gboolean ret;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	sashimi_reconnect(serv->connection, maki_server_reconnect_callback, serv);
 
@@ -199,7 +199,7 @@ gboolean maki_server_connect (makiServer* serv)
 			serv->reconnect.source = 0;
 		}
 
-		serv->reconnect.retries = maki_config_get_int(m->config, "reconnect", "retries");
+		serv->reconnect.retries = maki_config_get_int(inst->config, "reconnect", "retries");
 
 		user = maki_cache_insert(serv->users, serv->initial_nick);
 		maki_user_copy(serv->user, user);
@@ -285,12 +285,12 @@ static gboolean maki_server_reconnect (gpointer data)
 void maki_server_reconnect_callback (gpointer data)
 {
 	makiServer* serv = data;
-	makiInstance* m = maki_instance_get_default();
+	makiInstance* inst = maki_instance_get_default();
 
 	if (serv->reconnect.source != 0)
 	{
 		return;
 	}
 
-	serv->reconnect.source = g_timeout_add_seconds(maki_config_get_int(m->config, "reconnect", "timeout"), maki_server_reconnect, serv);
+	serv->reconnect.source = g_timeout_add_seconds(maki_config_get_int(inst->config, "reconnect", "timeout"), maki_server_reconnect, serv);
 }

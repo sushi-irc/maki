@@ -1075,7 +1075,7 @@ void maki_in_err_nosuchnick (makiServer* serv, glong time, gchar* remaining)
  */
 gpointer maki_in_runner (gpointer data)
 {
-	makiInstance* m = data;
+	makiInstance* inst = data;
 
 	for (;;)
 	{
@@ -1084,7 +1084,7 @@ gpointer maki_in_runner (gpointer data)
 		makiServer* serv;
 		sashimiMessage* msg;
 
-		msg = g_async_queue_pop(m->message_queue);
+		msg = g_async_queue_pop(inst->message_queue);
 
 		if (G_UNLIKELY(msg->message == NULL && msg->data == NULL))
 		{

@@ -29,68 +29,68 @@
 
 makiInstance* maki_instance_get_default (void)
 {
-	static makiInstance* m = NULL;
+	static makiInstance* inst = NULL;
 
-	if (G_UNLIKELY(m == NULL))
+	if (G_UNLIKELY(inst == NULL))
 	{
-		m = maki_instance_new();
+		inst = maki_instance_new();
 	}
 
-	return m;
+	return inst;
 }
 
 makiInstance* maki_instance_new (void)
 {
-	makiInstance* m;
+	makiInstance* inst;
 
-	if ((m = g_new(makiInstance, 1)) == NULL)
+	if ((inst = g_new(makiInstance, 1)) == NULL)
 	{
 		return NULL;
 	}
 
-	m->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
+	inst->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
 
-	m->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
+	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
 
-	m->directories.config = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
-	m->directories.servers = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
+	inst->directories.config = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
+	inst->directories.servers = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
 
-	m->config = maki_config_new(m);
+	inst->config = maki_config_new(inst);
 
-	m->message_queue = g_async_queue_new_full(sashimi_message_free);
+	inst->message_queue = g_async_queue_new_full(sashimi_message_free);
 
-	m->opt.debug = FALSE;
+	inst->opt.debug = FALSE;
 
-	m->threads.messages = g_thread_create(maki_in_runner, m, TRUE, NULL);
+	inst->threads.messages = g_thread_create(maki_in_runner, inst, TRUE, NULL);
 
-	m->loop = g_main_loop_new(NULL, FALSE);
+	inst->loop = g_main_loop_new(NULL, FALSE);
 
-	return m;
+	return inst;
 }
 
-void maki_instance_free (makiInstance* m)
+void maki_instance_free (makiInstance* inst)
 {
 	sashimiMessage* msg;
 
 	/* Send a bogus message so the messages thread wakes up. */
 	msg = sashimi_message_new(NULL, NULL);
 
-	g_async_queue_push(m->message_queue, msg);
+	g_async_queue_push(inst->message_queue, msg);
 
-	g_thread_join(m->threads.messages);
-	g_async_queue_unref(m->message_queue);
+	g_thread_join(inst->threads.messages);
+	g_async_queue_unref(inst->message_queue);
 
-	g_hash_table_destroy(m->servers);
+	g_hash_table_destroy(inst->servers);
 
-	g_free(m->directories.config);
-	g_free(m->directories.servers);
+	g_free(inst->directories.config);
+	g_free(inst->directories.servers);
 
-	g_object_unref(m->bus);
+	g_object_unref(inst->bus);
 
-	maki_config_free(m->config);
+	maki_config_free(inst->config);
 
-	g_main_loop_quit(m->loop);
-	g_main_loop_unref(m->loop);
+	g_main_loop_quit(inst->loop);
+	g_main_loop_unref(inst->loop);
 
-	g_free(m);
+	g_free(inst);
 }
