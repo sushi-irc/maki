@@ -52,8 +52,10 @@ makiInstance* maki_instance_new (void)
 
 	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
 
-	inst->directories.config = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
-	inst->directories.servers = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
+	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+
+	g_hash_table_insert(inst->directories, g_strdup("config"), g_build_filename(g_get_user_config_dir(), "sushi", NULL));
+	g_hash_table_insert(inst->directories, g_strdup("servers"), g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL));
 
 	inst->config = maki_config_new(inst);
 
@@ -74,6 +76,11 @@ makiDBus* maki_instance_bus (makiInstance* inst)
 makiConfig* maki_instance_config (makiInstance* inst)
 {
 	return inst->config;
+}
+
+const gchar* maki_instance_directory (makiInstance* inst, const gchar* directory)
+{
+	return g_hash_table_lookup(inst->directories, directory);
 }
 
 GMainLoop* maki_instance_main_loop (makiInstance* inst)
@@ -100,8 +107,7 @@ void maki_instance_free (makiInstance* inst)
 
 	g_hash_table_destroy(inst->servers);
 
-	g_free(inst->directories.config);
-	g_free(inst->directories.servers);
+	g_hash_table_destroy(inst->directories);
 
 	g_object_unref(inst->bus);
 

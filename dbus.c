@@ -436,7 +436,7 @@ gboolean maki_dbus_ignore (makiDBus* self, gchar* server, gchar* pattern, GError
 			serv->ignores[1] = NULL;
 		}
 
-		path = g_build_filename(inst->directories.servers, serv->server, NULL);
+		path = g_build_filename(maki_instance_directory(inst, "servers"), serv->server, NULL);
 		key_file = g_key_file_new();
 
 		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -886,7 +886,7 @@ gboolean maki_dbus_server_get (makiDBus* self, gchar* server, gchar* group, gcha
 
 	*value = NULL;
 
-	path = g_build_filename(inst->directories.servers, server, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 	key_file = g_key_file_new();
 
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -912,7 +912,7 @@ gboolean maki_dbus_server_list (makiDBus* self, gchar* server, gchar* group, gch
 	{
 		GKeyFile* key_file;
 
-		path = g_build_filename(inst->directories.servers, server, NULL);
+		path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 		key_file = g_key_file_new();
 
 		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -933,7 +933,7 @@ gboolean maki_dbus_server_list (makiDBus* self, gchar* server, gchar* group, gch
 	}
 	else
 	{
-		if ((dir = g_dir_open(inst->directories.servers, 0, NULL)) != NULL)
+		if ((dir = g_dir_open(maki_instance_directory(inst, "servers"), 0, NULL)) != NULL)
 		{
 			guint i = 0;
 			const gchar* name;
@@ -963,7 +963,7 @@ gboolean maki_dbus_server_remove (makiDBus* self, gchar* server, gchar* group, g
 	gchar* path;
 	makiInstance* inst = maki_instance_get_default();
 
-	path = g_build_filename(inst->directories.servers, server, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 
 	if (group[0])
 	{
@@ -1003,8 +1003,8 @@ gboolean maki_dbus_server_rename (makiDBus* self, gchar* old, gchar* new, GError
 	gchar* new_path;
 	makiInstance* inst = maki_instance_get_default();
 
-	old_path = g_build_filename(inst->directories.servers, old, NULL);
-	new_path = g_build_filename(inst->directories.servers, new, NULL);
+	old_path = g_build_filename(maki_instance_directory(inst, "servers"), old, NULL);
+	new_path = g_build_filename(maki_instance_directory(inst, "servers"), new, NULL);
 
 	g_rename(old_path, new_path);
 
@@ -1020,7 +1020,7 @@ gboolean maki_dbus_server_set (makiDBus* self, gchar* server, gchar* group, gcha
 	GKeyFile* key_file;
 	makiInstance* inst = maki_instance_get_default();
 
-	path = g_build_filename(inst->directories.servers, server, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 	key_file = g_key_file_new();
 
 	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
@@ -1162,7 +1162,7 @@ gboolean maki_dbus_unignore (makiDBus* self, gchar* server, gchar* pattern, GErr
 			gchar** tmp;
 			GKeyFile* key_file;
 
-			path = g_build_filename(inst->directories.servers, serv->server, NULL);
+			path = g_build_filename(maki_instance_directory(inst, "servers"), serv->server, NULL);
 			key_file = g_key_file_new();
 
 			length = g_strv_length(serv->ignores);

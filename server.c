@@ -35,7 +35,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 	GKeyFile* key_file;
 	makiServer* serv = NULL;
 
-	path = g_build_filename(inst->directories.servers, server, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 	key_file = g_key_file_new();
 
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))

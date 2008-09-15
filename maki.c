@@ -154,13 +154,13 @@ int main (int argc, char* argv[])
 	signal(SIGTERM, maki_signal);
 	signal(SIGQUIT, maki_signal);
 
-	if (g_mkdir_with_parents(inst->directories.config, S_IRUSR | S_IWUSR | S_IXUSR) != 0
-	    || g_mkdir_with_parents(inst->directories.servers, S_IRUSR | S_IWUSR | S_IXUSR) != 0)
+	if (g_mkdir_with_parents(maki_instance_directory(inst, "config"), S_IRUSR | S_IWUSR | S_IXUSR) != 0
+	    || g_mkdir_with_parents(maki_instance_directory(inst, "servers"), S_IRUSR | S_IWUSR | S_IXUSR) != 0)
 	{
 		return 1;
 	}
 
-	servers = g_dir_open(inst->directories.servers, 0, NULL);
+	servers = g_dir_open(maki_instance_directory(inst, "servers"), 0, NULL);
 
 	while ((file = g_dir_read_name(servers)) != NULL)
 	{

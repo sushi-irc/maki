@@ -113,7 +113,7 @@ makiConfig* maki_config_new (makiInstance* inst)
 	}
 
 	key_file = g_key_file_new();
-	path = g_build_filename(conf->instance->directories.config, "maki", NULL);
+	path = g_build_filename(maki_instance_directory(conf->instance, "config"), "maki", NULL);
 
 	/* Read values from config file. */
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -174,7 +174,7 @@ void maki_config_set (makiConfig* conf, const gchar* group, const gchar* key, co
 		g_hash_table_insert(grp->keys, g_strdup(key), g_strdup(value));
 
 		key_file = g_key_file_new();
-		path = g_build_filename(conf->instance->directories.config, "maki", NULL);
+		path = g_build_filename(maki_instance_directory(conf->instance, "config"), "maki", NULL);
 
 		g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
 		g_key_file_set_string(key_file, group, key, value);
