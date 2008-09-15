@@ -53,4 +53,5 @@ struct maki_instance
 
 makiInstance* maki_instance_get_default (void);
 makiInstance* maki_instance_new (void);
+makiDBus* maki_instance_bus (makiInstance*);
 void maki_instance_free (makiInstance*);

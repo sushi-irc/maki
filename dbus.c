@@ -84,157 +84,157 @@ guint signals[s_last];
 
 void maki_dbus_emit_action (gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_action], 0, time, server, nick, target, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_action], 0, time, server, nick, target, message);
 }
 
 void maki_dbus_emit_away (gint64 time, const gchar* server)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_away], 0, time, server);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_away], 0, time, server);
 }
 
 void maki_dbus_emit_away_message (gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_away_message], 0, time, server, nick, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_away_message], 0, time, server, nick, message);
 }
 
 void maki_dbus_emit_back (gint64 time, const gchar* server)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_back], 0, time, server);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_back], 0, time, server);
 }
 
 void maki_dbus_emit_banlist (gint64 time, const gchar* server, const gchar* channel, const gchar* mask, const gchar* who, gint64 when)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_banlist], 0, time, server, channel, mask, who, when);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_banlist], 0, time, server, channel, mask, who, when);
 }
 
 void maki_dbus_emit_connect (gint64 time, const gchar* server)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_connect], 0, time, server);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_connect], 0, time, server);
 }
 
 void maki_dbus_emit_connected (gint64 time, const gchar* server, const gchar* nick)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_connected], 0, time, server, nick);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_connected], 0, time, server, nick);
 }
 
 void maki_dbus_emit_ctcp (gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_ctcp], 0, time, server, nick, target, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_ctcp], 0, time, server, nick, target, message);
 }
 
 void maki_dbus_emit_invalid_target (gint64 time, const gchar* server, const gchar* target)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_invalid_target], 0, time, server, target);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_invalid_target], 0, time, server, target);
 }
 
 void maki_dbus_emit_invite (gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_invite], 0, time, server, nick, channel, who);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_invite], 0, time, server, nick, channel, who);
 }
 
 void maki_dbus_emit_join (gint64 time, const gchar* server, const gchar* nick, const gchar* channel)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_join], 0, time, server, nick, channel);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_join], 0, time, server, nick, channel);
 }
 
 void maki_dbus_emit_kick (gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_kick], 0, time, server, nick, channel, who, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_kick], 0, time, server, nick, channel, who, message);
 }
 
 void maki_dbus_emit_list (gint64 time, const gchar* server, const gchar* channel, gint64 users, const gchar* topic)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_list], 0, time, server, channel, users, topic);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_list], 0, time, server, channel, users, topic);
 }
 
 void maki_dbus_emit_message (gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_message], 0, time, server, nick, target, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_message], 0, time, server, nick, target, message);
 }
 
 void maki_dbus_emit_mode (gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* mode, const gchar* parameter)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_mode], 0, time, server, nick, target, mode, parameter);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_mode], 0, time, server, nick, target, mode, parameter);
 }
 
 void maki_dbus_emit_motd (gint64 time, const gchar* server, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_motd], 0, time, server, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_motd], 0, time, server, message);
 }
 
 void maki_dbus_emit_nick (gint64 time, const gchar* server, const gchar* nick, const gchar* new_nick)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_nick], 0, time, server, nick, new_nick);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_nick], 0, time, server, nick, new_nick);
 }
 
 void maki_dbus_emit_notice (gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_notice], 0, time, server, nick, target, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_notice], 0, time, server, nick, target, message);
 }
 
 void maki_dbus_emit_oper (gint64 time, const gchar* server)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_oper], 0, time, server);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_oper], 0, time, server);
 }
 
 void maki_dbus_emit_own_ctcp (gint64 time, const gchar* server, const gchar* target, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_own_ctcp], 0, time, server, target, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_own_ctcp], 0, time, server, target, message);
 }
 
 void maki_dbus_emit_own_message (gint64 time, const gchar* server, const gchar* target, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_own_message], 0, time, server, target, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_own_message], 0, time, server, target, message);
 }
 
 void maki_dbus_emit_own_notice (gint64 time, const gchar* server, const gchar* target, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_own_notice], 0, time, server, target, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_own_notice], 0, time, server, target, message);
 }
 
 void maki_dbus_emit_part (gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_part], 0, time, server, nick, channel, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_part], 0, time, server, nick, channel, message);
 }
 
 void maki_dbus_emit_query (gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_query], 0, time, server, nick, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_query], 0, time, server, nick, message);
 }
 
 void maki_dbus_emit_query_ctcp (gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_query_ctcp], 0, time, server, nick, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_query_ctcp], 0, time, server, nick, message);
 }
 
 void maki_dbus_emit_query_notice (gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_query_notice], 0, time, server, nick, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_query_notice], 0, time, server, nick, message);
 }
 
 void maki_dbus_emit_quit (gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_quit], 0, time, server, nick, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_quit], 0, time, server, nick, message);
 }
 
 void maki_dbus_emit_reconnect (gint64 time, const gchar* server)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_reconnect], 0, time, server);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_reconnect], 0, time, server);
 }
 
 void maki_dbus_emit_shutdown (gint64 time)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_shutdown], 0, time);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_shutdown], 0, time);
 }
 
 void maki_dbus_emit_topic (gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* topic)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_topic], 0, time, server, nick, channel, topic);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_topic], 0, time, server, nick, channel, topic);
 }
 
 void maki_dbus_emit_whois (gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
-	g_signal_emit(maki_instance_get_default()->bus, signals[s_whois], 0, time, server, nick, message);
+	g_signal_emit(maki_instance_bus(maki_instance_get_default()), signals[s_whois], 0, time, server, nick, message);
 }
 
 gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar* message, GError** error)
