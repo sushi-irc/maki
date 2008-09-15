@@ -86,7 +86,7 @@ void maki_cache_free (makiCache* cache)
 	g_free(cache);
 }
 
-gpointer maki_cache_insert (makiCache* cache, gpointer key)
+gpointer maki_cache_insert (makiCache* cache, const gchar* key)
 {
 	gpointer value;
 	makiCacheItem* item;
@@ -101,18 +101,20 @@ gpointer maki_cache_insert (makiCache* cache, gpointer key)
 	}
 	else
 	{
-		key = g_strdup(key);
-		value = (*cache->value_new)(key, cache->value_data);
+		gchar* new_key;
+
+		new_key = g_strdup(key);
+		value = (*cache->value_new)(new_key, cache->value_data);
 
 		item = maki_cache_item_new(value);
 
-		g_hash_table_insert(cache->hash_table, key, item);
+		g_hash_table_insert(cache->hash_table, new_key, item);
 
 		return value;
 	}
 }
 
-void maki_cache_remove (makiCache* cache, gpointer key)
+void maki_cache_remove (makiCache* cache, const gchar* key)
 {
 	makiCacheItem* item;
 

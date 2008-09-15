@@ -34,7 +34,7 @@ typedef struct maki_cache makiCache;
 
 makiCache* maki_cache_new (gpointer (*) (gpointer, gpointer), void (*) (gpointer), gpointer);
 void maki_cache_free (makiCache*);
-gpointer maki_cache_insert (makiCache*, gpointer);
-void maki_cache_remove (makiCache*, gpointer);
+gpointer maki_cache_insert (makiCache*, const gchar*);
+void maki_cache_remove (makiCache*, const gchar*);
 
 #endif
