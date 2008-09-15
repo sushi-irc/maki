@@ -495,12 +495,15 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* k
 
 		if ((chan = maki_server_get_channel(serv, channel)) != NULL
 		    && maki_channel_key(chan) != NULL
-		    && !key[0])
+		    && key[0] == '\0')
 		{
-			key = maki_channel_key(chan);
+			/* The channel has a key set and none was supplied. */
+			maki_out_join(serv, channel, maki_channel_key(chan));
 		}
-
-		maki_out_join(serv, channel, key);
+		else
+		{
+			maki_out_join(serv, channel, key);
+		}
 	}
 
 	return TRUE;
