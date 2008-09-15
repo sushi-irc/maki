@@ -36,6 +36,11 @@
 
 #include "maki.h"
 
+gboolean opt_debug = TRUE;
+
+makiDBus* dbus = NULL;
+GMainLoop* main_loop = NULL;
+
 static int maki_daemonize (void)
 {
 	int fd;
@@ -122,8 +127,6 @@ int main (int argc, char* argv[])
 	setlocale(LC_ALL, "");
 	bindtextdomain(MAKI_NAME, LOCALEDIR);
 	textdomain(MAKI_NAME);
-
-	opt_debug = TRUE;
 
 	context = g_option_context_new(NULL);
 	g_option_context_add_main_entries(context, entries, NULL);

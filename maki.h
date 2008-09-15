@@ -55,9 +55,9 @@
 #include "server.h"
 #include "user.h"
 
-gboolean opt_debug;
+extern gboolean opt_debug;
 
-makiDBus* dbus;
-GMainLoop* main_loop;
+extern makiDBus* dbus;
+extern GMainLoop* main_loop;
 
 #endif
