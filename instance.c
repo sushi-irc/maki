@@ -63,8 +63,6 @@ makiInstance* maki_instance_new (void)
 
 	inst->threads.messages = g_thread_create(maki_in_runner, inst, TRUE, NULL);
 
-	inst->loop = g_main_loop_new(NULL, FALSE);
-
 	return inst;
 }
 
@@ -81,11 +79,6 @@ makiConfig* maki_instance_config (makiInstance* inst)
 const gchar* maki_instance_directory (makiInstance* inst, const gchar* directory)
 {
 	return g_hash_table_lookup(inst->directories, directory);
-}
-
-GMainLoop* maki_instance_main_loop (makiInstance* inst)
-{
-	return inst->loop;
 }
 
 GAsyncQueue* maki_instance_queue (makiInstance* inst)
@@ -112,9 +105,6 @@ void maki_instance_free (makiInstance* inst)
 	g_object_unref(inst->bus);
 
 	maki_config_free(inst->config);
-
-	g_main_loop_quit(inst->loop);
-	g_main_loop_unref(inst->loop);
 
 	g_free(inst);
 }

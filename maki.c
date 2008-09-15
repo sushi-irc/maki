@@ -100,6 +100,9 @@ static void maki_signal (int signo)
 
 	maki_instance_free(inst);
 
+	g_main_loop_quit(main_loop);
+	g_main_loop_unref(main_loop);
+
 	signal(signo, SIG_DFL);
 	raise(signo);
 }
@@ -175,7 +178,8 @@ int main (int argc, char* argv[])
 
 	g_dir_close(servers);
 
-	g_main_loop_run(maki_instance_main_loop(inst));
+	main_loop = g_main_loop_new(NULL, FALSE);
+	g_main_loop_run(main_loop);
 
 	return 0;
 }

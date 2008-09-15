@@ -62,3 +62,5 @@ typedef struct maki_instance makiInstance;
 #include "out.h"
 
 gboolean opt_debug;
+
+GMainLoop* main_loop;

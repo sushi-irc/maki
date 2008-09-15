@@ -1090,6 +1090,9 @@ gboolean maki_dbus_shutdown (makiDBus* self, gchar* message, GError** error)
 
 	maki_instance_free(inst);
 
+	g_main_loop_quit(main_loop);
+	g_main_loop_unref(main_loop);
+
 	return TRUE;
 }
 

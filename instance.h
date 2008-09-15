@@ -35,8 +35,6 @@ struct maki_instance
 
 	GHashTable* directories;
 
-	GMainLoop* loop;
-
 	GAsyncQueue* message_queue;
 
 	struct
@@ -50,7 +48,6 @@ makiInstance* maki_instance_get_default (void);
 makiInstance* maki_instance_new (void);
 makiDBus* maki_instance_bus (makiInstance*);
 makiConfig* maki_instance_config (makiInstance*);
-GMainLoop* maki_instance_main_loop (makiInstance*);
 const gchar* maki_instance_directory (makiInstance*, const gchar*);
 GAsyncQueue* maki_instance_queue (makiInstance*);
 void maki_instance_free (makiInstance*);
