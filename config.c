@@ -33,6 +33,7 @@
 
 struct maki_config
 {
+	makiInstance* instance;
 	GHashTable* groups;
 };
 
@@ -90,6 +91,7 @@ makiConfig* maki_config_new (makiInstance* inst)
 	GKeyFile* key_file;
 
 	conf = g_new(makiConfig, 1);
+	conf->instance = inst;
 	conf->groups = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_config_group_free);
 
 	/* Create groups and set default values. */
@@ -111,7 +113,7 @@ makiConfig* maki_config_new (makiInstance* inst)
 	}
 
 	key_file = g_key_file_new();
-	path = g_build_filename(inst->directories.config, "maki", NULL);
+	path = g_build_filename(conf->instance->directories.config, "maki", NULL);
 
 	/* Read values from config file. */
 	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
@@ -168,12 +170,11 @@ void maki_config_set (makiConfig* conf, const gchar* group, const gchar* key, co
 	{
 		gchar* path;
 		GKeyFile* key_file;
-		makiInstance* inst = maki_instance_get_default();
 
 		g_hash_table_insert(grp->keys, g_strdup(key), g_strdup(value));
 
 		key_file = g_key_file_new();
-		path = g_build_filename(inst->directories.config, "maki", NULL);
+		path = g_build_filename(conf->instance->directories.config, "maki", NULL);
 
 		g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
 		g_key_file_set_string(key_file, group, key, value);
