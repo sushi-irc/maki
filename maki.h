@@ -25,12 +25,13 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_MAKI
+#define H_MAKI
+
 #define G_DISABLE_DEPRECATED
 
 #include <glib.h>
 #include <glib/gi18n.h>
-
-#include "sashimi.h"
 
 #define SUSHI_NAME "sushi"
 #define SUSHI_VERSION "1.0-alpha1"
@@ -40,28 +41,23 @@
 #define MAKI_NAME "maki"
 
 #include "cache.h"
-
-/* FIXME */
-typedef struct maki_instance makiInstance;
-
-#include "server.h"
-
-#include "user.h"
-#include "channel_user.h"
-
 #include "channel.h"
+#include "channel_user.h"
 #include "config.h"
-
 #include "dbus.h"
-
-#include "instance.h"
-
 #include "in.h"
+#include "instance.h"
 #include "log.h"
+#include "maki.h"
 #include "misc.h"
 #include "out.h"
+#include "sashimi.h"
+#include "server.h"
+#include "user.h"
 
 gboolean opt_debug;
 
 makiDBus* dbus;
 GMainLoop* main_loop;
+
+#endif

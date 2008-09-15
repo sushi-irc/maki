@@ -25,10 +25,17 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_LOG
+#define H_LOG
+
 struct maki_log;
 
 typedef struct maki_log makiLog;
 
+#include "config.h"
+
 makiLog* maki_log_new (makiConfig*, const gchar*, const gchar*);
 void maki_log_write (makiLog*, const gchar*);
 void maki_log_free (gpointer);
+
+#endif

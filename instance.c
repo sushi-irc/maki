@@ -27,6 +27,23 @@
 
 #include "maki.h"
 
+struct maki_instance
+{
+	makiConfig* config;
+
+	GHashTable* servers;
+
+	GHashTable* directories;
+
+	GAsyncQueue* message_queue;
+
+	struct
+	{
+		GThread* messages;
+	}
+	threads;
+};
+
 makiInstance* maki_instance_get_default (void)
 {
 	static makiInstance* inst = NULL;
@@ -77,6 +94,12 @@ const gchar* maki_instance_directory (makiInstance* inst, const gchar* directory
 GAsyncQueue* maki_instance_queue (makiInstance* inst)
 {
 	return inst->message_queue;
+}
+
+/* FIXME abstract more */
+GHashTable* maki_instance_servers (makiInstance* inst)
+{
+	return inst->servers;
 }
 
 void maki_instance_free (makiInstance* inst)

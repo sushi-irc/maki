@@ -25,9 +25,14 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_OUT
+#define H_OUT
+
 void maki_out_away (makiServer*, const gchar*);
 void maki_out_join (makiServer*, const gchar*, const gchar*);
 void maki_out_nick (makiServer*, const gchar*);
 void maki_out_nickserv (makiServer*);
 void maki_out_privmsg (makiServer*, const gchar*, gchar*, gboolean);
 void maki_out_quit (makiServer*, const gchar*);
+
+#endif

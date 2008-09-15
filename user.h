@@ -25,6 +25,15 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_USER
+#define H_USER
+
+struct maki_user;
+
+typedef struct maki_user makiUser;
+
+#include "server.h"
+
 struct maki_user
 {
 	makiServer* server;
@@ -33,8 +42,8 @@ struct maki_user
 	gchar* away_message;
 };
 
-typedef struct maki_user makiUser;
-
 gpointer maki_user_new (gpointer, gpointer);
 void maki_user_copy (makiUser*, makiUser*);
 void maki_user_free (gpointer);
+
+#endif

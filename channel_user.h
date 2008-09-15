@@ -25,14 +25,23 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_CHANNEL_USER
+#define H_CHANNEL_USER
+
+struct maki_channel_user;
+
+typedef struct maki_channel_user makiChannelUser;
+
+#include "user.h"
+
 struct maki_channel_user
 {
 	makiUser* user;
 	guint prefix;
 };
 
-typedef struct maki_channel_user makiChannelUser;
-
 makiChannelUser* maki_channel_user_new (makiUser*);
 void maki_channel_user_copy (makiChannelUser*, makiChannelUser*);
 void maki_channel_user_free (gpointer);
+
+#endif

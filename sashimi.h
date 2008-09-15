@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _SASHIMI_H_
-#define _SASHIMI_H_
+#ifndef H_SASHIMI
+#define H_SASHIMI
 
 struct sashimi_connection;
 

@@ -25,8 +25,6 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
-
 #include <glib/gstdio.h>
 
 #include <fcntl.h>
@@ -34,6 +32,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#include "maki.h"
 
 gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
 {

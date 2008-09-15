@@ -25,6 +25,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_DBUS
+#define H_DBUS
+
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-bindings.h>
 
@@ -74,3 +77,5 @@ void maki_dbus_emit_reconnect (gint64, const gchar*);
 void maki_dbus_emit_shutdown (gint64);
 void maki_dbus_emit_topic (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_whois (gint64, const gchar*, const gchar*, const gchar*);
+
+#endif

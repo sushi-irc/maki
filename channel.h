@@ -25,6 +25,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_CHANNEL
+#define H_CHANNEL
+
 struct maki_channel
 {
 	gchar* name;
@@ -39,3 +42,5 @@ typedef struct maki_channel makiChannel;
 
 makiChannel* maki_channel_new (const gchar*);
 void maki_channel_free (gpointer);
+
+#endif

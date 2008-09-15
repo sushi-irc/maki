@@ -25,12 +25,19 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_CONFIG
+#define H_CONFIG
+
 struct maki_config;
 
 typedef struct maki_config makiConfig;
+
+#include "instance.h"
 
 makiConfig* maki_config_new (makiInstance*);
 const gchar* maki_config_get (makiConfig*, const gchar*, const gchar*);
 gint maki_config_get_int (makiConfig*, const gchar*, const gchar*);
 void maki_config_set (makiConfig*, const gchar*, const gchar*, const gchar*);
 void maki_config_free (makiConfig*);
+
+#endif

@@ -25,6 +25,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_CACHE
+#define H_CACHE
+
 struct maki_cache;
 
 typedef struct maki_cache makiCache;
@@ -33,3 +36,5 @@ makiCache* maki_cache_new (gpointer (*) (gpointer, gpointer), void (*) (gpointer
 void maki_cache_free (makiCache*);
 gpointer maki_cache_insert (makiCache*, gpointer);
 void maki_cache_remove (makiCache*, gpointer);
+
+#endif

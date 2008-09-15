@@ -25,6 +25,18 @@
  * SUCH DAMAGE.
  */
 
+#ifndef _SERVER_H_
+#define _SERVER_H_
+
+struct maki_server;
+
+typedef struct maki_server makiServer;
+
+#include "cache.h"
+#include "instance.h"
+#include "sashimi.h"
+#include "user.h"
+
 struct maki_server
 {
 	makiInstance* instance;
@@ -38,8 +50,7 @@ struct maki_server
 	makiCache* users;
 	GHashTable* logs;
 
-	/* FIXME */
-	struct maki_user* user;
+	makiUser* user;
 
 	struct
 	{
@@ -73,10 +84,10 @@ struct maki_server
 	support;
 };
 
-typedef struct maki_server makiServer;
-
 makiServer* maki_server_new (makiInstance*, const gchar*);
 void maki_server_free (gpointer);
 gboolean maki_server_connect (makiServer*);
 gboolean maki_server_disconnect (makiServer*, const gchar*);
 void maki_server_reconnect_callback (gpointer);
+
+#endif

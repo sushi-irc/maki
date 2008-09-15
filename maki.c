@@ -84,7 +84,7 @@ static void maki_signal (int signo)
 	GList* tmp;
 	makiInstance* inst = maki_instance_get_default();
 
-	list = g_hash_table_get_values(inst->servers);
+	list = g_hash_table_get_values(maki_instance_servers(inst));
 
 	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
 	{
@@ -170,7 +170,7 @@ int main (int argc, char* argv[])
 
 		if ((serv = maki_server_new(inst, file)) != NULL)
 		{
-			g_hash_table_replace(inst->servers, serv->server, serv);
+			g_hash_table_replace(maki_instance_servers(inst), serv->server, serv);
 		}
 
 	}

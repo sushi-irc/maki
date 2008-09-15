@@ -25,6 +25,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef H_IN
+#define H_IN
+
 #define IRC_RPL_ISUPPORT "005"
 #define IRC_RPL_UMODEIS "221"
 #define IRC_RPL_AWAY "301"
@@ -53,3 +56,5 @@
 #define IRC_ERR_NICKNAMEINUSE "433"
 
 gpointer maki_in_runner (gpointer);
+
+#endif
