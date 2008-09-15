@@ -71,6 +71,11 @@ makiDBus* maki_instance_bus (makiInstance* inst)
 	return inst->bus;
 }
 
+makiConfig* maki_instance_config (makiInstance* inst)
+{
+	return inst->config;
+}
+
 void maki_instance_free (makiInstance* inst)
 {
 	sashimiMessage* msg;
