@@ -175,7 +175,7 @@ int main (int argc, char* argv[])
 
 	g_dir_close(servers);
 
-	g_main_loop_run(inst->loop);
+	g_main_loop_run(maki_instance_main_loop(inst));
 
 	return 0;
 }

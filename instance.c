@@ -76,6 +76,11 @@ makiConfig* maki_instance_config (makiInstance* inst)
 	return inst->config;
 }
 
+GMainLoop* maki_instance_main_loop (makiInstance* inst)
+{
+	return inst->loop;
+}
+
 GAsyncQueue* maki_instance_queue (makiInstance* inst)
 {
 	return inst->message_queue;
