@@ -111,7 +111,6 @@ int main (int argc, char* argv[])
 	makiInstance* inst;
 
 	gboolean opt_daemon = FALSE;
-	gboolean opt_debug = TRUE;
 	GOptionContext* context;
 	GOptionEntry entries[] =
 	{
@@ -123,6 +122,8 @@ int main (int argc, char* argv[])
 	setlocale(LC_ALL, "");
 	bindtextdomain(MAKI_NAME, LOCALEDIR);
 	textdomain(MAKI_NAME);
+
+	opt_debug = TRUE;
 
 	context = g_option_context_new(NULL);
 	g_option_context_add_main_entries(context, entries, NULL);
@@ -147,8 +148,6 @@ int main (int argc, char* argv[])
 	{
 		return 1;
 	}
-
-	inst->opt.debug = opt_debug;
 
 	signal(SIGINT, maki_signal);
 	signal(SIGHUP, maki_signal);

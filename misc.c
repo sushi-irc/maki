@@ -61,7 +61,7 @@ void maki_debug (const gchar* format, ...)
 	va_list args;
 	makiInstance* inst = maki_instance_get_default();
 
-	if (!inst->opt.debug)
+	if (!opt_debug)
 	{
 		return;
 	}

@@ -59,8 +59,6 @@ makiInstance* maki_instance_new (void)
 
 	inst->message_queue = g_async_queue_new_full(sashimi_message_free);
 
-	inst->opt.debug = FALSE;
-
 	inst->threads.messages = g_thread_create(maki_in_runner, inst, TRUE, NULL);
 
 	inst->loop = g_main_loop_new(NULL, FALSE);

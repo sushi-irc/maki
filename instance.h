@@ -46,12 +46,6 @@ struct maki_instance
 
 	struct
 	{
-		gboolean debug;
-	}
-	opt;
-
-	struct
-	{
 		GThread* messages;
 	}
 	threads;
