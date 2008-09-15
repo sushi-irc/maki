@@ -86,7 +86,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		serv->connected = FALSE;
 		serv->reconnect.source = 0;
 		serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect" ,"retries");
-		serv->connection = sashimi_new(address, port, serv->instance->message_queue, serv);
+		serv->connection = sashimi_new(address, port, maki_instance_queue(serv->instance), serv);
 		serv->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_free);
 		serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
 		serv->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_log_free);

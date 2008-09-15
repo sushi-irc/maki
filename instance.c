@@ -76,6 +76,11 @@ makiConfig* maki_instance_config (makiInstance* inst)
 	return inst->config;
 }
 
+GAsyncQueue* maki_instance_queue (makiInstance* inst)
+{
+	return inst->message_queue;
+}
+
 void maki_instance_free (makiInstance* inst)
 {
 	sashimiMessage* msg;

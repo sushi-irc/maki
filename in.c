@@ -1084,7 +1084,7 @@ gpointer maki_in_runner (gpointer data)
 		makiServer* serv;
 		sashimiMessage* msg;
 
-		msg = g_async_queue_pop(inst->message_queue);
+		msg = g_async_queue_pop(maki_instance_queue(inst));
 
 		if (G_UNLIKELY(msg->message == NULL && msg->data == NULL))
 		{
