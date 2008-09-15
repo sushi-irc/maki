@@ -143,7 +143,7 @@ void maki_commands (makiServer* serv)
 
 		while (*command != NULL)
 		{
-			sashimi_send(serv->connection, *command);
+			maki_server_send(serv, *command);
 			++command;
 		}
 	}
@@ -194,11 +194,11 @@ void maki_in_privmsg (makiServer* serv, glong time, gchar* nick, gchar* remainin
 				{
 					if (strncmp(message, "VERSION", 7) == 0)
 					{
-						maki_send_printf(serv, "NOTICE %s :\001VERSION %s %s\001", nick, SUSHI_NAME, SUSHI_VERSION);
+						maki_server_send_printf(serv, "NOTICE %s :\001VERSION %s %s\001", nick, SUSHI_NAME, SUSHI_VERSION);
 					}
 					else if (strncmp(message, "PING", 4) == 0)
 					{
-						maki_send_printf(serv, "NOTICE %s :\001%s\001", nick, message);
+						maki_server_send_printf(serv, "NOTICE %s :\001%s\001", nick, message);
 					}
 				}
 

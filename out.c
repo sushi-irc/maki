@@ -31,24 +31,24 @@
 
 void maki_out_away (makiServer* serv, const gchar* message)
 {
-	maki_send_printf(serv, "AWAY :%s", message);
+	maki_server_send_printf(serv, "AWAY :%s", message);
 }
 
 void maki_out_join (makiServer* serv, const gchar* channel, const gchar* key)
 {
 	if (key != NULL && key[0])
 	{
-		maki_send_printf(serv, "JOIN %s %s", channel, key);
+		maki_server_send_printf(serv, "JOIN %s %s", channel, key);
 	}
 	else
 	{
-		maki_send_printf(serv, "JOIN %s", channel);
+		maki_server_send_printf(serv, "JOIN %s", channel);
 	}
 }
 
 void maki_out_nick (makiServer* serv, const gchar* nick)
 {
-	maki_send_printf(serv, "NICK %s", nick);
+	maki_server_send_printf(serv, "NICK %s", nick);
 }
 
 void maki_out_nickserv (makiServer* serv)
@@ -59,13 +59,13 @@ void maki_out_nickserv (makiServer* serv)
 		{
 			if (serv->nickserv.ghost)
 			{
-				maki_send_printf(serv, "PRIVMSG NickServ :GHOST %s %s", serv->initial_nick, serv->nickserv.password);
+				maki_server_send_printf(serv, "PRIVMSG NickServ :GHOST %s %s", serv->initial_nick, serv->nickserv.password);
 			}
 
 			maki_out_nick(serv, serv->initial_nick);
 		}
 
-		maki_send_printf(serv, "PRIVMSG NickServ :IDENTIFY %s", serv->nickserv.password);
+		maki_server_send_printf(serv, "PRIVMSG NickServ :IDENTIFY %s", serv->nickserv.password);
 	}
 }
 
@@ -77,16 +77,7 @@ static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, co
 	g_get_current_time(&time);
 
 	buffer = g_strdup_printf("PRIVMSG %s :%s", target, message);
-
-	if (queue)
-	{
-		sashimi_queue(serv->connection, buffer);
-	}
-	else
-	{
-		sashimi_send_or_queue(serv->connection, buffer);
-	}
-
+	maki_server_queue(serv, buffer, queue);
 	g_free(buffer);
 
 	maki_log(serv, target, "<%s> %s", serv->user->nick, message);
@@ -153,7 +144,7 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 
 	g_get_current_time(&time);
 
-	maki_send_printf(serv, "QUIT :%s", message);
+	maki_server_send_printf(serv, "QUIT :%s", message);
 
 	maki_server_channels_iter(serv, &iter);
 

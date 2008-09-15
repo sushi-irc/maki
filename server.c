@@ -171,9 +171,40 @@ void maki_server_channels_iter (makiServer* serv, GHashTableIter* iter)
 	g_hash_table_iter_init(iter, serv->channels);
 }
 
-/**
- * This function gets called when a connection is removed from the servers hash table.
- */
+gboolean maki_server_queue (makiServer* serv, const gchar* message, gboolean force)
+{
+	if (force)
+	{
+		return sashimi_queue(serv->connection, message);
+	}
+	else
+	{
+		return sashimi_send_or_queue(serv->connection, message);
+	}
+}
+
+gboolean maki_server_send (makiServer* serv, const gchar* message)
+{
+	return sashimi_send(serv->connection, message);
+}
+
+gboolean maki_server_send_printf (makiServer* serv, const gchar* format, ...)
+{
+	gboolean ret;
+	gchar* buffer;
+	va_list args;
+
+	va_start(args, format);
+	buffer = g_strdup_vprintf(format, args);
+	va_end(args);
+
+	ret = sashimi_send(serv->connection, buffer);
+	g_free(buffer);
+
+	return ret;
+}
+
+/* This function gets called when a server is removed from the servers hash table. */
 void maki_server_free (gpointer data)
 {
 	makiServer* serv = data;
@@ -234,7 +265,7 @@ gboolean maki_server_connect (makiServer* serv)
 
 		maki_out_nick(serv, serv->initial_nick);
 
-		maki_send_printf(serv, "USER %s 0 * :%s", serv->initial_nick, serv->name);
+		maki_server_send_printf(serv, "USER %s 0 * :%s", serv->initial_nick, serv->name);
 
 		g_get_current_time(&time);
 		maki_dbus_emit_connect(time.tv_sec, serv->server);

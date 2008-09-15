@@ -250,7 +250,7 @@ gboolean maki_dbus_action (makiDBus* self, gchar* server, gchar* channel, gchar*
 
 		g_strdelimit(message, "\r\n", ' ');
 
-		maki_send_printf(serv, "PRIVMSG %s :\001ACTION %s\001", channel, message);
+		maki_server_send_printf(serv, "PRIVMSG %s :\001ACTION %s\001", channel, message);
 
 		maki_dbus_emit_action(time.tv_sec, server, serv->user->nick, channel, message);
 	}
@@ -280,7 +280,7 @@ gboolean maki_dbus_back (makiDBus* self, gchar* server, GError** error)
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		sashimi_send(serv->connection, "AWAY");
+		maki_server_send(serv, "AWAY");
 	}
 
 	return TRUE;
@@ -401,7 +401,7 @@ gboolean maki_dbus_ctcp (makiDBus* self, gchar* server, gchar* target, gchar* me
 	{
 		GTimeVal time;
 
-		maki_send_printf(serv, "PRIVMSG %s :\1%s\1", target, message);
+		maki_server_send_printf(serv, "PRIVMSG %s :\1%s\1", target, message);
 
 		g_get_current_time(&time);
 		maki_dbus_emit_own_ctcp(time.tv_sec, server, target, message);
@@ -478,7 +478,7 @@ gboolean maki_dbus_invite (makiDBus* self, gchar* server, gchar* channel, gchar*
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		maki_send_printf(serv, "INVITE %s %s", who, channel);
+		maki_server_send_printf(serv, "INVITE %s %s", who, channel);
 	}
 
 	return TRUE;
@@ -515,11 +515,11 @@ gboolean maki_dbus_kick (makiDBus* self, gchar* server, gchar* channel, gchar* w
 	{
 		if (message[0])
 		{
-			maki_send_printf(serv, "KICK %s %s :%s", channel, who, message);
+			maki_server_send_printf(serv, "KICK %s %s :%s", channel, who, message);
 		}
 		else
 		{
-			maki_send_printf(serv, "KICK %s %s", channel, who);
+			maki_server_send_printf(serv, "KICK %s %s", channel, who);
 		}
 	}
 
@@ -533,7 +533,7 @@ gboolean maki_dbus_kill (makiDBus* self, gchar* server, gchar* nick, gchar* reas
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		maki_send_printf(serv, "KILL %s :%s", nick, reason);
+		maki_server_send_printf(serv, "KILL %s :%s", nick, reason);
 	}
 
 	return TRUE;
@@ -548,11 +548,11 @@ gboolean maki_dbus_list (makiDBus* self, gchar* server, gchar* channel, GError**
 	{
 		if (channel[0])
 		{
-			maki_send_printf(serv, "LIST %s", channel);
+			maki_server_send_printf(serv, "LIST %s", channel);
 		}
 		else
 		{
-			maki_send_printf(serv, "LIST");
+			maki_server_send_printf(serv, "LIST");
 		}
 	}
 
@@ -706,11 +706,11 @@ gboolean maki_dbus_mode (makiDBus* self, gchar* server, gchar* target, gchar* mo
 	{
 		if (mode[0])
 		{
-			maki_send_printf(serv, "MODE %s %s", target, mode);
+			maki_server_send_printf(serv, "MODE %s %s", target, mode);
 		}
 		else
 		{
-			maki_send_printf(serv, "MODE %s", target);
+			maki_server_send_printf(serv, "MODE %s", target);
 		}
 	}
 
@@ -787,7 +787,7 @@ gboolean maki_dbus_notice (makiDBus* self, gchar* server, gchar* target, gchar* 
 	{
 		GTimeVal time;
 
-		maki_send_printf(serv, "NOTICE %s :%s", target, message);
+		maki_server_send_printf(serv, "NOTICE %s :%s", target, message);
 
 		g_get_current_time(&time);
 		maki_dbus_emit_own_notice(time.tv_sec, serv->server, target, message);
@@ -804,7 +804,7 @@ gboolean maki_dbus_oper (makiDBus* self, gchar* server, gchar* name, gchar* pass
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		maki_send_printf(serv, "OPER %s %s", name, password);
+		maki_server_send_printf(serv, "OPER %s %s", name, password);
 	}
 
 	return TRUE;
@@ -834,11 +834,11 @@ gboolean maki_dbus_part (makiDBus* self, gchar* server, gchar* channel, gchar* m
 	{
 		if (message[0])
 		{
-			maki_send_printf(serv, "PART %s :%s", channel, message);
+			maki_server_send_printf(serv, "PART %s :%s", channel, message);
 		}
 		else
 		{
-			maki_send_printf(serv, "PART %s", channel);
+			maki_server_send_printf(serv, "PART %s", channel);
 		}
 	}
 
@@ -872,7 +872,7 @@ gboolean maki_dbus_raw (makiDBus* self, gchar* server, gchar* command, GError** 
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		sashimi_send(serv->connection, command);
+		maki_server_send(serv, command);
 	}
 
 	return TRUE;
@@ -1134,11 +1134,11 @@ gboolean maki_dbus_topic (makiDBus* self, gchar* server, gchar* channel, gchar* 
 	{
 		if (topic[0])
 		{
-			maki_send_printf(serv, "TOPIC %s :%s", channel, topic);
+			maki_server_send_printf(serv, "TOPIC %s :%s", channel, topic);
 		}
 		else
 		{
-			maki_send_printf(serv, "TOPIC %s", channel);
+			maki_server_send_printf(serv, "TOPIC %s", channel);
 		}
 	}
 
@@ -1355,7 +1355,7 @@ gboolean maki_dbus_whois (makiDBus* self, gchar* server, gchar* mask, GError** e
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		maki_send_printf(serv, "WHOIS %s", mask);
+		maki_server_send_printf(serv, "WHOIS %s", mask);
 	}
 
 	return TRUE;

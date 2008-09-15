@@ -134,22 +134,6 @@ gboolean maki_write (gint fd, const gchar* buf)
 	return (written >= size);
 }
 
-gboolean maki_send_printf (makiServer* serv, const gchar* format, ...)
-{
-	gboolean ret;
-	gchar* buffer;
-	va_list args;
-
-	va_start(args, format);
-	buffer = g_strdup_vprintf(format, args);
-	va_end(args);
-
-	ret = sashimi_send(serv->connection, buffer);
-	g_free(buffer);
-
-	return ret;
-}
-
 void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 {
 	gchar* tmp;
