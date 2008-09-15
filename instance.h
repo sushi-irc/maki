@@ -27,8 +27,6 @@
 
 struct maki_instance
 {
-	makiDBus* bus;
-
 	makiConfig* config;
 
 	GHashTable* servers;
@@ -46,7 +44,6 @@ struct maki_instance
 
 makiInstance* maki_instance_get_default (void);
 makiInstance* maki_instance_new (void);
-makiDBus* maki_instance_bus (makiInstance*);
 makiConfig* maki_instance_config (makiInstance*);
 const gchar* maki_instance_directory (makiInstance*, const gchar*);
 GAsyncQueue* maki_instance_queue (makiInstance*);

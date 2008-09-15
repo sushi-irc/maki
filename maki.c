@@ -177,9 +177,13 @@ int main (int argc, char* argv[])
 
 	g_dir_close(servers);
 
+	dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
+
 	main_loop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(main_loop);
 	g_main_loop_unref(main_loop);
+
+	g_object_unref(dbus);
 
 	return 0;
 }

@@ -63,4 +63,5 @@ typedef struct maki_instance makiInstance;
 
 gboolean opt_debug;
 
+makiDBus* dbus;
 GMainLoop* main_loop;

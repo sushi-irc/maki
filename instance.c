@@ -48,8 +48,6 @@ makiInstance* maki_instance_new (void)
 		return NULL;
 	}
 
-	inst->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
-
 	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
 
 	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
@@ -64,11 +62,6 @@ makiInstance* maki_instance_new (void)
 	inst->threads.messages = g_thread_create(maki_in_runner, inst, TRUE, NULL);
 
 	return inst;
-}
-
-makiDBus* maki_instance_bus (makiInstance* inst)
-{
-	return inst->bus;
 }
 
 makiConfig* maki_instance_config (makiInstance* inst)
@@ -101,8 +94,6 @@ void maki_instance_free (makiInstance* inst)
 	g_hash_table_destroy(inst->servers);
 
 	g_hash_table_destroy(inst->directories);
-
-	g_object_unref(inst->bus);
 
 	maki_config_free(inst->config);
 
