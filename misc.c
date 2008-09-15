@@ -165,7 +165,7 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 
 	if ((log = g_hash_table_lookup(serv->logs, name)) == NULL)
 	{
-		if ((log = maki_log_new(serv->server, name)) == NULL)
+		if ((log = maki_log_new(inst->config, serv->server, name)) == NULL)
 		{
 			return;
 		}

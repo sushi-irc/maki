@@ -29,6 +29,6 @@ struct maki_log;
 
 typedef struct maki_log makiLog;
 
-makiLog* maki_log_new (const gchar*, const gchar*);
+makiLog* maki_log_new (makiConfig*, const gchar*, const gchar*);
 void maki_log_write (makiLog*, const gchar*);
 void maki_log_free (gpointer);
