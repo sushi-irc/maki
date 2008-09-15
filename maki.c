@@ -149,6 +149,8 @@ int main (int argc, char* argv[])
 		return 1;
 	}
 
+	dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
+
 	signal(SIGINT, maki_signal);
 	signal(SIGHUP, maki_signal);
 	signal(SIGTERM, maki_signal);
@@ -175,8 +177,6 @@ int main (int argc, char* argv[])
 	}
 
 	g_dir_close(servers);
-
-	dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
 
 	main_loop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(main_loop);
