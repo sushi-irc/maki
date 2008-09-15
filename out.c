@@ -84,9 +84,8 @@ static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, co
 	maki_dbus_emit_own_message(time.tv_sec, serv->server, target, message);
 }
 
-void maki_out_privmsg (makiServer* serv, const gchar* target, gchar* message, gboolean queue)
+void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)
 {
-	gchar tmp = '\0';
 	gint length = 512;
 
 	/* :nickname!username@hostname PRIVMSG target :message\r\n */
@@ -106,9 +105,11 @@ void maki_out_privmsg (makiServer* serv, const gchar* target, gchar* message, gb
 
 	while (strlen(message) > length)
 	{
-		gint i = 0;
+		gchar* tmp;
+		gint i;
 		gint skip;
 
+		i = 0;
 		queue = TRUE;
 
 		while (TRUE)
@@ -123,13 +124,10 @@ void maki_out_privmsg (makiServer* serv, const gchar* target, gchar* message, gb
 			i += skip;
 		}
 
-		tmp = message[i];
-		message[i] = '\0';
-
-		maki_out_privmsg_internal(serv, target, message, queue);
-
-		message[i] = tmp;
+		tmp = g_strndup(message, i);
+		maki_out_privmsg_internal(serv, target, tmp, queue);
 		message += i;
+		g_free(tmp);
 	}
 
 	maki_out_privmsg_internal(serv, target, message, queue);
