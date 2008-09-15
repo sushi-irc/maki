@@ -60,10 +60,7 @@ makiInstance* maki_instance_new (void)
 {
 	makiInstance* inst;
 
-	if ((inst = g_new(makiInstance, 1)) == NULL)
-	{
-		return NULL;
-	}
+	inst = g_new(makiInstance, 1);
 
 	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
 

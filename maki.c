@@ -154,6 +154,7 @@ int main (int argc, char* argv[])
 	signal(SIGTERM, maki_signal);
 	signal(SIGQUIT, maki_signal);
 
+	/* FIXME move to maki_instance_new()? */
 	if (g_mkdir_with_parents(maki_instance_directory(inst, "config"), S_IRUSR | S_IWUSR | S_IXUSR) != 0
 	    || g_mkdir_with_parents(maki_instance_directory(inst, "servers"), S_IRUSR | S_IWUSR | S_IXUSR) != 0)
 	{

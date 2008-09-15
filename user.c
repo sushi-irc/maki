@@ -51,9 +51,7 @@ void maki_user_copy (makiUser* src, makiUser* dst)
 	}
 }
 
-/**
- * This function gets called when a user is removed from the users hash table.
- */
+/* This function gets called when a user is removed from the users hash table. */
 void maki_user_free (gpointer value)
 {
 	makiUser* user = value;
