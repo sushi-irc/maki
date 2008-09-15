@@ -159,11 +159,12 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
+		const gchar* chan_name = key;
 		makiChannel* chan = value;
 
 		if (chan->joined)
 		{
-			maki_log(serv, chan->name, _("« You quit (%s)."), message);
+			maki_log(serv, chan_name, _("« You quit (%s)."), message);
 		}
 	}
 

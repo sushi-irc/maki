@@ -87,7 +87,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		serv->reconnect.source = 0;
 		serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect" ,"retries");
 		serv->connection = sashimi_new(address, port, maki_instance_queue(serv->instance), serv);
-		serv->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, maki_channel_free);
+		serv->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_channel_free);
 		serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
 		serv->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_log_free);
 
@@ -127,11 +127,11 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 				autojoin = g_key_file_get_boolean(key_file, *group, "autojoin", NULL);
 				key = g_key_file_get_string(key_file, *group, "key", NULL);
 
-				chan = maki_channel_new(*group);
+				chan = maki_channel_new();
 				chan->autojoin = autojoin;
 				chan->key = key;
 
-				g_hash_table_replace(serv->channels, chan->name, chan);
+				g_hash_table_insert(serv->channels, g_strdup(*group), chan);
 			}
 		}
 

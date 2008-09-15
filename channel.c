@@ -27,13 +27,12 @@
 
 #include "maki.h"
 
-makiChannel* maki_channel_new (const gchar* name)
+makiChannel* maki_channel_new (void)
 {
 	makiChannel* chan;
 
 	chan = g_new(makiChannel, 1);
 
-	chan->name = g_strdup(name);
 	chan->autojoin = FALSE;
 	chan->joined = FALSE;
 	chan->key = NULL;
@@ -54,7 +53,6 @@ void maki_channel_free (gpointer data)
 
 	g_free(chan->topic);
 	g_free(chan->key);
-	g_free(chan->name);
 
 	g_free(chan);
 }

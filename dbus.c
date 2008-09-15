@@ -304,11 +304,12 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 
 		while (g_hash_table_iter_next(&iter, &key, &value))
 		{
+			const gchar* chan_name = key;
 			makiChannel* chan = value;
 
 			if (chan->joined)
 			{
-				*channel = g_strdup(chan->name);
+				*channel = g_strdup(chan_name);
 				++channel;
 			}
 		}

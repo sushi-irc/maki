@@ -30,7 +30,6 @@
 
 struct maki_channel
 {
-	gchar* name;
 	gboolean autojoin;
 	gboolean joined;
 	gchar* key;
@@ -40,7 +39,7 @@ struct maki_channel
 
 typedef struct maki_channel makiChannel;
 
-makiChannel* maki_channel_new (const gchar*);
+makiChannel* maki_channel_new (void);
 void maki_channel_free (gpointer);
 
 #endif

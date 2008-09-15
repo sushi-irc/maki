@@ -121,11 +121,12 @@ static gboolean maki_join (gpointer data)
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
+		const gchar* chan_name = key;
 		makiChannel* chan = value;
 
 		if (chan->autojoin || chan->joined)
 		{
-			maki_out_join(serv, chan->name, chan->key);
+			maki_out_join(serv, chan_name, chan->key);
 		}
 	}
 
@@ -263,10 +264,10 @@ void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		}
 		else
 		{
-			chan = maki_channel_new(channel);
+			chan = maki_channel_new();
 			chan->joined = TRUE;
 
-			g_hash_table_replace(serv->channels, chan->name, chan);
+			g_hash_table_insert(serv->channels, g_strdup(channel), chan);
 		}
 
 		maki_log(serv, channel, _("» You join."));
@@ -361,6 +362,7 @@ void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
+		const gchar* chan_name = key;
 		makiChannel* chan = value;
 
 		if (!chan->joined)
@@ -372,11 +374,11 @@ void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		{
 			if (remaining)
 			{
-				maki_log(serv, chan->name, _("« %s quits (%s)."), nick, maki_remove_colon(remaining));
+				maki_log(serv, chan_name, _("« %s quits (%s)."), nick, maki_remove_colon(remaining));
 			}
 			else
 			{
-				maki_log(serv, chan->name, _("« %s quits."), nick);
+				maki_log(serv, chan_name, _("« %s quits."), nick);
 			}
 		}
 
@@ -503,6 +505,7 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
+		const gchar* chan_name = key;
 		makiChannel* chan = value;
 		makiChannelUser* cuser;
 
@@ -527,11 +530,11 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 			if (own)
 			{
-				maki_log(serv, chan->name, _("• You are now known as %s."), new_nick);
+				maki_log(serv, chan_name, _("• You are now known as %s."), new_nick);
 			}
 			else
 			{
-				maki_log(serv, chan->name, _("• %s is now known as %s."), nick, new_nick);
+				maki_log(serv, chan_name, _("• %s is now known as %s."), nick, new_nick);
 			}
 		}
 	}
