@@ -128,10 +128,12 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 				key = g_key_file_get_string(key_file, *group, "key", NULL);
 
 				chan = maki_channel_new();
-				chan->autojoin = autojoin;
-				chan->key = key;
+				maki_channel_set_autojoin(chan, autojoin);
+				maki_channel_set_key(chan, key);
 
 				g_hash_table_insert(serv->channels, g_strdup(*group), chan);
+
+				g_free(key);
 			}
 		}
 
@@ -300,7 +302,7 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 	{
 		makiChannel* chan = value;
 
-		g_hash_table_remove_all(chan->users);
+		maki_channel_remove_users(chan);
 	}
 
 	return ret;

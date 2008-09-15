@@ -28,18 +28,32 @@
 #ifndef H_CHANNEL
 #define H_CHANNEL
 
-struct maki_channel
-{
-	gboolean autojoin;
-	gboolean joined;
-	gchar* key;
-	GHashTable* users;
-	gchar* topic;
-};
+struct maki_channel;
 
 typedef struct maki_channel makiChannel;
 
+#include "channel_user.h"
+
 makiChannel* maki_channel_new (void);
 void maki_channel_free (gpointer);
+
+gboolean maki_channel_autojoin (makiChannel*);
+void maki_channel_set_autojoin (makiChannel*, gboolean);
+
+gboolean maki_channel_joined (makiChannel*);
+void maki_channel_set_joined (makiChannel*, gboolean);
+
+const gchar* maki_channel_key (makiChannel*);
+void maki_channel_set_key (makiChannel*, const gchar*);
+
+const gchar* maki_channel_topic (makiChannel*);
+void maki_channel_set_topic (makiChannel*, const gchar*);
+
+void maki_channel_add_user (makiChannel*, gchar*, makiChannelUser*);
+makiChannelUser* maki_channel_get_user (makiChannel*, const gchar*);
+void maki_channel_remove_user (makiChannel*, const gchar*);
+void maki_channel_remove_users (makiChannel*);
+guint maki_channel_users_count (makiChannel*);
+void maki_channel_users_iter (makiChannel*, GHashTableIter*);
 
 #endif

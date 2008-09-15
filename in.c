@@ -124,9 +124,9 @@ static gboolean maki_join (gpointer data)
 		const gchar* chan_name = key;
 		makiChannel* chan = value;
 
-		if (chan->autojoin || chan->joined)
+		if (maki_channel_autojoin(chan) || maki_channel_joined(chan))
 		{
-			maki_out_join(serv, chan_name, chan->key);
+			maki_out_join(serv, chan_name, maki_channel_key(chan));
 		}
 	}
 
@@ -253,19 +253,19 @@ void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 		user = maki_cache_insert(serv->users, nick);
 		cuser = maki_channel_user_new(user);
-		g_hash_table_replace(chan->users, cuser->user->nick, cuser);
+		maki_channel_add_user(chan, cuser->user->nick, cuser);
 	}
 
 	if (g_ascii_strcasecmp(nick, serv->user->nick) == 0)
 	{
 		if (chan != NULL)
 		{
-			chan->joined = TRUE;
+			maki_channel_set_joined(chan, TRUE);
 		}
 		else
 		{
 			chan = maki_channel_new();
-			chan->joined = TRUE;
+			maki_channel_set_joined(chan, TRUE);
 
 			maki_server_add_channel(serv, channel, chan);
 		}
@@ -305,16 +305,16 @@ void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 	if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 	{
-		g_hash_table_remove(chan->users, nick);
+		maki_channel_remove_user(chan, nick);
 	}
 
 	if (g_ascii_strcasecmp(nick, serv->user->nick) == 0)
 	{
 		if (chan != NULL)
 		{
-			chan->joined = FALSE;
+			maki_channel_set_joined(chan, FALSE);
 
-			if (!chan->autojoin && chan->key == NULL)
+			if (!maki_channel_autojoin(chan) && maki_channel_key(chan) == NULL)
 			{
 				maki_server_remove_channel(serv, channel);
 			}
@@ -365,12 +365,12 @@ void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		const gchar* chan_name = key;
 		makiChannel* chan = value;
 
-		if (!chan->joined)
+		if (!maki_channel_joined(chan))
 		{
 			continue;
 		}
 
-		if (g_hash_table_lookup(chan->users, nick) != NULL)
+		if (maki_channel_get_user(chan, nick) != NULL)
 		{
 			if (remaining)
 			{
@@ -382,7 +382,7 @@ void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 			}
 		}
 
-		g_hash_table_remove(chan->users, nick);
+		maki_channel_remove_user(chan, nick);
 	}
 
 	if (remaining)
@@ -422,16 +422,16 @@ void maki_in_kick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 	if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 	{
-		g_hash_table_remove(chan->users, who);
+		maki_channel_remove_user(chan, who);
 	}
 
 	if (g_ascii_strcasecmp(who, serv->user->nick) == 0)
 	{
 		if (chan != NULL)
 		{
-			chan->joined = FALSE;
+			maki_channel_set_joined(chan, FALSE);
 
-			if (!chan->autojoin && chan->key == NULL)
+			if (!maki_channel_autojoin(chan) && maki_channel_key(chan) == NULL)
 			{
 				maki_server_remove_channel(serv, channel);
 			}
@@ -509,12 +509,12 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		makiChannel* chan = value;
 		makiChannelUser* cuser;
 
-		if (!chan->joined)
+		if (!maki_channel_joined(chan))
 		{
 			continue;
 		}
 
-		if ((cuser = g_hash_table_lookup(chan->users, nick)) != NULL)
+		if ((cuser = maki_channel_get_user(chan, nick)) != NULL)
 		{
 			makiChannelUser* tmp;
 			makiUser* user;
@@ -525,8 +525,8 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 			tmp = maki_channel_user_new(user);
 			maki_channel_user_copy(cuser, tmp);
 
-			g_hash_table_remove(chan->users, nick);
-			g_hash_table_replace(chan->users, tmp->user->nick, tmp);
+			maki_channel_remove_user(chan, nick);
+			maki_channel_add_user(chan, tmp->user->nick, tmp);
 
 			if (own)
 			{
@@ -635,7 +635,7 @@ void maki_in_mode (makiServer* serv, glong time, gchar* nick, gchar* remaining, 
 						makiChannelUser* cuser;
 
 						if ((chan = maki_server_get_channel(serv, target)) != NULL
-								&& (cuser = g_hash_table_lookup(chan->users, modes[i])) != NULL)
+								&& (cuser = maki_channel_get_user(chan, modes[i])) != NULL)
 						{
 							if (sign == '+')
 							{
@@ -771,8 +771,7 @@ void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining,
 
 	if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 	{
-		g_free(chan->topic);
-		chan->topic = g_strdup(topic);
+		maki_channel_set_topic(chan, topic);
 	}
 
 	if (is_numeric)
@@ -831,7 +830,7 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
 
 			user = maki_cache_insert(serv->users, nick);
 			cuser = maki_channel_user_new(user);
-			g_hash_table_replace(chan->users, cuser->user->nick, cuser);
+			maki_channel_add_user(chan, cuser->user->nick, cuser);
 			cuser->prefix = prefix;
 		}
 	}

@@ -307,7 +307,7 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 			const gchar* chan_name = key;
 			makiChannel* chan = value;
 
-			if (chan->joined)
+			if (maki_channel_joined(chan))
 			{
 				*channel = g_strdup(chan_name);
 				++channel;
@@ -332,9 +332,9 @@ gboolean maki_dbus_channel_topic (makiDBus* self, gchar* server, gchar* channel,
 		makiChannel* chan;
 
 		if ((chan = maki_server_get_channel(serv, channel)) != NULL
-		    && chan->topic != NULL)
+		    && maki_channel_topic(chan) != NULL)
 		{
-			*topic = g_strdup(chan->topic);
+			*topic = g_strdup(maki_channel_topic(chan));
 		}
 	}
 
@@ -494,10 +494,10 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* k
 		makiChannel* chan;
 
 		if ((chan = maki_server_get_channel(serv, channel)) != NULL
-		    && chan->key != NULL
+		    && maki_channel_key(chan) != NULL
 		    && !key[0])
 		{
-			key = chan->key;
+			key = maki_channel_key(chan);
 		}
 
 		maki_out_join(serv, channel, key);
@@ -747,8 +747,8 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 			GHashTableIter iter;
 			gpointer key, value;
 
-			nick = *nicks = g_new(gchar*, g_hash_table_size(chan->users) + 1);
-			g_hash_table_iter_init(&iter, chan->users);
+			nick = *nicks = g_new(gchar*, maki_channel_users_count(chan) + 1);
+			maki_channel_users_iter(chan, &iter);
 
 			while (g_hash_table_iter_next(&iter, &key, &value))
 			{
@@ -1263,7 +1263,7 @@ gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* chan
 		{
 			makiChannelUser* cuser;
 
-			if ((cuser = g_hash_table_lookup(chan->users, nick)) != NULL)
+			if ((cuser = maki_channel_get_user(chan, nick)) != NULL)
 			{
 				gint pos;
 				gint length;
@@ -1313,7 +1313,7 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* ch
 		{
 			makiChannelUser* cuser;
 
-			if ((cuser = g_hash_table_lookup(chan->users, nick)) != NULL)
+			if ((cuser = maki_channel_get_user(chan, nick)) != NULL)
 			{
 				gint pos;
 				gint length;

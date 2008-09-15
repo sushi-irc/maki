@@ -153,7 +153,7 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 		const gchar* chan_name = key;
 		makiChannel* chan = value;
 
-		if (chan->joined)
+		if (maki_channel_joined(chan))
 		{
 			maki_log(serv, chan_name, _("« You quit (%s)."), message);
 		}

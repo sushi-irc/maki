@@ -27,6 +27,15 @@
 
 #include "maki.h"
 
+struct maki_channel
+{
+	gboolean autojoin;
+	gboolean joined;
+	gchar* key;
+	GHashTable* users;
+	gchar* topic;
+};
+
 makiChannel* maki_channel_new (void)
 {
 	makiChannel* chan;
@@ -42,9 +51,7 @@ makiChannel* maki_channel_new (void)
 	return chan;
 }
 
-/**
- * This function gets called when a channel is removed from the channels hash table.
- */
+/* This function gets called when a channel is removed from the channels hash table. */
 void maki_channel_free (gpointer data)
 {
 	makiChannel* chan = data;
@@ -55,4 +62,76 @@ void maki_channel_free (gpointer data)
 	g_free(chan->key);
 
 	g_free(chan);
+}
+
+gboolean maki_channel_autojoin (makiChannel* chan)
+{
+	return chan->autojoin;
+}
+
+void maki_channel_set_autojoin (makiChannel* chan, gboolean autojoin)
+{
+	chan->autojoin = autojoin;
+}
+
+gboolean maki_channel_joined (makiChannel* chan)
+{
+	return chan->joined;
+}
+
+void maki_channel_set_joined (makiChannel* chan, gboolean joined)
+{
+	chan->joined = joined;
+}
+
+const gchar* maki_channel_key (makiChannel* chan)
+{
+	return chan->key;
+}
+
+void maki_channel_set_key (makiChannel* chan, const gchar* key)
+{
+	g_free(chan->key);
+	chan->key = g_strdup(key);
+}
+
+const gchar* maki_channel_topic (makiChannel* chan)
+{
+	return chan->topic;
+}
+
+void maki_channel_set_topic (makiChannel* chan, const gchar* topic)
+{
+	g_free(chan->topic);
+	chan->topic = g_strdup(topic);
+}
+
+void maki_channel_add_user (makiChannel* chan, gchar* name, makiChannelUser* cuser)
+{
+	g_hash_table_replace(chan->users, name, cuser);
+}
+
+makiChannelUser* maki_channel_get_user (makiChannel* chan, const gchar* name)
+{
+	return g_hash_table_lookup(chan->users, name);
+}
+
+void maki_channel_remove_user (makiChannel* chan, const gchar* name)
+{
+	g_hash_table_remove(chan->users, name);
+}
+
+void maki_channel_remove_users (makiChannel* chan)
+{
+	g_hash_table_remove_all(chan->users);
+}
+
+guint maki_channel_users_count (makiChannel* chan)
+{
+	return g_hash_table_size(chan->users);
+}
+
+void maki_channel_users_iter (makiChannel* chan, GHashTableIter* iter)
+{
+	g_hash_table_iter_init(iter, chan->users);
 }
