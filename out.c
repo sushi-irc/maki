@@ -148,26 +148,24 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 {
 	GTimeVal time;
 
-	GList* list;
-	GList* tmp;
+	GHashTableIter iter;
+	gpointer key, value;
 
 	g_get_current_time(&time);
 
 	maki_send_printf(serv, "QUIT :%s", message);
 
-	list = g_hash_table_get_values(serv->channels);
+	g_hash_table_iter_init(&iter, serv->channels);
 
-	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
+	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
-		makiChannel* chan = tmp->data;
+		makiChannel* chan = value;
 
 		if (chan->joined)
 		{
 			maki_log(serv, chan->name, _("« You quit (%s)."), message);
 		}
 	}
-
-	g_list_free(list);
 
 	maki_dbus_emit_quit(time.tv_sec, serv->server, serv->user->nick, message);
 }

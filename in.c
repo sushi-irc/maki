@@ -113,23 +113,21 @@ gint maki_prefix_position (makiServer* serv, gboolean is_prefix, gchar prefix)
  * It joins all configured channels. */
 static gboolean maki_join (gpointer data)
 {
-	GList* list;
-	GList* tmp;
+	GHashTableIter iter;
+	gpointer key, value;
 	makiServer* serv = data;
 
-	list = g_hash_table_get_values(serv->channels);
+	g_hash_table_iter_init(&iter, serv->channels);
 
-	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
+	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
-		makiChannel* chan = tmp->data;
+		makiChannel* chan = value;
 
 		if (chan->autojoin || chan->joined)
 		{
 			maki_out_join(serv, chan->name, chan->key);
 		}
 	}
-
-	g_list_free(list);
 
 	return FALSE;
 }
@@ -356,14 +354,14 @@ void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
-	GList* list;
-	GList* tmp;
+	GHashTableIter iter;
+	gpointer key, value;
 
-	list = g_hash_table_get_values(serv->channels);
+	g_hash_table_iter_init(&iter, serv->channels);
 
-	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
+	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
-		makiChannel* chan = tmp->data;
+		makiChannel* chan = value;
 
 		if (!chan->joined)
 		{
@@ -384,8 +382,6 @@ void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 		g_hash_table_remove(chan->users, nick);
 	}
-
-	g_list_free(list);
 
 	if (remaining)
 	{
@@ -476,8 +472,8 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gboolean own = FALSE;
 	gchar* new_nick;
-	GList* list;
-	GList* tmp;
+	GHashTableIter iter;
+	gpointer key, value;
 
 	if (!remaining)
 	{
@@ -503,11 +499,11 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		own = TRUE;
 	}
 
-	list = g_hash_table_get_values(serv->channels);
+	g_hash_table_iter_init(&iter, serv->channels);
 
-	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
+	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
-		makiChannel* chan = tmp->data;
+		makiChannel* chan = value;
 		makiChannelUser* cuser;
 
 		if (!chan->joined)
@@ -539,8 +535,6 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 			}
 		}
 	}
-
-	g_list_free(list);
 
 	maki_dbus_emit_nick(time, serv->server, nick, new_nick);
 }

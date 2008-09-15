@@ -80,20 +80,18 @@ static int maki_daemonize (void)
 static void maki_signal (int signo)
 {
 	GTimeVal time;
-	GList* list;
-	GList* tmp;
+	GHashTableIter iter;
+	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
 
-	list = g_hash_table_get_values(maki_instance_servers(inst));
+	g_hash_table_iter_init(&iter, maki_instance_servers(inst));
 
-	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
+	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
-		makiServer* serv = tmp->data;
+		makiServer* serv = value;
 
 		maki_server_disconnect(serv, SUSHI_QUIT_MESSAGE);
 	}
-
-	g_list_free(list);
 
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(time.tv_sec);

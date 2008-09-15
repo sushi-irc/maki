@@ -222,8 +222,8 @@ gboolean maki_server_connect (makiServer* serv)
 gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 {
 	gboolean ret;
-	GList* list;
-	GList* tmp;
+	GHashTableIter iter;
+	gpointer key, value;
 
 	sashimi_reconnect(serv->connection, NULL, NULL);
 
@@ -236,16 +236,14 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 	ret = sashimi_disconnect(serv->connection);
 
 	/* Remove all users from all channels, because otherwise phantom users may be left behind. */
-	list = g_hash_table_get_values(serv->channels);
+	g_hash_table_iter_init(&iter, serv->channels);
 
-	for (tmp = list; tmp != NULL; tmp = g_list_next(tmp))
+	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
-		makiChannel* chan = tmp->data;
+		makiChannel* chan = value;
 
 		g_hash_table_remove_all(chan->users);
 	}
-
-	g_list_free(list);
 
 	return ret;
 }
