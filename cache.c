@@ -39,26 +39,26 @@ struct maki_cache
 struct maki_cache_item
 {
 	gint ref_count;
-	gpointer key;
 	gpointer value;
 };
 
 typedef struct maki_cache_item makiCacheItem;
 
-static makiCacheItem* maki_cache_item_new (gpointer key, gpointer value)
+static makiCacheItem* maki_cache_item_new (gpointer value)
 {
 	makiCacheItem* item;
 
 	item = g_new(makiCacheItem, 1);
 	item->ref_count = 1;
-	item->key = key;
 	item->value = value;
 
 	return item;
 }
 
-static void maki_cache_item_free (makiCacheItem* item)
+static void maki_cache_item_free (gpointer data)
 {
+	makiCacheItem* item = data;
+
 	g_free(item);
 }
 
@@ -73,7 +73,7 @@ makiCache* maki_cache_new (gpointer (*value_new) (gpointer, gpointer), void (*va
 	cache->value_new = value_new;
 	cache->value_free = value_free;
 	cache->value_data = value_data;
-	cache->hash_table = g_hash_table_new_full(maki_str_hash, maki_str_equal, NULL, NULL);
+	cache->hash_table = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_cache_item_free);
 
 	return cache;
 }
@@ -104,7 +104,7 @@ gpointer maki_cache_insert (makiCache* cache, gpointer key)
 		key = g_strdup(key);
 		value = (*cache->value_new)(key, cache->value_data);
 
-		item = maki_cache_item_new(key, value);
+		item = maki_cache_item_new(value);
 
 		g_hash_table_insert(cache->hash_table, key, item);
 
@@ -124,10 +124,8 @@ void maki_cache_remove (makiCache* cache, gpointer key)
 
 		if (item->ref_count == 0)
 		{
-			g_hash_table_remove(cache->hash_table, item->key);
 			(*cache->value_free)(item->value);
-			g_free(item->key);
-			maki_cache_item_free(item);
+			g_hash_table_remove(cache->hash_table, key);
 		}
 	}
 }
