@@ -27,6 +27,7 @@
 
 struct maki_server
 {
+	makiInstance* instance;
 	gchar* server;
 	gchar* initial_nick;
 	gchar* name;
@@ -74,7 +75,7 @@ struct maki_server
 
 typedef struct maki_server makiServer;
 
-makiServer* maki_server_new (const gchar*);
+makiServer* maki_server_new (makiInstance*, const gchar*);
 void maki_server_free (gpointer);
 gboolean maki_server_connect (makiServer*);
 gboolean maki_server_disconnect (makiServer*, const gchar*);

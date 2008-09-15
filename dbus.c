@@ -377,7 +377,7 @@ gboolean maki_dbus_connect (makiDBus* self, gchar* server, GError** error)
 	}
 	else
 	{
-		if ((serv = maki_server_new(server)) != NULL)
+		if ((serv = maki_server_new(inst, server)) != NULL)
 		{
 			g_hash_table_replace(inst->servers, serv->server, serv);
 

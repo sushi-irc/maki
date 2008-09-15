@@ -167,7 +167,7 @@ int main (int argc, char* argv[])
 	{
 		makiServer* serv;
 
-		if ((serv = maki_server_new(file)) != NULL)
+		if ((serv = maki_server_new(inst, file)) != NULL)
 		{
 			g_hash_table_replace(inst->servers, serv->server, serv);
 		}
