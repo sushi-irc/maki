@@ -34,7 +34,7 @@ makiServer* maki_server_new (const gchar* server)
 	gchar* path;
 	GKeyFile* key_file;
 	makiServer* serv = NULL;
-	struct maki* m = maki();
+	makiInstance* m = maki_instance_get_default();
 
 	path = g_build_filename(m->directories.servers, server, NULL);
 	key_file = g_key_file_new();
@@ -184,7 +184,7 @@ void maki_server_free (gpointer data)
 gboolean maki_server_connect (makiServer* serv)
 {
 	gboolean ret;
-	struct maki* m = maki();
+	makiInstance* m = maki_instance_get_default();
 
 	sashimi_reconnect(serv->connection, maki_server_reconnect_callback, serv);
 
@@ -285,7 +285,7 @@ static gboolean maki_server_reconnect (gpointer data)
 void maki_server_reconnect_callback (gpointer data)
 {
 	makiServer* serv = data;
-	struct maki* m = maki();
+	makiInstance* m = maki_instance_get_default();
 
 	if (serv->reconnect.source != 0)
 	{

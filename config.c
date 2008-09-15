@@ -83,7 +83,7 @@ static void maki_config_set_from_key_file (GKeyFile* key_file, makiConfig* conf,
 	}
 }
 
-makiConfig* maki_config_new (struct maki* m)
+makiConfig* maki_config_new (makiInstance* m)
 {
 	gchar* path;
 	makiConfig* conf;
@@ -168,7 +168,7 @@ void maki_config_set (makiConfig* conf, const gchar* group, const gchar* key, co
 	{
 		gchar* path;
 		GKeyFile* key_file;
-		struct maki* m = maki();
+		makiInstance* m = maki_instance_get_default();
 
 		g_hash_table_insert(grp->keys, g_strdup(key), g_strdup(value));
 

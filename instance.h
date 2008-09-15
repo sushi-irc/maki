@@ -25,12 +25,38 @@
  * SUCH DAMAGE.
  */
 
-struct maki_config;
+struct maki_instance
+{
+	makiDBus* bus;
 
-typedef struct maki_config makiConfig;
+	makiConfig* config;
 
-makiConfig* maki_config_new (makiInstance*);
-const gchar* maki_config_get (makiConfig*, const gchar*, const gchar*);
-gint maki_config_get_int (makiConfig*, const gchar*, const gchar*);
-void maki_config_set (makiConfig*, const gchar*, const gchar*, const gchar*);
-void maki_config_free (makiConfig*);
+	GHashTable* servers;
+
+	struct
+	{
+		gchar* config;
+		gchar* servers;
+	}
+	directories;
+
+	GMainLoop* loop;
+
+	GAsyncQueue* message_queue;
+
+	struct
+	{
+		gboolean debug;
+	}
+	opt;
+
+	struct
+	{
+		GThread* messages;
+	}
+	threads;
+};
+
+makiInstance* maki_instance_get_default (void);
+makiInstance* maki_instance_new (void);
+void maki_instance_free (makiInstance*);

@@ -59,7 +59,7 @@ void maki_debug (const gchar* format, ...)
 	static int fd = -1;
 	gchar* message;
 	va_list args;
-	struct maki* m = maki();
+	makiInstance* m = maki_instance_get_default();
 
 	if (!m->opt.debug)
 	{
@@ -155,7 +155,7 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 	gchar* tmp;
 	makiLog* log;
 	va_list args;
-	struct maki* m = maki();
+	makiInstance* m = maki_instance_get_default();
 
 	/* FIXME */
 	if (strcmp(maki_config_get(m->config, "logging", "enabled"), "true") != 0)

@@ -25,69 +25,72 @@
  * SUCH DAMAGE.
  */
 
-#include <fcntl.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
-
 #include "maki.h"
 
-struct maki_log
+makiInstance* maki_instance_get_default (void)
 {
-	int fd;
-};
+	static makiInstance* m = NULL;
 
-makiLog* maki_log_new (const gchar* server, const gchar* name)
-{
-	gchar* dirname;
-	gchar* filename;
-	gchar* path;
-	makiLog* log;
-	makiInstance* m = maki_instance_get_default();
-
-	log = g_new(makiLog, 1);
-
-	dirname = g_build_filename(maki_config_get(m->config, "directories", "logs"), server, NULL);
-	filename = g_strconcat(name, ".txt", NULL);
-	path = g_build_filename(dirname, filename, NULL);
-
-	g_mkdir_with_parents(dirname, S_IRUSR | S_IWUSR | S_IXUSR);
-
-	if ((log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
+	if (G_UNLIKELY(m == NULL))
 	{
-		g_free(log);
-
-		log = NULL;
+		m = maki_instance_new();
 	}
 
-	g_free(path);
-	g_free(filename);
-	g_free(dirname);
-
-	return log;
+	return m;
 }
 
-void maki_log_free (gpointer data)
+makiInstance* maki_instance_new (void)
 {
-	makiLog* log = data;
+	makiInstance* m;
 
-	close(log->fd);
+	if ((m = g_new(makiInstance, 1)) == NULL)
+	{
+		return NULL;
+	}
 
-	g_free(log);
+	m->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
+
+	m->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
+
+	m->directories.config = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
+	m->directories.servers = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
+
+	m->config = maki_config_new(m);
+
+	m->message_queue = g_async_queue_new_full(sashimi_message_free);
+
+	m->opt.debug = FALSE;
+
+	m->threads.messages = g_thread_create(maki_in_runner, m, TRUE, NULL);
+
+	m->loop = g_main_loop_new(NULL, FALSE);
+
+	return m;
 }
 
-void maki_log_write (makiLog* log, const gchar* message)
+void maki_instance_free (makiInstance* m)
 {
-	gchar buf[1024];
-	time_t t;
+	sashimiMessage* msg;
 
-	t = time(NULL);
-	strftime(buf, 1024, "%Y-%m-%d %H:%M:%S", localtime(&t));
+	/* Send a bogus message so the messages thread wakes up. */
+	msg = sashimi_message_new(NULL, NULL);
 
-	maki_write(log->fd, buf);
-	maki_write(log->fd, " ");
-	maki_write(log->fd, message);
-	maki_write(log->fd, "\n");
+	g_async_queue_push(m->message_queue, msg);
+
+	g_thread_join(m->threads.messages);
+	g_async_queue_unref(m->message_queue);
+
+	g_hash_table_destroy(m->servers);
+
+	g_free(m->directories.config);
+	g_free(m->directories.servers);
+
+	g_object_unref(m->bus);
+
+	maki_config_free(m->config);
+
+	g_main_loop_quit(m->loop);
+	g_main_loop_unref(m->loop);
+
+	g_free(m);
 }

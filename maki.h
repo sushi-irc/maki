@@ -39,9 +39,10 @@
 
 #define MAKI_NAME "maki"
 
-struct maki;
-
 #include "cache.h"
+
+/* FIXME */
+typedef struct maki_instance makiInstance;
 
 #include "server.h"
 
@@ -53,43 +54,9 @@ struct maki;
 
 #include "dbus.h"
 
+#include "instance.h"
+
 #include "in.h"
 #include "log.h"
 #include "misc.h"
 #include "out.h"
-
-struct maki
-{
-	makiDBus* bus;
-
-	makiConfig* config;
-
-	GHashTable* servers;
-
-	struct
-	{
-		gchar* config;
-		gchar* servers;
-	}
-	directories;
-
-	GMainLoop* loop;
-
-	GAsyncQueue* message_queue;
-
-	struct
-	{
-		gboolean debug;
-	}
-	opt;
-
-	struct
-	{
-		GThread* messages;
-	}
-	threads;
-};
-
-struct maki* maki (void);
-struct maki* maki_new (void);
-void maki_free (struct maki*);

@@ -1075,7 +1075,7 @@ void maki_in_err_nosuchnick (makiServer* serv, glong time, gchar* remaining)
  */
 gpointer maki_in_runner (gpointer data)
 {
-	struct maki* m = data;
+	makiInstance* m = data;
 
 	for (;;)
 	{

@@ -36,74 +36,6 @@
 
 #include "maki.h"
 
-struct maki* maki (void)
-{
-	static struct maki* m = NULL;
-
-	if (G_UNLIKELY(m == NULL))
-	{
-		m = maki_new();
-	}
-
-	return m;
-}
-
-struct maki* maki_new (void)
-{
-	struct maki* m;
-
-	if ((m = g_new(struct maki, 1)) == NULL)
-	{
-		return NULL;
-	}
-
-	m->bus = g_object_new(MAKI_DBUS_TYPE, NULL);
-
-	m->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
-
-	m->directories.config = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
-	m->directories.servers = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
-
-	m->config = maki_config_new(m);
-
-	m->message_queue = g_async_queue_new_full(sashimi_message_free);
-
-	m->opt.debug = FALSE;
-
-	m->threads.messages = g_thread_create(maki_in_runner, m, TRUE, NULL);
-
-	m->loop = g_main_loop_new(NULL, FALSE);
-
-	return m;
-}
-
-void maki_free (struct maki* m)
-{
-	sashimiMessage* msg;
-
-	/* Send a bogus message so the messages thread wakes up. */
-	msg = sashimi_message_new(NULL, NULL);
-
-	g_async_queue_push(m->message_queue, msg);
-
-	g_thread_join(m->threads.messages);
-	g_async_queue_unref(m->message_queue);
-
-	g_hash_table_destroy(m->servers);
-
-	g_free(m->directories.config);
-	g_free(m->directories.servers);
-
-	g_object_unref(m->bus);
-
-	maki_config_free(m->config);
-
-	g_main_loop_quit(m->loop);
-	g_main_loop_unref(m->loop);
-
-	g_free(m);
-}
-
 static int maki_daemonize (void)
 {
 	int fd;
@@ -150,7 +82,7 @@ static void maki_signal (int signo)
 	GTimeVal time;
 	GList* list;
 	GList* tmp;
-	struct maki* m = maki();
+	makiInstance* m = maki_instance_get_default();
 
 	list = g_hash_table_get_values(m->servers);
 
@@ -166,7 +98,7 @@ static void maki_signal (int signo)
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(time.tv_sec);
 
-	maki_free(m);
+	maki_instance_free(m);
 
 	signal(signo, SIG_DFL);
 	raise(signo);
@@ -176,7 +108,7 @@ int main (int argc, char* argv[])
 {
 	const gchar* file;
 	GDir* servers;
-	struct maki* m;
+	makiInstance* m;
 
 	gboolean opt_daemon = FALSE;
 	gboolean opt_debug = TRUE;
@@ -211,7 +143,7 @@ int main (int argc, char* argv[])
 	dbus_g_thread_init();
 	g_type_init();
 
-	if ((m = maki()) == NULL)
+	if ((m = maki_instance_get_default()) == NULL)
 	{
 		return 1;
 	}
