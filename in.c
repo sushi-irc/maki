@@ -117,7 +117,7 @@ static gboolean maki_join (gpointer data)
 	gpointer key, value;
 	makiServer* serv = data;
 
-	g_hash_table_iter_init(&iter, serv->channels);
+	maki_server_channels_iter(serv, &iter);
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
@@ -246,7 +246,7 @@ void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	/* XXX */
 	g_strdelimit(channel, " ", '\0');
 
-	if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
+	if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 	{
 		makiChannelUser* cuser;
 		makiUser* user;
@@ -267,7 +267,7 @@ void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 			chan = maki_channel_new();
 			chan->joined = TRUE;
 
-			g_hash_table_insert(serv->channels, g_strdup(channel), chan);
+			maki_server_add_channel(serv, channel, chan);
 		}
 
 		maki_log(serv, channel, _("» You join."));
@@ -303,7 +303,7 @@ void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	channel = tmp[0];
 	message = maki_remove_colon(tmp[1]);
 
-	if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
+	if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 	{
 		g_hash_table_remove(chan->users, nick);
 	}
@@ -316,7 +316,7 @@ void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 			if (!chan->autojoin && chan->key == NULL)
 			{
-				g_hash_table_remove(serv->channels, channel);
+				maki_server_remove_channel(serv, channel);
 			}
 		}
 
@@ -358,7 +358,7 @@ void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	GHashTableIter iter;
 	gpointer key, value;
 
-	g_hash_table_iter_init(&iter, serv->channels);
+	maki_server_channels_iter(serv, &iter);
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
@@ -420,7 +420,7 @@ void maki_in_kick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	who = tmp[1];
 	message = maki_remove_colon(tmp[2]);
 
-	if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
+	if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 	{
 		g_hash_table_remove(chan->users, who);
 	}
@@ -433,7 +433,7 @@ void maki_in_kick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 			if (!chan->autojoin && chan->key == NULL)
 			{
-				g_hash_table_remove(serv->channels, channel);
+				maki_server_remove_channel(serv, channel);
 			}
 		}
 
@@ -501,7 +501,7 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		own = TRUE;
 	}
 
-	g_hash_table_iter_init(&iter, serv->channels);
+	maki_server_channels_iter(serv, &iter);
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
@@ -634,7 +634,7 @@ void maki_in_mode (makiServer* serv, glong time, gchar* nick, gchar* remaining, 
 						makiChannel* chan;
 						makiChannelUser* cuser;
 
-						if ((chan = g_hash_table_lookup(serv->channels, target)) != NULL
+						if ((chan = maki_server_get_channel(serv, target)) != NULL
 								&& (cuser = g_hash_table_lookup(chan->users, modes[i])) != NULL)
 						{
 							if (sign == '+')
@@ -769,7 +769,7 @@ void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining,
 	channel = tmp[offset];
 	topic = maki_remove_colon(tmp[1 + offset]);
 
-	if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
+	if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 	{
 		g_free(chan->topic);
 		chan->topic = g_strdup(topic);
@@ -813,7 +813,7 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
 	channel = tmp[2];
 	length = g_strv_length(tmp);
 
-	if (length > 3 && (chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
+	if (length > 3 && (chan = maki_server_get_channel(serv, channel)) != NULL)
 	{
 		for (i = 3; i < length; ++i)
 		{

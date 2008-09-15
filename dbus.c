@@ -299,8 +299,8 @@ gboolean maki_dbus_channels (makiDBus* self, gchar* server, gchar*** channels, G
 		GHashTableIter iter;
 		gpointer key, value;
 
-		channel = *channels = g_new(gchar*, g_hash_table_size(serv->channels) + 1);
-		g_hash_table_iter_init(&iter, serv->channels);
+		channel = *channels = g_new(gchar*, maki_server_channels_count(serv) + 1);
+		maki_server_channels_iter(serv, &iter);
 
 		while (g_hash_table_iter_next(&iter, &key, &value))
 		{
@@ -331,7 +331,7 @@ gboolean maki_dbus_channel_topic (makiDBus* self, gchar* server, gchar* channel,
 	{
 		makiChannel* chan;
 
-		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL
+		if ((chan = maki_server_get_channel(serv, channel)) != NULL
 		    && chan->topic != NULL)
 		{
 			*topic = g_strdup(chan->topic);
@@ -493,7 +493,7 @@ gboolean maki_dbus_join (makiDBus* self, gchar* server, gchar* channel, gchar* k
 	{
 		makiChannel* chan;
 
-		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL
+		if ((chan = maki_server_get_channel(serv, channel)) != NULL
 		    && chan->key != NULL
 		    && !key[0])
 		{
@@ -741,7 +741,7 @@ gboolean maki_dbus_nicks (makiDBus* self, gchar* server, gchar* channel, gchar**
 	{
 		makiChannel* chan;
 
-		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
+		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 		{
 			gchar** nick;
 			GHashTableIter iter;
@@ -1259,7 +1259,7 @@ gboolean maki_dbus_user_channel_mode (makiDBus* self, gchar* server, gchar* chan
 	{
 		makiChannel* chan;
 
-		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
+		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 		{
 			makiChannelUser* cuser;
 
@@ -1309,7 +1309,7 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, gchar* server, gchar* ch
 	{
 		makiChannel* chan;
 
-		if ((chan = g_hash_table_lookup(serv->channels, channel)) != NULL)
+		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 		{
 			makiChannelUser* cuser;
 

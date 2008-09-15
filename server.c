@@ -144,6 +144,33 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 	return serv;
 }
 
+makiChannel* maki_server_add_channel (makiServer* serv, const gchar* name, makiChannel* chan)
+{
+	g_hash_table_insert(serv->channels, g_strdup(name), chan);
+
+	return chan;
+}
+
+makiChannel* maki_server_get_channel (makiServer* serv, const gchar* name)
+{
+	return g_hash_table_lookup(serv->channels, name);
+}
+
+void maki_server_remove_channel (makiServer* serv, const gchar* name)
+{
+	g_hash_table_remove(serv->channels, name);
+}
+
+guint maki_server_channels_count (makiServer* serv)
+{
+	return g_hash_table_size(serv->channels);
+}
+
+void maki_server_channels_iter (makiServer* serv, GHashTableIter* iter)
+{
+	g_hash_table_iter_init(iter, serv->channels);
+}
+
 /**
  * This function gets called when a connection is removed from the servers hash table.
  */

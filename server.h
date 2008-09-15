@@ -85,6 +85,11 @@ struct maki_server
 };
 
 makiServer* maki_server_new (makiInstance*, const gchar*);
+makiChannel* maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
+makiChannel* maki_server_get_channel (makiServer*, const gchar*);
+void maki_server_remove_channel (makiServer*, const gchar*);
+guint maki_server_channels_count (makiServer*);
+void maki_server_channels_iter (makiServer*, GHashTableIter*);
 void maki_server_free (gpointer);
 gboolean maki_server_connect (makiServer*);
 gboolean maki_server_disconnect (makiServer*, const gchar*);

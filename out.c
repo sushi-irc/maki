@@ -155,7 +155,7 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 
 	maki_send_printf(serv, "QUIT :%s", message);
 
-	g_hash_table_iter_init(&iter, serv->channels);
+	maki_server_channels_iter(serv, &iter);
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
