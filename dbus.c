@@ -238,7 +238,7 @@ void maki_dbus_emit_whois (gint64 time, const gchar* server, const gchar* nick, 
 	g_signal_emit(dbus, signals[s_whois], 0, time, server, nick, message);
 }
 
-gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gchar* channel, const gchar* message, GError** error)
+static gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gchar* channel, const gchar* message, GError** error)
 {
 	GTimeVal time;
 	makiServer* serv;
@@ -261,7 +261,7 @@ gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gchar* cha
 	return TRUE;
 }
 
-gboolean maki_dbus_away (makiDBus* self, const gchar* server, const gchar* message, GError** error)
+static gboolean maki_dbus_away (makiDBus* self, const gchar* server, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -276,7 +276,7 @@ gboolean maki_dbus_away (makiDBus* self, const gchar* server, const gchar* messa
 	return TRUE;
 }
 
-gboolean maki_dbus_back (makiDBus* self, const gchar* server, GError** error)
+static gboolean maki_dbus_back (makiDBus* self, const gchar* server, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -289,7 +289,7 @@ gboolean maki_dbus_back (makiDBus* self, const gchar* server, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_channels (makiDBus* self, const gchar* server, gchar*** channels, GError** error)
+static gboolean maki_dbus_channels (makiDBus* self, const gchar* server, gchar*** channels, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -323,7 +323,7 @@ gboolean maki_dbus_channels (makiDBus* self, const gchar* server, gchar*** chann
 	return TRUE;
 }
 
-gboolean maki_dbus_channel_topic (makiDBus* self, const gchar* server, const gchar* channel, gchar** topic, GError** error)
+static gboolean maki_dbus_channel_topic (makiDBus* self, const gchar* server, const gchar* channel, gchar** topic, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -344,7 +344,7 @@ gboolean maki_dbus_channel_topic (makiDBus* self, const gchar* server, const gch
 	return TRUE;
 }
 
-gboolean maki_dbus_config_get (makiDBus* self, const gchar* group, const gchar* key, gchar** value, GError** error)
+static gboolean maki_dbus_config_get (makiDBus* self, const gchar* group, const gchar* key, gchar** value, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -353,7 +353,7 @@ gboolean maki_dbus_config_get (makiDBus* self, const gchar* group, const gchar* 
 	return TRUE;
 }
 
-gboolean maki_dbus_config_set (makiDBus* self, const gchar* group, const gchar* key, const gchar* value, GError** error)
+static gboolean maki_dbus_config_set (makiDBus* self, const gchar* group, const gchar* key, const gchar* value, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -362,7 +362,7 @@ gboolean maki_dbus_config_set (makiDBus* self, const gchar* group, const gchar* 
 	return TRUE;
 }
 
-gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError** error)
+static gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -395,7 +395,7 @@ gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar* target, const gchar* message, GError** error)
+static gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar* target, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -414,7 +414,7 @@ gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar* targe
 	return TRUE;
 }
 
-gboolean maki_dbus_ignore (makiDBus* self, const gchar* server, const gchar* pattern, GError** error)
+static gboolean maki_dbus_ignore (makiDBus* self, const gchar* server, const gchar* pattern, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -456,7 +456,7 @@ gboolean maki_dbus_ignore (makiDBus* self, const gchar* server, const gchar* pat
 	return TRUE;
 }
 
-gboolean maki_dbus_ignores (makiDBus* self, const gchar* server, gchar*** ignores, GError** error)
+static gboolean maki_dbus_ignores (makiDBus* self, const gchar* server, gchar*** ignores, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -474,7 +474,7 @@ gboolean maki_dbus_ignores (makiDBus* self, const gchar* server, gchar*** ignore
 	return TRUE;
 }
 
-gboolean maki_dbus_invite (makiDBus* self, const gchar* server, const gchar* channel, const gchar* who, GError** error)
+static gboolean maki_dbus_invite (makiDBus* self, const gchar* server, const gchar* channel, const gchar* who, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -487,7 +487,7 @@ gboolean maki_dbus_invite (makiDBus* self, const gchar* server, const gchar* cha
 	return TRUE;
 }
 
-gboolean maki_dbus_join (makiDBus* self, const gchar* server, const gchar* channel, const gchar* key, GError** error)
+static gboolean maki_dbus_join (makiDBus* self, const gchar* server, const gchar* channel, const gchar* key, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -512,7 +512,7 @@ gboolean maki_dbus_join (makiDBus* self, const gchar* server, const gchar* chann
 	return TRUE;
 }
 
-gboolean maki_dbus_kick (makiDBus* self, const gchar* server, const gchar* channel, const gchar* who, const gchar* message, GError** error)
+static gboolean maki_dbus_kick (makiDBus* self, const gchar* server, const gchar* channel, const gchar* who, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -532,7 +532,7 @@ gboolean maki_dbus_kick (makiDBus* self, const gchar* server, const gchar* chann
 	return TRUE;
 }
 
-gboolean maki_dbus_kill (makiDBus* self, const gchar* server, const gchar* nick, const gchar* reason, GError** error)
+static gboolean maki_dbus_kill (makiDBus* self, const gchar* server, const gchar* nick, const gchar* reason, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -545,7 +545,7 @@ gboolean maki_dbus_kill (makiDBus* self, const gchar* server, const gchar* nick,
 	return TRUE;
 }
 
-gboolean maki_dbus_list (makiDBus* self, const gchar* server, const gchar* channel, GError** error)
+static gboolean maki_dbus_list (makiDBus* self, const gchar* server, const gchar* channel, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -565,7 +565,7 @@ gboolean maki_dbus_list (makiDBus* self, const gchar* server, const gchar* chann
 	return TRUE;
 }
 
-gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target, guint64 lines, gchar*** log, GError** error)
+static gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target, guint64 lines, gchar*** log, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -656,7 +656,7 @@ gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target
 	return TRUE;
 }
 
-gboolean maki_dbus_message (makiDBus* self, const gchar* server, const gchar* target, const gchar* message, GError** error)
+static gboolean maki_dbus_message (makiDBus* self, const gchar* server, const gchar* target, const gchar* message, GError** error)
 {
 	GTimeVal time;
 	makiServer* serv;
@@ -703,7 +703,7 @@ gboolean maki_dbus_message (makiDBus* self, const gchar* server, const gchar* ta
 	return TRUE;
 }
 
-gboolean maki_dbus_mode (makiDBus* self, const gchar* server, const gchar* target, const gchar* mode, GError** error)
+static gboolean maki_dbus_mode (makiDBus* self, const gchar* server, const gchar* target, const gchar* mode, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -723,7 +723,7 @@ gboolean maki_dbus_mode (makiDBus* self, const gchar* server, const gchar* targe
 	return TRUE;
 }
 
-gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar* nick, GError** error)
+static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar* nick, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -736,7 +736,7 @@ gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar* nick,
 	return TRUE;
 }
 
-gboolean maki_dbus_nicks (makiDBus* self, const gchar* server, const gchar* channel, gchar*** nicks, GError** error)
+static gboolean maki_dbus_nicks (makiDBus* self, const gchar* server, const gchar* channel, gchar*** nicks, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -771,7 +771,7 @@ gboolean maki_dbus_nicks (makiDBus* self, const gchar* server, const gchar* chan
 	return TRUE;
 }
 
-gboolean maki_dbus_nickserv (makiDBus* self, const gchar* server, GError** error)
+static gboolean maki_dbus_nickserv (makiDBus* self, const gchar* server, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -784,7 +784,7 @@ gboolean maki_dbus_nickserv (makiDBus* self, const gchar* server, GError** error
 	return TRUE;
 }
 
-gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gchar* target, const gchar* message, GError** error)
+static gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gchar* target, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -803,7 +803,7 @@ gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gchar* tar
 	return TRUE;
 }
 
-gboolean maki_dbus_oper (makiDBus* self, const gchar* server, const gchar* name, const gchar* password, GError** error)
+static gboolean maki_dbus_oper (makiDBus* self, const gchar* server, const gchar* name, const gchar* password, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -816,7 +816,7 @@ gboolean maki_dbus_oper (makiDBus* self, const gchar* server, const gchar* name,
 	return TRUE;
 }
 
-gboolean maki_dbus_own_nick (makiDBus* self, const gchar* server, gchar** nick, GError** error)
+static gboolean maki_dbus_own_nick (makiDBus* self, const gchar* server, gchar** nick, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -831,7 +831,7 @@ gboolean maki_dbus_own_nick (makiDBus* self, const gchar* server, gchar** nick, 
 	return TRUE;
 }
 
-gboolean maki_dbus_part (makiDBus* self, const gchar* server, const gchar* channel, const gchar* message, GError** error)
+static gboolean maki_dbus_part (makiDBus* self, const gchar* server, const gchar* channel, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -851,7 +851,7 @@ gboolean maki_dbus_part (makiDBus* self, const gchar* server, const gchar* chann
 	return TRUE;
 }
 
-gboolean maki_dbus_quit (makiDBus* self, const gchar* server, const gchar* message, GError** error)
+static gboolean maki_dbus_quit (makiDBus* self, const gchar* server, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -871,7 +871,7 @@ gboolean maki_dbus_quit (makiDBus* self, const gchar* server, const gchar* messa
 	return TRUE;
 }
 
-gboolean maki_dbus_raw (makiDBus* self, const gchar* server, const gchar* command, GError** error)
+static gboolean maki_dbus_raw (makiDBus* self, const gchar* server, const gchar* command, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -884,7 +884,7 @@ gboolean maki_dbus_raw (makiDBus* self, const gchar* server, const gchar* comman
 	return TRUE;
 }
 
-gboolean maki_dbus_server_get (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, gchar** value, GError** error)
+static gboolean maki_dbus_server_get (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, gchar** value, GError** error)
 {
 	gchar* path;
 	GKeyFile* key_file;
@@ -906,7 +906,7 @@ gboolean maki_dbus_server_get (makiDBus* self, const gchar* server, const gchar*
 	return TRUE;
 }
 
-gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, const gchar* group, gchar*** result, GError** error)
+static gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, const gchar* group, gchar*** result, GError** error)
 {
 	gchar* path;
 	GDir* dir;
@@ -964,7 +964,7 @@ gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, const gchar
 	return TRUE;
 }
 
-gboolean maki_dbus_server_remove (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, GError** error)
+static gboolean maki_dbus_server_remove (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, GError** error)
 {
 	gchar* path;
 	makiInstance* inst = maki_instance_get_default();
@@ -1003,7 +1003,7 @@ gboolean maki_dbus_server_remove (makiDBus* self, const gchar* server, const gch
 	return TRUE;
 }
 
-gboolean maki_dbus_server_rename (makiDBus* self, const gchar* old, const gchar* new, GError** error)
+static gboolean maki_dbus_server_rename (makiDBus* self, const gchar* old, const gchar* new, GError** error)
 {
 	gchar* old_path;
 	gchar* new_path;
@@ -1020,7 +1020,7 @@ gboolean maki_dbus_server_rename (makiDBus* self, const gchar* old, const gchar*
 	return TRUE;
 }
 
-gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, const gchar* value, GError** error)
+static gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, const gchar* value, GError** error)
 {
 	gchar* path;
 	GKeyFile* key_file;
@@ -1039,7 +1039,7 @@ gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const gchar*
 	return TRUE;
 }
 
-gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
+static gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 {
 	gchar** server;
 	GHashTableIter iter;
@@ -1065,7 +1065,7 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_shutdown (makiDBus* self, const gchar* message, GError** error)
+static gboolean maki_dbus_shutdown (makiDBus* self, const gchar* message, GError** error)
 {
 	GTimeVal time;
 	GHashTableIter iter;
@@ -1098,7 +1098,7 @@ gboolean maki_dbus_shutdown (makiDBus* self, const gchar* message, GError** erro
 	return TRUE;
 }
 
-gboolean maki_dbus_support_chantypes (makiDBus* self, const gchar* server, gchar** chantypes, GError** error)
+static gboolean maki_dbus_support_chantypes (makiDBus* self, const gchar* server, gchar** chantypes, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1113,7 +1113,7 @@ gboolean maki_dbus_support_chantypes (makiDBus* self, const gchar* server, gchar
 	return TRUE;
 }
 
-gboolean maki_dbus_support_prefix (makiDBus* self, const gchar* server, gchar*** prefix, GError** error)
+static gboolean maki_dbus_support_prefix (makiDBus* self, const gchar* server, gchar*** prefix, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1131,7 +1131,7 @@ gboolean maki_dbus_support_prefix (makiDBus* self, const gchar* server, gchar***
 	return TRUE;
 }
 
-gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gchar* channel, const gchar* topic, GError** error)
+static gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gchar* channel, const gchar* topic, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1151,7 +1151,7 @@ gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gchar* chan
 	return TRUE;
 }
 
-gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const gchar* pattern, GError** error)
+static gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const gchar* pattern, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1232,7 +1232,7 @@ gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const gchar* p
 	return TRUE;
 }
 
-gboolean maki_dbus_user_away (makiDBus* self, const gchar* server, const gchar* nick, gboolean* away, GError** error)
+static gboolean maki_dbus_user_away (makiDBus* self, const gchar* server, const gchar* nick, gboolean* away, GError** error)
 {
 
 	makiServer* serv;
@@ -1254,7 +1254,7 @@ gboolean maki_dbus_user_away (makiDBus* self, const gchar* server, const gchar* 
 	return TRUE;
 }
 
-gboolean maki_dbus_user_channel_mode (makiDBus* self, const gchar* server, const gchar* channel, const gchar* nick, gchar** mode, GError** error)
+static gboolean maki_dbus_user_channel_mode (makiDBus* self, const gchar* server, const gchar* channel, const gchar* nick, gchar** mode, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1304,7 +1304,7 @@ gboolean maki_dbus_user_channel_mode (makiDBus* self, const gchar* server, const
 	return TRUE;
 }
 
-gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* server, const gchar* channel, const gchar* nick, gchar** prefix, GError** error)
+static gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* server, const gchar* channel, const gchar* nick, gchar** prefix, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1354,7 +1354,7 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* server, con
 	return TRUE;
 }
 
-gboolean maki_dbus_whois (makiDBus* self, const gchar* server, const gchar* mask, GError** error)
+static gboolean maki_dbus_whois (makiDBus* self, const gchar* server, const gchar* mask, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
