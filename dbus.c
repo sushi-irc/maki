@@ -532,19 +532,6 @@ static gboolean maki_dbus_kick (makiDBus* self, const gchar* server, const gchar
 	return TRUE;
 }
 
-static gboolean maki_dbus_kill (makiDBus* self, const gchar* server, const gchar* nick, const gchar* reason, GError** error)
-{
-	makiServer* serv;
-	makiInstance* inst = maki_instance_get_default();
-
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
-	{
-		maki_server_send_printf(serv, "KILL %s :%s", nick, reason);
-	}
-
-	return TRUE;
-}
-
 static gboolean maki_dbus_list (makiDBus* self, const gchar* server, const gchar* channel, GError** error)
 {
 	makiServer* serv;
