@@ -323,27 +323,6 @@ static gboolean maki_dbus_channels (makiDBus* self, const gchar* server, gchar**
 	return TRUE;
 }
 
-static gboolean maki_dbus_channel_topic (makiDBus* self, const gchar* server, const gchar* channel, gchar** topic, GError** error)
-{
-	makiServer* serv;
-	makiInstance* inst = maki_instance_get_default();
-
-	*topic = NULL;
-
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
-	{
-		makiChannel* chan;
-
-		if ((chan = maki_server_get_channel(serv, channel)) != NULL
-		    && maki_channel_topic(chan) != NULL)
-		{
-			*topic = g_strdup(maki_channel_topic(chan));
-		}
-	}
-
-	return TRUE;
-}
-
 static gboolean maki_dbus_config_get (makiDBus* self, const gchar* group, const gchar* key, gchar** value, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
@@ -1131,7 +1110,20 @@ static gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gcha
 		}
 		else
 		{
-			maki_server_send_printf(serv, "TOPIC %s", channel);
+			makiChannel* chan;
+
+			if ((chan = maki_server_get_channel(serv, channel)) != NULL
+			    && maki_channel_topic(chan) != NULL)
+			{
+				GTimeVal time;
+
+				g_get_current_time(&time);
+				maki_dbus_emit_topic(time.tv_sec, serv->server, "", channel, maki_channel_topic(chan));
+			}
+			else
+			{
+				maki_server_send_printf(serv, "TOPIC %s", channel);
+			}
 		}
 	}
 
