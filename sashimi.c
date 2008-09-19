@@ -115,19 +115,13 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 
 	while ((status = g_io_channel_read_line(connection->channel, &buffer, NULL, NULL, NULL)) == G_IO_STATUS_NORMAL)
 	{
-		sashimiMessage* message;
-
 		connection->last_activity = time.tv_sec;
 
-		/*
-		 * Remove whitespace at the end of the string.
-		 */
+		/* Remove whitespace at the end of the string. */
 		g_strchomp(buffer);
 
-		/*
-		 * Handle PING internally.
-		 */
-		if (strncmp(buffer, "PING", 4) == 0)
+		/* Handle PING internally. */
+		if (strncmp(buffer, "PING ", 5) == 0)
 		{
 			gchar* tmp;
 
@@ -139,9 +133,7 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 			continue;
 		}
 
-		message = sashimi_message_new(buffer, connection->message_data);
-
-		g_async_queue_push(connection->message_queue, message);
+		g_async_queue_push(connection->message_queue, sashimi_message_new(buffer, connection->message_data));
 	}
 
 	if (status == G_IO_STATUS_EOF)
@@ -173,9 +165,7 @@ static gboolean sashimi_ping (gpointer data)
 
 	g_get_current_time(&time);
 
-	/*
-	 * If we did not hear anything from the server, send a PING.
-	 */
+	/* If we did not hear anything from the server, send a PING. */
 	if (connection->timeout > 0 && (time.tv_sec - connection->last_activity) > connection->timeout)
 	{
 		gchar* ping;
