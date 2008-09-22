@@ -1258,7 +1258,7 @@ gpointer maki_in_runner (gpointer data)
 					case 318:
 					/* RPL_WHOISCHANNELS */
 					case 319:
-						maki_in_rpl_whois(serv, time.tv_sec, remaining, TRUE);
+						maki_in_rpl_whois(serv, time.tv_sec, remaining, (numeric == 318));
 						break;
 					/* RPL_ISUPPORT */
 					case 5:
@@ -1268,13 +1268,13 @@ gpointer maki_in_runner (gpointer data)
 					case 322:
 					/* RPL_LISTEND */
 					case 323:
-						maki_in_rpl_list(serv, time.tv_sec, remaining, TRUE);
+						maki_in_rpl_list(serv, time.tv_sec, remaining, (numeric == 323));
 						break;
 					/* RPL_BANLIST */
 					case 367:
 					/* RPL_ENDOFBANLIST */
 					case 368:
-						maki_in_rpl_banlist(serv, time.tv_sec, remaining, TRUE);
+						maki_in_rpl_banlist(serv, time.tv_sec, remaining, (numeric == 368));
 						break;
 					/* RPL_YOUREOPER */
 					case 381:
