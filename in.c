@@ -1097,16 +1097,14 @@ gpointer maki_in_runner (gpointer data)
 			gchar* tmp;
 
 			/* If the message is not in UTF-8 we will just assume that it is in ISO-8859-1. */
-			if ((tmp = g_convert_with_fallback(message, -1, "UTF-8", "ISO-8859-1", "?", NULL, NULL, NULL)) != NULL)
-			{
-				g_free(message);
-				msg->message = message = tmp;
-			}
-			else
+			if ((tmp = g_convert_with_fallback(message, -1, "UTF-8", "ISO-8859-1", "?", NULL, NULL, NULL)) == NULL)
 			{
 				sashimi_message_free(msg);
 				continue;
 			}
+
+			g_free(message);
+			msg->message = message = tmp;
 		}
 
 		g_get_current_time(&time);
@@ -1121,11 +1119,14 @@ gpointer maki_in_runner (gpointer data)
 			gchar* type;
 			gchar* remaining;
 
-			parts = g_strsplit(message, " ", 3);
-			from = g_strsplit_set(maki_remove_colon(parts[0]), "!@", 3);
-			from_nick = from[0];
-			type = parts[1];
-			remaining = parts[2];
+			parts = g_strsplit(maki_remove_colon(message), " ", 3);
+
+			if (g_strv_length(parts) < 2)
+			{
+				g_strfreev(parts);
+				sashimi_message_free(msg);
+				continue;
+			}
 
 			if (serv->ignores != NULL)
 			{
@@ -1137,194 +1138,203 @@ gpointer maki_in_runner (gpointer data)
 
 				for (i = 0; i < length; ++i)
 				{
-					if (g_pattern_match_simple(serv->ignores[i], maki_remove_colon(parts[0])))
+					if ((match = g_pattern_match_simple(serv->ignores[i], parts[0])))
 					{
-						match = TRUE;
 						break;
 					}
 				}
 
 				if (match)
 				{
-					g_strfreev(from);
 					g_strfreev(parts);
 					sashimi_message_free(msg);
 					continue;
 				}
 			}
 
-			if (from && from_nick && type)
+			from = g_strsplit_set(parts[0], "!@", 3);
+
+			if (g_strv_length(from) < 1)
 			{
-				if (g_ascii_isdigit(type[0]) && g_ascii_isdigit(type[1]) && g_ascii_isdigit(type[2]))
+				g_strfreev(parts);
+				g_strfreev(from);
+				sashimi_message_free(msg);
+				continue;
+			}
+
+			from_nick = from[0];
+			type = parts[1];
+			remaining = parts[2];
+
+			if (g_ascii_isdigit(type[0]) && g_ascii_isdigit(type[1]) && g_ascii_isdigit(type[2]))
+			{
+				gint numeric;
+
+				numeric = 100 * g_ascii_digit_value(type[0]) + 10 * g_ascii_digit_value(type[1]) + g_ascii_digit_value(type[2]);
+
+				switch (numeric)
 				{
-					gint numeric;
+					/* RPL_CHANNELMODEIS */
+					case 324:
+						maki_in_mode(serv, time.tv_sec, from_nick, remaining, TRUE);
+						break;
+					/* RPL_INVITING */
+					case 341:
+						maki_in_invite(serv, time.tv_sec, from_nick, remaining, TRUE);
+						break;
+					/* RPL_NAMREPLY */
+					case 353:
+						maki_in_rpl_namreply(serv, time.tv_sec, remaining);
+						break;
+					/* RPL_UNAWAY */
+					case 305:
+						serv->user->away = FALSE;
+						g_free(serv->user->away_message);
+						serv->user->away_message = NULL;
+						maki_dbus_emit_back(time.tv_sec, serv->server);
+						break;
+					/* RPL_NOWAWAY */
+					case 306:
+						serv->user->away = TRUE;
+						maki_dbus_emit_away(time.tv_sec, serv->server);
+						break;
+					/* RPL_AWAY */
+					case 301:
+						maki_in_rpl_away(serv, time.tv_sec, remaining);
+						break;
+					/* RPL_ENDOFMOTD */
+					case 376:
+					/* ERR_NOMOTD */
+					case 422:
+						serv->connected = TRUE;
+						maki_dbus_emit_connected(time.tv_sec, serv->server, serv->user->nick);
+						maki_out_nickserv(serv);
+						g_timeout_add_seconds(3, maki_join, serv);
+						maki_commands(serv);
 
-					numeric = 100 * g_ascii_digit_value(type[0]) + 10 * g_ascii_digit_value(type[1]) + g_ascii_digit_value(type[2]);
+						if (serv->user->away && serv->user->away_message != NULL)
+						{
+							maki_out_away(serv, serv->user->away_message);
+						}
+						break;
+					/* ERR_NICKNAMEINUSE */
+					case 433:
+						if (!serv->connected)
+						{
+							gchar* nick;
+							makiUser* user;
 
-					switch (numeric)
-					{
-						/* RPL_CHANNELMODEIS */
-						case 324:
-							maki_in_mode(serv, time.tv_sec, from_nick, remaining, TRUE);
-							break;
-						/* RPL_INVITING */
-						case 341:
-							maki_in_invite(serv, time.tv_sec, from_nick, remaining, TRUE);
-							break;
-						/* RPL_NAMREPLY */
-						case 353:
-							maki_in_rpl_namreply(serv, time.tv_sec, remaining);
-							break;
-						/* RPL_UNAWAY */
-						case 305:
-							serv->user->away = FALSE;
-							g_free(serv->user->away_message);
-							serv->user->away_message = NULL;
-							maki_dbus_emit_back(time.tv_sec, serv->server);
-							break;
-						/* RPL_NOWAWAY */
-						case 306:
-							serv->user->away = TRUE;
-							maki_dbus_emit_away(time.tv_sec, serv->server);
-							break;
-						/* RPL_AWAY */
-						case 301:
-							maki_in_rpl_away(serv, time.tv_sec, remaining);
-							break;
-						/* RPL_ENDOFMOTD */
-						case 376:
-						/* ERR_NOMOTD */
-						case 422:
-							serv->connected = TRUE;
-							maki_dbus_emit_connected(time.tv_sec, serv->server, serv->user->nick);
-							maki_out_nickserv(serv);
-							g_timeout_add_seconds(3, maki_join, serv);
-							maki_commands(serv);
+							nick = g_strconcat(serv->user->nick, "_", NULL);
+							user = maki_cache_insert(serv->users, nick);
+							maki_user_copy(serv->user, user);
+							maki_cache_remove(serv->users, serv->user->nick);
+							serv->user = user;
+							g_free(nick);
 
-							if (serv->user->away && serv->user->away_message != NULL)
-							{
-								maki_out_away(serv, serv->user->away_message);
-							}
-							break;
-						/* ERR_NICKNAMEINUSE */
-						case 433:
-							if (!serv->connected)
-							{
-								gchar* nick;
-								makiUser* user;
-
-								nick = g_strconcat(serv->user->nick, "_", NULL);
-								user = maki_cache_insert(serv->users, nick);
-								maki_user_copy(serv->user, user);
-								maki_cache_remove(serv->users, serv->user->nick);
-								serv->user = user;
-								g_free(nick);
-
-								maki_out_nick(serv, serv->user->nick);
-							}
-							break;
-						/* ERR_NOSUCHNICK */
-						case 401:
-							maki_in_err_nosuchnick(serv, time.tv_sec, remaining);
-							break;
-						/* RPL_MOTD */
-						case 372:
-							maki_in_rpl_motd(serv, time.tv_sec, remaining);
-							break;
-						/* RPL_TOPIC */
-						case 332:
-							maki_in_topic(serv, time.tv_sec, from_nick, remaining, TRUE);
-							break;
-						/* RPL_WHOISUSER */
-						case 311:
-						/* RPL_WHOISSERVER */
-						case 312:
-						/* RPL_WHOISOPERATOR */
-						case 313:
-						/* RPL_WHOISIDLE */
-						case 317:
-						/* RPL_ENDOFWHOIS */
-						case 318:
-						/* RPL_WHOISCHANNELS */
-						case 319:
-							maki_in_rpl_whois(serv, time.tv_sec, remaining, TRUE);
-							break;
-						/* RPL_ISUPPORT */
-						case 5:
-							maki_in_rpl_isupport(serv, time.tv_sec, remaining);
-							break;
-						/* RPL_LIST */
-						case 322:
-						/* RPL_LISTEND */
-						case 323:
-							maki_in_rpl_list(serv, time.tv_sec, remaining, TRUE);
-							break;
-						/* RPL_BANLIST */
-						case 367:
-						/* RPL_ENDOFBANLIST */
-						case 368:
-							maki_in_rpl_banlist(serv, time.tv_sec, remaining, TRUE);
-							break;
-						/* RPL_YOUREOPER */
-						case 381:
-							maki_dbus_emit_oper(time.tv_sec, serv->server);
-							break;
-						default:
-							maki_debug("WARN: Unhandled numeric reply '%d'\n", numeric);
-							break;
-					}
+							maki_out_nick(serv, serv->user->nick);
+						}
+						break;
+					/* ERR_NOSUCHNICK */
+					case 401:
+						maki_in_err_nosuchnick(serv, time.tv_sec, remaining);
+						break;
+					/* RPL_MOTD */
+					case 372:
+						maki_in_rpl_motd(serv, time.tv_sec, remaining);
+						break;
+					/* RPL_TOPIC */
+					case 332:
+						maki_in_topic(serv, time.tv_sec, from_nick, remaining, TRUE);
+						break;
+					/* RPL_WHOISUSER */
+					case 311:
+					/* RPL_WHOISSERVER */
+					case 312:
+					/* RPL_WHOISOPERATOR */
+					case 313:
+					/* RPL_WHOISIDLE */
+					case 317:
+					/* RPL_ENDOFWHOIS */
+					case 318:
+					/* RPL_WHOISCHANNELS */
+					case 319:
+						maki_in_rpl_whois(serv, time.tv_sec, remaining, TRUE);
+						break;
+					/* RPL_ISUPPORT */
+					case 5:
+						maki_in_rpl_isupport(serv, time.tv_sec, remaining);
+						break;
+					/* RPL_LIST */
+					case 322:
+					/* RPL_LISTEND */
+					case 323:
+						maki_in_rpl_list(serv, time.tv_sec, remaining, TRUE);
+						break;
+					/* RPL_BANLIST */
+					case 367:
+					/* RPL_ENDOFBANLIST */
+					case 368:
+						maki_in_rpl_banlist(serv, time.tv_sec, remaining, TRUE);
+						break;
+					/* RPL_YOUREOPER */
+					case 381:
+						maki_dbus_emit_oper(time.tv_sec, serv->server);
+						break;
+					default:
+						maki_debug("WARN: Unhandled numeric reply '%d'\n", numeric);
+						break;
+				}
+			}
+			else
+			{
+				if (strncmp(type, "PRIVMSG", 7) == 0)
+				{
+					maki_in_privmsg(serv, time.tv_sec, from_nick, remaining);
+				}
+				else if (strncmp(type, "JOIN", 4) == 0)
+				{
+					maki_in_join(serv, time.tv_sec, from_nick, remaining);
+				}
+				else if (strncmp(type, "PART", 4) == 0)
+				{
+					maki_in_part(serv, time.tv_sec, from_nick, remaining);
+				}
+				else if (strncmp(type, "QUIT", 4) == 0)
+				{
+					maki_in_quit(serv, time.tv_sec, from_nick, remaining);
+				}
+				else if (strncmp(type, "KICK", 4) == 0)
+				{
+					maki_in_kick(serv, time.tv_sec, from_nick, remaining);
+				}
+				else if (strncmp(type, "NICK", 4) == 0)
+				{
+					maki_in_nick(serv, time.tv_sec, from_nick, remaining);
+				}
+				else if (strncmp(type, "NOTICE", 6) == 0)
+				{
+					maki_in_notice(serv, time.tv_sec, from_nick, remaining);
+				}
+				else if (strncmp(type, "MODE", 4) == 0)
+				{
+					maki_in_mode(serv, time.tv_sec, from_nick, remaining, FALSE);
+				}
+				else if (strncmp(type, "INVITE", 6) == 0)
+				{
+					maki_in_invite(serv, time.tv_sec, from_nick, remaining, FALSE);
+				}
+				else if (strncmp(type, "TOPIC", 5) == 0)
+				{
+					maki_in_topic(serv, time.tv_sec, from_nick, remaining, FALSE);
 				}
 				else
 				{
-					if (strncmp(type, "PRIVMSG", 7) == 0)
-					{
-						maki_in_privmsg(serv, time.tv_sec, from_nick, remaining);
-					}
-					else if (strncmp(type, "JOIN", 4) == 0)
-					{
-						maki_in_join(serv, time.tv_sec, from_nick, remaining);
-					}
-					else if (strncmp(type, "PART", 4) == 0)
-					{
-						maki_in_part(serv, time.tv_sec, from_nick, remaining);
-					}
-					else if (strncmp(type, "QUIT", 4) == 0)
-					{
-						maki_in_quit(serv, time.tv_sec, from_nick, remaining);
-					}
-					else if (strncmp(type, "KICK", 4) == 0)
-					{
-						maki_in_kick(serv, time.tv_sec, from_nick, remaining);
-					}
-					else if (strncmp(type, "NICK", 4) == 0)
-					{
-						maki_in_nick(serv, time.tv_sec, from_nick, remaining);
-					}
-					else if (strncmp(type, "NOTICE", 6) == 0)
-					{
-						maki_in_notice(serv, time.tv_sec, from_nick, remaining);
-					}
-					else if (strncmp(type, "MODE", 4) == 0)
-					{
-						maki_in_mode(serv, time.tv_sec, from_nick, remaining, FALSE);
-					}
-					else if (strncmp(type, "INVITE", 6) == 0)
-					{
-						maki_in_invite(serv, time.tv_sec, from_nick, remaining, FALSE);
-					}
-					else if (strncmp(type, "TOPIC", 5) == 0)
-					{
-						maki_in_topic(serv, time.tv_sec, from_nick, remaining, FALSE);
-					}
-					else
-					{
-						maki_debug("WARN: Unhandled message type '%s'\n", type);
-					}
+					maki_debug("WARN: Unhandled message type '%s'\n", type);
 				}
 			}
 
-			g_strfreev(from);
 			g_strfreev(parts);
+			g_strfreev(from);
 		}
 
 		sashimi_message_free(msg);
