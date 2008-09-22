@@ -28,33 +28,6 @@
 #ifndef H_IN
 #define H_IN
 
-#define IRC_RPL_ISUPPORT "005"
-#define IRC_RPL_UMODEIS "221"
-#define IRC_RPL_AWAY "301"
-#define IRC_RPL_UNAWAY "305"
-#define IRC_RPL_NOWAWAY "306"
-#define IRC_RPL_WHOISUSER "311"
-#define IRC_RPL_WHOISSERVER "312"
-#define IRC_RPL_WHOISOPERATOR "313"
-#define IRC_RPL_WHOISIDLE "317"
-#define IRC_RPL_ENDOFWHOIS "318"
-#define IRC_RPL_WHOISCHANNELS "319"
-#define IRC_RPL_LIST "322"
-#define IRC_RPL_LISTEND "323"
-#define IRC_RPL_CHANNELMODEIS "324"
-#define IRC_RPL_TOPIC "332"
-#define IRC_RPL_INVITING "341"
-#define IRC_RPL_NAMREPLY "353"
-#define IRC_RPL_ENDOFNAMES "366"
-#define IRC_RPL_BANLIST "367"
-#define IRC_RPL_ENDOFBANLIST "368"
-#define IRC_RPL_MOTD "372"
-#define IRC_RPL_ENDOFMOTD "376"
-#define IRC_RPL_YOUREOPER "381"
-#define IRC_ERR_NOSUCHNICK "401"
-#define IRC_ERR_NOMOTD "422"
-#define IRC_ERR_NICKNAMEINUSE "433"
-
 gpointer maki_in_runner (gpointer);
 
 #endif
