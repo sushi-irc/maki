@@ -577,7 +577,7 @@ void maki_in_notice (makiServer* serv, glong time, gchar* nick, gchar* remaining
 void maki_in_mode (makiServer* serv, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gboolean own;
-	gint offset = 0;
+	gchar** modes;
 	gchar** tmp;
 	gchar* target;
 
@@ -590,115 +590,113 @@ void maki_in_mode (makiServer* serv, glong time, gchar* nick, gchar* remaining, 
 
 	if (is_numeric)
 	{
-		offset = 1;
 		nick = "";
 	}
 
-	tmp = g_strsplit(remaining, " ", 2 + offset);
-	target = tmp[offset];
+	tmp = g_strsplit(remaining, " ", 2);
+	target = tmp[0];
 
-	if (tmp[0] != NULL && target != NULL && tmp[1 + offset] != NULL)
+	if (g_strv_length(tmp) < 2)
 	{
-		gchar** modes;
+		g_strfreev(tmp);
+		return;
+	}
 
-		modes = g_strsplit(maki_remove_colon(tmp[1 + offset]), " ", 0);
+	modes = g_strsplit(maki_remove_colon(tmp[1]), " ", 0);
 
-		if (modes[0] != NULL)
+	if (modes[0] != NULL)
+	{
+		gint i;
+		guint length;
+		gchar sign = '+';
+		gchar buffer[3];
+		gchar* mode;
+
+		length = g_strv_length(modes);
+
+		for (mode = modes[0], i = 1; *mode != '\0'; ++mode)
 		{
-			gint i;
-			guint length;
-			gchar sign = '+';
-			gchar buffer[3];
-			gchar* mode;
-
-			length = g_strv_length(modes);
-
-			for (mode = modes[0], i = 1; *mode != '\0'; ++mode)
+			if (*mode == '+' || *mode == '-')
 			{
-				if (*mode == '+' || *mode == '-')
+				sign = *mode;
+				continue;
+			}
+
+			buffer[0] = sign;
+			buffer[1] = *mode;
+			buffer[2] = '\0';
+
+			if (maki_mode_has_parameter(serv, sign, *mode) && i < length)
+			{
+				gint pos;
+
+				if ((pos = maki_prefix_position(serv, FALSE, *mode)) >= 0)
 				{
-					sign = *mode;
-					continue;
-				}
+					makiChannel* chan;
+					makiChannelUser* cuser;
 
-				buffer[0] = sign;
-				buffer[1] = *mode;
-				buffer[2] = '\0';
-
-				if (maki_mode_has_parameter(serv, sign, *mode) && i < length)
-				{
-					gint pos;
-
-					if ((pos = maki_prefix_position(serv, FALSE, *mode)) >= 0)
+					if ((chan = maki_server_get_channel(serv, target)) != NULL
+							&& (cuser = maki_channel_get_user(chan, modes[i])) != NULL)
 					{
-						makiChannel* chan;
-						makiChannelUser* cuser;
-
-						if ((chan = maki_server_get_channel(serv, target)) != NULL
-								&& (cuser = maki_channel_get_user(chan, modes[i])) != NULL)
+						if (sign == '+')
 						{
-							if (sign == '+')
-							{
-								cuser->prefix |= (1 << pos);
-							}
-							else
-							{
-								cuser->prefix &= ~(1 << pos);
-							}
-						}
-					}
-
-					if (is_numeric)
-					{
-						maki_log(serv, target, _("• Mode: %s %s"), buffer, modes[i]);
-					}
-					else
-					{
-						if (own)
-						{
-							maki_log(serv, target, _("• You set mode: %s %s"), buffer, modes[i]);
+							cuser->prefix |= (1 << pos);
 						}
 						else
 						{
-							maki_log(serv, target, _("• %s sets mode: %s %s"), nick, buffer, modes[i]);
+							cuser->prefix &= ~(1 << pos);
 						}
 					}
+				}
 
-					maki_dbus_emit_mode(time, serv->server, nick, target, buffer, modes[i]);
-					++i;
+				if (is_numeric)
+				{
+					maki_log(serv, target, _("• Mode: %s %s"), buffer, modes[i]);
 				}
 				else
 				{
-					if (is_numeric)
+					if (own)
 					{
-						maki_log(serv, target, _("• Mode: %s"), buffer);
+						maki_log(serv, target, _("• You set mode: %s %s"), buffer, modes[i]);
 					}
 					else
 					{
-						if (own)
-						{
-							maki_log(serv, target, _("• You set mode: %s"), buffer);
-						}
-						else
-						{
-							maki_log(serv, target, _("• %s sets mode: %s"), nick, buffer);
-						}
+						maki_log(serv, target, _("• %s sets mode: %s %s"), nick, buffer, modes[i]);
 					}
-
-					maki_dbus_emit_mode(time, serv->server, nick, target, buffer, "");
 				}
+
+				maki_dbus_emit_mode(time, serv->server, nick, target, buffer, modes[i]);
+				++i;
+			}
+			else
+			{
+				if (is_numeric)
+				{
+					maki_log(serv, target, _("• Mode: %s"), buffer);
+				}
+				else
+				{
+					if (own)
+					{
+						maki_log(serv, target, _("• You set mode: %s"), buffer);
+					}
+					else
+					{
+						maki_log(serv, target, _("• %s sets mode: %s"), nick, buffer);
+					}
+				}
+
+				maki_dbus_emit_mode(time, serv->server, nick, target, buffer, "");
 			}
 		}
-
-		g_strfreev(modes);
 	}
 
 	g_strfreev(tmp);
+	g_strfreev(modes);
 }
 
 void maki_in_invite (makiServer* serv, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
-	gint offset = 0;
 	gchar** tmp;
 	gchar* channel;
 	gchar* who;
@@ -710,20 +708,19 @@ void maki_in_invite (makiServer* serv, glong time, gchar* nick, gchar* remaining
 
 	if (is_numeric)
 	{
-		offset = 1;
 		nick = "";
 	}
 
-	tmp = g_strsplit(remaining, " ", 2 + offset);
+	tmp = g_strsplit(remaining, " ", 2);
 
-	if (g_strv_length(tmp) < 2 + offset)
+	if (g_strv_length(tmp) < 2)
 	{
 		g_strfreev(tmp);
 		return;
 	}
 
-	who = tmp[offset];
-	channel = maki_remove_colon(tmp[1 + offset]);
+	who = tmp[0];
+	channel = maki_remove_colon(tmp[1]);
 
 	if (is_numeric)
 	{
@@ -741,7 +738,6 @@ void maki_in_invite (makiServer* serv, glong time, gchar* nick, gchar* remaining
 
 void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
-	gint offset = 0;
 	gchar** tmp;
 	gchar* channel;
 	gchar* topic;
@@ -754,20 +750,19 @@ void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining,
 
 	if (is_numeric)
 	{
-		offset = 1;
 		nick = "";
 	}
 
-	tmp = g_strsplit(remaining, " ", 2 + offset);
+	tmp = g_strsplit(remaining, " ", 2);
 
-	if (g_strv_length(tmp) < 2 + offset)
+	if (g_strv_length(tmp) < 2)
 	{
 		g_strfreev(tmp);
 		return;
 	}
 
-	channel = tmp[offset];
-	topic = maki_remove_colon(tmp[1 + offset]);
+	channel = tmp[0];
+	topic = maki_remove_colon(tmp[1]);
 
 	if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 	{
@@ -798,7 +793,6 @@ void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining,
 void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
 {
 	gchar** tmp;
-	gchar* channel;
 	gint i;
 	guint length;
 	makiChannel* chan;
@@ -809,12 +803,17 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
 	}
 
 	tmp = g_strsplit(remaining, " ", 0);
-	channel = tmp[2];
 	length = g_strv_length(tmp);
 
-	if (length > 3 && (chan = maki_server_get_channel(serv, channel)) != NULL)
+	if (length < 3)
 	{
-		for (i = 3; i < length; ++i)
+		g_strfreev(tmp);
+		return;
+	}
+
+	if ((chan = maki_server_get_channel(serv, tmp[1])) != NULL)
+	{
+		for (i = 2; i < length; ++i)
 		{
 			gchar* nick = maki_remove_colon(tmp[i]);
 			guint prefix = 0;
@@ -841,26 +840,18 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
 void maki_in_rpl_away (makiServer* serv, glong time, gchar* remaining)
 {
 	gchar** tmp;
-	gchar* nick;
-	gchar* message;
 
 	if (!remaining)
 	{
 		return;
 	}
 
-	tmp = g_strsplit(remaining, " ", 3);
+	tmp = g_strsplit(remaining, " ", 2);
 
-	if (g_strv_length(tmp) < 3)
+	if (g_strv_length(tmp) >= 2)
 	{
-		g_strfreev(tmp);
-		return;
+		maki_dbus_emit_away_message(time, serv->server, tmp[0], maki_remove_colon(tmp[1]));
 	}
-
-	nick = tmp[1];
-	message = maki_remove_colon(tmp[2]);
-
-	maki_dbus_emit_away_message(time, serv->server, nick, message);
 
 	g_strfreev(tmp);
 }
@@ -879,7 +870,7 @@ void maki_in_rpl_isupport (makiServer* serv, glong time, gchar* remaining)
 	tmp = g_strsplit(remaining, " ", 0);
 	length = g_strv_length(tmp);
 
-	for (i = 1; i < length; ++i)
+	for (i = 0; i < length; ++i)
 	{
 		gchar** support;
 
@@ -890,32 +881,35 @@ void maki_in_rpl_isupport (makiServer* serv, glong time, gchar* remaining)
 
 		support = g_strsplit(tmp[i], "=", 2);
 
-		if (support[0] != NULL && support[1] != NULL)
+		if (g_strv_length(support) < 2)
 		{
-			if (strncmp(support[0], "CHANMODES", 9) == 0)
-			{
-				g_free(serv->support.chanmodes);
-				serv->support.chanmodes = g_strdup(support[1]);
-			}
-			else if (strncmp(support[0], "CHANTYPES", 9) == 0)
-			{
-				g_free(serv->support.chantypes);
-				serv->support.chantypes = g_strdup(support[1]);
-			}
-			else if (strncmp(support[0], "PREFIX", 6) == 0)
-			{
-				gchar* paren;
+			g_strfreev(support);
+			continue;
+		}
 
-				paren = strchr(support[1], ')');
+		if (strncmp(support[0], "CHANMODES", 9) == 0)
+		{
+			g_free(serv->support.chanmodes);
+			serv->support.chanmodes = g_strdup(support[1]);
+		}
+		else if (strncmp(support[0], "CHANTYPES", 9) == 0)
+		{
+			g_free(serv->support.chantypes);
+			serv->support.chantypes = g_strdup(support[1]);
+		}
+		else if (strncmp(support[0], "PREFIX", 6) == 0)
+		{
+			gchar* paren;
 
-				if (support[1][0] == '(' && paren != NULL)
-				{
-					*paren = '\0';
-					g_free(serv->support.prefix.modes);
-					g_free(serv->support.prefix.prefixes);
-					serv->support.prefix.modes = g_strdup(support[1] + 1);
-					serv->support.prefix.prefixes = g_strdup(paren + 1);
-				}
+			paren = strchr(support[1], ')');
+
+			if (support[1][0] == '(' && paren != NULL)
+			{
+				*paren = '\0';
+				g_free(serv->support.prefix.modes);
+				g_free(serv->support.prefix.prefixes);
+				serv->support.prefix.modes = g_strdup(support[1] + 1);
+				serv->support.prefix.prefixes = g_strdup(paren + 1);
 			}
 		}
 
@@ -927,6 +921,78 @@ void maki_in_rpl_isupport (makiServer* serv, glong time, gchar* remaining)
 
 void maki_in_rpl_motd (makiServer* serv, glong time, gchar* remaining)
 {
+	if (!remaining)
+	{
+		return;
+	}
+
+	maki_dbus_emit_motd(time, serv->server, maki_remove_colon(remaining));
+}
+
+void maki_in_rpl_list (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
+{
+	if (!remaining)
+	{
+		return;
+	}
+
+	if (is_end)
+	{
+		maki_dbus_emit_list(time, serv->server, "", -1, "");
+	}
+	else
+	{
+		gchar** tmp;
+
+		tmp = g_strsplit(remaining, " ", 3);
+
+		if (g_strv_length(tmp) == 3)
+		{
+			maki_dbus_emit_list(time, serv->server, tmp[0], atol(tmp[1]), maki_remove_colon(tmp[2]));
+		}
+
+		g_strfreev(tmp);
+	}
+}
+
+void maki_in_rpl_banlist (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
+{
+	guint length;
+	gchar** tmp;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 4);
+	length = g_strv_length(tmp);
+
+	if (is_end)
+	{
+		if (length >= 1)
+		{
+			maki_dbus_emit_banlist(time, serv->server, tmp[0], "", "", -1);
+		}
+	}
+	else
+	{
+		if (length == 4)
+		{
+			maki_dbus_emit_banlist(time, serv->server, tmp[0], tmp[1], tmp[2], atol(tmp[3]));
+		}
+		else if (length == 2)
+		{
+			/* This is what the RFC specifies. */
+			maki_dbus_emit_banlist(time, serv->server, tmp[0], tmp[1], "", 0);
+		}
+	}
+
+	g_strfreev(tmp);
+}
+
+void maki_in_rpl_whois (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
+{
 	gchar** tmp;
 
 	if (!remaining)
@@ -936,107 +1002,17 @@ void maki_in_rpl_motd (makiServer* serv, glong time, gchar* remaining)
 
 	tmp = g_strsplit(remaining, " ", 2);
 
-	if (tmp[0] != NULL && tmp[1] != NULL)
+	if (g_strv_length(tmp) >= 2)
 	{
-		maki_dbus_emit_motd(time, serv->server, maki_remove_colon(tmp[1]));
-	}
-
-	g_strfreev(tmp);
-}
-
-void maki_in_rpl_list (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
-{
-	gchar** tmp;
-
-	if (!remaining)
-	{
-		return;
-	}
-
-	if (is_end)
-	{
-		maki_dbus_emit_list(time, serv->server, "", -1, "");
-		return;
-	}
-
-	tmp = g_strsplit(remaining, " ", 4);
-
-	if (g_strv_length(tmp) == 4)
-	{
-		maki_dbus_emit_list(time, serv->server, tmp[1], atol(tmp[2]), maki_remove_colon(tmp[3]));
-	}
-
-	g_strfreev(tmp);
-}
-
-void maki_in_rpl_banlist (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
-{
-	gchar** tmp;
-	guint length;
-
-	if (!remaining)
-	{
-		return;
-	}
-
-	if (is_end)
-	{
-		tmp = g_strsplit(remaining, " ", 3);
-
-		if (g_strv_length(tmp) >= 2)
+		if (is_end)
 		{
-			maki_dbus_emit_banlist(time, serv->server, tmp[1], "", "", -1);
+			maki_dbus_emit_whois(time, serv->server, tmp[0], "");
 		}
-
-		g_strfreev(tmp);
-
-		return;
+		else
+		{
+			maki_dbus_emit_whois(time, serv->server, tmp[0], tmp[1]);
+		}
 	}
-
-	tmp = g_strsplit(remaining, " ", 5);
-	length = g_strv_length(tmp);
-
-	if (length == 5)
-	{
-		maki_dbus_emit_banlist(time, serv->server, tmp[1], tmp[2], tmp[3], atol(tmp[4]));
-	}
-	else if (length == 3)
-	{
-		/* This is what the RFC specifies. */
-		maki_dbus_emit_banlist(time, serv->server, tmp[1], tmp[2], "", 0);
-	}
-
-	g_strfreev(tmp);
-}
-
-void maki_in_rpl_whois (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
-{
-	gchar** tmp;
-	guint length;
-
-	if (!remaining)
-	{
-		return;
-	}
-
-	tmp = g_strsplit(remaining, " ", 3);
-	length = g_strv_length(tmp);
-
-	if (length < 3)
-	{
-		return;
-	}
-
-	if (is_end)
-	{
-		maki_dbus_emit_whois(time, serv->server, tmp[1], "");
-
-		g_strfreev(tmp);
-
-		return;
-	}
-
-	maki_dbus_emit_whois(time, serv->server, tmp[1], tmp[2]);
 
 	g_strfreev(tmp);
 }
@@ -1044,31 +1020,24 @@ void maki_in_rpl_whois (makiServer* serv, glong time, gchar* remaining, gboolean
 void maki_in_err_nosuchnick (makiServer* serv, glong time, gchar* remaining)
 {
 	gchar** tmp;
-	guint length;
 
 	if (!remaining)
 	{
 		return;
 	}
 
-	tmp = g_strsplit(remaining, " ", 3);
-	length = g_strv_length(tmp);
+	tmp = g_strsplit(remaining, " ", 2);
 
-	if (length < 2)
+	if (g_strv_length(tmp) >= 1)
 	{
-		g_strfreev(tmp);
-		return;
+		maki_dbus_emit_invalid_target(time, serv->server, tmp[0]);
 	}
-
-	maki_dbus_emit_invalid_target(time, serv->server, tmp[1]);
 
 	g_strfreev(tmp);
 }
 
-/**
- * This function is run in its own thread.
- * It receives and handles all messages from sashimi.
- */
+/* This function is run in its own thread.
+ * It receives and handles all messages from sashimi. */
 gpointer maki_in_runner (gpointer data)
 {
 	makiInstance* inst = data;
@@ -1171,6 +1140,17 @@ gpointer maki_in_runner (gpointer data)
 				gint numeric;
 
 				numeric = 100 * g_ascii_digit_value(type[0]) + 10 * g_ascii_digit_value(type[1]) + g_ascii_digit_value(type[2]);
+
+				while (*remaining != '\0')
+				{
+					if (*remaining == ' ')
+					{
+						remaining++;
+						break;
+					}
+
+					remaining++;
+				}
 
 				switch (numeric)
 				{
