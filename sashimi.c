@@ -99,6 +99,25 @@ void sashimi_message_free (gpointer data)
 	g_free(msg);
 }
 
+static void sashimi_remove_sources (sashimiConnection* connection, gint source)
+{
+	gint i;
+
+	for (i = 0; i < s_last; i++)
+	{
+		if (i != source && connection->sources[i] != 0)
+		{
+			g_source_remove(connection->sources[i]);
+			connection->sources[i] = 0;
+		}
+	}
+
+	if (source >= 0)
+	{
+		connection->sources[source] = 0;
+	}
+}
+
 static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpointer data)
 {
 	GIOStatus status;
@@ -144,11 +163,7 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 	return TRUE;
 
 reconnect:
-	g_source_remove(connection->sources[s_ping]);
-	g_source_remove(connection->sources[s_queue]);
-	connection->sources[s_read] = 0;
-	connection->sources[s_ping] = 0;
-	connection->sources[s_queue] = 0;
+	sashimi_remove_sources(connection, s_read);
 
 	if (connection->reconnect.callback)
 	{
@@ -319,18 +334,9 @@ gboolean sashimi_connect (sashimiConnection* connection)
 
 gboolean sashimi_disconnect (sashimiConnection* connection)
 {
-	gint i;
-
 	g_return_val_if_fail(connection != NULL, FALSE);
 
-	for (i = 0; i < s_last; ++i)
-	{
-		if (connection->sources[i] != 0)
-		{
-			g_source_remove(connection->sources[i]);
-			connection->sources[i] = 0;
-		}
-	}
+	sashimi_remove_sources(connection, -1);
 
 	if (connection->channel != NULL)
 	{
