@@ -81,7 +81,7 @@ enum
 	s_last
 };
 
-guint signals[s_last];
+static guint signals[s_last];
 
 void maki_dbus_emit_action (gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
