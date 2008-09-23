@@ -154,6 +154,13 @@ int main (int argc, char* argv[])
 
 	dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
 
+	if (!maki_dbus_connected(dbus))
+	{
+		g_warning(_("Could not connect to DBus. maki may already be running.\n"));
+		maki_instance_free(inst);
+		return 1;
+	}
+
 	signal(SIGINT, maki_signal);
 	signal(SIGHUP, maki_signal);
 	signal(SIGTERM, maki_signal);

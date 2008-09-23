@@ -1365,9 +1365,22 @@ static void maki_dbus_init (makiDBus* self)
 			if (!org_freedesktop_DBus_request_name(proxy, "de.ikkoku.sushi", 0, &request_name_result, &error))
 			{
 				g_error_free(error);
+				dbus_g_connection_unref(self->bus);
+				self->bus = NULL;
+			}
+
+			if (request_name_result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER && self->bus != NULL)
+			{
+				dbus_g_connection_unref(self->bus);
+				self->bus = NULL;
 			}
 
 			g_object_unref(proxy);
+		}
+		else
+		{
+			dbus_g_connection_unref(self->bus);
+			self->bus = NULL;
 		}
 	}
 	else
@@ -1381,6 +1394,12 @@ static void maki_dbus_finalize (GObject* object)
 	makiDBus* self = MAKI_DBUS(object);
 
 	dbus_g_connection_unref(self->bus);
+	self->bus = NULL;
+}
+
+gboolean maki_dbus_connected (makiDBus* self)
+{
+	return (self->bus != NULL);
 }
 
 static void maki_dbus_class_init (makiDBusClass* klass)

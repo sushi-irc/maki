@@ -46,6 +46,8 @@ GType maki_dbus_get_type (void);
 #define IS_MAKI_DBUS_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE((klass), MAKI_DBUS_TYPE))
 #define MAKI_DBUS_GET_CLASS(object) (G_TYPE_INSTANCE_GET_CLASS((object), MAKI_DBUS_TYPE, makiDBus))
 
+gboolean maki_dbus_connected (makiDBus*);
+
 void maki_dbus_emit_action (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_away (gint64, const gchar*);
 void maki_dbus_emit_away_message (gint64, const gchar*, const gchar*, const gchar*);
