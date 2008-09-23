@@ -245,7 +245,7 @@ gboolean maki_server_connect (makiServer* serv)
 {
 	gboolean ret;
 
-	sashimi_reconnect(serv->connection, maki_server_reconnect_callback, serv);
+	sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
 
 	if ((ret = sashimi_connect(serv->connection)))
 	{
@@ -285,7 +285,7 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 	GHashTableIter iter;
 	gpointer key, value;
 
-	sashimi_reconnect(serv->connection, NULL, NULL);
+	sashimi_reconnect_callback(serv->connection, NULL, NULL);
 
 	if (message != NULL)
 	{

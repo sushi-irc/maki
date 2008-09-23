@@ -236,7 +236,7 @@ sashimiConnection* sashimi_new (const gchar* address, gushort port, GAsyncQueue*
 	return connection;
 }
 
-void sashimi_reconnect (sashimiConnection* connection, void (*callback) (gpointer), gpointer data)
+void sashimi_reconnect_callback (sashimiConnection* connection, void (*callback) (gpointer), gpointer data)
 {
 	g_return_if_fail(connection != NULL);
 
