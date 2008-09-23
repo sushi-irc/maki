@@ -84,6 +84,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		serv->name = name;
 		serv->autoconnect = autoconnect;
 		serv->connected = FALSE;
+		serv->logged_in = FALSE;
 		serv->reconnect.source = 0;
 		serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect" ,"retries");
 		serv->connection = sashimi_new(address, port, maki_instance_queue(serv->instance), serv);
@@ -267,6 +268,7 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 	}
 
 	serv->connected = FALSE;
+	serv->logged_in = FALSE;
 	ret = sashimi_disconnect(serv->connection);
 
 	/* Remove all users from all channels, because otherwise phantom users may be left behind. */
@@ -322,6 +324,8 @@ void maki_server_connect_callback (gpointer data)
 		g_source_remove(serv->reconnect.source);
 		serv->reconnect.source = 0;
 	}
+
+	serv->connected = TRUE;
 
 	serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect", "retries");
 

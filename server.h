@@ -45,6 +45,7 @@ struct maki_server
 	gchar* name;
 	gboolean autoconnect;
 	gboolean connected;
+	gboolean logged_in;
 	sashimiConnection* connection;
 	GHashTable* channels;
 	makiCache* users;

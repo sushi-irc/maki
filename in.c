@@ -1186,7 +1186,7 @@ gpointer maki_in_runner (gpointer data)
 					case 376:
 					/* ERR_NOMOTD */
 					case 422:
-						serv->connected = TRUE;
+						serv->logged_in = TRUE;
 						maki_dbus_emit_connected(time.tv_sec, serv->server, serv->user->nick);
 						maki_out_nickserv(serv);
 						g_timeout_add_seconds(3, maki_join, serv);
@@ -1199,7 +1199,7 @@ gpointer maki_in_runner (gpointer data)
 						break;
 					/* ERR_NICKNAMEINUSE */
 					case 433:
-						if (!serv->connected)
+						if (!serv->logged_in)
 						{
 							gchar* nick;
 							makiUser* user;
