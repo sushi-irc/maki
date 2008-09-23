@@ -28,6 +28,8 @@
 #ifndef H_SASHIMI
 #define H_SASHIMI
 
+#include <glib.h>
+
 struct sashimi_connection;
 
 typedef struct sashimi_connection sashimiConnection;

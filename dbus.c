@@ -25,12 +25,12 @@
  * SUCH DAMAGE.
  */
 
+#include "maki.h"
+
 #include <glib/gstdio.h>
 
 #include <fcntl.h>
 #include <string.h>
-
-#include "maki.h"
 
 #include "marshal.h"
 

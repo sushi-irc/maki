@@ -25,11 +25,11 @@
  * SUCH DAMAGE.
  */
 
+#include "maki.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "maki.h"
 
 /* A convenience function to remove a colon before an argument.
  * It also checks for NULL. */

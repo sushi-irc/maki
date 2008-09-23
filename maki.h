@@ -33,12 +33,7 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 
-#define SUSHI_NAME "sushi"
-#define SUSHI_VERSION "1.0-alpha1"
-#define SUSHI_URL "http://sushi.ikkoku.de/"
-#define SUSHI_QUIT_MESSAGE SUSHI_NAME " – " SUSHI_URL
-
-#define MAKI_NAME "maki"
+#include "sashimi.h"
 
 #include "cache.h"
 #include "channel.h"
@@ -51,9 +46,15 @@
 #include "maki.h"
 #include "misc.h"
 #include "out.h"
-#include "sashimi.h"
 #include "server.h"
 #include "user.h"
+
+#define SUSHI_NAME "sushi"
+#define SUSHI_VERSION "1.0-alpha1"
+#define SUSHI_URL "http://sushi.ikkoku.de/"
+#define SUSHI_QUIT_MESSAGE SUSHI_NAME " – " SUSHI_URL
+
+#define MAKI_NAME "maki"
 
 extern gboolean opt_debug;
 

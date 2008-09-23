@@ -25,9 +25,9 @@
  * SUCH DAMAGE.
  */
 
-#include <string.h>
-
 #include "maki.h"
+
+#include <string.h>
 
 makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 {

@@ -25,6 +25,8 @@
  * SUCH DAMAGE.
  */
 
+#include "maki.h"
+
 #include <fcntl.h>
 #include <locale.h>
 #include <signal.h>
@@ -33,8 +35,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
-#include "maki.h"
 
 gboolean opt_debug = TRUE;
 

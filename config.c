@@ -25,11 +25,11 @@
  * SUCH DAMAGE.
  */
 
+#include "maki.h"
+
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
-#include "maki.h"
 
 struct maki_config
 {
