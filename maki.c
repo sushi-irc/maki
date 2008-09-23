@@ -158,6 +158,7 @@ int main (int argc, char* argv[])
 	{
 		g_warning(_("Could not connect to DBus. maki may already be running.\n"));
 		maki_instance_free(inst);
+		g_object_unref(dbus);
 		return 1;
 	}
 

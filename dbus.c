@@ -1393,8 +1393,11 @@ static void maki_dbus_finalize (GObject* object)
 {
 	makiDBus* self = MAKI_DBUS(object);
 
-	dbus_g_connection_unref(self->bus);
-	self->bus = NULL;
+	if (self->bus != NULL)
+	{
+		dbus_g_connection_unref(self->bus);
+		self->bus = NULL;
+	}
 }
 
 gboolean maki_dbus_connected (makiDBus* self)
