@@ -1362,15 +1362,17 @@ static void maki_dbus_init (makiDBus* self)
 
 		if ((proxy = dbus_g_proxy_new_for_name(self->bus, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS)) != NULL)
 		{
-			if (!org_freedesktop_DBus_request_name(proxy, "de.ikkoku.sushi", 0, &request_name_result, &error))
+			if (dbus_g_proxy_call(proxy, "RequestName", &error, G_TYPE_STRING, "de.ikkoku.sushi", G_TYPE_UINT, 0, G_TYPE_INVALID, G_TYPE_UINT, &request_name_result, G_TYPE_INVALID))
+			{
+				if (request_name_result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
+				{
+					dbus_g_connection_unref(self->bus);
+					self->bus = NULL;
+				}
+			}
+			else
 			{
 				g_error_free(error);
-				dbus_g_connection_unref(self->bus);
-				self->bus = NULL;
-			}
-
-			if (request_name_result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER && self->bus != NULL)
-			{
 				dbus_g_connection_unref(self->bus);
 				self->bus = NULL;
 			}
