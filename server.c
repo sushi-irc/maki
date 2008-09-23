@@ -243,37 +243,10 @@ void maki_server_free (gpointer data)
  */
 gboolean maki_server_connect (makiServer* serv)
 {
-	gboolean ret;
-
+	sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
 	sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
 
-	if ((ret = sashimi_connect(serv->connection)))
-	{
-		GTimeVal time;
-		makiUser* user;
-
-		if (serv->reconnect.source != 0)
-		{
-			g_source_remove(serv->reconnect.source);
-			serv->reconnect.source = 0;
-		}
-
-		serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect", "retries");
-
-		user = maki_cache_insert(serv->users, serv->initial_nick);
-		maki_user_copy(serv->user, user);
-		maki_cache_remove(serv->users, serv->user->nick);
-		serv->user = user;
-
-		maki_out_nick(serv, serv->initial_nick);
-
-		maki_server_send_printf(serv, "USER %s 0 * :%s", serv->initial_nick, serv->name);
-
-		g_get_current_time(&time);
-		maki_dbus_emit_connect(time.tv_sec, serv->server);
-	}
-
-	return ret;
+	return sashimi_connect(serv->connection);
 }
 
 /**
@@ -285,6 +258,7 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 	GHashTableIter iter;
 	gpointer key, value;
 
+	sashimi_connect_callback(serv->connection, NULL, NULL);
 	sashimi_reconnect_callback(serv->connection, NULL, NULL);
 
 	if (message != NULL)
@@ -335,6 +309,33 @@ static gboolean maki_server_reconnect (gpointer data)
 	}
 
 	return TRUE;
+}
+
+void maki_server_connect_callback (gpointer data)
+{
+	GTimeVal time;
+	makiServer* serv = data;
+	makiUser* user;
+
+	if (serv->reconnect.source != 0)
+	{
+		g_source_remove(serv->reconnect.source);
+		serv->reconnect.source = 0;
+	}
+
+	serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect", "retries");
+
+	user = maki_cache_insert(serv->users, serv->initial_nick);
+	maki_user_copy(serv->user, user);
+	maki_cache_remove(serv->users, serv->user->nick);
+	serv->user = user;
+
+	maki_out_nick(serv, serv->initial_nick);
+
+	maki_server_send_printf(serv, "USER %s 0 * :%s", serv->initial_nick, serv->name);
+
+	g_get_current_time(&time);
+	maki_dbus_emit_connect(time.tv_sec, serv->server);
 }
 
 /* This function is called by sashimi if the connection drops.

@@ -45,6 +45,7 @@ sashimiMessage* sashimi_message_new (gchar*, gpointer);
 void sashimi_message_free (gpointer);
 
 sashimiConnection* sashimi_new (const gchar*, gushort, GAsyncQueue*, gpointer);
+void sashimi_connect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
 void sashimi_reconnect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
 void sashimi_timeout (sashimiConnection*, guint);
 gboolean sashimi_connect (sashimiConnection*);

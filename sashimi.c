@@ -48,6 +48,7 @@
 
 enum
 {
+	s_write,
 	s_read,
 	s_ping,
 	s_queue,
@@ -71,6 +72,13 @@ struct sashimi_connection
 	GQueue* queue;
 
 	guint sources[s_last];
+
+	struct
+	{
+		void (*callback) (gpointer);
+		gpointer data;
+	}
+	connect;
 
 	struct
 	{
@@ -217,6 +225,43 @@ static gboolean sashimi_queue_runner (gpointer data)
 	return TRUE;
 }
 
+static gboolean sashimi_write (GIOChannel* source, GIOCondition condition, gpointer data)
+{
+	GTimeVal time;
+	int val;
+	socklen_t len = sizeof(val);
+	sashimiConnection* connection = data;
+
+	if (getsockopt(g_io_channel_unix_get_fd(connection->channel), SOL_SOCKET, SO_ERROR, &val, &len) == -1
+	    || val != 0)
+	{
+		sashimi_remove_sources(connection, s_write);
+
+		if (connection->reconnect.callback)
+		{
+			connection->reconnect.callback(connection->reconnect.data);
+		}
+
+		return FALSE;
+	}
+
+	g_get_current_time(&time);
+	connection->last_activity = time.tv_sec;
+
+	connection->sources[s_read] = g_io_add_watch(connection->channel, G_IO_IN | G_IO_HUP, sashimi_read, connection);
+	connection->sources[s_ping] = g_timeout_add_seconds(1, sashimi_ping, connection);
+	connection->sources[s_queue] = g_timeout_add_seconds(1, sashimi_queue_runner, connection);
+
+	connection->sources[s_write] = 0;
+
+	if (connection->connect.callback)
+	{
+		connection->connect.callback(connection->connect.data);
+	}
+
+	return FALSE;
+}
+
 sashimiConnection* sashimi_new (const gchar* address, gushort port, GAsyncQueue* message_queue, gpointer message_data)
 {
 	gint i;
@@ -245,10 +290,21 @@ sashimiConnection* sashimi_new (const gchar* address, gushort port, GAsyncQueue*
 		connection->sources[i] = 0;
 	}
 
+	connection->connect.callback = NULL;
+	connection->connect.data = NULL;
+
 	connection->reconnect.callback = NULL;
 	connection->reconnect.data = NULL;
 
 	return connection;
+}
+
+void sashimi_connect_callback (sashimiConnection* connection, void (*callback) (gpointer), gpointer data)
+{
+	g_return_if_fail(connection != NULL);
+
+	connection->connect.callback = callback;
+	connection->connect.data = data;
 }
 
 void sashimi_reconnect_callback (sashimiConnection* connection, void (*callback) (gpointer), gpointer data)
@@ -269,7 +325,6 @@ void sashimi_timeout (sashimiConnection* connection, guint timeout)
 gboolean sashimi_connect (sashimiConnection* connection)
 {
 	int fd;
-	GTimeVal time;
 	struct hostent* hostinfo;
 	struct sockaddr_in name;
 
@@ -298,36 +353,14 @@ gboolean sashimi_connect (sashimiConnection* connection)
 			close(fd);
 			return FALSE;
 		}
-		else
-		{
-			int val;
-			socklen_t len = sizeof(val);
-			struct pollfd fds[1];
-
-			fds[0].fd = fd;
-			fds[0].events = POLLOUT;
-
-			poll(fds, 1, 3000);
-
-			if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &val, &len) == -1
-			    || val != 0)
-			{
-				return FALSE;
-			}
-		}
 	}
-
-	g_get_current_time(&time);
-	connection->last_activity = time.tv_sec;
 
 	connection->channel = g_io_channel_unix_new(fd);
 	g_io_channel_set_flags(connection->channel, G_IO_FLAG_NONBLOCK, NULL);
 	g_io_channel_set_close_on_unref(connection->channel, TRUE);
 	g_io_channel_set_encoding(connection->channel, NULL, NULL);
 
-	connection->sources[s_read] = g_io_add_watch(connection->channel, G_IO_IN | G_IO_HUP, sashimi_read, connection);
-	connection->sources[s_ping] = g_timeout_add_seconds(1, sashimi_ping, connection);
-	connection->sources[s_queue] = g_timeout_add_seconds(1, sashimi_queue_runner, connection);
+	connection->sources[s_write] = g_io_add_watch(connection->channel, G_IO_OUT, sashimi_write, connection);
 
 	return TRUE;
 }

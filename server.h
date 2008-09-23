@@ -96,6 +96,7 @@ gboolean maki_server_send_printf (makiServer*, const gchar*, ...);
 void maki_server_free (gpointer);
 gboolean maki_server_connect (makiServer*);
 gboolean maki_server_disconnect (makiServer*, const gchar*);
+void maki_server_connect_callback (gpointer);
 void maki_server_reconnect_callback (gpointer);
 
 #endif
