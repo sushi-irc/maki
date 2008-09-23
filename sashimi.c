@@ -131,7 +131,7 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 	gchar* buffer;
 	sashimiConnection* connection = data;
 
-	if (condition & G_IO_HUP)
+	if (condition & (G_IO_HUP | G_IO_ERR))
 	{
 		goto reconnect;
 	}
@@ -230,23 +230,21 @@ static gboolean sashimi_write (GIOChannel* source, GIOCondition condition, gpoin
 	socklen_t len = sizeof(val);
 	sashimiConnection* connection = data;
 
+	if (condition & (G_IO_HUP | G_IO_ERR))
+	{
+		goto reconnect;
+	}
+
 	if (getsockopt(g_io_channel_unix_get_fd(connection->channel), SOL_SOCKET, SO_ERROR, &val, &len) == -1
 	    || val != 0)
 	{
-		sashimi_remove_sources(connection, s_write);
-
-		if (connection->reconnect.callback)
-		{
-			connection->reconnect.callback(connection->reconnect.data);
-		}
-
-		return FALSE;
+		goto reconnect;
 	}
 
 	g_get_current_time(&time);
 	connection->last_activity = time.tv_sec;
 
-	connection->sources[s_read] = g_io_add_watch(connection->channel, G_IO_IN | G_IO_HUP, sashimi_read, connection);
+	connection->sources[s_read] = g_io_add_watch(connection->channel, G_IO_IN | G_IO_HUP | G_IO_ERR, sashimi_read, connection);
 	connection->sources[s_ping] = g_timeout_add_seconds(1, sashimi_ping, connection);
 	connection->sources[s_queue] = g_timeout_add_seconds(1, sashimi_queue_runner, connection);
 
@@ -255,6 +253,16 @@ static gboolean sashimi_write (GIOChannel* source, GIOCondition condition, gpoin
 	if (connection->connect.callback)
 	{
 		connection->connect.callback(connection->connect.data);
+	}
+
+	return FALSE;
+
+reconnect:
+	sashimi_remove_sources(connection, s_write);
+
+	if (connection->reconnect.callback)
+	{
+		connection->reconnect.callback(connection->reconnect.data);
 	}
 
 	return FALSE;
@@ -358,7 +366,7 @@ gboolean sashimi_connect (sashimiConnection* connection)
 	g_io_channel_set_close_on_unref(connection->channel, TRUE);
 	g_io_channel_set_encoding(connection->channel, NULL, NULL);
 
-	connection->sources[s_write] = g_io_add_watch(connection->channel, G_IO_OUT, sashimi_write, connection);
+	connection->sources[s_write] = g_io_add_watch(connection->channel, G_IO_OUT | G_IO_HUP | G_IO_ERR, sashimi_write, connection);
 
 	return TRUE;
 }
