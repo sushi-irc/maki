@@ -8,152 +8,157 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-09 04:38+0200\n"
-"PO-Revision-Date: 2008-09-09 07:11+0000\n"
+"POT-Creation-Date: 2008-09-24 13:53+0200\n"
+"PO-Revision-Date: 2008-09-24 16:15+0000\n"
 "Last-Translator: Michael Kuhn <Unknown>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2008-09-09 07:16+0000\n"
+"X-Launchpad-Export-Date: 2008-09-24 16:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../in.c:277
+#: ../in.c:273
 msgid "» You join."
 msgstr "» Sie betreten den Chat."
 
-#: ../in.c:281
+#: ../in.c:277
 #, c-format
 msgid "» %s joins."
 msgstr "» %s betritt den Chat."
 
-#: ../in.c:329
+#: ../in.c:325
 #, c-format
 msgid "« You part (%s)."
 msgstr "« Sie verlassen den Chat (%s)."
 
-#: ../in.c:333
+#: ../in.c:329
 msgid "« You part."
 msgstr "« Sie verlassen den Chat."
 
-#: ../in.c:340
+#: ../in.c:336
 #, c-format
 msgid "« %s parts (%s)."
 msgstr "« %s verlässt den Chat (%s)."
 
-#: ../in.c:344
+#: ../in.c:340
 #, c-format
 msgid "« %s parts."
 msgstr "« %s verlässt den Chat."
 
-#: ../in.c:380
+#: ../in.c:377
 #, c-format
 msgid "« %s quits (%s)."
 msgstr "« %s trennt die Verbindung (%s)."
 
-#: ../in.c:384
+#: ../in.c:381
 #, c-format
 msgid "« %s quits."
 msgstr "« %s trennt die Verbindung."
 
-#: ../in.c:447
+#: ../in.c:442
 #, c-format
 msgid "« %s kicks you (%s)."
 msgstr "« %s wirft Sie aus dem Chat (%s)."
 
-#: ../in.c:451
+#: ../in.c:446
 #, c-format
 msgid "« %s kicks you."
 msgstr "« %s wirft Sie aus dem Chat."
 
-#: ../in.c:458
+#: ../in.c:453
 #, c-format
 msgid "« %s kicks %s (%s)."
 msgstr "« %s wirft %s aus dem Chat (%s)."
 
-#: ../in.c:462
+#: ../in.c:457
 #, c-format
 msgid "« %s kicks %s."
 msgstr "« %s wirft %s aus dem Chat."
 
-#: ../in.c:537
+#: ../in.c:533
 #, c-format
 msgid "• You are now known as %s."
 msgstr "• Sie sind jetzt bekannt als %s."
 
-#: ../in.c:541
+#: ../in.c:537
 #, c-format
 msgid "• %s is now known as %s."
 msgstr "• %s ist jetzt bekannt als %s."
 
-#: ../in.c:659
+#: ../in.c:654
 #, c-format
 msgid "• Mode: %s %s"
 msgstr "• Modus: %s %s"
 
-#: ../in.c:665
+#: ../in.c:660
 #, c-format
 msgid "• You set mode: %s %s"
 msgstr "• Sie setzen den Modus: %s %s"
 
-#: ../in.c:669
+#: ../in.c:664
 #, c-format
 msgid "• %s sets mode: %s %s"
 msgstr "• %s setzt den Modus: %s %s"
 
-#: ../in.c:680
+#: ../in.c:675
 #, c-format
 msgid "• Mode: %s"
 msgstr "• Modus: %s"
 
-#: ../in.c:686
+#: ../in.c:681
 #, c-format
 msgid "• You set mode: %s"
 msgstr "• Sie setzen den Modus: %s"
 
-#: ../in.c:690
+#: ../in.c:685
 #, c-format
 msgid "• %s sets mode: %s"
 msgstr "• %s setzt den Modus: %s"
 
-#: ../in.c:736
+#: ../in.c:727
 #, c-format
 msgid "• You successfully invite %s."
 msgstr "• Sie laden %s erfolgreich ein."
 
-#: ../in.c:740
+#: ../in.c:731
 #, c-format
 msgid "• %s invites %s."
 msgstr "• %s lädt %s ein."
 
-#: ../in.c:786
+#: ../in.c:774
 #, c-format
 msgid "• Topic: %s"
 msgstr "• Thema: %s"
 
-#: ../in.c:792
+#: ../in.c:780
 #, c-format
 msgid "• You change the topic: %s"
 msgstr "• Sie setzen das Thema: %s"
 
-#: ../in.c:796
+#: ../in.c:784
 #, c-format
 msgid "• %s changes the topic: %s"
 msgstr "• %s setzt das Thema: %s"
 
-#: ../maki.c:196
+#: ../maki.c:122
 msgid "Run as daemon"
-msgstr "Als Daemon laufen lassen"
+msgstr "Als Daemon laufen"
 
-#: ../maki.c:197
+#: ../maki.c:123
 msgid "Output debug messages"
 msgstr "Debug-Meldungen ausgeben"
 
-#: ../misc.c:79
-msgid "Could not open debug log file.\n"
-msgstr "Debug-Log-Datei konnte nicht geöffnet werden.\n"
+#: ../maki.c:159
+msgid "Could not connect to DBus. maki may already be running."
+msgstr ""
+"Verbindung zu DBus ist fehlgeschlagen. maki läuft möglicherweise schon."
 
-#: ../out.c:166
+#: ../misc.c:79
+msgid "Could not open debug log file."
+msgstr "Debug-Log-Datei konnte nicht geöffnet werden."
+
+#: ../out.c:156
 #, c-format
 msgid "« You quit (%s)."
 msgstr "« Sie beenden die Verbindung (%s)."
