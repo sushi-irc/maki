@@ -52,8 +52,16 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		gchar** ignores;
 		gint port;
 
-		autoconnect = g_key_file_get_boolean(key_file, "server", "autoconnect", NULL);
 		address = g_key_file_get_string(key_file, "server", "address", NULL);
+
+		if (address == NULL)
+		{
+			g_key_file_free(key_file);
+			g_free(path);
+			return NULL;
+		}
+
+		autoconnect = g_key_file_get_boolean(key_file, "server", "autoconnect", NULL);
 		port = g_key_file_get_integer(key_file, "server", "port", NULL);
 		nick = g_key_file_get_string(key_file, "server", "nick", NULL);
 		name = g_key_file_get_string(key_file, "server", "name", NULL);
