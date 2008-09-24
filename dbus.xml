@@ -17,6 +17,12 @@
 			<arg name="server" type="s" />
 		</method>
 
+		<method name="channel_nicks">
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="nicks" type="as" direction="out" />
+		</method>
+
 		<method name="channels">
 			<arg name="server" type="s" />
 			<arg name="channels" type="as" direction="out" />
@@ -104,12 +110,6 @@
 		<method name="nick">
 			<arg name="server" type="s" />
 			<arg name="nick" type="s" />
-		</method>
-
-		<method name="nicks">
-			<arg name="server" type="s" />
-			<arg name="channel" type="s" />
-			<arg name="nicks" type="as" direction="out" />
 		</method>
 
 		<method name="nickserv">
