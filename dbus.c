@@ -683,6 +683,41 @@ static gboolean maki_dbus_mode (makiDBus* self, const gchar* server, const gchar
 	return TRUE;
 }
 
+static gboolean maki_dbus_names (makiDBus* self, const gchar* server, const gchar* channel, gchar*** names, GError** error)
+{
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	*names = NULL;
+
+	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	{
+		makiChannel* chan;
+
+		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
+		{
+			gchar** name;
+			GHashTableIter iter;
+			gpointer key, value;
+
+			name = *names = g_new(gchar*, maki_channel_users_count(chan) + 1);
+			maki_channel_users_iter(chan, &iter);
+
+			while (g_hash_table_iter_next(&iter, &key, &value))
+			{
+				makiChannelUser* cuser = value;
+
+				*name = g_strdup(cuser->user->nick);
+				++name;
+			}
+
+			*name = NULL;
+		}
+	}
+
+	return TRUE;
+}
+
 static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar* nick, GError** error)
 {
 	makiServer* serv;
@@ -691,41 +726,6 @@ static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
 		maki_out_nick(serv, nick);
-	}
-
-	return TRUE;
-}
-
-static gboolean maki_dbus_nicks (makiDBus* self, const gchar* server, const gchar* channel, gchar*** nicks, GError** error)
-{
-	makiServer* serv;
-	makiInstance* inst = maki_instance_get_default();
-
-	*nicks = NULL;
-
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
-	{
-		makiChannel* chan;
-
-		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
-		{
-			gchar** nick;
-			GHashTableIter iter;
-			gpointer key, value;
-
-			nick = *nicks = g_new(gchar*, maki_channel_users_count(chan) + 1);
-			maki_channel_users_iter(chan, &iter);
-
-			while (g_hash_table_iter_next(&iter, &key, &value))
-			{
-				makiChannelUser* cuser = value;
-
-				*nick = g_strdup(cuser->user->nick);
-				++nick;
-			}
-
-			*nick = NULL;
-		}
 	}
 
 	return TRUE;
