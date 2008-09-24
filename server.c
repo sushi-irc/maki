@@ -269,8 +269,6 @@ gboolean maki_server_connect (makiServer* serv)
 gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 {
 	gboolean ret;
-	GHashTableIter iter;
-	gpointer key, value;
 
 	sashimi_connect_callback(serv->connection, NULL, NULL);
 	sashimi_reconnect_callback(serv->connection, NULL, NULL);
@@ -283,16 +281,6 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 	serv->connected = FALSE;
 	serv->logged_in = FALSE;
 	ret = sashimi_disconnect(serv->connection);
-
-	/* Remove all users from all channels, because otherwise phantom users may be left behind. */
-	g_hash_table_iter_init(&iter, serv->channels);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		makiChannel* chan = value;
-
-		maki_channel_remove_users(chan);
-	}
 
 	return ret;
 }

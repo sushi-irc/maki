@@ -246,20 +246,13 @@ void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	/* XXX */
 	g_strdelimit(channel, " ", '\0');
 
-	if ((chan = maki_server_get_channel(serv, channel)) != NULL)
-	{
-		makiChannelUser* cuser;
-		makiUser* user;
-
-		user = maki_cache_insert(serv->users, nick);
-		cuser = maki_channel_user_new(user);
-		maki_channel_add_user(chan, cuser->user->nick, cuser);
-	}
+	chan = maki_server_get_channel(serv, channel);
 
 	if (g_ascii_strcasecmp(nick, serv->user->nick) == 0)
 	{
 		if (chan != NULL)
 		{
+			maki_channel_remove_users(chan);
 			maki_channel_set_joined(chan, TRUE);
 		}
 		else
@@ -275,6 +268,16 @@ void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	else
 	{
 		maki_log(serv, channel, _("» %s joins."), nick);
+	}
+
+	if (chan != NULL)
+	{
+		makiChannelUser* cuser;
+		makiUser* user;
+
+		user = maki_cache_insert(serv->users, nick);
+		cuser = maki_channel_user_new(user);
+		maki_channel_add_user(chan, cuser->user->nick, cuser);
 	}
 
 	maki_dbus_emit_join(time, serv->server, nick, channel);
@@ -313,6 +316,7 @@ void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		if (chan != NULL)
 		{
 			maki_channel_set_joined(chan, FALSE);
+			maki_channel_remove_users(chan);
 
 			if (!maki_channel_autojoin(chan) && maki_channel_key(chan) == NULL)
 			{
