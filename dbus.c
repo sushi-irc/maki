@@ -348,15 +348,9 @@ static gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError**
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		/*
-		 * Disconnect, because strange things happen if we call maki_server_connect() while still connected.
-		 */
+		/* Disconnect, because strange things happen if we call maki_server_connect() while still connected. */
 		maki_server_disconnect(serv, NULL);
-
-		if (!maki_server_connect(serv))
-		{
-			maki_server_reconnect_callback(serv);
-		}
+		maki_server_connect(serv);
 	}
 	else
 	{
@@ -364,9 +358,9 @@ static gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError**
 		{
 			g_hash_table_replace(maki_instance_servers(inst), serv->server, serv);
 
-			if (!serv->autoconnect && !maki_server_connect(serv))
+			if (!maki_server_autoconnect(serv))
 			{
-				maki_server_reconnect_callback(serv);
+				maki_server_connect(serv);
 			}
 		}
 	}
@@ -1394,6 +1388,8 @@ static void maki_dbus_init (makiDBus* self)
 static void maki_dbus_finalize (GObject* object)
 {
 	makiDBus* self = MAKI_DBUS(object);
+
+	/* FIXME ReleaseName? */
 
 	if (self->bus != NULL)
 	{

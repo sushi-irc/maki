@@ -113,14 +113,6 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 
 		sashimi_timeout(serv->connection, 60);
 
-		if (serv->autoconnect)
-		{
-			if (!maki_server_connect(serv))
-			{
-				maki_server_reconnect_callback(serv);
-			}
-		}
-
 		g_free(address);
 
 		groups = g_key_file_get_groups(key_file, NULL);
@@ -147,12 +139,22 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		}
 
 		g_strfreev(groups);
+
+		if (serv->autoconnect)
+		{
+			maki_server_connect(serv);
+		}
 	}
 
 	g_key_file_free(key_file);
 	g_free(path);
 
 	return serv;
+}
+
+gboolean maki_server_autoconnect (makiServer* serv)
+{
+	return serv->autoconnect;
 }
 
 makiChannel* maki_server_add_channel (makiServer* serv, const gchar* name, makiChannel* chan)
@@ -220,12 +222,12 @@ void maki_server_free (gpointer data)
 {
 	makiServer* serv = data;
 
+	maki_server_disconnect(serv, NULL);
+
 	if (serv->reconnect.source != 0)
 	{
 		g_source_remove(serv->reconnect.source);
 	}
-
-	maki_server_disconnect(serv, NULL);
 
 	maki_cache_remove(serv->users, serv->user->nick);
 
@@ -246,21 +248,24 @@ void maki_server_free (gpointer data)
 	g_free(serv);
 }
 
-/**
- * This function is a wrapper around sashimi_connect().
- * It handles the initial login with NICK and USER and emits the connect signal.
- */
+/* This function is a wrapper around sashimi_connect().
+ * It handles the initial login with NICK and USER and emits the connect signal. */
 gboolean maki_server_connect (makiServer* serv)
 {
 	sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
 	sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
 
-	return sashimi_connect(serv->connection);
+	if (!sashimi_connect(serv->connection))
+	{
+		maki_server_reconnect_callback(serv);
+
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
-/**
- * This function is a wrapper around sashimi_disconnect().
- */
+/* This function is a wrapper around sashimi_disconnect(). */
 gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 {
 	gboolean ret;
@@ -307,6 +312,7 @@ static gboolean maki_server_reconnect (gpointer data)
 	else if (serv->reconnect.retries == 0)
 	{
 		/* Finally give up. */
+		serv->reconnect.source = 0;
 		return FALSE;
 	}
 
@@ -315,6 +321,7 @@ static gboolean maki_server_reconnect (gpointer data)
 
 	if (maki_server_connect(serv))
 	{
+		serv->reconnect.source = 0;
 		return FALSE;
 	}
 
@@ -356,6 +363,7 @@ void maki_server_reconnect_callback (gpointer data)
 {
 	makiServer* serv = data;
 
+	/* Prevent maki_server_reconnect() from running twice. */
 	if (serv->reconnect.source != 0)
 	{
 		return;

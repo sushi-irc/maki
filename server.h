@@ -86,6 +86,7 @@ struct maki_server
 };
 
 makiServer* maki_server_new (makiInstance*, const gchar*);
+gboolean maki_server_autoconnect (makiServer*);
 makiChannel* maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
 makiChannel* maki_server_get_channel (makiServer*, const gchar*);
 void maki_server_remove_channel (makiServer*, const gchar*);
