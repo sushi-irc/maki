@@ -63,6 +63,7 @@ enum
 	s_message,
 	s_mode,
 	s_motd,
+	s_names,
 	s_nick,
 	s_notice,
 	s_oper,
@@ -161,6 +162,11 @@ void maki_dbus_emit_mode (gint64 time, const gchar* server, const gchar* nick, c
 void maki_dbus_emit_motd (gint64 time, const gchar* server, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_motd], 0, time, server, message);
+}
+
+void maki_dbus_emit_names (gint64 time, const gchar* server, const gchar* nick, const gchar* channel)
+{
+	g_signal_emit(dbus, signals[s_names], 0, time, server, nick, channel);
 }
 
 void maki_dbus_emit_nick (gint64 time, const gchar* server, const gchar* nick, const gchar* new_nick)
@@ -1540,6 +1546,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             maki_marshal_VOID__INT64_STRING_STRING,
 		             G_TYPE_NONE, 3,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_names] =
+		g_signal_new("names",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_nick] =
 		g_signal_new("nick",
 		             G_OBJECT_CLASS_TYPE(klass),

@@ -64,6 +64,7 @@ void maki_dbus_emit_list (gint64, const gchar*, const gchar*, gint64, const gcha
 void maki_dbus_emit_message (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_mode (gint64, const gchar*, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_motd (gint64, const gchar*, const gchar*);
+void maki_dbus_emit_names (gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_nick (gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_notice (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_oper (gint64, const gchar*);

@@ -831,6 +831,8 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
 			cuser = maki_channel_user_new(user);
 			maki_channel_add_user(chan, cuser->user->nick, cuser);
 			cuser->prefix = prefix;
+
+			maki_dbus_emit_names(time, serv->server, nick, tmp[1]);
 		}
 	}
 
