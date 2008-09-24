@@ -790,7 +790,7 @@ void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining,
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
+void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
 {
 	gchar** tmp;
 	gint i;
@@ -805,34 +805,47 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining)
 	tmp = g_strsplit(remaining, " ", 0);
 	length = g_strv_length(tmp);
 
-	if (length < 3)
+	if (is_end)
 	{
-		g_strfreev(tmp);
-		return;
-	}
-
-	if ((chan = maki_server_get_channel(serv, tmp[1])) != NULL)
-	{
-		for (i = 2; i < length; ++i)
+		if (length < 1)
 		{
-			gchar* nick = maki_remove_colon(tmp[i]);
-			guint prefix = 0;
-			gint pos;
-			makiChannelUser* cuser;
-			makiUser* user;
+			g_strfreev(tmp);
+			return;
+		}
 
-			if ((pos = maki_prefix_position(serv, TRUE, *nick)) >= 0)
+		maki_dbus_emit_names(time, serv->server, "", tmp[0]);
+	}
+	else
+	{
+		if (length < 3)
+		{
+			g_strfreev(tmp);
+			return;
+		}
+
+		if ((chan = maki_server_get_channel(serv, tmp[1])) != NULL)
+		{
+			for (i = 2; i < length; ++i)
 			{
-				prefix |= (1 << pos);
-				++nick;
+				gchar* nick = maki_remove_colon(tmp[i]);
+				guint prefix = 0;
+				gint pos;
+				makiChannelUser* cuser;
+				makiUser* user;
+
+				if ((pos = maki_prefix_position(serv, TRUE, *nick)) >= 0)
+				{
+					prefix |= (1 << pos);
+					++nick;
+				}
+
+				user = maki_cache_insert(serv->users, nick);
+				cuser = maki_channel_user_new(user);
+				maki_channel_add_user(chan, cuser->user->nick, cuser);
+				cuser->prefix = prefix;
+
+				maki_dbus_emit_names(time, serv->server, nick, tmp[1]);
 			}
-
-			user = maki_cache_insert(serv->users, nick);
-			cuser = maki_channel_user_new(user);
-			maki_channel_add_user(chan, cuser->user->nick, cuser);
-			cuser->prefix = prefix;
-
-			maki_dbus_emit_names(time, serv->server, nick, tmp[1]);
 		}
 	}
 
@@ -1166,7 +1179,9 @@ gpointer maki_in_runner (gpointer data)
 						break;
 					/* RPL_NAMREPLY */
 					case 353:
-						maki_in_rpl_namreply(serv, time.tv_sec, remaining);
+					/* RPL_ENDOFNAMES */
+					case 366:
+						maki_in_rpl_namreply(serv, time.tv_sec, remaining, (numeric == 366));
 						break;
 					/* RPL_UNAWAY */
 					case 305:
