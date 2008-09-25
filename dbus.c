@@ -724,6 +724,26 @@ static gboolean maki_dbus_mode (makiDBus* self, const gchar* server, const gchar
 	return TRUE;
 }
 
+static gboolean maki_dbus_names (makiDBus* self, const gchar* server, const gchar* channel, GError** error)
+{
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	{
+		if (channel[0] != '\0')
+		{
+			maki_server_send_printf(serv, "NAMES %s", channel);
+		}
+		else
+		{
+			maki_server_send(serv, "NAMES");
+		}
+	}
+
+	return TRUE;
+}
+
 static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar* nick, GError** error)
 {
 	makiServer* serv;
