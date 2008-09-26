@@ -1353,6 +1353,26 @@ static gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* serv
 	return TRUE;
 }
 
+static gboolean maki_dbus_who (makiDBus* self, const gchar* server, const gchar* mask, gboolean operators_only, GError** error)
+{
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	{
+		if (operators_only)
+		{
+			maki_server_send_printf(serv, "WHO %s o", mask);
+		}
+		else
+		{
+			maki_server_send_printf(serv, "WHO %s", mask);
+		}
+	}
+
+	return TRUE;
+}
+
 static gboolean maki_dbus_whois (makiDBus* self, const gchar* server, const gchar* mask, GError** error)
 {
 	makiServer* serv;

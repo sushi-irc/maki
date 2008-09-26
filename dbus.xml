@@ -109,6 +109,7 @@
 
 		<method name="names">
 			<arg name="server" type="s" />
+			<!-- channel is optional and can be empty (""). -->
 			<arg name="channel" type="s" />
 		</method>
 
@@ -240,6 +241,12 @@
 			<arg name="channel" type="s" />
 			<arg name="nick" type="s" />
 			<arg name="prefix" type="s" direction="out" />
+		</method>
+
+		<method name="who">
+			<arg name="server" type="s" />
+			<arg name="mask" type="s" />
+			<arg name="operators_only" type="b" />
 		</method>
 
 		<method name="whois">

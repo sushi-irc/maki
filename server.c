@@ -328,8 +328,6 @@ void maki_server_connect_callback (gpointer data)
 		serv->reconnect.source = 0;
 	}
 
-	serv->connected = TRUE;
-
 	serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect", "retries");
 
 	user = maki_cache_insert(serv->users, serv->initial_nick);
@@ -343,6 +341,8 @@ void maki_server_connect_callback (gpointer data)
 
 	g_get_current_time(&time);
 	maki_dbus_emit_connect(time.tv_sec, serv->server);
+
+	serv->connected = TRUE;
 }
 
 /* This function is called by sashimi if the connection drops.
