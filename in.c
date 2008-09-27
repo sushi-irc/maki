@@ -137,14 +137,14 @@ void maki_commands (makiServer* serv)
 {
 	if (serv->commands != NULL)
 	{
-		gchar** command;
+		guint i;
+		guint length;
 
-		command = serv->commands;
+		length = g_strv_length(serv->commands);
 
-		while (*command != NULL)
+		for (i = 0; i < length; i++)
 		{
-			maki_server_send(serv, *command);
-			++command;
+			maki_server_send(serv, serv->commands[i]);
 		}
 	}
 }
