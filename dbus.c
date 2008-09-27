@@ -852,6 +852,8 @@ static gboolean maki_dbus_quit (makiDBus* self, const gchar* server, const gchar
 		{
 			maki_server_disconnect(serv, SUSHI_QUIT_MESSAGE);
 		}
+
+		g_hash_table_remove(maki_instance_servers(inst), server);
 	}
 
 	return TRUE;
