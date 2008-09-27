@@ -124,7 +124,7 @@ static gboolean maki_join (gpointer data)
 		const gchar* chan_name = key;
 		makiChannel* chan = value;
 
-		if (maki_channel_autojoin(chan) || maki_channel_joined(chan))
+		if (maki_channel_autojoin(chan))
 		{
 			maki_out_join(serv, chan_name, maki_channel_key(chan));
 		}

@@ -268,6 +268,8 @@ gboolean maki_server_connect (makiServer* serv)
 /* This function is a wrapper around sashimi_disconnect(). */
 gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 {
+	GHashTableIter iter;
+	gpointer key, value;
 	gboolean ret;
 
 	sashimi_connect_callback(serv->connection, NULL, NULL);
@@ -276,6 +278,15 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 	if (message != NULL)
 	{
 		maki_out_quit(serv, message);
+	}
+
+	g_hash_table_iter_init(&iter, serv->channels);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		makiChannel* chan = value;
+
+		maki_channel_set_joined(chan, FALSE);
 	}
 
 	serv->connected = FALSE;
@@ -339,10 +350,10 @@ void maki_server_connect_callback (gpointer data)
 
 	maki_server_send_printf(serv, "USER %s 0 * :%s", serv->initial_nick, serv->name);
 
+	serv->connected = TRUE;
+
 	g_get_current_time(&time);
 	maki_dbus_emit_connect(time.tv_sec, serv->server);
-
-	serv->connected = TRUE;
 }
 
 /* This function is called by sashimi if the connection drops.
