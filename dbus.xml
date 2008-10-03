@@ -378,6 +378,7 @@
 		<signal name="motd">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
+			<!-- message == "" signifies the end of the MOTD or a missing MOTD. -->
 			<arg name="message" type="s" />
 		</signal>
 

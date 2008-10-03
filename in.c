@@ -938,14 +938,21 @@ void maki_in_rpl_isupport (makiServer* serv, glong time, gchar* remaining)
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_motd (makiServer* serv, glong time, gchar* remaining)
+void maki_in_rpl_motd (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
 {
 	if (!remaining)
 	{
 		return;
 	}
 
-	maki_dbus_emit_motd(time, serv->server, maki_remove_colon(remaining));
+	if (is_end)
+	{
+		maki_dbus_emit_motd(time, serv->server, "");
+	}
+	else
+	{
+		maki_dbus_emit_motd(time, serv->server, maki_remove_colon(remaining));
+	}
 }
 
 void maki_in_rpl_list (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
@@ -1216,6 +1223,8 @@ gpointer maki_in_runner (gpointer data)
 						{
 							maki_out_away(serv, serv->user->away_message);
 						}
+
+						maki_in_rpl_motd(serv, time.tv_sec, remaining, TRUE);
 						break;
 					/* ERR_NICKNAMEINUSE */
 					case 433:
@@ -1243,7 +1252,7 @@ gpointer maki_in_runner (gpointer data)
 						break;
 					/* RPL_MOTD */
 					case 372:
-						maki_in_rpl_motd(serv, time.tv_sec, remaining);
+						maki_in_rpl_motd(serv, time.tv_sec, remaining, FALSE);
 						break;
 					/* RPL_TOPIC */
 					case 332:
