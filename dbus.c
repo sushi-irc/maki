@@ -75,7 +75,6 @@ enum
 	s_query_ctcp,
 	s_query_notice,
 	s_quit,
-	s_reconnect,
 	s_shutdown,
 	s_topic,
 	s_whois,
@@ -222,11 +221,6 @@ void maki_dbus_emit_query_notice (gint64 time, const gchar* server, const gchar*
 void maki_dbus_emit_quit (gint64 time, const gchar* server, const gchar* nick, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_quit], 0, time, server, nick, message);
-}
-
-void maki_dbus_emit_reconnect (gint64 time, const gchar* server)
-{
-	g_signal_emit(dbus, signals[s_reconnect], 0, time, server);
 }
 
 void maki_dbus_emit_shutdown (gint64 time)
@@ -1684,14 +1678,6 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
 		             G_TYPE_NONE, 4,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_reconnect] =
-		g_signal_new("reconnect",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING,
-		             G_TYPE_NONE, 2,
-		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_shutdown] =
 		g_signal_new("shutdown",
 		             G_OBJECT_CLASS_TYPE(klass),

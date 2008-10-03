@@ -1208,7 +1208,6 @@ gpointer maki_in_runner (gpointer data)
 					/* ERR_NOMOTD */
 					case 422:
 						serv->logged_in = TRUE;
-						maki_dbus_emit_connected(time.tv_sec, serv->server, serv->user->nick);
 						maki_out_nickserv(serv);
 						g_timeout_add_seconds(3, maki_join, serv);
 						maki_commands(serv);
@@ -1226,6 +1225,9 @@ gpointer maki_in_runner (gpointer data)
 							makiUser* user;
 
 							nick = g_strconcat(serv->user->nick, "_", NULL);
+
+							maki_dbus_emit_nick(time.tv_sec, serv->server, serv->user->nick, nick);
+
 							user = maki_cache_insert(serv->users, nick);
 							maki_user_copy(serv->user, user);
 							maki_cache_remove(serv->users, serv->user->nick);

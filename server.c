@@ -252,8 +252,13 @@ void maki_server_free (gpointer data)
  * It handles the initial login with NICK and USER and emits the connect signal. */
 gboolean maki_server_connect (makiServer* serv)
 {
+	GTimeVal time;
+
 	sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
 	sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
+
+	g_get_current_time(&time);
+	maki_dbus_emit_connect(time.tv_sec, serv->server);
 
 	if (!sashimi_connect(serv->connection))
 	{
@@ -299,7 +304,6 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 /* This function handles unexpected reconnects. */
 static gboolean maki_server_reconnect (gpointer data)
 {
-	GTimeVal time;
 	makiServer* serv = data;
 
 	maki_server_disconnect(serv, NULL);
@@ -314,9 +318,6 @@ static gboolean maki_server_reconnect (gpointer data)
 		serv->reconnect.source = 0;
 		return FALSE;
 	}
-
-	g_get_current_time(&time);
-	maki_dbus_emit_reconnect(time.tv_sec, serv->server);
 
 	if (maki_server_connect(serv))
 	{
@@ -353,7 +354,7 @@ void maki_server_connect_callback (gpointer data)
 	serv->connected = TRUE;
 
 	g_get_current_time(&time);
-	maki_dbus_emit_connect(time.tv_sec, serv->server);
+	maki_dbus_emit_connected(time.tv_sec, serv->server, serv->user->nick);
 }
 
 /* This function is called by sashimi if the connection drops.
