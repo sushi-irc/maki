@@ -640,7 +640,7 @@ void maki_in_mode (makiServer* serv, glong time, gchar* nick, gchar* remaining, 
 					makiChannelUser* cuser;
 
 					if ((chan = maki_server_get_channel(serv, target)) != NULL
-							&& (cuser = maki_channel_get_user(chan, modes[i])) != NULL)
+					    && (cuser = maki_channel_get_user(chan, modes[i])) != NULL)
 					{
 						if (sign == '+')
 						{
@@ -837,7 +837,7 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining, gbool
 				makiChannelUser* cuser;
 				makiUser* user;
 
-				if ((pos = maki_prefix_position(serv, TRUE, *nick)) >= 0)
+				while ((pos = maki_prefix_position(serv, TRUE, *nick)) >= 0)
 				{
 					prefix |= (1 << pos);
 					++nick;
