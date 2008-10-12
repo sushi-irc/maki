@@ -52,6 +52,7 @@ enum
 	s_away_message,
 	s_back,
 	s_banlist,
+	s_cannot_join,
 	s_connect,
 	s_connected,
 	s_ctcp,
@@ -106,6 +107,11 @@ void maki_dbus_emit_back (gint64 time, const gchar* server)
 void maki_dbus_emit_banlist (gint64 time, const gchar* server, const gchar* channel, const gchar* mask, const gchar* who, gint64 when)
 {
 	g_signal_emit(dbus, signals[s_banlist], 0, time, server, channel, mask, who, when);
+}
+
+void maki_dbus_emit_cannot_join (gint64 time, const gchar* server, const gchar* channel, const gchar* reason)
+{
+	g_signal_emit(dbus, signals[s_cannot_join], 0, time, server, channel, reason);
 }
 
 void maki_dbus_emit_connect (gint64 time, const gchar* server)
@@ -1494,6 +1500,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_INT64,
 		             G_TYPE_NONE, 6,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT64);
+	signals[s_cannot_join] =
+		g_signal_new("cannot_join",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_connect] =
 		g_signal_new("connect",
 		             G_OBJECT_CLASS_TYPE(klass),

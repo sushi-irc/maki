@@ -293,6 +293,17 @@
 			<!-- mask == "" and who == "" and when == -1 signifies the end of the list. -->
 		</signal>
 
+		<signal name="cannot_join">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<!-- reason == "l" means the channel is full. -->
+			<!-- reason == "i" means the channel is invite only. -->
+			<!-- reason == "b" means you are banned. -->
+			<!-- reason == "k" means the channel has a key set. -->
+			<arg name="reason" type="s" />
+		</signal>
+
 		<!-- Gets emitted when a connect attempt is made. -->
 		<signal name="connect">
 			<arg name="time" type="x" />

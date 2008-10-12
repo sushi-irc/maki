@@ -1062,6 +1062,51 @@ void maki_in_err_nosuchnick (makiServer* serv, glong time, gchar* remaining)
 	g_strfreev(tmp);
 }
 
+void maki_in_err_cannot_join (makiServer* serv, glong time, gchar* remaining, gint numeric)
+{
+	gchar reason[2];
+	gchar** tmp;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 2);
+
+	if (g_strv_length(tmp) < 1)
+	{
+		g_strfreev(tmp);
+		return;
+	}
+
+	switch (numeric)
+	{
+		/* ERR_CHANNELISFULL */
+		case 471:
+			reason[0] = 'l';
+			break;
+		/* ERR_INVITEONLYCHAN */
+		case 473:
+			reason[0] = 'i';
+			break;
+		/* ERR_BANNEDFROMCHAN */
+		case 474:
+			reason[0] = 'b';
+			break;
+		/* ERR_BADCHANNELKEY */
+		case 475:
+			reason[0] = 'k';
+			break;
+	}
+
+	reason[1] = '\0';
+
+	maki_dbus_emit_cannot_join(time, serv->server, tmp[0], reason);
+
+	g_strfreev(tmp);
+}
+
 /* This function is run in its own thread.
  * It receives and handles all messages from sashimi. */
 gpointer maki_in_runner (gpointer data)
@@ -1292,6 +1337,17 @@ gpointer maki_in_runner (gpointer data)
 					case 381:
 						maki_dbus_emit_oper(time.tv_sec, serv->server);
 						break;
+					/* ERR_CHANNELISFULL */
+					case 471:
+					/* ERR_INVITEONLYCHAN */
+					case 473:
+					/* ERR_BANNEDFROMCHAN */
+					case 474:
+					/* ERR_BADCHANNELKEY */
+					case 475:
+						maki_in_err_cannot_join(serv, time.tv_sec, remaining, numeric);
+						break;
+
 					default:
 						maki_debug("WARN: Unhandled numeric reply '%d'\n", numeric);
 						break;
