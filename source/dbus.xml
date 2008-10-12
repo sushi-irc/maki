@@ -326,12 +326,6 @@
 			<arg name="message" type="s" />
 		</signal>
 
-		<signal name="invalid_target">
-			<arg name="time" type="x" />
-			<arg name="server" type="s" />
-			<arg name="target" type="s" />
-		</signal>
-
 		<signal name="invite">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
@@ -406,6 +400,16 @@
 			<arg name="server" type="s" />
 			<arg name="nick" type="s" />
 			<arg name="new_nick" type="s" />
+		</signal>
+
+		<signal name="no_such">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="target" type="s" />
+			<!-- type == "n" means nick/channel. -->
+			<!-- type == "s" means server. -->
+			<!-- type == "c" means channel. -->
+			<arg name="type" type="s" />
 		</signal>
 
 		<signal name="notice">

@@ -1043,8 +1043,9 @@ void maki_in_rpl_whois (makiServer* serv, glong time, gchar* remaining, gboolean
 	g_strfreev(tmp);
 }
 
-void maki_in_err_nosuchnick (makiServer* serv, glong time, gchar* remaining)
+void maki_in_err_nosuch (makiServer* serv, glong time, gchar* remaining, gint numeric)
 {
+	gchar type[2];
 	gchar** tmp;
 
 	if (!remaining)
@@ -1054,10 +1055,31 @@ void maki_in_err_nosuchnick (makiServer* serv, glong time, gchar* remaining)
 
 	tmp = g_strsplit(remaining, " ", 2);
 
-	if (g_strv_length(tmp) >= 1)
+	if (g_strv_length(tmp) < 1)
 	{
-		maki_dbus_emit_invalid_target(time, serv->server, tmp[0]);
+		g_strfreev(tmp);
+		return;
 	}
+
+	switch (numeric)
+	{
+		/* ERR_NOSUCHNICK */
+		case 401:
+			type[0] = 'n';
+			break;
+		/* ERR_NOSUCHSERVER */
+		case 402:
+			type[0] = 's';
+			break;
+		/* ERR_NOSUCHCHANNEL */
+		case 403:
+			type[0] = 'c';
+			break;
+	}
+
+	type[1] = '\0';
+
+	maki_dbus_emit_no_such(time, serv->server, tmp[0], type);
 
 	g_strfreev(tmp);
 }
@@ -1293,7 +1315,11 @@ gpointer maki_in_runner (gpointer data)
 						break;
 					/* ERR_NOSUCHNICK */
 					case 401:
-						maki_in_err_nosuchnick(serv, time.tv_sec, remaining);
+					/* ERR_NOSUCHSERVER */
+					case 402:
+					/* ERR_NOSUCHCHANNEL */
+					case 403:
+						maki_in_err_nosuch(serv, time.tv_sec, remaining, numeric);
 						break;
 					/* RPL_MOTD */
 					case 372:

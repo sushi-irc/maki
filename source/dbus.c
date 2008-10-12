@@ -56,7 +56,6 @@ enum
 	s_connect,
 	s_connected,
 	s_ctcp,
-	s_invalid_target,
 	s_invite,
 	s_join,
 	s_kick,
@@ -66,6 +65,7 @@ enum
 	s_motd,
 	s_names,
 	s_nick,
+	s_no_such,
 	s_notice,
 	s_oper,
 	s_own_ctcp,
@@ -129,11 +129,6 @@ void maki_dbus_emit_ctcp (gint64 time, const gchar* server, const gchar* nick, c
 	g_signal_emit(dbus, signals[s_ctcp], 0, time, server, nick, target, message);
 }
 
-void maki_dbus_emit_invalid_target (gint64 time, const gchar* server, const gchar* target)
-{
-	g_signal_emit(dbus, signals[s_invalid_target], 0, time, server, target);
-}
-
 void maki_dbus_emit_invite (gint64 time, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
 {
 	g_signal_emit(dbus, signals[s_invite], 0, time, server, nick, channel, who);
@@ -177,6 +172,11 @@ void maki_dbus_emit_names (gint64 time, const gchar* server, const gchar* nick, 
 void maki_dbus_emit_nick (gint64 time, const gchar* server, const gchar* nick, const gchar* new_nick)
 {
 	g_signal_emit(dbus, signals[s_nick], 0, time, server, nick, new_nick);
+}
+
+void maki_dbus_emit_no_such (gint64 time, const gchar* server, const gchar* target, const gchar* type)
+{
+	g_signal_emit(dbus, signals[s_no_such], 0, time, server, target, type);
 }
 
 void maki_dbus_emit_notice (gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
@@ -1532,14 +1532,6 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_invalid_target] =
-		g_signal_new("invalid_target",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING,
-		             G_TYPE_NONE, 3,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_invite] =
 		g_signal_new("invite",
 		             G_OBJECT_CLASS_TYPE(klass),
@@ -1606,6 +1598,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_nick] =
 		g_signal_new("nick",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_no_such] =
+		g_signal_new("no_such",
 		             G_OBJECT_CLASS_TYPE(klass),
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
