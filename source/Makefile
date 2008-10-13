@@ -7,6 +7,7 @@ SUSHI_CFLAGS  += $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --c
 SUSHI_LDFLAGS += $(shell pkg-config --libs   dbus-glib-1) $(shell pkg-config --libs   glib-2.0) $(shell pkg-config --libs   gobject-2.0) $(shell pkg-config --libs   gthread-2.0)
 
 SUSHI_CFLAGS += -DLOCALEDIR='"$(localedir)"'
+SUSHI_CFLAGS += -DSUSHI_VERSION='"$(SUSHI_VERSION)"'
 
 COMPONENTS = cache channel channel_user config dbus in instance log marshal misc out server user
 HEADERS    = maki.h sashimi.h $(COMPONENTS:%=%.h) dbus_glue.h

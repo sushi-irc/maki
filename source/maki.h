@@ -50,7 +50,6 @@
 #include "user.h"
 
 #define SUSHI_NAME "sushi"
-#define SUSHI_VERSION "1.0-alpha2"
 
 #define MAKI_NAME "maki"
 
