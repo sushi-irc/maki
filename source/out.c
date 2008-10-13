@@ -142,7 +142,14 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 
 	g_get_current_time(&time);
 
-	maki_server_send_printf(serv, "QUIT :%s", message);
+	if (message != NULL && message[0] != '\0')
+	{
+		maki_server_send_printf(serv, "QUIT :%s", message);
+	}
+	else
+	{
+		maki_server_send(serv, "QUIT");
+	}
 
 	maki_server_channels_iter(serv, &iter);
 
@@ -153,7 +160,14 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 
 		if (maki_channel_joined(chan))
 		{
-			maki_log(serv, chan_name, _("« You quit (%s)."), message);
+			if (message != NULL && message[0] != '\0')
+			{
+				maki_log(serv, chan_name, _("« You quit (%s)."), message);
+			}
+			else
+			{
+				maki_log(serv, chan_name, _("« You quit."));
+			}
 		}
 	}
 

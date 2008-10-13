@@ -844,15 +844,7 @@ static gboolean maki_dbus_quit (makiDBus* self, const gchar* server, const gchar
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		if (message[0])
-		{
-			maki_server_disconnect(serv, message);
-		}
-		else
-		{
-			maki_server_disconnect(serv, SUSHI_QUIT_MESSAGE);
-		}
-
+		maki_server_disconnect(serv, message);
 		g_hash_table_remove(maki_instance_servers(inst), server);
 	}
 
@@ -1066,14 +1058,7 @@ static gboolean maki_dbus_shutdown (makiDBus* self, const gchar* message, GError
 	{
 		makiServer* serv = value;
 
-		if (message[0])
-		{
-			maki_server_disconnect(serv, message);
-		}
-		else
-		{
-			maki_server_disconnect(serv, SUSHI_QUIT_MESSAGE);
-		}
+		maki_server_disconnect(serv, message);
 	}
 
 	g_get_current_time(&time);

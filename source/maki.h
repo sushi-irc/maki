@@ -51,8 +51,6 @@
 
 #define SUSHI_NAME "sushi"
 #define SUSHI_VERSION "1.0-alpha2"
-#define SUSHI_URL "http://sushi.ikkoku.de/"
-#define SUSHI_QUIT_MESSAGE SUSHI_NAME " – " SUSHI_URL
 
 #define MAKI_NAME "maki"
 

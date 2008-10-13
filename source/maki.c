@@ -95,7 +95,7 @@ static void maki_signal (int signo)
 	{
 		makiServer* serv = value;
 
-		maki_server_disconnect(serv, SUSHI_QUIT_MESSAGE);
+		maki_server_disconnect(serv, "");
 	}
 
 	g_get_current_time(&time);
