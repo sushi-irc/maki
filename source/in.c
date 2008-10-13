@@ -194,7 +194,7 @@ void maki_in_privmsg (makiServer* serv, glong time, gchar* nick, gchar* remainin
 				{
 					if (strncmp(message, "VERSION", 7) == 0)
 					{
-						maki_server_send_printf(serv, "NOTICE %s :\001VERSION %s %s\001", nick, SUSHI_NAME, SUSHI_VERSION);
+						maki_server_send_printf(serv, "NOTICE %s :\001VERSION maki %s\001", nick, SUSHI_VERSION);
 					}
 					else if (strncmp(message, "PING", 4) == 0)
 					{

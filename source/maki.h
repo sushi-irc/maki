@@ -49,8 +49,6 @@
 #include "server.h"
 #include "user.h"
 
-#define SUSHI_NAME "sushi"
-
 #define MAKI_NAME "maki"
 
 extern gboolean opt_debug;
