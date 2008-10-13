@@ -171,16 +171,6 @@ int main (int argc, char* argv[])
 	signal(SIGTERM, maki_signal);
 	signal(SIGQUIT, maki_signal);
 
-	/* FIXME move to maki_instance_new()? */
-	if (g_mkdir_with_parents(maki_instance_directory(inst, "config"), S_IRUSR | S_IWUSR | S_IXUSR) != 0
-	    || g_mkdir_with_parents(maki_instance_directory(inst, "servers"), S_IRUSR | S_IWUSR | S_IXUSR) != 0)
-	{
-		/* FIXME error message */
-		maki_instance_free(inst);
-		g_object_unref(dbus);
-		return 1;
-	}
-
 	servers = g_dir_open(maki_instance_directory(inst, "servers"), 0, NULL);
 
 	while ((file = g_dir_read_name(servers)) != NULL)

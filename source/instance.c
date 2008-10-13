@@ -27,6 +27,8 @@
 
 #include "maki.h"
 
+#include <glib/gstdio.h>
+
 struct maki_instance
 {
 	makiConfig* config;
@@ -58,22 +60,32 @@ makiInstance* maki_instance_get_default (void)
 
 makiInstance* maki_instance_new (void)
 {
+	gchar* config_dir;
+	gchar* servers_dir;
 	makiInstance* inst;
 
 	inst = g_new(makiInstance, 1);
 
-	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
+	config_dir = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
+	servers_dir = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
 
-	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-
-	g_hash_table_insert(inst->directories, g_strdup("config"), g_build_filename(g_get_user_config_dir(), "sushi", NULL));
-	g_hash_table_insert(inst->directories, g_strdup("servers"), g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL));
+	if (g_mkdir_with_parents(config_dir, S_IRUSR | S_IWUSR | S_IXUSR) != 0
+	    || g_mkdir_with_parents(servers_dir, S_IRUSR | S_IWUSR | S_IXUSR) != 0)
+	{
+		g_free(config_dir);
+		g_free(servers_dir);
+		g_free(inst);
+		return NULL;
+	}
 
 	inst->config = maki_config_new(inst);
-
+	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 	inst->message_queue = g_async_queue_new_full(sashimi_message_free);
-
+	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
 	inst->threads.messages = g_thread_create(maki_in_runner, inst, TRUE, NULL);
+
+	g_hash_table_insert(inst->directories, g_strdup("config"), config_dir);
+	g_hash_table_insert(inst->directories, g_strdup("servers"), servers_dir);
 
 	return inst;
 }
