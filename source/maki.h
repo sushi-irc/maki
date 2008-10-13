@@ -49,8 +49,6 @@
 #include "server.h"
 #include "user.h"
 
-#define MAKI_NAME "maki"
-
 extern gboolean opt_debug;
 
 extern makiDBus* dbus;

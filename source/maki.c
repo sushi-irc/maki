@@ -125,8 +125,8 @@ int main (int argc, char* argv[])
 	};
 
 	setlocale(LC_ALL, "");
-	bindtextdomain(MAKI_NAME, LOCALEDIR);
-	textdomain(MAKI_NAME);
+	bindtextdomain("maki", LOCALEDIR);
+	textdomain("maki");
 
 	context = g_option_context_new(NULL);
 	g_option_context_add_main_entries(context, entries, NULL);
