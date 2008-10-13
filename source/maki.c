@@ -124,6 +124,14 @@ int main (int argc, char* argv[])
 		{ NULL }
 	};
 
+	if (!g_thread_supported())
+	{
+		g_thread_init(NULL);
+	}
+
+	dbus_g_thread_init();
+	g_type_init();
+
 	setlocale(LC_ALL, "");
 	bindtextdomain("maki", LOCALEDIR);
 	textdomain("maki");
@@ -138,14 +146,6 @@ int main (int argc, char* argv[])
 	{
 		return 1;
 	}
-
-	if (!g_thread_supported())
-	{
-		g_thread_init(NULL);
-	}
-
-	dbus_g_thread_init();
-	g_type_init();
 
 	if ((inst = maki_instance_get_default()) == NULL)
 	{
