@@ -141,14 +141,9 @@ int main (int argc, char* argv[])
 	g_option_context_parse(context, &argc, &argv, NULL);
 	g_option_context_free(context);
 
-	if (opt_daemon
-	    && maki_daemonize() != 0)
-	{
-		return 1;
-	}
-
 	if ((inst = maki_instance_get_default()) == NULL)
 	{
+		/* FIXME error message */
 		return 1;
 	}
 
@@ -157,6 +152,15 @@ int main (int argc, char* argv[])
 	if (!maki_dbus_connected(dbus))
 	{
 		g_warning("%s\n", _("Could not connect to DBus. maki may already be running."));
+		maki_instance_free(inst);
+		g_object_unref(dbus);
+		return 1;
+	}
+
+	if (opt_daemon
+	    && maki_daemonize() != 0)
+	{
+		/* FIXME error message */
 		maki_instance_free(inst);
 		g_object_unref(dbus);
 		return 1;
@@ -171,6 +175,9 @@ int main (int argc, char* argv[])
 	if (g_mkdir_with_parents(maki_instance_directory(inst, "config"), S_IRUSR | S_IWUSR | S_IXUSR) != 0
 	    || g_mkdir_with_parents(maki_instance_directory(inst, "servers"), S_IRUSR | S_IWUSR | S_IXUSR) != 0)
 	{
+		/* FIXME error message */
+		maki_instance_free(inst);
+		g_object_unref(dbus);
 		return 1;
 	}
 
