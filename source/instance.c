@@ -78,7 +78,6 @@ makiInstance* maki_instance_new (void)
 		return NULL;
 	}
 
-	inst->config = maki_config_new(inst);
 	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 	inst->message_queue = g_async_queue_new_full(sashimi_message_free);
 	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
@@ -86,6 +85,8 @@ makiInstance* maki_instance_new (void)
 
 	g_hash_table_insert(inst->directories, g_strdup("config"), config_dir);
 	g_hash_table_insert(inst->directories, g_strdup("servers"), servers_dir);
+
+	inst->config = maki_config_new(inst);
 
 	return inst;
 }
