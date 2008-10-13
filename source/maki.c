@@ -69,7 +69,7 @@ static int maki_daemonize (void)
 		return 1;
 	}
 
-	if (dup2(fd, 0) == -1 || dup2(fd, 1) == -1 || dup2(fd, 2) == -1)
+	if (dup2(fd, STDIN_FILENO) == -1 || dup2(fd, STDOUT_FILENO) == -1 || dup2(fd, STDERR_FILENO) == -1)
 	{
 		return 1;
 	}
