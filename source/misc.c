@@ -177,8 +177,15 @@ gchar* maki_get_current_time_string (void)
 
 	tzset();
 
-	time(&t);
-	localtime_r(&t, &tm);
+	if (time(&t) == -1)
+	{
+		return NULL;
+	}
+
+	if (localtime_r(&t, &tm) == NULL)
+	{
+		return NULL;
+	}
 
 	if (strftime(buf, 1024, "%Y-%m-%d %H:%M:%S", &tm) > 0)
 	{
