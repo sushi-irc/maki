@@ -31,7 +31,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <time.h>
 #include <unistd.h>
 
 struct maki_log
@@ -79,14 +78,14 @@ void maki_log_free (gpointer data)
 
 void maki_log_write (makiLog* log, const gchar* message)
 {
-	gchar buf[1024];
-	time_t t;
+	gchar* time_str;
 
-	t = time(NULL);
-	strftime(buf, 1024, "%Y-%m-%d %H:%M:%S", localtime(&t));
+	time_str = maki_get_current_time_string();
 
-	maki_write(log->fd, buf);
+	maki_write(log->fd, time_str);
 	maki_write(log->fd, " ");
 	maki_write(log->fd, message);
 	maki_write(log->fd, "\n");
+
+	g_free(time_str);
 }

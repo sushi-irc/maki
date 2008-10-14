@@ -25,6 +25,8 @@
  * SUCH DAMAGE.
  */
 
+#define _XOPEN_SOURCE
+
 #include "maki.h"
 
 #include <glib/gstdio.h>
@@ -33,6 +35,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
@@ -164,4 +167,25 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 	maki_log_write(log, tmp);
 
 	g_free(tmp);
+}
+
+gchar* maki_get_current_time_string (void)
+{
+	gchar buf[1024];
+	time_t t;
+	struct tm tm;
+
+	tzset();
+
+	time(&t);
+	localtime_r(&t, &tm);
+
+	if (strftime(buf, 1024, "%Y-%m-%d %H:%M:%S", &tm) > 0)
+	{
+		return g_strdup(buf);
+	}
+	else
+	{
+		return NULL;
+	}
 }

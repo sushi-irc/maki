@@ -36,5 +36,6 @@ gboolean maki_str_equal (gconstpointer, gconstpointer);
 guint maki_str_hash (gconstpointer);
 gboolean maki_write (gint, const gchar*);
 void maki_log (makiServer*, const gchar*, const gchar*, ...);
+gchar* maki_get_current_time_string (void);
 
 #endif
