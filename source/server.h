@@ -83,6 +83,9 @@ struct maki_server
 		prefix;
 	}
 	support;
+
+	GAsyncQueue* message_queue;
+	GThread* message_thread;
 };
 
 makiServer* maki_server_new (makiInstance*, const gchar*);

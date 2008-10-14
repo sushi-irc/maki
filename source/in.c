@@ -1133,16 +1133,15 @@ void maki_in_err_cannot_join (makiServer* serv, glong time, gchar* remaining, gi
  * It receives and handles all messages from sashimi. */
 gpointer maki_in_runner (gpointer data)
 {
-	makiInstance* inst = data;
+	makiServer* serv = data;
 
 	for (;;)
 	{
 		gchar* message;
 		GTimeVal time;
-		makiServer* serv;
 		sashimiMessage* msg;
 
-		msg = g_async_queue_pop(maki_instance_queue(inst));
+		msg = g_async_queue_pop(serv->message_queue);
 
 		if (G_UNLIKELY(msg->message == NULL && msg->data == NULL))
 		{

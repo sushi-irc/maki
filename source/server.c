@@ -95,7 +95,8 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		serv->logged_in = FALSE;
 		serv->reconnect.source = 0;
 		serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect" ,"retries");
-		serv->connection = sashimi_new(address, port, maki_instance_queue(serv->instance), serv);
+		serv->message_queue = g_async_queue_new_full(sashimi_message_free);
+		serv->connection = sashimi_new(address, port, serv->message_queue, NULL);
 		serv->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_channel_free);
 		serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
 		serv->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_log_free);
@@ -139,6 +140,8 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		}
 
 		g_strfreev(groups);
+
+		serv->message_thread = g_thread_create(maki_in_runner, serv, TRUE, NULL);
 
 		if (serv->autoconnect)
 		{
@@ -220,6 +223,7 @@ gboolean maki_server_send_printf (makiServer* serv, const gchar* format, ...)
 /* This function gets called when a server is removed from the servers hash table. */
 void maki_server_free (gpointer data)
 {
+	sashimiMessage* msg;
 	makiServer* serv = data;
 
 	maki_server_disconnect(serv, NULL);
@@ -228,6 +232,14 @@ void maki_server_free (gpointer data)
 	{
 		g_source_remove(serv->reconnect.source);
 	}
+
+	/* Send a bogus message so the messages thread wakes up. */
+	msg = sashimi_message_new(NULL, NULL);
+
+	g_async_queue_push(serv->message_queue, msg);
+
+	g_thread_join(serv->message_thread);
+	g_async_queue_unref(serv->message_queue);
 
 	maki_cache_remove(serv->users, serv->user->nick);
 

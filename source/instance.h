@@ -38,7 +38,6 @@ makiInstance* maki_instance_get_default (void);
 makiInstance* maki_instance_new (void);
 makiConfig* maki_instance_config (makiInstance*);
 const gchar* maki_instance_directory (makiInstance*, const gchar*);
-GAsyncQueue* maki_instance_queue (makiInstance*);
 GHashTable* maki_instance_servers (makiInstance*);
 void maki_instance_free (makiInstance*);
 

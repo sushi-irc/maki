@@ -36,14 +36,6 @@ struct maki_instance
 	GHashTable* servers;
 
 	GHashTable* directories;
-
-	GAsyncQueue* message_queue;
-
-	struct
-	{
-		GThread* messages;
-	}
-	threads;
 };
 
 makiInstance* maki_instance_get_default (void)
@@ -79,9 +71,7 @@ makiInstance* maki_instance_new (void)
 	}
 
 	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-	inst->message_queue = g_async_queue_new_full(sashimi_message_free);
 	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
-	inst->threads.messages = g_thread_create(maki_in_runner, inst, TRUE, NULL);
 
 	g_hash_table_insert(inst->directories, g_strdup("config"), config_dir);
 	g_hash_table_insert(inst->directories, g_strdup("servers"), servers_dir);
@@ -101,11 +91,6 @@ const gchar* maki_instance_directory (makiInstance* inst, const gchar* directory
 	return g_hash_table_lookup(inst->directories, directory);
 }
 
-GAsyncQueue* maki_instance_queue (makiInstance* inst)
-{
-	return inst->message_queue;
-}
-
 /* FIXME abstract more */
 GHashTable* maki_instance_servers (makiInstance* inst)
 {
@@ -114,16 +99,6 @@ GHashTable* maki_instance_servers (makiInstance* inst)
 
 void maki_instance_free (makiInstance* inst)
 {
-	sashimiMessage* msg;
-
-	/* Send a bogus message so the messages thread wakes up. */
-	msg = sashimi_message_new(NULL, NULL);
-
-	g_async_queue_push(inst->message_queue, msg);
-
-	g_thread_join(inst->threads.messages);
-	g_async_queue_unref(inst->message_queue);
-
 	g_hash_table_destroy(inst->servers);
 
 	g_hash_table_destroy(inst->directories);
