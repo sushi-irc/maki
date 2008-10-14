@@ -80,12 +80,13 @@ void maki_log_write (makiLog* log, const gchar* message)
 {
 	gchar* time_str;
 
-	time_str = maki_get_current_time_string();
+	if ((time_str = maki_get_current_time_string()) != NULL)
+	{
+		maki_write(log->fd, time_str);
+		maki_write(log->fd, " ");
+		g_free(time_str);
+	}
 
-	maki_write(log->fd, time_str);
-	maki_write(log->fd, " ");
 	maki_write(log->fd, message);
 	maki_write(log->fd, "\n");
-
-	g_free(time_str);
 }
