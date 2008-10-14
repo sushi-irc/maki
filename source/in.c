@@ -1149,7 +1149,6 @@ gpointer maki_in_runner (gpointer data)
 			g_thread_exit(NULL);
 		}
 
-		serv = msg->data;
 		message = msg->message;
 
 		/* Check for valid UTF-8, because strange crashes can occur otherwise. */
