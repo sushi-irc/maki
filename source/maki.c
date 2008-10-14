@@ -101,8 +101,6 @@ static void maki_signal (int signo)
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(time.tv_sec);
 
-	maki_instance_free(inst);
-
 	g_main_loop_quit(main_loop);
 
 	signal(signo, SIG_DFL);
@@ -189,6 +187,7 @@ int main (int argc, char* argv[])
 	g_main_loop_run(main_loop);
 	g_main_loop_unref(main_loop);
 
+	maki_instance_free(inst);
 	g_object_unref(dbus);
 
 	return 0;

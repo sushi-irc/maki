@@ -1064,8 +1064,6 @@ static gboolean maki_dbus_shutdown (makiDBus* self, const gchar* message, GError
 	g_get_current_time(&time);
 	maki_dbus_emit_shutdown(time.tv_sec);
 
-	maki_instance_free(inst);
-
 	g_main_loop_quit(main_loop);
 
 	return TRUE;
