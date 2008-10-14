@@ -141,18 +141,11 @@ int main (int argc, char* argv[])
 	g_option_context_parse(context, &argc, &argv, NULL);
 	g_option_context_free(context);
 
-	if ((inst = maki_instance_get_default()) == NULL)
-	{
-		/* FIXME error message */
-		return 1;
-	}
-
 	dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
 
 	if (!maki_dbus_connected(dbus))
 	{
 		g_warning("%s\n", _("Could not connect to DBus. maki may already be running."));
-		maki_instance_free(inst);
 		g_object_unref(dbus);
 		return 1;
 	}
@@ -161,7 +154,13 @@ int main (int argc, char* argv[])
 	    && maki_daemonize() != 0)
 	{
 		/* FIXME error message */
-		maki_instance_free(inst);
+		g_object_unref(dbus);
+		return 1;
+	}
+
+	if ((inst = maki_instance_get_default()) == NULL)
+	{
+		/* FIXME error message */
 		g_object_unref(dbus);
 		return 1;
 	}
