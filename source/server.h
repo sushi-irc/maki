@@ -84,8 +84,8 @@ struct maki_server
 	}
 	support;
 
-	GAsyncQueue* message_queue;
-	GThread* message_thread;
+	GMainContext* main_context;
+	GMainLoop* main_loop;
 };
 
 makiServer* maki_server_new (makiInstance*, const gchar*);

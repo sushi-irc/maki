@@ -29,6 +29,15 @@
 
 #include <string.h>
 
+static gpointer maki_server_thread (gpointer data)
+{
+	makiServer* serv = data;
+
+	g_main_loop_run(serv->main_loop);
+
+	return NULL;
+}
+
 makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 {
 	gchar* path;
@@ -95,8 +104,9 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		serv->logged_in = FALSE;
 		serv->reconnect.source = 0;
 		serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect" ,"retries");
-		serv->message_queue = g_async_queue_new_full(sashimi_message_free);
-		serv->connection = sashimi_new(address, port, serv->message_queue, NULL);
+		serv->main_context = g_main_context_new();
+		serv->main_loop = g_main_loop_new(serv->main_context, FALSE);
+		serv->connection = sashimi_new(address, port, serv->main_context);
 		serv->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_channel_free);
 		serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
 		serv->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_log_free);
@@ -141,7 +151,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 
 		g_strfreev(groups);
 
-		serv->message_thread = g_thread_create(maki_in_runner, serv, TRUE, NULL);
+		g_thread_create(maki_server_thread, serv, FALSE, NULL);
 
 		if (serv->autoconnect)
 		{
@@ -223,7 +233,6 @@ gboolean maki_server_send_printf (makiServer* serv, const gchar* format, ...)
 /* This function gets called when a server is removed from the servers hash table. */
 void maki_server_free (gpointer data)
 {
-	sashimiMessage* msg;
 	makiServer* serv = data;
 
 	maki_server_disconnect(serv, NULL);
@@ -233,13 +242,10 @@ void maki_server_free (gpointer data)
 		g_source_remove(serv->reconnect.source);
 	}
 
-	/* Send a bogus message so the messages thread wakes up. */
-	msg = sashimi_message_new(NULL, NULL);
+	g_main_loop_quit(serv->main_loop);
 
-	g_async_queue_push(serv->message_queue, msg);
-
-	g_thread_join(serv->message_thread);
-	g_async_queue_unref(serv->message_queue);
+	g_main_loop_unref(serv->main_loop);
+	g_main_context_unref(serv->main_context);
 
 	maki_cache_remove(serv->users, serv->user->nick);
 
@@ -267,6 +273,7 @@ gboolean maki_server_connect (makiServer* serv)
 	GTimeVal time;
 
 	sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
+	sashimi_read_callback(serv->connection, maki_in_callback, serv);
 	sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
 
 	g_get_current_time(&time);
@@ -290,6 +297,7 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 	gboolean ret;
 
 	sashimi_connect_callback(serv->connection, NULL, NULL);
+	sashimi_read_callback(serv->connection, NULL, NULL);
 	sashimi_reconnect_callback(serv->connection, NULL, NULL);
 
 	if (message != NULL)

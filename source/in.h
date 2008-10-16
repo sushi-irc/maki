@@ -28,6 +28,6 @@
 #ifndef H_IN
 #define H_IN
 
-gpointer maki_in_runner (gpointer);
+void maki_in_callback (const gchar*, gpointer);
 
 #endif

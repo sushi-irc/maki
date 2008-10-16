@@ -63,8 +63,7 @@ struct sashimi_connection
 	glong last_activity;
 	guint timeout;
 
-	GAsyncQueue* message_queue;
-	gpointer message_data;
+	GMainContext* main_context;
 
 	GMutex* queue_mutex;
 	GQueue* queue;
@@ -80,48 +79,77 @@ struct sashimi_connection
 
 	struct
 	{
+		void (*callback) (const gchar*, gpointer);
+		gpointer data;
+	}
+	read;
+
+	struct
+	{
 		void (*callback) (gpointer);
 		gpointer data;
 	}
 	reconnect;
 };
 
-sashimiMessage* sashimi_message_new (gchar* message, gpointer data)
-{
-	sashimiMessage* msg;
-
-	msg = g_new(sashimiMessage, 1);
-	msg->message = message;
-	msg->data = data;
-
-	return msg;
-}
-
-void sashimi_message_free (gpointer data)
-{
-	sashimiMessage* msg = data;
-
-	g_free(msg->message);
-	g_free(msg);
-}
-
-static void sashimi_remove_sources (sashimiConnection* conn, gint source)
+static void sashimi_remove_sources (sashimiConnection* conn, gint id)
 {
 	gint i;
 
 	for (i = 0; i < s_last; i++)
 	{
-		if (i != source && conn->sources[i] != 0)
+		if (i != id && conn->sources[i] != 0)
 		{
-			g_source_remove(conn->sources[i]);
+			GSource* source;
+
+			source = g_main_context_find_source_by_id(conn->main_context, conn->sources[i]);
+
+			if (source != NULL)
+			{
+				g_source_destroy(source);
+			}
+
 			conn->sources[i] = 0;
 		}
 	}
 
-	if (source >= 0)
+	if (id >= 0)
 	{
-		conn->sources[source] = 0;
+		conn->sources[id] = 0;
 	}
+}
+
+static guint sashimi_io_add_watch (sashimiConnection* conn, GIOCondition condition, GIOFunc func)
+{
+	GSource* source;
+	guint id;
+
+	g_return_val_if_fail(conn != NULL, 0);
+	g_return_val_if_fail(conn->channel != NULL, 0);
+	g_return_val_if_fail(func != NULL, 0);
+
+	source = g_io_create_watch(conn->channel, condition);
+	g_source_set_callback(source, (GSourceFunc)func, conn, NULL);
+	id = g_source_attach(source, conn->main_context);
+	g_source_unref(source);
+
+	return id;
+}
+
+static guint sashimi_timeout_add_seconds (sashimiConnection* conn, guint32 interval, GSourceFunc func)
+{
+	GSource* source;
+	guint id;
+
+	g_return_val_if_fail(conn != NULL, 0);
+	g_return_val_if_fail(func != NULL, 0);
+
+	source = g_timeout_source_new_seconds(interval);
+	g_source_set_callback(source, func, conn, NULL);
+	id = g_source_attach(source, conn->main_context);
+	g_source_unref(source);
+
+	return id;
 }
 
 static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpointer data)
@@ -158,7 +186,12 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 			continue;
 		}
 
-		g_async_queue_push(conn->message_queue, sashimi_message_new(buffer, conn->message_data));
+		if (conn->read.callback != NULL)
+		{
+			conn->read.callback(buffer, conn->read.data);
+		}
+
+		g_free(buffer);
 	}
 
 	if (status == G_IO_STATUS_EOF)
@@ -244,9 +277,9 @@ static gboolean sashimi_write (GIOChannel* source, GIOCondition condition, gpoin
 	g_get_current_time(&time);
 	conn->last_activity = time.tv_sec;
 
-	conn->sources[s_read] = g_io_add_watch(conn->channel, G_IO_IN | G_IO_HUP | G_IO_ERR, sashimi_read, conn);
-	conn->sources[s_ping] = g_timeout_add_seconds(1, sashimi_ping, conn);
-	conn->sources[s_queue] = g_timeout_add_seconds(1, sashimi_queue_runner, conn);
+	conn->sources[s_read] = sashimi_io_add_watch(conn, G_IO_IN | G_IO_HUP | G_IO_ERR, sashimi_read);
+	conn->sources[s_ping] = sashimi_timeout_add_seconds(conn, 1, sashimi_ping);
+	conn->sources[s_queue] = sashimi_timeout_add_seconds(conn, 1, sashimi_queue_runner);
 
 	conn->sources[s_write] = 0;
 
@@ -268,21 +301,19 @@ reconnect:
 	return FALSE;
 }
 
-sashimiConnection* sashimi_new (const gchar* address, gushort port, GAsyncQueue* message_queue, gpointer message_data)
+sashimiConnection* sashimi_new (const gchar* address, gushort port, GMainContext* main_context)
 {
 	gint i;
 	sashimiConnection* conn;
 
 	g_return_val_if_fail(address != NULL, NULL);
-	g_return_val_if_fail(message_queue != NULL, NULL);
 
 	conn = g_new(sashimiConnection, 1);
 
 	conn->address = g_strdup(address);
 	conn->port = port;
 
-	conn->message_queue = g_async_queue_ref(message_queue);
-	conn->message_data = message_data;
+	conn->main_context = g_main_context_ref(main_context);
 
 	conn->queue_mutex = g_mutex_new();
 	conn->queue = g_queue_new();
@@ -299,6 +330,9 @@ sashimiConnection* sashimi_new (const gchar* address, gushort port, GAsyncQueue*
 	conn->connect.callback = NULL;
 	conn->connect.data = NULL;
 
+	conn->read.callback = NULL;
+	conn->read.data = NULL;
+
 	conn->reconnect.callback = NULL;
 	conn->reconnect.data = NULL;
 
@@ -311,6 +345,14 @@ void sashimi_connect_callback (sashimiConnection* conn, void (*callback) (gpoint
 
 	conn->connect.callback = callback;
 	conn->connect.data = data;
+}
+
+void sashimi_read_callback (sashimiConnection* conn, void (*callback) (const gchar*, gpointer), gpointer data)
+{
+	g_return_if_fail(conn != NULL);
+
+	conn->read.callback = callback;
+	conn->read.data = data;
 }
 
 void sashimi_reconnect_callback (sashimiConnection* conn, void (*callback) (gpointer), gpointer data)
@@ -366,7 +408,7 @@ gboolean sashimi_connect (sashimiConnection* conn)
 	g_io_channel_set_close_on_unref(conn->channel, TRUE);
 	g_io_channel_set_encoding(conn->channel, NULL, NULL);
 
-	conn->sources[s_write] = g_io_add_watch(conn->channel, G_IO_OUT | G_IO_HUP | G_IO_ERR, sashimi_write, conn);
+	conn->sources[s_write] = sashimi_io_add_watch(conn, G_IO_OUT | G_IO_HUP | G_IO_ERR, sashimi_write);
 
 	return TRUE;
 }
@@ -400,7 +442,7 @@ void sashimi_free (sashimiConnection* conn)
 	g_queue_free(conn->queue);
 	g_mutex_free(conn->queue_mutex);
 
-	g_async_queue_unref(conn->message_queue);
+	g_main_context_unref(conn->main_context);
 
 	g_free(conn->address);
 

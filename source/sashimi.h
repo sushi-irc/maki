@@ -34,20 +34,9 @@ struct sashimi_connection;
 
 typedef struct sashimi_connection sashimiConnection;
 
-struct sashimi_message
-{
-	gchar* message;
-	gpointer data;
-};
-
-typedef struct sashimi_message sashimiMessage;
-
-
-sashimiMessage* sashimi_message_new (gchar*, gpointer);
-void sashimi_message_free (gpointer);
-
-sashimiConnection* sashimi_new (const gchar*, gushort, GAsyncQueue*, gpointer);
+sashimiConnection* sashimi_new (const gchar*, gushort, GMainContext*);
 void sashimi_connect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
+void sashimi_read_callback (sashimiConnection* conn, void (*) (const gchar*, gpointer), gpointer);
 void sashimi_reconnect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
 void sashimi_timeout (sashimiConnection*, guint);
 gboolean sashimi_connect (sashimiConnection*);
