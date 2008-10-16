@@ -374,7 +374,8 @@ void maki_server_connect_callback (gpointer data)
 	serv->connected = TRUE;
 
 	g_get_current_time(&time);
-	maki_dbus_emit_connected(time.tv_sec, serv->server, serv->user->nick);
+	maki_dbus_emit_connected(time.tv_sec, serv->server);
+	maki_dbus_emit_nick(time.tv_sec, serv->server, "", serv->user->nick);
 }
 
 /* This function is called by sashimi if the connection drops.

@@ -55,7 +55,7 @@ void maki_dbus_emit_back (gint64, const gchar*);
 void maki_dbus_emit_banlist (gint64, const gchar*, const gchar*, const gchar*, const gchar*, gint64);
 void maki_dbus_emit_cannot_join (gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_connect (gint64, const gchar*);
-void maki_dbus_emit_connected (gint64, const gchar*, const gchar*);
+void maki_dbus_emit_connected (gint64, const gchar*);
 void maki_dbus_emit_ctcp (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_invite (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_join (gint64, const gchar*, const gchar*, const gchar*);

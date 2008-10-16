@@ -119,9 +119,9 @@ void maki_dbus_emit_connect (gint64 time, const gchar* server)
 	g_signal_emit(dbus, signals[s_connect], 0, time, server);
 }
 
-void maki_dbus_emit_connected (gint64 time, const gchar* server, const gchar* nick)
+void maki_dbus_emit_connected (gint64 time, const gchar* server)
 {
-	g_signal_emit(dbus, signals[s_connected], 0, time, server, nick);
+	g_signal_emit(dbus, signals[s_connected], 0, time, server);
 }
 
 void maki_dbus_emit_ctcp (gint64 time, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
@@ -751,11 +751,22 @@ static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		maki_out_nick(serv, nick);
+		if (nick[0] != '\0')
+		{
+			maki_out_nick(serv, nick);
+		}
+		else
+		{
+			GTimeVal time;
+
+			g_get_current_time(&time);
+			maki_dbus_emit_nick(time.tv_sec, serv->server, "", serv->user->nick);
+		}
 	}
 
 	return TRUE;
 }
+
 
 static gboolean maki_dbus_nickserv (makiDBus* self, const gchar* server, GError** error)
 {
@@ -797,21 +808,6 @@ static gboolean maki_dbus_oper (makiDBus* self, const gchar* server, const gchar
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
 		maki_server_send_printf(serv, "OPER %s %s", name, password);
-	}
-
-	return TRUE;
-}
-
-static gboolean maki_dbus_own_nick (makiDBus* self, const gchar* server, gchar** nick, GError** error)
-{
-	makiServer* serv;
-	makiInstance* inst = maki_instance_get_default();
-
-	*nick = NULL;
-
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
-	{
-		*nick = g_strdup(serv->user->nick);
 	}
 
 	return TRUE;
@@ -1505,8 +1501,8 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
 		             maki_marshal_VOID__INT64_STRING_STRING,
-		             G_TYPE_NONE, 3,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
+		             G_TYPE_NONE, 2,
+		             G_TYPE_INT64, G_TYPE_STRING);
 	signals[s_ctcp] =
 		g_signal_new("ctcp",
 		             G_OBJECT_CLASS_TYPE(klass),
