@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _INSTANCE_H_
-#define _INSTANCE_H_
+#ifndef H_INSTANCE
+#define H_INSTANCE
 
 struct maki_instance;
 
