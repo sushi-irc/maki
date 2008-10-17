@@ -25,8 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef _SERVER_H_
-#define _SERVER_H_
+#ifndef H_SERVER
+#define H_SERVER
 
 struct maki_server;
 
