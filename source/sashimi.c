@@ -387,6 +387,7 @@ gboolean sashimi_connect (sashimiConnection* conn)
 
 	if ((hostinfo = gethostbyname(conn->address)) == NULL)
 	{
+		close(fd);
 		return FALSE;
 	}
 
@@ -404,7 +405,7 @@ gboolean sashimi_connect (sashimiConnection* conn)
 	}
 
 	conn->channel = g_io_channel_unix_new(fd);
-	g_io_channel_set_flags(conn->channel, G_IO_FLAG_NONBLOCK, NULL);
+	g_io_channel_set_flags(conn->channel, g_io_channel_get_flags(conn->channel) | G_IO_FLAG_NONBLOCK, NULL);
 	g_io_channel_set_close_on_unref(conn->channel, TRUE);
 	g_io_channel_set_encoding(conn->channel, NULL, NULL);
 
