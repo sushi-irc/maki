@@ -31,11 +31,17 @@
 
 void maki_out_away (makiServer* serv, const gchar* message)
 {
+	g_return_if_fail(serv != NULL);
+	g_return_if_fail(message != NULL);
+
 	maki_server_send_printf(serv, "AWAY :%s", message);
 }
 
 void maki_out_join (makiServer* serv, const gchar* channel, const gchar* key)
 {
+	g_return_if_fail(serv != NULL);
+	g_return_if_fail(channel != NULL);
+
 	if (key != NULL && key[0])
 	{
 		maki_server_send_printf(serv, "JOIN %s %s", channel, key);
@@ -48,11 +54,16 @@ void maki_out_join (makiServer* serv, const gchar* channel, const gchar* key)
 
 void maki_out_nick (makiServer* serv, const gchar* nick)
 {
+	g_return_if_fail(serv != NULL);
+	g_return_if_fail(nick != NULL);
+
 	maki_server_send_printf(serv, "NICK %s", nick);
 }
 
 void maki_out_nickserv (makiServer* serv)
 {
+	g_return_if_fail(serv != NULL);
+
 	if (serv->nickserv.password != NULL)
 	{
 		if (g_ascii_strcasecmp(serv->user->nick, serv->initial_nick) != 0)
@@ -74,6 +85,10 @@ static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, co
 	gchar* buffer;
 	GTimeVal time;
 
+	g_return_if_fail(serv != NULL);
+	g_return_if_fail(target != NULL);
+	g_return_if_fail(message != NULL);
+
 	g_get_current_time(&time);
 
 	buffer = g_strdup_printf("PRIVMSG %s :%s", target, message);
@@ -87,6 +102,10 @@ static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, co
 void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)
 {
 	gint length = 512;
+
+	g_return_if_fail(serv != NULL);
+	g_return_if_fail(target != NULL);
+	g_return_if_fail(message != NULL);
 
 	/* :nickname!username@hostname PRIVMSG target :message\r\n */
 	length -= 1; /* : */
@@ -140,9 +159,12 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 	GHashTableIter iter;
 	gpointer key, value;
 
+	g_return_if_fail(serv != NULL);
+	g_return_if_fail(message != NULL);
+
 	g_get_current_time(&time);
 
-	if (message != NULL && message[0] != '\0')
+	if (message[0] != '\0')
 	{
 		maki_server_send_printf(serv, "QUIT :%s", message);
 	}
@@ -160,7 +182,7 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 
 		if (maki_channel_joined(chan))
 		{
-			if (message != NULL && message[0] != '\0')
+			if (message[0] != '\0')
 			{
 				maki_log(serv, chan_name, _("« You quit (%s)."), message);
 			}
