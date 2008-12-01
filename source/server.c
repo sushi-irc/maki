@@ -270,20 +270,23 @@ void maki_server_free (gpointer data)
  * It handles the initial login with NICK and USER and emits the connect signal. */
 gboolean maki_server_connect (makiServer* serv)
 {
-	GTimeVal time;
-
-	sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
-	sashimi_read_callback(serv->connection, maki_in_callback, serv);
-	sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
-
-	g_get_current_time(&time);
-	maki_dbus_emit_connect(time.tv_sec, serv->server);
-
-	if (!sashimi_connect(serv->connection))
+	if (!serv->connected)
 	{
-		maki_server_reconnect_callback(serv);
+		GTimeVal time;
 
-		return FALSE;
+		sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
+		sashimi_read_callback(serv->connection, maki_in_callback, serv);
+		sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
+
+		g_get_current_time(&time);
+		maki_dbus_emit_connect(time.tv_sec, serv->server);
+
+		if (!sashimi_connect(serv->connection))
+		{
+			maki_server_reconnect_callback(serv);
+
+			return FALSE;
+		}
 	}
 
 	return TRUE;
@@ -292,34 +295,35 @@ gboolean maki_server_connect (makiServer* serv)
 /* This function is a wrapper around sashimi_disconnect(). */
 gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 {
-	gboolean ret;
-
-	sashimi_connect_callback(serv->connection, NULL, NULL);
-	sashimi_read_callback(serv->connection, NULL, NULL);
-	sashimi_reconnect_callback(serv->connection, NULL, NULL);
-
-	if (message != NULL)
+	if (serv->connected)
 	{
-		GHashTableIter iter;
-		gpointer key, value;
+		sashimi_connect_callback(serv->connection, NULL, NULL);
+		sashimi_read_callback(serv->connection, NULL, NULL);
+		sashimi_reconnect_callback(serv->connection, NULL, NULL);
 
-		maki_out_quit(serv, message);
-
-		g_hash_table_iter_init(&iter, serv->channels);
-
-		while (g_hash_table_iter_next(&iter, &key, &value))
+		if (message != NULL)
 		{
-			makiChannel* chan = value;
+			GHashTableIter iter;
+			gpointer key, value;
 
-			maki_channel_set_joined(chan, FALSE);
+			maki_out_quit(serv, message);
+
+			g_hash_table_iter_init(&iter, serv->channels);
+
+			while (g_hash_table_iter_next(&iter, &key, &value))
+			{
+				makiChannel* chan = value;
+
+				maki_channel_set_joined(chan, FALSE);
+			}
 		}
+
+		serv->connected = FALSE;
+		serv->logged_in = FALSE;
+		return sashimi_disconnect(serv->connection);
 	}
 
-	serv->connected = FALSE;
-	serv->logged_in = FALSE;
-	ret = sashimi_disconnect(serv->connection);
-
-	return ret;
+	return TRUE;
 }
 
 /* This function handles unexpected reconnects. */
