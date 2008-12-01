@@ -239,7 +239,7 @@ void maki_server_free (gpointer data)
 
 	if (serv->reconnect.source != 0)
 	{
-		g_source_remove(serv->reconnect.source);
+		maki_source_remove(serv->main_context, serv->reconnect.source);
 	}
 
 	g_main_loop_quit(serv->main_loop);
@@ -357,7 +357,7 @@ void maki_server_connect_callback (gpointer data)
 
 	if (serv->reconnect.source != 0)
 	{
-		g_source_remove(serv->reconnect.source);
+		maki_source_remove(serv->main_context, serv->reconnect.source);
 		serv->reconnect.source = 0;
 	}
 
@@ -391,5 +391,5 @@ void maki_server_reconnect_callback (gpointer data)
 		return;
 	}
 
-	serv->reconnect.source = g_timeout_add_seconds(maki_config_get_int(maki_instance_config(serv->instance), "reconnect", "timeout"), maki_server_reconnect, serv);
+	serv->reconnect.source = maki_timeout_add_seconds(serv->main_context, maki_config_get_int(maki_instance_config(serv->instance), "reconnect", "timeout"), maki_server_reconnect, serv);
 }

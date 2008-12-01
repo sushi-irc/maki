@@ -38,6 +38,37 @@
 #include <time.h>
 #include <unistd.h>
 
+guint maki_timeout_add_seconds (GMainContext* main_context, guint interval, GSourceFunc function, gpointer data)
+{
+	GSource* source;
+	guint id;
+
+	g_return_val_if_fail(function != NULL, 0);
+
+	source = g_timeout_source_new_seconds(interval);
+	g_source_set_callback(source, function, data, NULL);
+	id = g_source_attach(source, main_context);
+	g_source_unref(source);
+
+	return id;
+}
+
+gboolean maki_source_remove (GMainContext* main_context, guint tag)
+{
+	GSource* source;
+
+	g_return_val_if_fail(tag > 0, FALSE);
+
+	source = g_main_context_find_source_by_id(main_context, tag);
+
+	if (source != NULL)
+	{
+		g_source_destroy(source);
+	}
+
+	return (source != NULL);
+}
+
 gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
 {
 	gboolean ret = FALSE;

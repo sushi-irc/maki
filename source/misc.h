@@ -30,6 +30,9 @@
 
 #include "server.h"
 
+guint maki_timeout_add_seconds (GMainContext*, guint, GSourceFunc, gpointer);
+gboolean maki_source_remove (GMainContext*, guint);
+
 gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
 void maki_debug (const gchar*, ...);
 gboolean maki_str_equal (gconstpointer, gconstpointer);
