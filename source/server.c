@@ -292,8 +292,6 @@ gboolean maki_server_connect (makiServer* serv)
 /* This function is a wrapper around sashimi_disconnect(). */
 gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 {
-	GHashTableIter iter;
-	gpointer key, value;
 	gboolean ret;
 
 	sashimi_connect_callback(serv->connection, NULL, NULL);
@@ -302,16 +300,19 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 
 	if (message != NULL)
 	{
+		GHashTableIter iter;
+		gpointer key, value;
+
 		maki_out_quit(serv, message);
-	}
 
-	g_hash_table_iter_init(&iter, serv->channels);
+		g_hash_table_iter_init(&iter, serv->channels);
 
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		makiChannel* chan = value;
+		while (g_hash_table_iter_next(&iter, &key, &value))
+		{
+			makiChannel* chan = value;
 
-		maki_channel_set_joined(chan, FALSE);
+			maki_channel_set_joined(chan, FALSE);
+		}
 	}
 
 	serv->connected = FALSE;

@@ -390,7 +390,7 @@ static gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError**
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
 		/* Disconnect, because strange things happen if we call maki_server_connect() while still connected. */
-		maki_server_disconnect(serv, NULL);
+		maki_server_disconnect(serv, "");
 		maki_server_connect(serv);
 	}
 	else
