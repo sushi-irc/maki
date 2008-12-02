@@ -103,7 +103,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		serv->connected = FALSE;
 		serv->logged_in = FALSE;
 		serv->reconnect.source = 0;
-		serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect" ,"retries");
+		serv->reconnect.retries = maki_instance_config_get_integer(serv->instance, "reconnect" ,"retries");
 		serv->main_context = g_main_context_new();
 		serv->main_loop = g_main_loop_new(serv->main_context, FALSE);
 		serv->connection = sashimi_new(address, port, serv->main_context);
@@ -365,7 +365,7 @@ void maki_server_connect_callback (gpointer data)
 		serv->reconnect.source = 0;
 	}
 
-	serv->reconnect.retries = maki_config_get_int(maki_instance_config(serv->instance), "reconnect", "retries");
+	serv->reconnect.retries = maki_instance_config_get_integer(serv->instance, "reconnect", "retries");
 
 	user = maki_cache_insert(serv->users, serv->initial_nick);
 	maki_user_copy(serv->user, user);
@@ -395,5 +395,5 @@ void maki_server_reconnect_callback (gpointer data)
 		return;
 	}
 
-	serv->reconnect.source = maki_timeout_add_seconds(serv->main_context, maki_config_get_int(maki_instance_config(serv->instance), "reconnect", "timeout"), maki_server_reconnect, serv);
+	serv->reconnect.source = maki_timeout_add_seconds(serv->main_context, maki_instance_config_get_integer(serv->instance, "reconnect", "timeout"), maki_server_reconnect, serv);
 }

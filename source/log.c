@@ -38,16 +38,18 @@ struct maki_log
 	int fd;
 };
 
-makiLog* maki_log_new (makiConfig* conf, const gchar* server, const gchar* name)
+makiLog* maki_log_new (makiInstance* inst, const gchar* server, const gchar* name)
 {
 	gchar* dirname;
 	gchar* filename;
 	gchar* path;
+	gchar* logs_dir;
 	makiLog* log;
 
 	log = g_new(makiLog, 1);
 
-	dirname = g_build_filename(maki_config_get(conf, "directories", "logs"), server, NULL);
+	logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
+	dirname = g_build_filename(logs_dir, server, NULL);
 	filename = g_strconcat(name, ".txt", NULL);
 	path = g_build_filename(dirname, filename, NULL);
 
@@ -60,6 +62,7 @@ makiLog* maki_log_new (makiConfig* conf, const gchar* server, const gchar* name)
 		log = NULL;
 	}
 
+	g_free(logs_dir);
 	g_free(path);
 	g_free(filename);
 	g_free(dirname);

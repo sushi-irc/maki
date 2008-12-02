@@ -368,7 +368,7 @@ static gboolean maki_dbus_config_get (makiDBus* self, const gchar* group, const 
 {
 	makiInstance* inst = maki_instance_get_default();
 
-	*value = g_strdup(maki_config_get(maki_instance_config(inst), group, key));
+	*value = maki_instance_config_get_string(inst, group, key);
 
 	return TRUE;
 }
@@ -377,7 +377,7 @@ static gboolean maki_dbus_config_set (makiDBus* self, const gchar* group, const 
 {
 	makiInstance* inst = maki_instance_get_default();
 
-	maki_config_set(maki_instance_config(inst), group, key, value);
+	maki_instance_config_set_string(inst, group, key, value);
 
 	return TRUE;
 }
@@ -578,9 +578,11 @@ static gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar*
 		int fd;
 		gchar* filename;
 		gchar* path;
+		gchar* logs_dir;
 
 		filename = g_strconcat(target, ".txt", NULL);
-		path = g_build_filename(maki_config_get(maki_instance_config(inst), "directories", "logs"), server, filename, NULL);
+		logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
+		path = g_build_filename(logs_dir, server, filename, NULL);
 
 		if ((fd = open(path, O_RDONLY)) != -1)
 		{
@@ -651,6 +653,7 @@ static gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar*
 		}
 
 		g_free(filename);
+		g_free(logs_dir);
 		g_free(path);
 	}
 

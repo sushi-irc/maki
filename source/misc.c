@@ -104,9 +104,11 @@ void maki_debug (const gchar* format, ...)
 	{
 		gchar* filename;
 		gchar* path;
+		gchar* logs_dir;
 
 		filename = g_strconcat("maki", ".txt", NULL);
-		path = g_build_filename(maki_config_get(maki_instance_config(inst), "directories", "logs"), filename, NULL);
+		logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
+		path = g_build_filename(logs_dir, filename, NULL);
 
 		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
 		{
@@ -114,6 +116,7 @@ void maki_debug (const gchar* format, ...)
 		}
 
 		g_free(filename);
+		g_free(logs_dir);
 		g_free(path);
 	}
 
@@ -173,17 +176,16 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 	gchar* tmp;
 	makiLog* log;
 	va_list args;
-	makiConfig* conf = maki_instance_config(maki_instance_get_default());
+	makiInstance* inst = maki_instance_get_default();
 
-	/* FIXME */
-	if (strcmp(maki_config_get(conf, "logging", "enabled"), "true") != 0)
+	if (maki_instance_config_get_boolean(inst, "logging", "enabled"))
 	{
 		return;
 	}
 
 	if ((log = g_hash_table_lookup(serv->logs, name)) == NULL)
 	{
-		if ((log = maki_log_new(conf, serv->server, name)) == NULL)
+		if ((log = maki_log_new(inst, serv->server, name)) == NULL)
 		{
 			return;
 		}

@@ -32,11 +32,14 @@ struct maki_instance;
 
 typedef struct maki_instance makiInstance;
 
-#include "config.h"
-
 makiInstance* maki_instance_get_default (void);
 makiInstance* maki_instance_new (void);
-makiConfig* maki_instance_config (makiInstance*);
+gboolean maki_instance_config_get_boolean (makiInstance*, const gchar*, const gchar*);
+void maki_instance_config_set_boolean (makiInstance*, const gchar*, const gchar*, gboolean);
+gint maki_instance_config_get_integer (makiInstance*, const gchar*, const gchar*);
+void maki_instance_config_set_integer (makiInstance*, const gchar*, const gchar*, gint);
+gchar* maki_instance_config_get_string (makiInstance*, const gchar*, const gchar*);
+void maki_instance_config_set_string (makiInstance*, const gchar*, const gchar*, const gchar*);
 const gchar* maki_instance_directory (makiInstance*, const gchar*);
 GHashTable* maki_instance_servers (makiInstance*);
 void maki_instance_free (makiInstance*);

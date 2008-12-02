@@ -38,7 +38,6 @@
 #include "cache.h"
 #include "channel.h"
 #include "channel_user.h"
-#include "config.h"
 #include "dbus.h"
 #include "in.h"
 #include "instance.h"

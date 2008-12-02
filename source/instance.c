@@ -31,7 +31,7 @@
 
 struct maki_instance
 {
-	makiConfig* config;
+	GKeyFile* key_file;
 
 	GHashTable* servers;
 
@@ -50,13 +50,39 @@ makiInstance* maki_instance_get_default (void)
 	return inst;
 }
 
+static void maki_instance_config_set_defaults (makiInstance* inst)
+{
+	if (!g_key_file_has_key(inst->key_file, "directories", "logs", NULL))
+	{
+		gchar* value;
+
+		value = g_build_filename(g_get_user_data_dir(), "sushi", "logs", NULL);
+		g_key_file_set_string(inst->key_file, "directories", "logs", value);
+		g_free(value);
+	}
+
+	if (!g_key_file_has_key(inst->key_file, "logging", "enabled", NULL))
+	{
+		g_key_file_set_boolean(inst->key_file, "logging", "enabled", TRUE);
+	}
+
+	if (!g_key_file_has_key(inst->key_file, "reconnect", "retries", NULL))
+	{
+		g_key_file_set_integer(inst->key_file, "reconnect", "retries", 3);
+	}
+
+	if (!g_key_file_has_key(inst->key_file, "reconnect", "timeout", NULL))
+	{
+		g_key_file_set_integer(inst->key_file, "reconnect", "timeout", 10);
+	}
+}
+
 makiInstance* maki_instance_new (void)
 {
 	gchar* config_dir;
+	gchar* config_file;
 	gchar* servers_dir;
 	makiInstance* inst;
-
-	inst = g_new(makiInstance, 1);
 
 	config_dir = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
 	servers_dir = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
@@ -66,24 +92,73 @@ makiInstance* maki_instance_new (void)
 	{
 		g_free(config_dir);
 		g_free(servers_dir);
-		g_free(inst);
 		return NULL;
 	}
 
+	inst = g_new(makiInstance, 1);
+
+	inst->key_file = g_key_file_new();
 	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
 
 	g_hash_table_insert(inst->directories, g_strdup("config"), config_dir);
 	g_hash_table_insert(inst->directories, g_strdup("servers"), servers_dir);
 
-	inst->config = maki_config_new(inst);
+	config_file = g_build_filename(config_dir, "maki", NULL);
+	g_key_file_load_from_file(inst->key_file, config_file, G_KEY_FILE_NONE, NULL);
+	g_free(config_file);
+
+	maki_instance_config_set_defaults(inst);
 
 	return inst;
 }
 
-makiConfig* maki_instance_config (makiInstance* inst)
+gboolean maki_instance_config_get_boolean (makiInstance* inst, const gchar* group, const gchar* key)
 {
-	return inst->config;
+	return g_key_file_get_boolean(inst->key_file, group, key, NULL);
+}
+
+void maki_instance_config_set_boolean (makiInstance* inst, const gchar* group, const gchar* key, gboolean value)
+{
+	gchar* path;
+
+	g_key_file_set_boolean(inst->key_file, group, key, value);
+
+	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
+	maki_key_file_to_file(inst->key_file, path);
+	g_free(path);
+}
+
+gint maki_instance_config_get_integer (makiInstance* inst, const gchar* group, const gchar* key)
+{
+	return g_key_file_get_integer(inst->key_file, group, key, NULL);
+}
+
+void maki_instance_config_set_integer (makiInstance* inst, const gchar* group, const gchar* key, gint value)
+{
+	gchar* path;
+
+	g_key_file_set_integer(inst->key_file, group, key, value);
+
+	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
+	maki_key_file_to_file(inst->key_file, path);
+	g_free(path);
+}
+
+gchar* maki_instance_config_get_string (makiInstance* inst, const gchar* group, const gchar* key)
+{
+	return g_key_file_get_string(inst->key_file, group, key, NULL);
+}
+
+void maki_instance_config_set_string (makiInstance* inst, const gchar* group, const gchar* key, const gchar* string)
+{
+	gchar* path;
+
+	g_key_file_set_string(inst->key_file, group, key, string);
+
+	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
+	maki_key_file_to_file(inst->key_file, path);
+	g_free(path);
 }
 
 const gchar* maki_instance_directory (makiInstance* inst, const gchar* directory)
@@ -99,11 +174,10 @@ GHashTable* maki_instance_servers (makiInstance* inst)
 
 void maki_instance_free (makiInstance* inst)
 {
+	g_key_file_free(inst->key_file);
+
 	g_hash_table_destroy(inst->servers);
-
 	g_hash_table_destroy(inst->directories);
-
-	maki_config_free(inst->config);
 
 	g_free(inst);
 }
