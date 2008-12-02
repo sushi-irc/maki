@@ -87,6 +87,7 @@ void maki_server_config_set_string (makiServer*, const gchar*, const gchar*, con
 gchar** maki_server_config_get_string_list (makiServer*, const gchar*, const gchar*);
 void maki_server_config_set_string_list (makiServer*, const gchar*, const gchar*, gchar**);
 gboolean maki_server_config_remove (makiServer*, const gchar*, const gchar*);
+gboolean maki_server_config_exists (makiServer*, const gchar*, const gchar*);
 gboolean maki_server_autoconnect (makiServer*);
 makiChannel* maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
 makiChannel* maki_server_get_channel (makiServer*, const gchar*);

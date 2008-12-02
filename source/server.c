@@ -137,20 +137,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 		{
 			if (strncmp(*group, "server", 6) != 0)
 			{
-				gboolean autojoin;
-				gchar* key;
-				makiChannel* chan;
-
-				autojoin = g_key_file_get_boolean(key_file, *group, "autojoin", NULL);
-				key = g_key_file_get_string(key_file, *group, "key", NULL);
-
-				chan = maki_channel_new();
-				maki_channel_set_autojoin(chan, autojoin);
-				maki_channel_set_key(chan, key);
-
-				g_hash_table_insert(serv->channels, g_strdup(*group), chan);
-
-				g_free(key);
+				g_hash_table_insert(serv->channels, g_strdup(*group), maki_channel_new(serv, *group));
 			}
 		}
 
@@ -249,6 +236,11 @@ gboolean maki_server_config_remove (makiServer* serv, const gchar* group, const 
 	g_free(path);
 
 	return ret;
+}
+
+gboolean maki_server_config_exists (makiServer* serv, const gchar* group, const gchar* key)
+{
+	return g_key_file_has_key(serv->key_file, group, key, NULL);
 }
 
 gboolean maki_server_autoconnect (makiServer* serv)

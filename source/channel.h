@@ -34,7 +34,7 @@ typedef struct maki_channel makiChannel;
 
 #include "channel_user.h"
 
-makiChannel* maki_channel_new (void);
+makiChannel* maki_channel_new (makiServer*, const gchar*);
 void maki_channel_free (gpointer);
 
 gboolean maki_channel_autojoin (makiChannel*);
@@ -43,7 +43,7 @@ void maki_channel_set_autojoin (makiChannel*, gboolean);
 gboolean maki_channel_joined (makiChannel*);
 void maki_channel_set_joined (makiChannel*, gboolean);
 
-const gchar* maki_channel_key (makiChannel*);
+gchar* maki_channel_key (makiChannel*);
 void maki_channel_set_key (makiChannel*, const gchar*);
 
 const gchar* maki_channel_topic (makiChannel*);

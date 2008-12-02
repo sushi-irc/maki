@@ -126,7 +126,11 @@ static gboolean maki_join (gpointer data)
 
 		if (maki_channel_autojoin(chan) || maki_channel_joined(chan))
 		{
-			maki_out_join(serv, chan_name, maki_channel_key(chan));
+			gchar* channel_key;
+
+			channel_key = maki_channel_key(chan);
+			maki_out_join(serv, chan_name, channel_key);
+			g_free(channel_key);
 		}
 	}
 
@@ -263,7 +267,7 @@ void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		}
 		else
 		{
-			chan = maki_channel_new();
+			chan = maki_channel_new(serv, channel);
 			maki_channel_set_joined(chan, TRUE);
 
 			maki_server_add_channel(serv, channel, chan);
@@ -321,13 +325,19 @@ void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	{
 		if (chan != NULL)
 		{
+			gchar* key;
+
+			key = maki_channel_key(chan);
+
 			maki_channel_set_joined(chan, FALSE);
 			maki_channel_remove_users(chan);
 
-			if (!maki_channel_autojoin(chan) && maki_channel_key(chan) == NULL)
+			if (!maki_channel_autojoin(chan) && key == NULL)
 			{
 				maki_server_remove_channel(serv, channel);
 			}
+
+			g_free(key);
 		}
 
 		if (message != NULL)
@@ -439,12 +449,18 @@ void maki_in_kick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	{
 		if (chan != NULL)
 		{
+			gchar* key;
+
+			key = maki_channel_key(chan);
+
 			maki_channel_set_joined(chan, FALSE);
 
-			if (!maki_channel_autojoin(chan) && maki_channel_key(chan) == NULL)
+			if (!maki_channel_autojoin(chan) && key == NULL)
 			{
 				maki_server_remove_channel(serv, channel);
 			}
+
+			g_free(key);
 		}
 
 		if (message != NULL)

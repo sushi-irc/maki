@@ -500,12 +500,24 @@ static gboolean maki_dbus_join (makiDBus* self, const gchar* server, const gchar
 	{
 		makiChannel* chan;
 
-		if ((chan = maki_server_get_channel(serv, channel)) != NULL
-		    && maki_channel_key(chan) != NULL
-		    && key[0] == '\0')
+		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 		{
-			/* The channel has a key set and none was supplied. */
-			maki_out_join(serv, channel, maki_channel_key(chan));
+			gchar* channel_key;
+
+			channel_key = maki_channel_key(chan);
+
+			if (channel_key != NULL
+			    && key[0] == '\0')
+			{
+				/* The channel has a key set and none was supplied. */
+				maki_out_join(serv, channel, channel_key);
+			}
+			else
+			{
+				maki_out_join(serv, channel, key);
+			}
+
+			g_free(channel_key);
 		}
 		else
 		{
