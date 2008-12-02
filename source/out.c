@@ -62,22 +62,34 @@ void maki_out_nick (makiServer* serv, const gchar* nick)
 
 void maki_out_nickserv (makiServer* serv)
 {
+	gchar* nickserv_password;
+
 	g_return_if_fail(serv != NULL);
 
-	if (serv->nickserv.password != NULL)
+	nickserv_password = maki_server_config_get_string(serv, "server", "nickserv");
+
+	if (nickserv_password != NULL)
 	{
-		if (g_ascii_strcasecmp(serv->user->nick, serv->initial_nick) != 0)
+		gchar* initial_nick;
+
+		initial_nick = maki_server_config_get_string(serv, "server", "nick");
+
+		if (g_ascii_strcasecmp(serv->user->nick, initial_nick) != 0)
 		{
-			if (serv->nickserv.ghost)
+			if (maki_server_config_get_boolean(serv, "server", "nickserv_ghost"))
 			{
-				maki_server_send_printf(serv, "PRIVMSG NickServ :GHOST %s %s", serv->initial_nick, serv->nickserv.password);
+				maki_server_send_printf(serv, "PRIVMSG NickServ :GHOST %s %s", initial_nick, nickserv_password);
 			}
 
-			maki_out_nick(serv, serv->initial_nick);
+			maki_out_nick(serv, initial_nick);
 		}
 
-		maki_server_send_printf(serv, "PRIVMSG NickServ :IDENTIFY %s", serv->nickserv.password);
+		maki_server_send_printf(serv, "PRIVMSG NickServ :IDENTIFY %s", nickserv_password);
+
+		g_free(initial_nick);
 	}
+
+	g_free(nickserv_password);
 }
 
 static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)

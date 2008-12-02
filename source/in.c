@@ -135,18 +135,24 @@ static gboolean maki_join (gpointer data)
 
 void maki_commands (makiServer* serv)
 {
-	if (serv->commands != NULL)
+	gchar** commands;
+
+	commands = maki_server_config_get_string_list(serv, "server", "commands");
+
+	if (commands != NULL)
 	{
 		guint i;
 		guint length;
 
-		length = g_strv_length(serv->commands);
+		length = g_strv_length(commands);
 
 		for (i = 0; i < length; i++)
 		{
-			maki_server_send(serv, serv->commands[i]);
+			maki_server_send(serv, commands[i]);
 		}
 	}
+
+	g_strfreev(commands);
 }
 
 void maki_in_privmsg (makiServer* serv, glong time, gchar* nick, gchar* remaining)
@@ -490,6 +496,7 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 	if (g_ascii_strcasecmp(nick, serv->user->nick) == 0)
 	{
+		gchar* initial_nick;
 		makiUser* user;
 
 		user = maki_cache_insert(serv->users, new_nick);
@@ -497,10 +504,14 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 		maki_cache_remove(serv->users, serv->user->nick);
 		serv->user = user;
 
-		if (g_ascii_strcasecmp(serv->user->nick, serv->initial_nick) == 0)
+		initial_nick = maki_server_config_get_string(serv, "server", "nick");
+
+		if (g_ascii_strcasecmp(serv->user->nick, initial_nick) == 0)
 		{
 			maki_out_nickserv(serv);
 		}
+
+		g_free(initial_nick);
 
 		own = TRUE;
 	}
@@ -1159,6 +1170,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 	{
 		gchar** parts;
 		gchar** from;
+		gchar** ignores;
 		gchar* from_nick;
 		gchar* type;
 		gchar* remaining;
@@ -1171,28 +1183,28 @@ void maki_in_callback (const gchar* message, gpointer data)
 			return;
 		}
 
-		if (serv->ignores != NULL)
+		/* FIXME */
+		ignores = maki_server_config_get_string_list(serv, "server", "ignores");
+
+		if (ignores != NULL)
 		{
-			gboolean match = FALSE;
 			gint i;
 			guint length;
 
-			length = g_strv_length(serv->ignores);
+			length = g_strv_length(ignores);
 
 			for (i = 0; i < length; ++i)
 			{
-				if ((match = g_pattern_match_simple(serv->ignores[i], parts[0])))
+				if (g_pattern_match_simple(ignores[i], parts[0]))
 				{
-					break;
+					g_strfreev(parts);
+					g_strfreev(ignores);
+					return;
 				}
 			}
-
-			if (match)
-			{
-				g_strfreev(parts);
-				return;
-			}
 		}
+
+		g_strfreev(ignores);
 
 		from = g_strsplit_set(parts[0], "!@", 3);
 

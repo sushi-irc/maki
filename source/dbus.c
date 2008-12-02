@@ -435,36 +435,29 @@ static gboolean maki_dbus_ignore (makiDBus* self, const gchar* server, const gch
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		gchar* path;
-		GKeyFile* key_file;
+		gchar** ignores;
 
-		if (serv->ignores != NULL)
+		ignores = maki_server_config_get_string_list(serv, "server", "ignores");
+
+		if (ignores != NULL)
 		{
 			guint length;
 
-			length = g_strv_length(serv->ignores);
-			serv->ignores = g_renew(gchar*, serv->ignores, length + 2);
-			serv->ignores[length] = g_strdup(pattern);
-			serv->ignores[length + 1] = NULL;
+			length = g_strv_length(ignores);
+			ignores = g_renew(gchar*, ignores, length + 2);
+			ignores[length] = g_strdup(pattern);
+			ignores[length + 1] = NULL;
 		}
 		else
 		{
-			serv->ignores = g_new(gchar*, 2);
-			serv->ignores[0] = g_strdup(pattern);
-			serv->ignores[1] = NULL;
+			ignores = g_new(gchar*, 2);
+			ignores[0] = g_strdup(pattern);
+			ignores[1] = NULL;
 		}
 
-		path = g_build_filename(maki_instance_directory(inst, "servers"), serv->server, NULL);
-		key_file = g_key_file_new();
+		maki_server_config_set_string_list(serv, "server", "ignores", ignores);
 
-		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
-		{
-			g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)serv->ignores, g_strv_length(serv->ignores));
-			maki_key_file_to_file(key_file, path);
-		}
-
-		g_key_file_free(key_file);
-		g_free(path);
+		g_strfreev(ignores);
 	}
 
 	return TRUE;
@@ -479,10 +472,7 @@ static gboolean maki_dbus_ignores (makiDBus* self, const gchar* server, gchar***
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		if (serv->ignores != NULL)
-		{
-			*ignores = g_strdupv(serv->ignores);
-		}
+		*ignores = maki_server_config_get_string_list(serv, "server", "ignores");
 	}
 
 	return TRUE;
@@ -1141,23 +1131,23 @@ static gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const g
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		if (serv->ignores != NULL)
+		gchar** ignores;
+
+		ignores = maki_server_config_get_string_list(serv, "server", "ignores");
+
+		if (ignores != NULL)
 		{
 			gint i;
 			gint j;
 			guint length;
-			gchar* path;
 			gchar** tmp;
-			GKeyFile* key_file;
 
-			path = g_build_filename(maki_instance_directory(inst, "servers"), serv->server, NULL);
-			key_file = g_key_file_new();
+			length = g_strv_length(ignores);
+			j = 0;
 
-			length = g_strv_length(serv->ignores);
-
-			for (i = 0, j = 0; i < length; ++i)
+			for (i = 0; i < length; ++i)
 			{
-				if (strcmp(serv->ignores[i], pattern) == 0)
+				if (strcmp(ignores[i], pattern) == 0)
 				{
 					++j;
 				}
@@ -1165,51 +1155,33 @@ static gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const g
 
 			if (length - j == 0)
 			{
-				g_strfreev(serv->ignores);
-				serv->ignores = NULL;
+				maki_server_config_remove(serv, "server", "ignores");
 
-				if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
-				{
-					g_key_file_remove_key(key_file, "server", "ignores", NULL);
-					maki_key_file_to_file(key_file, path);
-				}
-
-				g_key_file_free(key_file);
-				g_free(path);
+				g_strfreev(ignores);
 
 				return TRUE;
 			}
 
 			tmp = g_new(gchar*, length - j + 1);
+			j = 0;
 
-			for (i = 0, j = 0; i < length; ++i)
+			for (i = 0; i < length; ++i)
 			{
-				if (strcmp(serv->ignores[i], pattern) != 0)
+				if (strcmp(ignores[i], pattern) != 0)
 				{
-					tmp[j] = serv->ignores[i];
+					tmp[j] = g_strdup(ignores[i]);
 					++j;
-				}
-				else
-				{
-					g_free(serv->ignores[i]);
 				}
 			}
 
 			tmp[j] = NULL;
 
-			g_free(serv->ignores[length]);
-			g_free(serv->ignores);
-			serv->ignores = tmp;
+			maki_server_config_set_string_list(serv, "server", "ignores", tmp);
 
-			if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
-			{
-				g_key_file_set_string_list(key_file, "server", "ignores", (const gchar**)serv->ignores, g_strv_length(serv->ignores));
-				maki_key_file_to_file(key_file, path);
-			}
-
-			g_key_file_free(key_file);
-			g_free(path);
+			g_strfreev(tmp);
 		}
+
+		g_strfreev(ignores);
 	}
 
 	return TRUE;

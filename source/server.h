@@ -41,9 +41,6 @@ struct maki_server
 {
 	makiInstance* instance;
 	gchar* server;
-	gchar* initial_nick;
-	gchar* name;
-	gboolean autoconnect;
 	gboolean connected;
 	gboolean logged_in;
 	sashimiConnection* connection;
@@ -53,15 +50,7 @@ struct maki_server
 
 	makiUser* user;
 
-	struct
-	{
-		gboolean ghost;
-		gchar* password;
-	}
-	nickserv;
-
-	gchar** commands;
-	gchar** ignores;
+	GKeyFile* key_file;
 
 	struct
 	{
@@ -89,6 +78,15 @@ struct maki_server
 };
 
 makiServer* maki_server_new (makiInstance*, const gchar*);
+gboolean maki_server_config_get_boolean (makiServer*, const gchar*, const gchar*);
+void maki_server_config_set_boolean (makiServer*, const gchar*, const gchar*, gboolean);
+gint maki_server_config_get_integer (makiServer*, const gchar*, const gchar*);
+void maki_server_config_set_integer (makiServer*, const gchar*, const gchar*, gint);
+gchar* maki_server_config_get_string (makiServer*, const gchar*, const gchar*);
+void maki_server_config_set_string (makiServer*, const gchar*, const gchar*, const gchar*);
+gchar** maki_server_config_get_string_list (makiServer*, const gchar*, const gchar*);
+void maki_server_config_set_string_list (makiServer*, const gchar*, const gchar*, gchar**);
+gboolean maki_server_config_remove (makiServer*, const gchar*, const gchar*);
 gboolean maki_server_autoconnect (makiServer*);
 makiChannel* maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
 makiChannel* maki_server_get_channel (makiServer*, const gchar*);
