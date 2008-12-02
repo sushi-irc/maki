@@ -178,7 +178,7 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 	va_list args;
 	makiInstance* inst = maki_instance_get_default();
 
-	if (maki_instance_config_get_boolean(inst, "logging", "enabled"))
+	if (!maki_instance_config_get_boolean(inst, "logging", "enabled"))
 	{
 		return;
 	}
