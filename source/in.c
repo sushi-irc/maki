@@ -1230,35 +1230,35 @@ void maki_in_callback (const gchar* message, gpointer data)
 				case 324:
 					maki_in_mode(serv, time.tv_sec, from_nick, remaining, TRUE);
 					break;
-					/* RPL_INVITING */
+				/* RPL_INVITING */
 				case 341:
 					maki_in_invite(serv, time.tv_sec, from_nick, remaining, TRUE);
 					break;
-					/* RPL_NAMREPLY */
+				/* RPL_NAMREPLY */
 				case 353:
-					/* RPL_ENDOFNAMES */
+				/* RPL_ENDOFNAMES */
 				case 366:
 					maki_in_rpl_namreply(serv, time.tv_sec, remaining, (numeric == 366));
 					break;
-					/* RPL_UNAWAY */
+				/* RPL_UNAWAY */
 				case 305:
 					serv->user->away = FALSE;
 					g_free(serv->user->away_message);
 					serv->user->away_message = NULL;
 					maki_dbus_emit_back(time.tv_sec, serv->server);
 					break;
-					/* RPL_NOWAWAY */
+				/* RPL_NOWAWAY */
 				case 306:
 					serv->user->away = TRUE;
 					maki_dbus_emit_away(time.tv_sec, serv->server);
 					break;
-					/* RPL_AWAY */
+				/* RPL_AWAY */
 				case 301:
 					maki_in_rpl_away(serv, time.tv_sec, remaining);
 					break;
-					/* RPL_ENDOFMOTD */
+				/* RPL_ENDOFMOTD */
 				case 376:
-					/* ERR_NOMOTD */
+				/* ERR_NOMOTD */
 				case 422:
 					serv->logged_in = TRUE;
 					maki_out_nickserv(serv);
@@ -1272,7 +1272,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 
 					maki_in_rpl_motd(serv, time.tv_sec, remaining, TRUE);
 					break;
-					/* ERR_NICKNAMEINUSE */
+				/* ERR_NICKNAMEINUSE */
 				case 433:
 					if (!serv->logged_in)
 					{
@@ -1293,63 +1293,63 @@ void maki_in_callback (const gchar* message, gpointer data)
 					}
 					/* FIXME else */
 					break;
-					/* ERR_NOSUCHNICK */
+				/* ERR_NOSUCHNICK */
 				case 401:
-					/* ERR_NOSUCHSERVER */
+				/* ERR_NOSUCHSERVER */
 				case 402:
-					/* ERR_NOSUCHCHANNEL */
+				/* ERR_NOSUCHCHANNEL */
 				case 403:
 					maki_in_err_nosuch(serv, time.tv_sec, remaining, numeric);
 					break;
-					/* RPL_MOTD */
+				/* RPL_MOTD */
 				case 372:
 					maki_in_rpl_motd(serv, time.tv_sec, remaining, FALSE);
 					break;
-					/* RPL_TOPIC */
+				/* RPL_TOPIC */
 				case 332:
 					maki_in_topic(serv, time.tv_sec, from_nick, remaining, TRUE);
 					break;
-					/* RPL_WHOISUSER */
+				/* RPL_WHOISUSER */
 				case 311:
-					/* RPL_WHOISSERVER */
+				/* RPL_WHOISSERVER */
 				case 312:
-					/* RPL_WHOISOPERATOR */
+				/* RPL_WHOISOPERATOR */
 				case 313:
-					/* RPL_WHOISIDLE */
+				/* RPL_WHOISIDLE */
 				case 317:
-					/* RPL_ENDOFWHOIS */
+				/* RPL_ENDOFWHOIS */
 				case 318:
-					/* RPL_WHOISCHANNELS */
+				/* RPL_WHOISCHANNELS */
 				case 319:
 					maki_in_rpl_whois(serv, time.tv_sec, remaining, (numeric == 318));
 					break;
-					/* RPL_ISUPPORT */
+				/* RPL_ISUPPORT */
 				case 5:
 					maki_in_rpl_isupport(serv, time.tv_sec, remaining);
 					break;
-					/* RPL_LIST */
+				/* RPL_LIST */
 				case 322:
-					/* RPL_LISTEND */
+				/* RPL_LISTEND */
 				case 323:
 					maki_in_rpl_list(serv, time.tv_sec, remaining, (numeric == 323));
 					break;
-					/* RPL_BANLIST */
+				/* RPL_BANLIST */
 				case 367:
-					/* RPL_ENDOFBANLIST */
+				/* RPL_ENDOFBANLIST */
 				case 368:
 					maki_in_rpl_banlist(serv, time.tv_sec, remaining, (numeric == 368));
 					break;
-					/* RPL_YOUREOPER */
+				/* RPL_YOUREOPER */
 				case 381:
 					maki_dbus_emit_oper(time.tv_sec, serv->server);
 					break;
-					/* ERR_CHANNELISFULL */
+				/* ERR_CHANNELISFULL */
 				case 471:
-					/* ERR_INVITEONLYCHAN */
+				/* ERR_INVITEONLYCHAN */
 				case 473:
-					/* ERR_BANNEDFROMCHAN */
+				/* ERR_BANNEDFROMCHAN */
 				case 474:
-					/* ERR_BADCHANNELKEY */
+				/* ERR_BADCHANNELKEY */
 				case 475:
 					maki_in_err_cannot_join(serv, time.tv_sec, remaining, numeric);
 					break;
