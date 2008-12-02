@@ -40,29 +40,29 @@ static gpointer maki_server_thread (gpointer data)
 
 static gboolean maki_server_config_set_defaults (makiServer* serv)
 {
-	if (!g_key_file_has_key(serv->key_file, "server", "address", NULL))
+	if (!maki_server_config_exists(serv, "server", "address"))
 	{
 		return FALSE;
 	}
 
-	if (!g_key_file_has_key(serv->key_file, "server", "autoconnect", NULL))
+	if (!maki_server_config_exists(serv, "server", "autoconnect"))
 	{
-		g_key_file_set_boolean(serv->key_file, "server", "autoconnect", FALSE);
+		maki_server_config_set_boolean(serv, "server", "autoconnect", FALSE);
 	}
 
-	if (!g_key_file_has_key(serv->key_file, "server", "port", NULL))
+	if (!maki_server_config_exists(serv, "server", "port"))
 	{
-		g_key_file_set_integer(serv->key_file, "server", "port", 6667);
+		maki_server_config_set_integer(serv, "server", "port", 6667);
 	}
 
-	if (!g_key_file_has_key(serv->key_file, "server", "nick", NULL))
+	if (!maki_server_config_exists(serv, "server", "nick"))
 	{
-		g_key_file_set_string(serv->key_file, "server", "nick", g_get_user_name());
+		maki_server_config_set_string(serv, "server", "nick", g_get_user_name());
 	}
 
-	if (!g_key_file_has_key(serv->key_file, "server", "name", NULL))
+	if (!maki_server_config_exists(serv, "server", "name"))
 	{
-		g_key_file_set_string(serv->key_file, "server", "name", g_get_real_name());
+		maki_server_config_set_string(serv, "server", "name", g_get_real_name());
 	}
 
 	/*
@@ -93,11 +93,14 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 
 		serv = g_new(makiServer, 1);
 
+		serv->instance = inst;
+		serv->server = g_strdup(server);
 		serv->key_file = key_file;
 
 		if (!maki_server_config_set_defaults(serv))
 		{
 			g_key_file_free(serv->key_file);
+			g_free(serv->server);
 			g_free(serv);
 			g_free(path);
 			return NULL;
@@ -105,8 +108,6 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 
 		address = maki_server_config_get_string(serv, "server", "address");
 
-		serv->instance = inst;
-		serv->server = g_strdup(server);
 		serv->connected = FALSE;
 		serv->logged_in = FALSE;
 		serv->reconnect.source = 0;

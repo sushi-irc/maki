@@ -52,28 +52,28 @@ makiInstance* maki_instance_get_default (void)
 
 static void maki_instance_config_set_defaults (makiInstance* inst)
 {
-	if (!g_key_file_has_key(inst->key_file, "directories", "logs", NULL))
+	if (!maki_instance_config_exists(inst, "directories", "logs"))
 	{
 		gchar* value;
 
 		value = g_build_filename(g_get_user_data_dir(), "sushi", "logs", NULL);
-		g_key_file_set_string(inst->key_file, "directories", "logs", value);
+		maki_instance_config_set_string(inst, "directories", "logs", value);
 		g_free(value);
 	}
 
-	if (!g_key_file_has_key(inst->key_file, "logging", "enabled", NULL))
+	if (!maki_instance_config_exists(inst, "logging", "enabled"))
 	{
-		g_key_file_set_boolean(inst->key_file, "logging", "enabled", TRUE);
+		maki_instance_config_set_boolean(inst, "logging", "enabled", TRUE);
 	}
 
-	if (!g_key_file_has_key(inst->key_file, "reconnect", "retries", NULL))
+	if (!maki_instance_config_exists(inst, "reconnect", "retries"))
 	{
-		g_key_file_set_integer(inst->key_file, "reconnect", "retries", 3);
+		maki_instance_config_set_integer(inst, "reconnect", "retries", 3);
 	}
 
-	if (!g_key_file_has_key(inst->key_file, "reconnect", "timeout", NULL))
+	if (!maki_instance_config_exists(inst, "reconnect", "timeout"))
 	{
-		g_key_file_set_integer(inst->key_file, "reconnect", "timeout", 10);
+		maki_instance_config_set_integer(inst, "reconnect", "timeout", 10);
 	}
 }
 
@@ -159,6 +159,11 @@ void maki_instance_config_set_string (makiInstance* inst, const gchar* group, co
 	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
 	maki_key_file_to_file(inst->key_file, path);
 	g_free(path);
+}
+
+gboolean maki_instance_config_exists (makiInstance* inst, const gchar* group, const gchar* key)
+{
+	return g_key_file_has_key(inst->key_file, group, key, NULL);
 }
 
 const gchar* maki_instance_directory (makiInstance* inst, const gchar* directory)
