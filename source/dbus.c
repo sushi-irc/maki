@@ -867,79 +867,62 @@ static gboolean maki_dbus_raw (makiDBus* self, const gchar* server, const gchar*
 
 static gboolean maki_dbus_server_get (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, gchar** value, GError** error)
 {
-	gchar* path;
-	GKeyFile* key_file;
+	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
 	*value = NULL;
 
-	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
-	key_file = g_key_file_new();
-
-	if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		*value = g_key_file_get_string(key_file, group, key, NULL);
+		*value = maki_server_config_get_string(serv, group, key);
 	}
-
-	g_key_file_free(key_file);
-	g_free(path);
 
 	return TRUE;
 }
 
 static gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, const gchar* group, gchar*** result, GError** error)
 {
-	gchar* path;
-	GDir* dir;
+	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
 	*result = NULL;
 
 	if (server[0])
 	{
-		GKeyFile* key_file;
-
-		path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
-		key_file = g_key_file_new();
-
-		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+		if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 		{
 			if (group[0])
 			{
-				*result = g_key_file_get_keys(key_file, group, NULL, NULL);
+				*result = maki_server_config_get_keys(serv, group);
 			}
 			else
 			{
-				*result = g_key_file_get_groups(key_file, NULL);
+				*result = maki_server_config_get_groups(serv);
 
 			}
 		}
-
-		g_key_file_free(key_file);
-		g_free(path);
 	}
 	else
 	{
-		if ((dir = g_dir_open(maki_instance_directory(inst, "servers"), 0, NULL)) != NULL)
+		GHashTableIter iter;
+		gpointer key, value;
+		guint i = 0;
+		gchar** tmp;
+
+		tmp = g_new(gchar*, g_hash_table_size(maki_instance_servers(inst)) + 1);
+
+		g_hash_table_iter_init(&iter, maki_instance_servers(inst));
+
+		while (g_hash_table_iter_next(&iter, &key, &value))
 		{
-			guint i = 0;
-			const gchar* name;
-			gchar** tmp;
+			const gchar* name = key;
 
-			tmp = g_new(gchar*, 1);
-
-			while ((name = g_dir_read_name(dir)) != NULL)
-			{
-				tmp = g_renew(gchar*, tmp, i + 2);
-				tmp[i] = g_strdup(name);
-				++i;
-			}
-
-			tmp[i] = NULL;
-			*result = tmp;
-
-			g_dir_close(dir);
+			tmp[i] = g_strdup(name);
+			i++;
 		}
+
+		tmp[i] = NULL;
+		*result = tmp;
 	}
 
 	return TRUE;
@@ -947,43 +930,38 @@ static gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, cons
 
 static gboolean maki_dbus_server_remove (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, GError** error)
 {
-	gchar* path;
+	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
-
-	if (group[0])
+	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		GKeyFile* key_file;
-
-		key_file = g_key_file_new();
-
-		if (g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL))
+		if (group[0])
 		{
 			if (key[0])
 			{
-				g_key_file_remove_key(key_file, group, key, NULL);
+				maki_server_config_remove_key(serv, group, key);
 			}
 			else
 			{
-				g_key_file_remove_group(key_file, group, NULL);
+				maki_server_config_remove_group(serv, group);
 			}
-
-			maki_key_file_to_file(key_file, path);
 		}
+		else
+		{
+			gchar* path;
 
-		g_key_file_free(key_file);
-	}
-	else
-	{
-		g_unlink(path);
-	}
+			g_hash_table_remove(maki_instance_servers(inst), server);
 
-	g_free(path);
+			path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
+			g_unlink(path);
+			g_free(path);
+		}
+	}
 
 	return TRUE;
 }
 
+/* FIXME */
 static gboolean maki_dbus_server_rename (makiDBus* self, const gchar* old, const gchar* new, GError** error)
 {
 	gchar* old_path;
@@ -1003,19 +981,13 @@ static gboolean maki_dbus_server_rename (makiDBus* self, const gchar* old, const
 
 static gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, const gchar* value, GError** error)
 {
-	gchar* path;
-	GKeyFile* key_file;
+	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
-	key_file = g_key_file_new();
-
-	g_key_file_load_from_file(key_file, path, G_KEY_FILE_NONE, NULL);
-	g_key_file_set_string(key_file, group, key, value);
-	maki_key_file_to_file(key_file, path);
-
-	g_key_file_free(key_file);
-	g_free(path);
+	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	{
+		maki_server_config_set_string(serv, group, key, value);
+	}
 
 	return TRUE;
 }
@@ -1167,7 +1139,7 @@ static gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const g
 
 			if (length - j == 0)
 			{
-				maki_server_config_remove(serv, "server", "ignores");
+				maki_server_config_remove_key(serv, "server", "ignores");
 
 				g_strfreev(ignores);
 

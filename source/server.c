@@ -204,7 +204,7 @@ void maki_server_config_set_string_list (makiServer* serv, const gchar* group, c
 	g_free(path);
 }
 
-gboolean maki_server_config_remove (makiServer* serv, const gchar* group, const gchar* key)
+gboolean maki_server_config_remove_key (makiServer* serv, const gchar* group, const gchar* key)
 {
 	gchar* path;
 	gboolean ret;
@@ -216,6 +216,30 @@ gboolean maki_server_config_remove (makiServer* serv, const gchar* group, const 
 	g_free(path);
 
 	return ret;
+}
+
+gboolean maki_server_config_remove_group (makiServer* serv, const gchar* group)
+{
+	gchar* path;
+	gboolean ret;
+
+	ret = g_key_file_remove_group(serv->key_file, group, NULL);
+
+	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
+	maki_key_file_to_file(serv->key_file, path);
+	g_free(path);
+
+	return ret;
+}
+
+gchar** maki_server_config_get_keys (makiServer* serv, const gchar* group)
+{
+	return g_key_file_get_keys(serv->key_file, group, NULL, NULL);
+}
+
+gchar** maki_server_config_get_groups (makiServer* serv)
+{
+	return g_key_file_get_groups(serv->key_file, NULL);
 }
 
 gboolean maki_server_config_exists (makiServer* serv, const gchar* group, const gchar* key)
