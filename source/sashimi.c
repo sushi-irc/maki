@@ -57,9 +57,6 @@ struct sashimi_connection
 {
 	GIOChannel* channel;
 
-	gchar* address;
-	gint port;
-
 	glong last_activity;
 	guint timeout;
 
@@ -301,17 +298,12 @@ reconnect:
 	return FALSE;
 }
 
-sashimiConnection* sashimi_new (const gchar* address, gushort port, GMainContext* main_context)
+sashimiConnection* sashimi_new (GMainContext* main_context)
 {
 	gint i;
 	sashimiConnection* conn;
 
-	g_return_val_if_fail(address != NULL, NULL);
-
 	conn = g_new(sashimiConnection, 1);
-
-	conn->address = g_strdup(address);
-	conn->port = port;
 
 	conn->main_context = g_main_context_ref(main_context);
 
@@ -370,13 +362,14 @@ void sashimi_timeout (sashimiConnection* conn, guint timeout)
 	conn->timeout = timeout;
 }
 
-gboolean sashimi_connect (sashimiConnection* conn)
+gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint port)
 {
 	int fd;
 	struct hostent* hostinfo;
 	struct sockaddr_in name;
 
 	g_return_val_if_fail(conn != NULL, FALSE);
+	g_return_val_if_fail(address != NULL, FALSE);
 
 	if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
 	{
@@ -385,14 +378,14 @@ gboolean sashimi_connect (sashimiConnection* conn)
 
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 
-	if ((hostinfo = gethostbyname(conn->address)) == NULL)
+	if ((hostinfo = gethostbyname(address)) == NULL)
 	{
 		close(fd);
 		return FALSE;
 	}
 
 	name.sin_family = AF_INET;
-	name.sin_port = htons(conn->port);
+	name.sin_port = htons(port);
 	name.sin_addr = *(struct in_addr*)hostinfo->h_addr_list[0];
 
 	if (connect(fd, (struct sockaddr*)&name, sizeof(name)) < 0)
@@ -444,8 +437,6 @@ void sashimi_free (sashimiConnection* conn)
 	g_mutex_free(conn->queue_mutex);
 
 	g_main_context_unref(conn->main_context);
-
-	g_free(conn->address);
 
 	g_free(conn);
 }

@@ -34,12 +34,12 @@ struct sashimi_connection;
 
 typedef struct sashimi_connection sashimiConnection;
 
-sashimiConnection* sashimi_new (const gchar*, gushort, GMainContext*);
+sashimiConnection* sashimi_new (GMainContext*);
 void sashimi_connect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
 void sashimi_read_callback (sashimiConnection* conn, void (*) (const gchar*, gpointer), gpointer);
 void sashimi_reconnect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
 void sashimi_timeout (sashimiConnection*, guint);
-gboolean sashimi_connect (sashimiConnection*);
+gboolean sashimi_connect (sashimiConnection*, const gchar*, guint);
 gboolean sashimi_send (sashimiConnection*, const gchar*);
 gboolean sashimi_queue (sashimiConnection*, const gchar*);
 gboolean sashimi_send_or_queue (sashimiConnection*, const gchar*);
