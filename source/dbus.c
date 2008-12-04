@@ -990,6 +990,14 @@ static gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const
 	{
 		maki_server_config_set_string(serv, group, key, value);
 	}
+	else
+	{
+		if ((serv = maki_server_new(inst, server)) != NULL)
+		{
+			maki_server_config_set_string(serv, group, key, value);
+			g_hash_table_replace(maki_instance_servers(inst), serv->server, serv);
+		}
+	}
 
 	return TRUE;
 }
