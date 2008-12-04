@@ -882,6 +882,21 @@ static gboolean maki_dbus_server_get (makiDBus* self, const gchar* server, const
 	return TRUE;
 }
 
+static gboolean maki_dbus_server_get_list (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, gchar*** list, GError** error)
+{
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	*list = NULL;
+
+	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	{
+		*list = maki_server_config_get_string_list(serv, group, key);
+	}
+
+	return TRUE;
+}
+
 static gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, const gchar* group, gchar*** result, GError** error)
 {
 	makiServer* serv;
@@ -995,6 +1010,27 @@ static gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const
 		if ((serv = maki_server_new(inst, server)) != NULL)
 		{
 			maki_server_config_set_string(serv, group, key, value);
+			g_hash_table_replace(maki_instance_servers(inst), serv->server, serv);
+		}
+	}
+
+	return TRUE;
+}
+
+static gboolean maki_dbus_server_set_list (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, gchar** list, GError** error)
+{
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	{
+		maki_server_config_set_string_list(serv, group, key, list);
+	}
+	else
+	{
+		if ((serv = maki_server_new(inst, server)) != NULL)
+		{
+			maki_server_config_set_string_list(serv, group, key, list);
 			g_hash_table_replace(maki_instance_servers(inst), serv->server, serv);
 		}
 	}

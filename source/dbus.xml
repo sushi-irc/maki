@@ -160,6 +160,13 @@
 			<arg name="value" type="s" direction="out" />
 		</method>
 
+		<method name="server_get_list">
+			<arg name="server" type="s" />
+			<arg name="group" type="s" />
+			<arg name="key" type="s" />
+			<arg name="list" type="as" direction="out" />
+		</method>
+
 		<method name="server_list">
 			<!-- server is optional and can be empty (""). This lists all servers. -->
 			<arg name="server" type="s" />
@@ -186,6 +193,13 @@
 			<arg name="group" type="s" />
 			<arg name="key" type="s" />
 			<arg name="value" type="s" />
+		</method>
+
+		<method name="server_set_list">
+			<arg name="server" type="s" />
+			<arg name="group" type="s" />
+			<arg name="key" type="s" />
+			<arg name="list" type="as" />
 		</method>
 
 		<method name="servers">
