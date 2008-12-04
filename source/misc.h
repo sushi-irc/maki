@@ -33,6 +33,9 @@
 guint maki_timeout_add_seconds (GMainContext*, guint, GSourceFunc, gpointer);
 gboolean maki_source_remove (GMainContext*, guint);
 
+gboolean maki_config_is_empty (const gchar*);
+gboolean maki_config_is_empty_list (gchar**);
+
 gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
 void maki_debug (const gchar*, ...);
 gboolean maki_str_equal (gconstpointer, gconstpointer);

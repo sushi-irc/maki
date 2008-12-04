@@ -62,18 +62,16 @@ void maki_out_nick (makiServer* serv, const gchar* nick)
 
 void maki_out_nickserv (makiServer* serv)
 {
+	gchar* initial_nick;
 	gchar* nickserv_password;
 
 	g_return_if_fail(serv != NULL);
 
+	initial_nick = maki_server_config_get_string(serv, "server", "nick");
 	nickserv_password = maki_server_config_get_string(serv, "server", "nickserv");
 
-	if (nickserv_password != NULL)
+	if (!maki_config_is_empty(initial_nick) && !maki_config_is_empty(nickserv_password))
 	{
-		gchar* initial_nick;
-
-		initial_nick = maki_server_config_get_string(serv, "server", "nick");
-
 		if (g_ascii_strcasecmp(serv->user->nick, initial_nick) != 0)
 		{
 			if (maki_server_config_get_boolean(serv, "server", "nickserv_ghost"))
@@ -85,10 +83,9 @@ void maki_out_nickserv (makiServer* serv)
 		}
 
 		maki_server_send_printf(serv, "PRIVMSG NickServ :IDENTIFY %s", nickserv_password);
-
-		g_free(initial_nick);
 	}
 
+	g_free(initial_nick);
 	g_free(nickserv_password);
 }
 

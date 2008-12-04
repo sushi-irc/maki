@@ -344,7 +344,7 @@ gboolean maki_server_connect (makiServer* serv)
 
 	address = maki_server_config_get_string(serv, "server", "address");
 
-	if (!serv->connected && address != NULL)
+	if (!serv->connected && !maki_config_is_empty(address))
 	{
 		GTimeVal time;
 

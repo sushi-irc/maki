@@ -69,6 +69,30 @@ gboolean maki_source_remove (GMainContext* main_context, guint tag)
 	return (source != NULL);
 }
 
+gboolean maki_config_is_empty (const gchar* value)
+{
+	gboolean ret = TRUE;
+
+	if (value != NULL && value[0] != '\0')
+	{
+		ret = FALSE;
+	}
+
+	return ret;
+}
+
+gboolean maki_config_is_empty_list (gchar** list)
+{
+	gboolean ret = TRUE;
+
+	if (list != NULL && g_strv_length(list) > 0)
+	{
+		ret = FALSE;
+	}
+
+	return ret;
+}
+
 gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
 {
 	gboolean ret = FALSE;

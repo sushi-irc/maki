@@ -522,7 +522,7 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 
 		initial_nick = maki_server_config_get_string(serv, "server", "nick");
 
-		if (g_ascii_strcasecmp(serv->user->nick, initial_nick) == 0)
+		if (!maki_config_is_empty(initial_nick) && g_ascii_strcasecmp(serv->user->nick, initial_nick) == 0)
 		{
 			maki_out_nickserv(serv);
 		}
