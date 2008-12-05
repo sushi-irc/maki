@@ -261,6 +261,8 @@ static gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gch
 
 		maki_server_send_printf(serv, "PRIVMSG %s :\001ACTION %s\001", channel, tmp);
 
+		maki_log(serv, channel, "%s %s", serv->user->nick, tmp);
+
 		maki_dbus_emit_action(time.tv_sec, server, serv->user->nick, channel, tmp);
 
 		g_free(tmp);
