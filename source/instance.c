@@ -52,6 +52,15 @@ makiInstance* maki_instance_get_default (void)
 
 static void maki_instance_config_set_defaults (makiInstance* inst)
 {
+	if (!maki_instance_config_exists(inst, "directories", "downloads"))
+	{
+		gchar* value;
+
+		value = g_build_filename(g_get_user_data_dir(), "sushi", "downloads", NULL);
+		maki_instance_config_set_string(inst, "directories", "downloads", value);
+		g_free(value);
+	}
+
 	if (!maki_instance_config_exists(inst, "directories", "logs"))
 	{
 		gchar* value;

@@ -134,6 +134,8 @@ void maki_debug (const gchar* format, ...)
 		logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
 		path = g_build_filename(logs_dir, filename, NULL);
 
+		g_mkdir_with_parents(logs_dir, S_IRUSR | S_IWUSR | S_IXUSR);
+
 		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
 		{
 			g_print("%s\n", _("Could not open debug log file."));

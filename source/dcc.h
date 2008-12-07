@@ -25,34 +25,16 @@
  * SUCH DAMAGE.
  */
 
-#ifndef H_MAKI
-#define H_MAKI
+#ifndef H_DCC
+#define H_DCC
 
-#define G_DISABLE_DEPRECATED
+struct maki_dcc_send_in;
 
-#include <glib.h>
-#include <glib/gi18n.h>
-#include <glib/gstdio.h>
+typedef struct maki_dcc_send_in makiDCCSendIn;
 
-#include "sashimi.h"
+gchar* maki_dcc_send_get_file_name (const gchar*, gsize*);
 
-#include "cache.h"
-#include "channel.h"
-#include "channel_user.h"
-#include "dcc.h"
-#include "dbus.h"
-#include "in.h"
-#include "instance.h"
-#include "log.h"
-#include "maki.h"
-#include "misc.h"
-#include "out.h"
-#include "server.h"
-#include "user.h"
-
-extern gboolean opt_debug;
-
-extern makiDBus* dbus;
-extern GMainLoop* main_loop;
+makiDCCSendIn* maki_dcc_send_in_new (makiServer*, const gchar*, const gchar*, guint32, guint16, goffset, const gchar*);
+void maki_dcc_send_in_free (makiDCCSendIn*);
 
 #endif
