@@ -25,11 +25,8 @@
  * SUCH DAMAGE.
  */
 
-#ifdef __FreeBSD__
+#define G_DISABLE_DEPRECATED
 #define _XOPEN_SOURCE
-#else
-#define _XOPEN_SOURCE 500
-#endif
 
 #include "sashimi.h"
 

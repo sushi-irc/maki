@@ -27,12 +27,6 @@
 
 #include "maki.h"
 
-#ifdef __FreeBSD__
-#define _XOPEN_SOURCE
-#else
-#define _XOPEN_SOURCE 500
-#endif
-
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>

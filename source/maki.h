@@ -29,6 +29,7 @@
 #define H_MAKI
 
 #define G_DISABLE_DEPRECATED
+#define _XOPEN_SOURCE
 
 #include <glib.h>
 #include <glib/gi18n.h>
