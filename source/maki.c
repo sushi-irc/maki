@@ -112,6 +112,7 @@ int main (int argc, char* argv[])
 	const gchar* file;
 	GDir* servers;
 	makiInstance* inst;
+	struct sigaction sig;
 
 	gboolean opt_daemon = FALSE;
 	GOptionContext* context;
@@ -165,10 +166,14 @@ int main (int argc, char* argv[])
 		return 1;
 	}
 
-	signal(SIGINT, maki_signal);
-	signal(SIGHUP, maki_signal);
-	signal(SIGTERM, maki_signal);
-	signal(SIGQUIT, maki_signal);
+	sig.sa_handler = maki_signal;
+	sigemptyset(&sig.sa_mask);
+	sig.sa_flags = 0;
+
+	sigaction(SIGINT, &sig, NULL);
+	sigaction(SIGHUP, &sig, NULL);
+	sigaction(SIGTERM, &sig, NULL);
+	sigaction(SIGQUIT, &sig, NULL);
 
 	servers = g_dir_open(maki_instance_directory(inst, "servers"), 0, NULL);
 
