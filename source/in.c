@@ -159,6 +159,61 @@ void maki_commands (makiServer* serv)
 	g_strfreev(commands);
 }
 
+void maki_in_dcc_send (makiServer* serv, glong time, gchar* nick, gchar* remaining)
+{
+	gchar* file_name;
+	gsize file_name_len;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	if (!maki_instance_config_get_boolean(serv->instance, "dcc", "enabled"))
+	{
+		return;
+	}
+
+	if ((file_name = maki_dcc_send_get_file_name(remaining, &file_name_len)) != NULL)
+	{
+		gchar** args;
+		guint args_len;
+
+		args = g_strsplit(remaining + file_name_len + 1, " ", 4);
+		args_len = g_strv_length(args);
+
+		if (args_len >= 2)
+		{
+			guint32 address;
+			guint16 port;
+			goffset file_size;
+			gchar* token;
+
+			file_size = 0;
+			token = NULL;
+
+			address = g_ascii_strtoull(args[0], NULL, 10);
+			port = g_ascii_strtoull(args[1], NULL, 10);
+
+			if (args_len > 2)
+			{
+				file_size = g_ascii_strtoull(args[2], NULL, 10);
+			}
+
+			if (args_len > 3)
+			{
+				token = args[3];
+			}
+
+			maki_dcc_send_in_new(serv, nick, file_name, address, port, file_size, token);
+		}
+
+		g_strfreev(args);
+
+		g_free(file_name);
+	}
+}
+
 void maki_in_privmsg (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
@@ -212,47 +267,7 @@ void maki_in_privmsg (makiServer* serv, glong time, gchar* nick, gchar* remainin
 					}
 					else if (strncmp(message, "DCC SEND ", 9) == 0)
 					{
-						gchar* file_name;
-						gsize file_name_len;
-
-						if ((file_name = maki_dcc_send_get_file_name(message + 9, &file_name_len)) != NULL)
-						{
-							gchar** args;
-							guint args_len;
-
-							args = g_strsplit(message + 9 + file_name_len + 1, " ", 4);
-							args_len = g_strv_length(args);
-
-							if (args_len >= 2)
-							{
-								guint32 address;
-								guint16 port;
-								goffset file_size;
-								gchar* token;
-
-								file_size = 0;
-								token = NULL;
-
-								address = g_ascii_strtoull(args[0], NULL, 10);
-								port = g_ascii_strtoull(args[1], NULL, 10);
-
-								if (args_len > 2)
-								{
-									file_size = g_ascii_strtoull(args[2], NULL, 10);
-								}
-
-								if (args_len > 3)
-								{
-									token = args[3];
-								}
-
-								maki_dcc_send_in_new(serv, nick, file_name, address, port, file_size, token);
-							}
-
-							g_strfreev(args);
-
-							g_free(file_name);
-						}
+						maki_in_dcc_send(serv, time, nick, message + 9);
 					}
 				}
 

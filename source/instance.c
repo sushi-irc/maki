@@ -52,6 +52,11 @@ makiInstance* maki_instance_get_default (void)
 
 static void maki_instance_config_set_defaults (makiInstance* inst)
 {
+	if (!maki_instance_config_exists(inst, "dcc", "enabled"))
+	{
+		maki_instance_config_set_boolean(inst, "dcc", "enabled", FALSE);
+	}
+
 	if (!maki_instance_config_exists(inst, "directories", "downloads"))
 	{
 		gchar* value;
