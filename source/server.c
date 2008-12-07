@@ -27,6 +27,8 @@
 
 #include "maki.h"
 
+#include "sashimi.h"
+
 #include <string.h>
 
 static gpointer maki_server_thread (gpointer data)
