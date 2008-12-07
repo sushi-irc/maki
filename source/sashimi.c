@@ -361,37 +361,58 @@ void sashimi_timeout (sashimiConnection* conn, guint timeout)
 
 gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint port)
 {
-	int fd;
-	struct hostent* hostinfo;
-	struct sockaddr_in name;
+	gint fd;
+	gchar* port_str;
+	struct addrinfo* ai;
+	struct addrinfo* p;
+	struct addrinfo hints;
 
 	g_return_val_if_fail(conn != NULL, FALSE);
 	g_return_val_if_fail(address != NULL, FALSE);
+	g_return_val_if_fail(port != 0, FALSE);
 
-	if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = 0;
+	hints.ai_flags = 0;
+
+	port_str = g_strdup_printf("%u", port);
+
+	if (getaddrinfo(address, port_str, &hints, &ai) != 0)
 	{
+		g_free(port_str);
 		return FALSE;
 	}
 
-	fcntl(fd, F_SETFL, O_NONBLOCK);
+	g_free(port_str);
 
-	if ((hostinfo = gethostbyname(address)) == NULL)
+	for (p = ai; p != NULL; p = p->ai_next)
 	{
-		close(fd);
-		return FALSE;
-	}
-
-	name.sin_family = AF_INET;
-	name.sin_port = htons(port);
-	name.sin_addr = *(struct in_addr*)hostinfo->h_addr_list[0];
-
-	if (connect(fd, (struct sockaddr*)&name, sizeof(name)) < 0)
-	{
-		if (errno != EINPROGRESS)
+		if ((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0)
 		{
-			close(fd);
-			return FALSE;
+			continue;
 		}
+
+		fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+
+		if (connect(fd, ai->ai_addr, ai->ai_addrlen) < 0)
+		{
+			if (errno != EINPROGRESS)
+			{
+				close(fd);
+				continue;
+			}
+		}
+
+		break;
+	}
+
+	freeaddrinfo(ai);
+
+	if (p == NULL)
+	{
+		return FALSE;
 	}
 
 	conn->channel = g_io_channel_unix_new(fd);
