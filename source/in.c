@@ -91,7 +91,7 @@ static gboolean maki_is_channel(makiServer* serv, const gchar* target)
 	return (strchr(serv->support.chantypes, target[0]) != NULL);
 }
 
-gint maki_prefix_position (makiServer* serv, gboolean is_prefix, gchar prefix)
+static gint maki_prefix_position (makiServer* serv, gboolean is_prefix, gchar prefix)
 {
 	guint pos = 0;
 	gchar* str = (is_prefix) ? serv->support.prefix.prefixes : serv->support.prefix.modes;
@@ -137,7 +137,7 @@ static gboolean maki_join (gpointer data)
 	return FALSE;
 }
 
-void maki_commands (makiServer* serv)
+static void maki_commands (makiServer* serv)
 {
 	gchar** commands;
 
@@ -159,7 +159,7 @@ void maki_commands (makiServer* serv)
 	g_strfreev(commands);
 }
 
-void maki_in_dcc_send (makiServer* serv, glong time, gchar* nick, gchar* remaining)
+static void maki_in_dcc_send (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gchar* file_name;
 	gsize file_name_len;
@@ -214,7 +214,7 @@ void maki_in_dcc_send (makiServer* serv, glong time, gchar* nick, gchar* remaini
 	}
 }
 
-void maki_in_privmsg (makiServer* serv, glong time, gchar* nick, gchar* remaining)
+static void maki_in_privmsg (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -301,7 +301,7 @@ void maki_in_privmsg (makiServer* serv, glong time, gchar* nick, gchar* remainin
 	g_strfreev(tmp);
 }
 
-void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
+static void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gchar* channel;
 	makiChannel* chan;
@@ -352,7 +352,7 @@ void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	maki_dbus_emit_join(time, serv->server, nick, channel);
 }
 
-void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
+static void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -432,7 +432,7 @@ void maki_in_part (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	g_strfreev(tmp);
 }
 
-void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
+static void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	GHashTableIter iter;
 	gpointer key, value;
@@ -474,7 +474,7 @@ void maki_in_quit (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	}
 }
 
-void maki_in_kick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
+static void maki_in_kick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -555,7 +555,7 @@ void maki_in_kick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	g_strfreev(tmp);
 }
 
-void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
+static void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gboolean own = FALSE;
 	gchar* new_nick;
@@ -632,7 +632,7 @@ void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 	maki_dbus_emit_nick(time, serv->server, nick, new_nick);
 }
 
-void maki_in_notice (makiServer* serv, glong time, gchar* nick, gchar* remaining)
+static void maki_in_notice (makiServer* serv, glong time, gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -664,7 +664,7 @@ void maki_in_notice (makiServer* serv, glong time, gchar* nick, gchar* remaining
 	g_strfreev(tmp);
 }
 
-void maki_in_mode (makiServer* serv, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+static void maki_in_mode (makiServer* serv, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gboolean own;
 	gchar** modes;
@@ -785,7 +785,7 @@ void maki_in_mode (makiServer* serv, glong time, gchar* nick, gchar* remaining, 
 	g_strfreev(modes);
 }
 
-void maki_in_invite (makiServer* serv, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+static void maki_in_invite (makiServer* serv, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -826,7 +826,7 @@ void maki_in_invite (makiServer* serv, glong time, gchar* nick, gchar* remaining
 	g_strfreev(tmp);
 }
 
-void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
+static void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -880,7 +880,7 @@ void maki_in_topic (makiServer* serv, glong time, gchar* nick, gchar* remaining,
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
 {
 	gchar** tmp;
 	gint i;
@@ -942,7 +942,7 @@ void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining, gbool
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_away (makiServer* serv, glong time, gchar* remaining)
+static void maki_in_rpl_away (makiServer* serv, glong time, gchar* remaining)
 {
 	gchar** tmp;
 
@@ -961,7 +961,7 @@ void maki_in_rpl_away (makiServer* serv, glong time, gchar* remaining)
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_isupport (makiServer* serv, glong time, gchar* remaining)
+static void maki_in_rpl_isupport (makiServer* serv, glong time, gchar* remaining)
 {
 	gint i;
 	guint length;
@@ -1024,7 +1024,7 @@ void maki_in_rpl_isupport (makiServer* serv, glong time, gchar* remaining)
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_motd (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_motd (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
 {
 	if (!remaining)
 	{
@@ -1041,7 +1041,7 @@ void maki_in_rpl_motd (makiServer* serv, glong time, gchar* remaining, gboolean 
 	}
 }
 
-void maki_in_rpl_list (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_list (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
 {
 	if (!remaining)
 	{
@@ -1067,7 +1067,7 @@ void maki_in_rpl_list (makiServer* serv, glong time, gchar* remaining, gboolean 
 	}
 }
 
-void maki_in_rpl_banlist (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_banlist (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
 {
 	guint length;
 	gchar** tmp;
@@ -1103,7 +1103,7 @@ void maki_in_rpl_banlist (makiServer* serv, glong time, gchar* remaining, gboole
 	g_strfreev(tmp);
 }
 
-void maki_in_rpl_whois (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_whois (makiServer* serv, glong time, gchar* remaining, gboolean is_end)
 {
 	gchar** tmp;
 
@@ -1129,7 +1129,7 @@ void maki_in_rpl_whois (makiServer* serv, glong time, gchar* remaining, gboolean
 	g_strfreev(tmp);
 }
 
-void maki_in_err_nosuch (makiServer* serv, glong time, gchar* remaining, gint numeric)
+static void maki_in_err_nosuch (makiServer* serv, glong time, gchar* remaining, gint numeric)
 {
 	gchar type[2];
 	gchar** tmp;
@@ -1170,7 +1170,7 @@ void maki_in_err_nosuch (makiServer* serv, glong time, gchar* remaining, gint nu
 	g_strfreev(tmp);
 }
 
-void maki_in_err_cannot_join (makiServer* serv, glong time, gchar* remaining, gint numeric)
+static void maki_in_err_cannot_join (makiServer* serv, glong time, gchar* remaining, gint numeric)
 {
 	gchar reason[2];
 	gchar** tmp;
