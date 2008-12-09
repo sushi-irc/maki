@@ -30,6 +30,8 @@
 
 #include <glib.h>
 
+gboolean i_daemon (gboolean, gboolean);
+
 guint i_io_add_watch (GIOChannel*, GIOCondition, GIOFunc, gpointer, GMainContext*);
 guint i_idle_add (GSourceFunc, gpointer, GMainContext*);
 guint i_timeout_add_seconds (guint, GSourceFunc, gpointer, GMainContext*);

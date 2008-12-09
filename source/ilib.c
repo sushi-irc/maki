@@ -31,10 +31,67 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 
+#include <fcntl.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "ilib.h"
+
+gboolean i_daemon (gboolean nochdir, gboolean noclose)
+{
+	pid_t pid;
+
+	pid = fork();
+
+	if (pid > 0)
+	{
+		_exit(0);
+	}
+	else if (pid == -1)
+	{
+		return FALSE;
+	}
+
+	if (setsid() == -1)
+	{
+		return FALSE;
+	}
+
+	if (!nochdir)
+	{
+		if (g_chdir("/") == -1)
+		{
+			return FALSE;
+		}
+	}
+
+	if (!noclose)
+	{
+		gint fd;
+
+		fd = open("/dev/null", O_RDWR);
+
+		if (fd == -1)
+		{
+			return FALSE;
+		}
+
+		if (dup2(fd, STDIN_FILENO) == -1 || dup2(fd, STDOUT_FILENO) == -1 || dup2(fd, STDERR_FILENO) == -1)
+		{
+			return FALSE;
+		}
+
+		if (fd > 2)
+		{
+			close(fd);
+		}
+	}
+
+	return TRUE;
+}
 
 guint i_io_add_watch (GIOChannel* channel, GIOCondition condition, GIOFunc func, gpointer data, GMainContext* context)
 {

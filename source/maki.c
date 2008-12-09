@@ -41,47 +41,6 @@ gboolean opt_debug = TRUE;
 makiDBus* dbus = NULL;
 GMainLoop* main_loop = NULL;
 
-static int maki_daemonize (void)
-{
-	int fd;
-	pid_t pid;
-
-	pid = fork();
-
-	if (pid > 0)
-	{
-		exit(0);
-	}
-	else if (pid == -1)
-	{
-		return 1;
-	}
-
-	if (setsid() == -1)
-	{
-		return 1;
-	}
-
-	fd = open("/dev/null", O_RDWR);
-
-	if (fd == -1)
-	{
-		return 1;
-	}
-
-	if (dup2(fd, STDIN_FILENO) == -1 || dup2(fd, STDOUT_FILENO) == -1 || dup2(fd, STDERR_FILENO) == -1)
-	{
-		return 1;
-	}
-
-	if (fd > 2)
-	{
-		close(fd);
-	}
-
-	return 0;
-}
-
 static void maki_signal (int signo)
 {
 	GTimeVal time;
@@ -141,7 +100,7 @@ int main (int argc, char* argv[])
 	g_option_context_free(context);
 
 	if (opt_daemon
-	    && maki_daemonize() != 0)
+	    && !i_daemon(FALSE, FALSE))
 	{
 		g_warning("%s\n", _("Could not switch to daemon mode."));
 		goto error;
