@@ -89,9 +89,9 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 	serv->main_context = g_main_context_new();
 	serv->main_loop = g_main_loop_new(serv->main_context, FALSE);
 	serv->connection = sashimi_new(serv->main_context);
-	serv->channels = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_channel_free);
+	serv->channels = g_hash_table_new_full(i_str_case_hash, i_str_case_equal, g_free, maki_channel_free);
 	serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
-	serv->logs = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_log_free);
+	serv->logs = g_hash_table_new_full(i_str_case_hash, i_str_case_equal, g_free, maki_log_free);
 
 	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 	g_key_file_load_from_file(serv->key_file, path, G_KEY_FILE_NONE, NULL);
@@ -313,7 +313,7 @@ void maki_server_free (gpointer data)
 
 	if (serv->reconnect.source != 0)
 	{
-		maki_source_remove(serv->main_context, serv->reconnect.source);
+		i_source_remove(serv->reconnect.source, serv->main_context);
 	}
 
 	g_main_loop_quit(serv->main_loop);
@@ -440,7 +440,7 @@ void maki_server_connect_callback (gpointer data)
 
 	if (serv->reconnect.source != 0)
 	{
-		maki_source_remove(serv->main_context, serv->reconnect.source);
+		i_source_remove(serv->reconnect.source, serv->main_context);
 		serv->reconnect.source = 0;
 	}
 
@@ -480,5 +480,5 @@ void maki_server_reconnect_callback (gpointer data)
 		return;
 	}
 
-	serv->reconnect.source = maki_timeout_add_seconds(serv->main_context, maki_instance_config_get_integer(serv->instance, "reconnect", "timeout"), maki_server_reconnect, serv);
+	serv->reconnect.source = i_timeout_add_seconds(maki_instance_config_get_integer(serv->instance, "reconnect", "timeout"), maki_server_reconnect, serv, serv->main_context);
 }

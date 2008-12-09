@@ -83,7 +83,7 @@ void maki_log_write (makiLog* log, const gchar* message)
 {
 	gchar* time_str;
 
-	if ((time_str = maki_get_current_time_string()) != NULL)
+	if ((time_str = i_get_current_time_string()) != NULL)
 	{
 		maki_write(log->fd, time_str);
 		maki_write(log->fd, " ");

@@ -73,7 +73,7 @@ makiCache* maki_cache_new (gpointer (*value_new) (gpointer, gpointer), void (*va
 	cache->value_new = value_new;
 	cache->value_free = value_free;
 	cache->value_data = value_data;
-	cache->hash_table = g_hash_table_new_full(maki_str_hash, maki_str_equal, g_free, maki_cache_item_free);
+	cache->hash_table = g_hash_table_new_full(i_str_case_hash, i_str_case_equal, g_free, maki_cache_item_free);
 
 	return cache;
 }

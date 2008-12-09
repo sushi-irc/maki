@@ -27,8 +27,6 @@
 
 #include "maki.h"
 
-#include <glib/gstdio.h>
-
 #include <fcntl.h>
 #include <string.h>
 

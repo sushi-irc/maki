@@ -30,6 +30,8 @@
 
 #include "sashimi.h"
 
+#include "ilib.h"
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -115,35 +117,16 @@ static void sashimi_remove_sources (sashimiConnection* conn, gint id)
 
 static guint sashimi_io_add_watch (sashimiConnection* conn, GIOCondition condition, GIOFunc func)
 {
-	GSource* source;
-	guint id;
-
 	g_return_val_if_fail(conn != NULL, 0);
-	g_return_val_if_fail(conn->channel != NULL, 0);
-	g_return_val_if_fail(func != NULL, 0);
 
-	source = g_io_create_watch(conn->channel, condition);
-	g_source_set_callback(source, (GSourceFunc)func, conn, NULL);
-	id = g_source_attach(source, conn->main_context);
-	g_source_unref(source);
-
-	return id;
+	return i_io_add_watch(conn->channel, condition, func, conn, conn->main_context);
 }
 
 static guint sashimi_timeout_add_seconds (sashimiConnection* conn, guint32 interval, GSourceFunc func)
 {
-	GSource* source;
-	guint id;
-
 	g_return_val_if_fail(conn != NULL, 0);
-	g_return_val_if_fail(func != NULL, 0);
 
-	source = g_timeout_source_new_seconds(interval);
-	g_source_set_callback(source, func, conn, NULL);
-	id = g_source_attach(source, conn->main_context);
-	g_source_unref(source);
-
-	return id;
+	return i_timeout_add_seconds(interval, func, conn, conn->main_context);
 }
 
 static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpointer data)

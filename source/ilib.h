@@ -25,17 +25,21 @@
  * SUCH DAMAGE.
  */
 
-#ifndef H_MISC
-#define H_MISC
+#ifndef H_ILIB
+#define H_ILIB
 
-#include "server.h"
+#include <glib.h>
 
-gboolean maki_config_is_empty (const gchar*);
-gboolean maki_config_is_empty_list (gchar**);
+guint i_io_add_watch (GIOChannel*, GIOCondition, GIOFunc, gpointer, GMainContext*);
+guint i_idle_add (GSourceFunc, gpointer, GMainContext*);
+guint i_timeout_add_seconds (guint, GSourceFunc, gpointer, GMainContext*);
+gboolean i_source_remove (guint, GMainContext*);
 
-gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
-void maki_debug (const gchar*, ...);
-gboolean maki_write (gint, const gchar*);
-void maki_log (makiServer*, const gchar*, const gchar*, ...);
+gboolean i_key_file_to_file (GKeyFile*, const gchar*, gsize*, GError**);
+
+gboolean i_str_case_equal (gconstpointer, gconstpointer);
+guint i_str_case_hash (gconstpointer);
+
+gchar* i_get_current_time_string (void);
 
 #endif
