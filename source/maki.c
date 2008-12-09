@@ -111,7 +111,7 @@ int main (int argc, char* argv[])
 {
 	const gchar* file;
 	GDir* servers;
-	makiInstance* inst;
+	makiInstance* inst = NULL;
 	struct sigaction sig;
 
 	gboolean opt_daemon = FALSE;
@@ -140,30 +140,26 @@ int main (int argc, char* argv[])
 	g_option_context_parse(context, &argc, &argv, NULL);
 	g_option_context_free(context);
 
+	if (opt_daemon
+	    && maki_daemonize() != 0)
+	{
+		g_warning("%s\n", _("Could not switch to daemon mode."));
+		goto error;
+	}
+
 	dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
 
 	if (!maki_dbus_connected(dbus))
 	{
 		/* Use g_warning() here to not overwrite the debug log of the already running maki. */
 		g_warning("%s\n", _("Could not connect to DBus. maki may already be running."));
-		g_object_unref(dbus);
-		return 1;
+		goto error;
 	}
 
 	if ((inst = maki_instance_get_default()) == NULL)
 	{
 		g_warning("%s\n", _("Could not create maki instance."));
-		g_object_unref(dbus);
-		return 1;
-	}
-
-	if (opt_daemon
-	    && maki_daemonize() != 0)
-	{
-		g_warning("%s\n", _("Could not switch to daemon mode."));
-		maki_instance_free(inst);
-		g_object_unref(dbus);
-		return 1;
+		goto error;
 	}
 
 	sig.sa_handler = maki_signal;
@@ -198,4 +194,17 @@ int main (int argc, char* argv[])
 	g_object_unref(dbus);
 
 	return 0;
+
+error:
+	if (inst != NULL)
+	{
+		maki_instance_free(inst);
+	}
+
+	if (dbus != NULL)
+	{
+		g_object_unref(dbus);
+	}
+
+	return 1;
 }
