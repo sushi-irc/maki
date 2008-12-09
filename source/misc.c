@@ -54,17 +54,6 @@ gboolean maki_config_is_empty_list (gchar** list)
 	return ret;
 }
 
-gboolean maki_key_file_to_file (GKeyFile* key_file, const gchar* file)
-{
-	if (i_key_file_to_file(key_file, file, NULL, NULL))
-	{
-		g_chmod(file, S_IRUSR | S_IWUSR);
-		return TRUE;
-	}
-
-	return FALSE;
-}
-
 void maki_debug (const gchar* format, ...)
 {
 	static int fd = -1;
@@ -87,9 +76,9 @@ void maki_debug (const gchar* format, ...)
 		logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
 		path = g_build_filename(logs_dir, filename, NULL);
 
-		g_mkdir_with_parents(logs_dir, S_IRUSR | S_IWUSR | S_IXUSR);
+		g_mkdir_with_parents(logs_dir, 0777);
 
-		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
+		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0666)) == -1)
 		{
 			g_print("%s\n", _("Could not open debug log file."));
 		}

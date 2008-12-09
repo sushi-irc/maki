@@ -147,6 +147,8 @@ int main (int argc, char* argv[])
 		goto error;
 	}
 
+	umask(0077);
+
 	dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
 
 	if (!maki_dbus_connected(dbus))

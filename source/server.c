@@ -144,7 +144,7 @@ void maki_server_config_set_boolean (makiServer* serv, const gchar* group, const
 	g_key_file_set_boolean(serv->key_file, group, key, value);
 
 	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
-	maki_key_file_to_file(serv->key_file, path);
+	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
 
@@ -160,7 +160,7 @@ void maki_server_config_set_integer (makiServer* serv, const gchar* group, const
 	g_key_file_set_integer(serv->key_file, group, key, value);
 
 	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
-	maki_key_file_to_file(serv->key_file, path);
+	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
 
@@ -176,7 +176,7 @@ void maki_server_config_set_string (makiServer* serv, const gchar* group, const 
 	g_key_file_set_string(serv->key_file, group, key, string);
 
 	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
-	maki_key_file_to_file(serv->key_file, path);
+	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
 
@@ -192,7 +192,7 @@ void maki_server_config_set_string_list (makiServer* serv, const gchar* group, c
 	g_key_file_set_string_list(serv->key_file, group, key, (const gchar* const*)list, g_strv_length(list));
 
 	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
-	maki_key_file_to_file(serv->key_file, path);
+	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
 
@@ -204,7 +204,7 @@ gboolean maki_server_config_remove_key (makiServer* serv, const gchar* group, co
 	ret = g_key_file_remove_key(serv->key_file, group, key, NULL);
 
 	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
-	maki_key_file_to_file(serv->key_file, path);
+	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 
 	return ret;
@@ -218,7 +218,7 @@ gboolean maki_server_config_remove_group (makiServer* serv, const gchar* group)
 	ret = g_key_file_remove_group(serv->key_file, group, NULL);
 
 	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
-	maki_key_file_to_file(serv->key_file, path);
+	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 
 	return ret;

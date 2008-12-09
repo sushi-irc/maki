@@ -53,9 +53,9 @@ makiLog* maki_log_new (makiInstance* inst, const gchar* server, const gchar* nam
 	filename = g_strconcat(name, ".txt", NULL);
 	path = g_build_filename(dirname, filename, NULL);
 
-	g_mkdir_with_parents(dirname, S_IRUSR | S_IWUSR | S_IXUSR);
+	g_mkdir_with_parents(dirname, 0777);
 
-	if ((log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR)) == -1)
+	if ((log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0666)) == -1)
 	{
 		g_free(log);
 

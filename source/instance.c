@@ -99,8 +99,8 @@ makiInstance* maki_instance_new (void)
 	config_dir = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
 	servers_dir = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
 
-	if (g_mkdir_with_parents(config_dir, S_IRUSR | S_IWUSR | S_IXUSR) != 0
-	    || g_mkdir_with_parents(servers_dir, S_IRUSR | S_IWUSR | S_IXUSR) != 0)
+	if (g_mkdir_with_parents(config_dir, 0777) != 0
+	    || g_mkdir_with_parents(servers_dir, 0777) != 0)
 	{
 		g_free(config_dir);
 		g_free(servers_dir);
@@ -137,7 +137,7 @@ void maki_instance_config_set_boolean (makiInstance* inst, const gchar* group, c
 	g_key_file_set_boolean(inst->key_file, group, key, value);
 
 	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
-	maki_key_file_to_file(inst->key_file, path);
+	i_key_file_to_file(inst->key_file, path, NULL, NULL);
 	g_free(path);
 }
 
@@ -153,7 +153,7 @@ void maki_instance_config_set_integer (makiInstance* inst, const gchar* group, c
 	g_key_file_set_integer(inst->key_file, group, key, value);
 
 	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
-	maki_key_file_to_file(inst->key_file, path);
+	i_key_file_to_file(inst->key_file, path, NULL, NULL);
 	g_free(path);
 }
 
@@ -169,7 +169,7 @@ void maki_instance_config_set_string (makiInstance* inst, const gchar* group, co
 	g_key_file_set_string(inst->key_file, group, key, string);
 
 	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
-	maki_key_file_to_file(inst->key_file, path);
+	i_key_file_to_file(inst->key_file, path, NULL, NULL);
 	g_free(path);
 }
 

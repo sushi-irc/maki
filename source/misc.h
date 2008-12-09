@@ -33,7 +33,6 @@
 gboolean maki_config_is_empty (const gchar*);
 gboolean maki_config_is_empty_list (gchar**);
 
-gboolean maki_key_file_to_file (GKeyFile*, const gchar*);
 void maki_debug (const gchar*, ...);
 gboolean maki_write (gint, const gchar*);
 void maki_log (makiServer*, const gchar*, const gchar*, ...);

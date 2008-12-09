@@ -235,7 +235,7 @@ makiDCCSendIn* maki_dcc_send_in_new (makiServer* serv, const gchar* dir_name, co
 	dir_path = g_build_filename(downloads_dir, dir_name, NULL);
 	path = g_build_filename(dir_path, file_name, NULL);
 
-	g_mkdir_with_parents(dir_path, S_IRUSR | S_IWUSR | S_IXUSR);
+	g_mkdir_with_parents(dir_path, 0777);
 
 	g_free(downloads_dir);
 	g_free(dir_path);
