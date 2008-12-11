@@ -89,9 +89,9 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 	serv->main_context = g_main_context_new();
 	serv->main_loop = g_main_loop_new(serv->main_context, FALSE);
 	serv->connection = sashimi_new(serv->main_context);
-	serv->channels = g_hash_table_new_full(i_str_case_hash, i_str_case_equal, g_free, maki_channel_free);
-	serv->users = i_cache_new(maki_user_new, maki_user_free, serv, i_str_case_hash, i_str_case_equal);
-	serv->logs = g_hash_table_new_full(i_str_case_hash, i_str_case_equal, g_free, maki_log_free);
+	serv->channels = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_channel_free);
+	serv->users = i_cache_new(maki_user_new, maki_user_free, serv, i_ascii_str_case_hash, i_ascii_str_case_equal);
+	serv->logs = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_log_free);
 
 	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 	g_key_file_load_from_file(serv->key_file, path, G_KEY_FILE_NONE, NULL);

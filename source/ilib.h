@@ -39,8 +39,8 @@ gboolean i_source_remove (guint, GMainContext*);
 
 gboolean i_key_file_to_file (GKeyFile*, const gchar*, gsize*, GError**);
 
-gboolean i_str_case_equal (gconstpointer, gconstpointer);
-guint i_str_case_hash (gconstpointer);
+gboolean i_ascii_str_case_equal (gconstpointer, gconstpointer);
+guint i_ascii_str_case_hash (gconstpointer);
 
 gchar* i_get_current_time_string (void);
 

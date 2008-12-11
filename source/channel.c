@@ -53,7 +53,7 @@ makiChannel* maki_channel_new (makiServer* serv, const gchar* name)
 	chan->server = serv;
 	chan->name = g_strdup(name);
 	chan->joined = FALSE;
-	chan->users = g_hash_table_new_full(i_str_case_hash, i_str_case_equal, NULL, maki_channel_user_free);
+	chan->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, NULL, maki_channel_user_free);
 	chan->topic = NULL;
 
 	maki_channel_set_defaults(chan);

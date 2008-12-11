@@ -254,12 +254,12 @@ gboolean i_key_file_to_file (GKeyFile* key_file, const gchar* file, gsize* lengt
 	return ret;
 }
 
-gboolean i_str_case_equal (gconstpointer v1, gconstpointer v2)
+gboolean i_ascii_str_case_equal (gconstpointer v1, gconstpointer v2)
 {
 	return (g_ascii_strcasecmp(v1, v2) == 0);
 }
 
-guint i_str_case_hash (gconstpointer key)
+guint i_ascii_str_case_hash (gconstpointer key)
 {
 	guint ret;
 	gchar* tmp;
