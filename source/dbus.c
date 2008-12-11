@@ -1229,10 +1229,10 @@ static gboolean maki_dbus_user_away (makiDBus* self, const gchar* server, const 
 	{
 		makiUser* user;
 
-		if ((user = maki_cache_insert(serv->users, nick)) != NULL)
+		if ((user = i_cache_insert(serv->users, nick)) != NULL)
 		{
 			*away = user->away;
-			maki_cache_remove(serv->users, nick);
+			i_cache_remove(serv->users, nick);
 		}
 	}
 

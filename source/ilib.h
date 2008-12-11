@@ -44,4 +44,16 @@ guint i_str_case_hash (gconstpointer);
 
 gchar* i_get_current_time_string (void);
 
+
+struct i_cache;
+typedef struct i_cache iCache;
+
+typedef gpointer (*iCacheNewFunc) (gpointer, gpointer);
+typedef void (*iCacheFreeFunc) (gpointer);
+
+iCache* i_cache_new (iCacheNewFunc, iCacheFreeFunc, gpointer, GHashFunc, GEqualFunc);
+void i_cache_free (iCache*);
+gpointer i_cache_insert (iCache*, const gchar*);
+void i_cache_remove (iCache*, const gchar*);
+
 #endif

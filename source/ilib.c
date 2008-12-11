@@ -298,3 +298,113 @@ gchar* i_get_current_time_string (void)
 		return NULL;
 	}
 }
+
+
+struct i_cache
+{
+	gpointer (*value_new) (gpointer, gpointer);
+	void (*value_free) (gpointer);
+	gpointer value_data;
+
+	GHashTable* hash_table;
+};
+
+struct i_cache_item
+{
+	gint ref_count;
+	gpointer value;
+};
+
+typedef struct i_cache_item iCacheItem;
+
+static iCacheItem* i_cache_item_new (gpointer value)
+{
+	iCacheItem* item;
+
+	item = g_new(iCacheItem, 1);
+	item->ref_count = 1;
+	item->value = value;
+
+	return item;
+}
+
+static void i_cache_item_free (gpointer data)
+{
+	iCacheItem* item = data;
+
+	g_free(item);
+}
+
+iCache* i_cache_new (iCacheNewFunc value_new, iCacheFreeFunc value_free, gpointer value_data, GHashFunc key_hash, GEqualFunc key_equal)
+{
+	iCache* cache;
+
+	g_return_val_if_fail(value_new != NULL, NULL);
+	g_return_val_if_fail(value_free != NULL, NULL);
+	g_return_val_if_fail(key_hash != NULL, NULL);
+	g_return_val_if_fail(key_equal != NULL, NULL);
+
+	cache = g_new(iCache, 1);
+	cache->value_new = value_new;
+	cache->value_free = value_free;
+	cache->value_data = value_data;
+	cache->hash_table = g_hash_table_new_full(key_hash, key_equal, g_free, i_cache_item_free);
+
+	return cache;
+}
+
+void i_cache_free (iCache* cache)
+{
+	g_return_if_fail(cache != NULL);
+
+	g_hash_table_destroy(cache->hash_table);
+	g_free(cache);
+}
+
+gpointer i_cache_insert (iCache* cache, const gchar* key)
+{
+	iCacheItem* item;
+
+	g_return_val_if_fail(cache != NULL, NULL);
+	g_return_val_if_fail(key != NULL, NULL);
+
+	if ((item = g_hash_table_lookup(cache->hash_table, key)) != NULL)
+	{
+		item->ref_count++;
+
+		return item->value;
+	}
+	else
+	{
+		gchar* new_key;
+		gpointer value;
+
+		new_key = g_strdup(key);
+		value = (*cache->value_new)(new_key, cache->value_data);
+
+		item = i_cache_item_new(value);
+
+		g_hash_table_insert(cache->hash_table, new_key, item);
+
+		return value;
+	}
+}
+
+void i_cache_remove (iCache* cache, const gchar* key)
+{
+	iCacheItem* item;
+
+	g_return_if_fail(cache != NULL);
+	g_return_if_fail(key != NULL);
+
+	if ((item = g_hash_table_lookup(cache->hash_table, key)) != NULL)
+	{
+		item->ref_count--;
+
+		if (item->ref_count == 0)
+		{
+			(*cache->value_free)(item->value);
+			g_hash_table_remove(cache->hash_table, key);
+		}
+	}
+}

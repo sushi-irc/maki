@@ -32,7 +32,6 @@ struct maki_server;
 
 typedef struct maki_server makiServer;
 
-#include "cache.h"
 #include "instance.h"
 #include "sashimi.h"
 #include "user.h"
@@ -45,7 +44,7 @@ struct maki_server
 	gboolean logged_in;
 	sashimiConnection* connection;
 	GHashTable* channels;
-	makiCache* users;
+	iCache* users;
 	GHashTable* logs;
 
 	makiUser* user;

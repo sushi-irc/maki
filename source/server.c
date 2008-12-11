@@ -90,7 +90,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 	serv->main_loop = g_main_loop_new(serv->main_context, FALSE);
 	serv->connection = sashimi_new(serv->main_context);
 	serv->channels = g_hash_table_new_full(i_str_case_hash, i_str_case_equal, g_free, maki_channel_free);
-	serv->users = maki_cache_new(maki_user_new, maki_user_free, serv);
+	serv->users = i_cache_new(maki_user_new, maki_user_free, serv, i_str_case_hash, i_str_case_equal);
 	serv->logs = g_hash_table_new_full(i_str_case_hash, i_str_case_equal, g_free, maki_log_free);
 
 	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
@@ -100,7 +100,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 	maki_server_config_set_defaults(serv);
 
 	nick = maki_server_config_get_string(serv, "server", "nick");
-	serv->user = maki_cache_insert(serv->users, nick);
+	serv->user = i_cache_insert(serv->users, nick);
 	g_free(nick);
 
 	serv->support.chanmodes = NULL;
@@ -321,7 +321,7 @@ void maki_server_free (gpointer data)
 	g_main_loop_unref(serv->main_loop);
 	g_main_context_unref(serv->main_context);
 
-	maki_cache_remove(serv->users, serv->user->nick);
+	i_cache_remove(serv->users, serv->user->nick);
 
 	g_key_file_free(serv->key_file);
 
@@ -331,7 +331,7 @@ void maki_server_free (gpointer data)
 	g_free(serv->support.chanmodes);
 	g_hash_table_destroy(serv->logs);
 	g_hash_table_destroy(serv->channels);
-	maki_cache_free(serv->users);
+	i_cache_free(serv->users);
 	sashimi_free(serv->connection);
 	g_free(serv->server);
 	g_free(serv);
@@ -449,9 +449,9 @@ void maki_server_connect_callback (gpointer data)
 	initial_nick = maki_server_config_get_string(serv, "server", "nick");
 	name = maki_server_config_get_string(serv, "server", "name");
 
-	user = maki_cache_insert(serv->users, initial_nick);
+	user = i_cache_insert(serv->users, initial_nick);
 	maki_user_copy(serv->user, user);
-	maki_cache_remove(serv->users, serv->user->nick);
+	i_cache_remove(serv->users, serv->user->nick);
 	serv->user = user;
 
 	maki_out_nick(serv, initial_nick);

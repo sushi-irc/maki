@@ -344,7 +344,7 @@ static void maki_in_join (makiServer* serv, glong time, gchar* nick, gchar* rema
 		makiChannelUser* cuser;
 		makiUser* user;
 
-		user = maki_cache_insert(serv->users, nick);
+		user = i_cache_insert(serv->users, nick);
 		cuser = maki_channel_user_new(user);
 		maki_channel_add_user(chan, cuser->user->nick, cuser);
 	}
@@ -574,9 +574,9 @@ static void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* rema
 		gchar* initial_nick;
 		makiUser* user;
 
-		user = maki_cache_insert(serv->users, new_nick);
+		user = i_cache_insert(serv->users, new_nick);
 		maki_user_copy(serv->user, user);
-		maki_cache_remove(serv->users, serv->user->nick);
+		i_cache_remove(serv->users, serv->user->nick);
 		serv->user = user;
 
 		initial_nick = maki_server_config_get_string(serv, "server", "nick");
@@ -609,7 +609,7 @@ static void maki_in_nick (makiServer* serv, glong time, gchar* nick, gchar* rema
 			makiChannelUser* tmp;
 			makiUser* user;
 
-			user = maki_cache_insert(serv->users, new_nick);
+			user = i_cache_insert(serv->users, new_nick);
 			maki_user_copy(cuser->user, user);
 
 			tmp = maki_channel_user_new(user);
@@ -929,7 +929,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong time, gchar* remaining
 					++nick;
 				}
 
-				user = maki_cache_insert(serv->users, nick);
+				user = i_cache_insert(serv->users, nick);
 				cuser = maki_channel_user_new(user);
 				maki_channel_add_user(chan, cuser->user->nick, cuser);
 				cuser->prefix = prefix;
@@ -1370,9 +1370,9 @@ void maki_in_callback (const gchar* message, gpointer data)
 
 						maki_dbus_emit_nick(time.tv_sec, serv->server, serv->user->nick, nick);
 
-						user = maki_cache_insert(serv->users, nick);
+						user = i_cache_insert(serv->users, nick);
 						maki_user_copy(serv->user, user);
-						maki_cache_remove(serv->users, serv->user->nick);
+						i_cache_remove(serv->users, serv->user->nick);
 						serv->user = user;
 						g_free(nick);
 

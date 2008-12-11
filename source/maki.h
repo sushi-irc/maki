@@ -37,7 +37,6 @@
 
 #include "ilib.h"
 
-#include "cache.h"
 #include "channel.h"
 #include "channel_user.h"
 #include "dcc.h"
