@@ -344,7 +344,7 @@ void sashimi_timeout (sashimiConnection* conn, guint timeout)
 
 gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint port)
 {
-	gint fd;
+	gint fd = -1;
 	gchar* port_str;
 	struct addrinfo* ai;
 	struct addrinfo* p;
@@ -393,7 +393,7 @@ gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint p
 
 	freeaddrinfo(ai);
 
-	if (p == NULL)
+	if (fd < 0)
 	{
 		return FALSE;
 	}

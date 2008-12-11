@@ -28,6 +28,7 @@
 #include "maki.h"
 
 #include <fcntl.h>
+#include <string.h>
 #include <unistd.h>
 
 gboolean maki_config_is_empty (const gchar* value)
