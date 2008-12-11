@@ -390,6 +390,23 @@ gpointer i_cache_insert (iCache* cache, const gchar* key)
 	}
 }
 
+gpointer i_cache_lookup (iCache* cache, const gchar* key)
+{
+	iCacheItem* item;
+
+	g_return_val_if_fail(cache != NULL, NULL);
+	g_return_val_if_fail(key != NULL, NULL);
+
+	if ((item = g_hash_table_lookup(cache->hash_table, key)) != NULL)
+	{
+		return item->value;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
 void i_cache_remove (iCache* cache, const gchar* key)
 {
 	iCacheItem* item;

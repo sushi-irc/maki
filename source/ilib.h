@@ -54,6 +54,7 @@ typedef void (*iCacheFreeFunc) (gpointer);
 iCache* i_cache_new (iCacheNewFunc, iCacheFreeFunc, gpointer, GHashFunc, GEqualFunc);
 void i_cache_free (iCache*);
 gpointer i_cache_insert (iCache*, const gchar*);
+gpointer i_cache_lookup (iCache*, const gchar*);
 void i_cache_remove (iCache*, const gchar*);
 
 #endif
