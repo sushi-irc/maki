@@ -61,9 +61,6 @@ static void maki_signal (int signo)
 	maki_dbus_emit_shutdown(time.tv_sec);
 
 	g_main_loop_quit(main_loop);
-
-	signal(signo, SIG_DFL);
-	raise(signo);
 }
 
 int main (int argc, char* argv[])
