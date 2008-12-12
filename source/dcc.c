@@ -49,6 +49,9 @@ struct maki_dcc_send_in
 	goffset position;
 	goffset size;
 	guint sources[s_num];
+
+	guint32 address;
+	guint16 port;
 };
 
 static gboolean maki_dcc_send_in_read (GIOChannel* source, GIOCondition condition, gpointer data)
@@ -101,6 +104,7 @@ finish:
 static gboolean maki_dcc_send_in_write (GIOChannel* source, GIOCondition condition, gpointer data)
 {
 	gint val;
+	gchar* dirname;
 	socklen_t len = sizeof(val);
 	makiDCCSendIn* dcc_in = data;
 
@@ -119,6 +123,10 @@ static gboolean maki_dcc_send_in_write (GIOChannel* source, GIOCondition conditi
 	{
 		goto error;
 	}
+
+	dirname = g_path_get_dirname(dcc_in->path);
+	g_mkdir_with_parents(dirname, 0777);
+	g_free(dirname);
 
 	if ((dcc_in->channel = g_io_channel_new_file(dcc_in->path, "w", NULL)) == NULL)
 	{
@@ -198,14 +206,49 @@ gchar* maki_dcc_send_get_file_name (const gchar* string, gsize* length)
 
 makiDCCSendIn* maki_dcc_send_in_new (makiServer* serv, const gchar* dir_name, const gchar* file_name, guint32 address, guint16 port, goffset file_size, const gchar* token)
 {
+	gchar* downloads_dir;
+	makiDCCSendIn* dcc_in;
+
+	downloads_dir = maki_instance_config_get_string(serv->instance, "directories", "downloads");
+
+	dcc_in = g_new(makiDCCSendIn, 1);
+
+	dcc_in->channel = NULL;
+	dcc_in->path = g_build_filename(downloads_dir, dir_name, file_name, NULL);
+	dcc_in->position = 0;
+	dcc_in->size = file_size;
+
+	dcc_in->sources[s_read] = 0;
+	dcc_in->sources[s_write] = 0;
+
+	dcc_in->address = address;
+	dcc_in->port = port;
+
+	g_free(downloads_dir);
+
+	return dcc_in;
+}
+
+void maki_dcc_send_in_free (makiDCCSendIn* dcc_in)
+{
+	if (dcc_in->channel != NULL)
+	{
+		g_io_channel_shutdown(dcc_in->channel, FALSE, NULL);
+		g_io_channel_unref(dcc_in->channel);
+	}
+
+	g_free(dcc_in->path);
+	g_free(dcc_in);
+}
+
+gboolean maki_dcc_send_in_accept (makiDCCSendIn* dcc_in)
+{
 	gint fd = -1;
 
-	gchar* dir_path;
-	gchar* downloads_dir;
-	gchar* path;
 	struct sockaddr_in sa;
 	GIOChannel* channel;
-	makiDCCSendIn* dcc_in;
+
+	g_return_val_if_fail(dcc_in != NULL, FALSE);
 
 	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
@@ -215,8 +258,8 @@ makiDCCSendIn* maki_dcc_send_in_new (makiServer* serv, const gchar* dir_name, co
 	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 
 	sa.sin_family = AF_INET;
-	sa.sin_port = htons(port);
-	sa.sin_addr.s_addr = htonl(address);
+	sa.sin_port = htons(dcc_in->port);
+	sa.sin_addr.s_addr = htonl(dcc_in->address);
 
 	if (connect(fd, (struct sockaddr*)&sa, sizeof(sa)) < 0)
 	{
@@ -231,26 +274,9 @@ makiDCCSendIn* maki_dcc_send_in_new (makiServer* serv, const gchar* dir_name, co
 	g_io_channel_set_close_on_unref(channel, TRUE);
 	g_io_channel_set_encoding(channel, NULL, NULL);
 
-	downloads_dir = maki_instance_config_get_string(serv->instance, "directories", "downloads");
-	dir_path = g_build_filename(downloads_dir, dir_name, NULL);
-	path = g_build_filename(dir_path, file_name, NULL);
-
-	g_mkdir_with_parents(dir_path, 0777);
-
-	g_free(downloads_dir);
-	g_free(dir_path);
-
-	dcc_in = g_new(makiDCCSendIn, 1);
-
-	dcc_in->channel = NULL;
-	dcc_in->path = path;
-	dcc_in->position = 0;
-	dcc_in->size = file_size;
-
-	dcc_in->sources[s_read] = 0;
 	dcc_in->sources[s_write] = g_io_add_watch(channel, G_IO_OUT | G_IO_HUP | G_IO_ERR, maki_dcc_send_in_write, dcc_in);
 
-	return dcc_in;
+	return TRUE;
 
 error:
 	if (fd >= 0)
@@ -258,17 +284,5 @@ error:
 		close(fd);
 	}
 
-	return NULL;
-}
-
-void maki_dcc_send_in_free (makiDCCSendIn* dcc_in)
-{
-	if (dcc_in->channel != NULL)
-	{
-		g_io_channel_shutdown(dcc_in->channel, FALSE, NULL);
-		g_io_channel_unref(dcc_in->channel);
-	}
-
-	g_free(dcc_in->path);
-	g_free(dcc_in);
+	return FALSE;
 }

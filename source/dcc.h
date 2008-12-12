@@ -37,4 +37,6 @@ gchar* maki_dcc_send_get_file_name (const gchar*, gsize*);
 makiDCCSendIn* maki_dcc_send_in_new (makiServer*, const gchar*, const gchar*, guint32, guint16, goffset, const gchar*);
 void maki_dcc_send_in_free (makiDCCSendIn*);
 
+gboolean maki_dcc_send_in_accept (makiDCCSendIn*);
+
 #endif

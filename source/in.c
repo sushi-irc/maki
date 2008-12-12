@@ -169,11 +169,6 @@ static void maki_in_dcc_send (makiServer* serv, glong time, gchar* nick, gchar* 
 		return;
 	}
 
-	if (!maki_instance_config_get_boolean(serv->instance, "dcc", "enabled"))
-	{
-		return;
-	}
-
 	if ((file_name = maki_dcc_send_get_file_name(remaining, &file_name_len)) != NULL)
 	{
 		gchar** args;
@@ -188,6 +183,7 @@ static void maki_in_dcc_send (makiServer* serv, glong time, gchar* nick, gchar* 
 			guint16 port;
 			goffset file_size;
 			gchar* token;
+			makiDCCSendIn* dcc;
 
 			file_size = 0;
 			token = NULL;
@@ -205,7 +201,12 @@ static void maki_in_dcc_send (makiServer* serv, glong time, gchar* nick, gchar* 
 				token = args[3];
 			}
 
-			maki_dcc_send_in_new(serv, nick, file_name, address, port, file_size, token);
+			dcc = maki_dcc_send_in_new(serv, nick, file_name, address, port, file_size, token);
+
+			if (maki_instance_config_get_boolean(serv->instance, "dcc", "accept_send"))
+			{
+				maki_dcc_send_in_accept(dcc);
+			}
 		}
 
 		g_strfreev(args);

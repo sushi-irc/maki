@@ -50,9 +50,14 @@ makiInstance* maki_instance_get_default (void)
 
 static void maki_instance_config_set_defaults (makiInstance* inst)
 {
-	if (!maki_instance_config_exists(inst, "dcc", "enabled"))
+	if (!maki_instance_config_exists(inst, "dcc", "accept_chat"))
 	{
-		maki_instance_config_set_boolean(inst, "dcc", "enabled", FALSE);
+		maki_instance_config_set_boolean(inst, "dcc", "accept_chat", FALSE);
+	}
+
+	if (!maki_instance_config_exists(inst, "dcc", "accept_send"))
+	{
+		maki_instance_config_set_boolean(inst, "dcc", "accept_send", FALSE);
 	}
 
 	if (!maki_instance_config_exists(inst, "directories", "downloads"))
