@@ -37,6 +37,9 @@ guint i_idle_add (GSourceFunc, gpointer, GMainContext*);
 guint i_timeout_add_seconds (guint, GSourceFunc, gpointer, GMainContext*);
 gboolean i_source_remove (guint, GMainContext*);
 
+GIOStatus i_io_channel_write_chars (GIOChannel*, const gchar*, gssize, gsize*, GError**);
+GIOStatus i_io_channel_read_chars (GIOChannel*, gchar*, gsize, gsize*, GError**);
+
 gboolean i_key_file_to_file (GKeyFile*, const gchar*, gsize*, GError**);
 
 gboolean i_ascii_str_case_equal (gconstpointer, gconstpointer);

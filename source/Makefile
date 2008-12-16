@@ -20,10 +20,10 @@ install: all
 	$(INSTALL) -m 755 maki '$(DESTDIR)$(bindir)'
 
 clean:
-	$(RM) maki
-	$(RM) $(OBJECTS)
-	$(RM) dbus_glue.h marshal.list marshal.c marshal.h
-	$(RM) libsashimi.so
+	$(RM) -f maki
+	$(RM) -f $(OBJECTS)
+	$(RM) -f dbus_glue.h marshal.list marshal.c marshal.h
+	$(RM) -f libsashimi.so
 
 dbus_glue.h: dbus.xml
 	$(QUIET_GEN) dbus-binding-tool --mode=glib-server --prefix=maki_dbus $+ > $@

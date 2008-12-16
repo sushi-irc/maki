@@ -13,8 +13,8 @@ install: $(PO:%.po=%.mo)
 	done
 
 clean:
-	$(RM) maki.pot
-	$(RM) *.mo
+	$(RM) -f maki.pot
+	$(RM) -f *.mo
 
 maki.pot: $(C) $(H)
 	$(QUIET_GEN) xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --output=$@ $+
