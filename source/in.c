@@ -697,7 +697,7 @@ static void maki_in_mode (makiServer* serv, glong timestamp, const gchar* nick, 
 
 	if (modes[0] != NULL)
 	{
-		gint i;
+		guint i;
 		guint length;
 		gchar sign = '+';
 		gchar buffer[3];
@@ -884,7 +884,7 @@ static void maki_in_topic (makiServer* serv, glong timestamp, const gchar* nick,
 static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* remaining, gboolean is_end)
 {
 	gchar** tmp;
-	gint i;
+	guint i;
 	guint length;
 	makiChannel* chan;
 
@@ -964,7 +964,7 @@ static void maki_in_rpl_away (makiServer* serv, glong timestamp, gchar* remainin
 
 static void maki_in_rpl_isupport (makiServer* serv, glong timestamp, gchar* remaining)
 {
-	gint i;
+	guint i;
 	guint length;
 	gchar** tmp;
 
@@ -1270,7 +1270,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 
 		if (ignores != NULL)
 		{
-			gint i;
+			guint i;
 			guint length;
 
 			length = g_strv_length(ignores);

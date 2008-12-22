@@ -1167,8 +1167,8 @@ static gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const g
 
 		if (ignores != NULL)
 		{
-			gint i;
-			gint j;
+			guint i;
+			guint j;
 			guint length;
 			gchar** tmp;
 
