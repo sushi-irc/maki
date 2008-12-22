@@ -132,7 +132,7 @@ static guint sashimi_timeout_add_seconds (sashimiConnection* conn, guint32 inter
 static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpointer data)
 {
 	GIOStatus status;
-	GTimeVal time;
+	GTimeVal timeval;
 	gchar* buffer;
 	sashimiConnection* conn = data;
 
@@ -141,11 +141,11 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 		goto reconnect;
 	}
 
-	g_get_current_time(&time);
+	g_get_current_time(&timeval);
 
 	while ((status = g_io_channel_read_line(conn->channel, &buffer, NULL, NULL, NULL)) == G_IO_STATUS_NORMAL)
 	{
-		conn->last_activity = time.tv_sec;
+		conn->last_activity = timeval.tv_sec;
 
 		/* Remove whitespace at the end of the string. */
 		g_strchomp(buffer);
@@ -191,21 +191,21 @@ reconnect:
 
 static gboolean sashimi_ping (gpointer data)
 {
-	GTimeVal time;
+	GTimeVal timeval;
 	sashimiConnection* conn = data;
 
-	g_get_current_time(&time);
+	g_get_current_time(&timeval);
 
 	/* If we did not hear anything from the server, send a PING. */
-	if (conn->timeout > 0 && (time.tv_sec - conn->last_activity) > conn->timeout)
+	if (conn->timeout > 0 && (timeval.tv_sec - conn->last_activity) > conn->timeout)
 	{
 		gchar* ping;
 
-		ping = g_strdup_printf("PING :%ld", time.tv_sec);
+		ping = g_strdup_printf("PING :%ld", timeval.tv_sec);
 		sashimi_send(conn, ping);
 		g_free(ping);
 
-		conn->last_activity = time.tv_sec;
+		conn->last_activity = timeval.tv_sec;
 	}
 
 	return TRUE;
@@ -235,7 +235,7 @@ static gboolean sashimi_queue_runner (gpointer data)
 
 static gboolean sashimi_write (GIOChannel* source, GIOCondition condition, gpointer data)
 {
-	GTimeVal time;
+	GTimeVal timeval;
 	int val;
 	socklen_t len = sizeof(val);
 	sashimiConnection* conn = data;
@@ -251,8 +251,8 @@ static gboolean sashimi_write (GIOChannel* source, GIOCondition condition, gpoin
 		goto reconnect;
 	}
 
-	g_get_current_time(&time);
-	conn->last_activity = time.tv_sec;
+	g_get_current_time(&timeval);
+	conn->last_activity = timeval.tv_sec;
 
 	conn->sources[s_read] = sashimi_io_add_watch(conn, G_IO_IN | G_IO_HUP | G_IO_ERR, sashimi_read);
 	conn->sources[s_ping] = sashimi_timeout_add_seconds(conn, 1, sashimi_ping);

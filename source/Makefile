@@ -35,7 +35,7 @@ marshal.list: dbus.c
 		> $@
 
 marshal.c: marshal.list
-	$(QUIET_GEN) glib-genmarshal --body --prefix=maki_marshal $+ > $@
+	$(QUIET_GEN) glib-genmarshal --header --body --prefix=maki_marshal $+ > $@
 
 marshal.h: marshal.list
 	$(QUIET_GEN) glib-genmarshal --header --prefix=maki_marshal $+ > $@

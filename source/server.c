@@ -348,14 +348,14 @@ gboolean maki_server_connect (makiServer* serv)
 
 	if (!serv->connected && !maki_config_is_empty(address))
 	{
-		GTimeVal time;
+		GTimeVal timeval;
 
 		sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
 		sashimi_read_callback(serv->connection, maki_in_callback, serv);
 		sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
 
-		g_get_current_time(&time);
-		maki_dbus_emit_connect(time.tv_sec, serv->server);
+		g_get_current_time(&timeval);
+		maki_dbus_emit_connect(timeval.tv_sec, serv->server);
 
 		if (!sashimi_connect(serv->connection, address, maki_server_config_get_integer(serv, "server", "port")))
 		{
@@ -434,7 +434,7 @@ void maki_server_connect_callback (gpointer data)
 {
 	gchar* initial_nick;
 	gchar* name;
-	GTimeVal time;
+	GTimeVal timeval;
 	makiServer* serv = data;
 	makiUser* user;
 
@@ -460,9 +460,9 @@ void maki_server_connect_callback (gpointer data)
 
 	serv->connected = TRUE;
 
-	g_get_current_time(&time);
-	maki_dbus_emit_connected(time.tv_sec, serv->server);
-	maki_dbus_emit_nick(time.tv_sec, serv->server, "", serv->user->nick);
+	g_get_current_time(&timeval);
+	maki_dbus_emit_connected(timeval.tv_sec, serv->server);
+	maki_dbus_emit_nick(timeval.tv_sec, serv->server, "", serv->user->nick);
 
 	g_free(initial_nick);
 	g_free(name);

@@ -92,20 +92,20 @@ void maki_out_nickserv (makiServer* serv)
 static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)
 {
 	gchar* buffer;
-	GTimeVal time;
+	GTimeVal timeval;
 
 	g_return_if_fail(serv != NULL);
 	g_return_if_fail(target != NULL);
 	g_return_if_fail(message != NULL);
 
-	g_get_current_time(&time);
+	g_get_current_time(&timeval);
 
 	buffer = g_strdup_printf("PRIVMSG %s :%s", target, message);
 	maki_server_queue(serv, buffer, queue);
 	g_free(buffer);
 
 	maki_log(serv, target, "<%s> %s", serv->user->nick, message);
-	maki_dbus_emit_own_message(time.tv_sec, serv->server, target, message);
+	maki_dbus_emit_own_message(timeval.tv_sec, serv->server, target, message);
 }
 
 void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)
@@ -163,7 +163,7 @@ void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* messa
 
 void maki_out_quit (makiServer* serv, const gchar* message)
 {
-	GTimeVal time;
+	GTimeVal timeval;
 
 	GHashTableIter iter;
 	gpointer key, value;
@@ -171,7 +171,7 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 	g_return_if_fail(serv != NULL);
 	g_return_if_fail(message != NULL);
 
-	g_get_current_time(&time);
+	g_get_current_time(&timeval);
 
 	if (message[0] != '\0')
 	{
@@ -202,5 +202,5 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 		}
 	}
 
-	maki_dbus_emit_quit(time.tv_sec, serv->server, serv->user->nick, message);
+	maki_dbus_emit_quit(timeval.tv_sec, serv->server, serv->user->nick, message);
 }
