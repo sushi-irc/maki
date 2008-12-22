@@ -110,7 +110,7 @@ static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, co
 
 void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)
 {
-	gint length = 512;
+	gsize length = 512;
 
 	g_return_if_fail(serv != NULL);
 	g_return_if_fail(target != NULL);
@@ -134,8 +134,8 @@ void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* messa
 	while (strlen(message) > length)
 	{
 		gchar* tmp;
-		gint i;
-		gint skip;
+		gsize i;
+		gsize skip;
 
 		i = 0;
 		queue = TRUE;

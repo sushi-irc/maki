@@ -159,7 +159,7 @@ static void maki_commands (makiServer* serv)
 	g_strfreev(commands);
 }
 
-static void maki_in_dcc_send (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining)
+static void maki_in_dcc_send (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining)
 {
 	gchar* file_name;
 	gsize file_name_len;
@@ -215,7 +215,7 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, gchar* nick, gc
 	}
 }
 
-static void maki_in_privmsg (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining)
+static void maki_in_privmsg (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -302,7 +302,7 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, gchar* nick, gch
 	g_strfreev(tmp);
 }
 
-static void maki_in_join (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining)
+static void maki_in_join (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining)
 {
 	gchar* channel;
 	makiChannel* chan;
@@ -353,7 +353,7 @@ static void maki_in_join (makiServer* serv, glong timestamp, gchar* nick, gchar*
 	maki_dbus_emit_join(timestamp, serv->server, nick, channel);
 }
 
-static void maki_in_part (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining)
+static void maki_in_part (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -433,7 +433,7 @@ static void maki_in_part (makiServer* serv, glong timestamp, gchar* nick, gchar*
 	g_strfreev(tmp);
 }
 
-static void maki_in_quit (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining)
+static void maki_in_quit (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining)
 {
 	GHashTableIter iter;
 	gpointer key, value;
@@ -475,7 +475,7 @@ static void maki_in_quit (makiServer* serv, glong timestamp, gchar* nick, gchar*
 	}
 }
 
-static void maki_in_kick (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining)
+static void maki_in_kick (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -556,7 +556,7 @@ static void maki_in_kick (makiServer* serv, glong timestamp, gchar* nick, gchar*
 	g_strfreev(tmp);
 }
 
-static void maki_in_nick (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining)
+static void maki_in_nick (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining)
 {
 	gboolean own = FALSE;
 	gchar* new_nick;
@@ -633,7 +633,7 @@ static void maki_in_nick (makiServer* serv, glong timestamp, gchar* nick, gchar*
 	maki_dbus_emit_nick(timestamp, serv->server, nick, new_nick);
 }
 
-static void maki_in_notice (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining)
+static void maki_in_notice (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -665,7 +665,7 @@ static void maki_in_notice (makiServer* serv, glong timestamp, gchar* nick, gcha
 	g_strfreev(tmp);
 }
 
-static void maki_in_mode (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining, gboolean is_numeric)
+static void maki_in_mode (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gboolean own;
 	gchar** modes;
@@ -786,7 +786,7 @@ static void maki_in_mode (makiServer* serv, glong timestamp, gchar* nick, gchar*
 	g_strfreev(modes);
 }
 
-static void maki_in_invite (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining, gboolean is_numeric)
+static void maki_in_invite (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -827,7 +827,7 @@ static void maki_in_invite (makiServer* serv, glong timestamp, gchar* nick, gcha
 	g_strfreev(tmp);
 }
 
-static void maki_in_topic (makiServer* serv, glong timestamp, gchar* nick, gchar* remaining, gboolean is_numeric)
+static void maki_in_topic (makiServer* serv, glong timestamp, const gchar* nick, gchar* remaining, gboolean is_numeric)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -1234,7 +1234,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 		gchar* tmp;
 
 		/* If the message is not in UTF-8 we will just assume that it is in ISO-8859-1. */
-		if ((tmp = g_convert_with_fallback(message, -1, "UTF-8", "ISO-8859-1", "?", NULL, NULL, NULL)) == NULL)
+		if ((tmp = g_convert_with_fallback(message, -1, "UTF-8", "ISO-8859-1", NULL, NULL, NULL, NULL)) == NULL)
 		{
 			return;
 		}
