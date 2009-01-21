@@ -384,6 +384,7 @@ gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint p
 			if (errno != EINPROGRESS)
 			{
 				close(fd);
+				fd = -1;
 				continue;
 			}
 		}
