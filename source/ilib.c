@@ -31,8 +31,11 @@
 #include <glib.h>
 #include <glib/gstdio.h>
 
+#include <errno.h>
 #include <fcntl.h>
+#include <netdb.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
@@ -153,6 +156,76 @@ gboolean i_source_remove (guint tag, GMainContext* context)
 	}
 
 	return (source != NULL);
+}
+
+GIOChannel* i_io_channel_unix_new_address (const gchar* address, guint port, gboolean nonblocking)
+{
+	GIOChannel* channel;
+	gint fd = -1;
+	gchar* port_str;
+	struct addrinfo* ai;
+	struct addrinfo* p;
+	struct addrinfo hints;
+
+	g_return_val_if_fail(address != NULL, NULL);
+	g_return_val_if_fail(port != 0, NULL);
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = 0;
+	hints.ai_flags = 0;
+
+	port_str = g_strdup_printf("%u", port);
+
+	if (getaddrinfo(address, port_str, &hints, &ai) != 0)
+	{
+		g_free(port_str);
+		return NULL;
+	}
+
+	g_free(port_str);
+
+	for (p = ai; p != NULL; p = p->ai_next)
+	{
+		if ((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0)
+		{
+			continue;
+		}
+
+		if (nonblocking)
+		{
+			fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+		}
+
+		if (connect(fd, ai->ai_addr, ai->ai_addrlen) < 0)
+		{
+			if (!nonblocking || errno != EINPROGRESS)
+			{
+				close(fd);
+				fd = -1;
+				continue;
+			}
+		}
+
+		break;
+	}
+
+	freeaddrinfo(ai);
+
+	if (fd < 0)
+	{
+		return NULL;
+	}
+
+	channel = g_io_channel_unix_new(fd);
+
+	if (nonblocking)
+	{
+		g_io_channel_set_flags(channel, g_io_channel_get_flags(channel) | G_IO_FLAG_NONBLOCK, NULL);
+	}
+
+	return channel;
 }
 
 GIOStatus i_io_channel_write_chars (GIOChannel* channel, const gchar* buf, gssize count, gsize* bytes_written, GError** error)

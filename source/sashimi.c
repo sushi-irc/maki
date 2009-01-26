@@ -344,63 +344,15 @@ void sashimi_timeout (sashimiConnection* conn, guint timeout)
 
 gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint port)
 {
-	gint fd = -1;
-	gchar* port_str;
-	struct addrinfo* ai;
-	struct addrinfo* p;
-	struct addrinfo hints;
-
 	g_return_val_if_fail(conn != NULL, FALSE);
 	g_return_val_if_fail(address != NULL, FALSE);
 	g_return_val_if_fail(port != 0, FALSE);
 
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = 0;
-	hints.ai_flags = 0;
-
-	port_str = g_strdup_printf("%u", port);
-
-	if (getaddrinfo(address, port_str, &hints, &ai) != 0)
-	{
-		g_free(port_str);
-		return FALSE;
-	}
-
-	g_free(port_str);
-
-	for (p = ai; p != NULL; p = p->ai_next)
-	{
-		if ((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) < 0)
-		{
-			continue;
-		}
-
-		fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
-
-		if (connect(fd, ai->ai_addr, ai->ai_addrlen) < 0)
-		{
-			if (errno != EINPROGRESS)
-			{
-				close(fd);
-				fd = -1;
-				continue;
-			}
-		}
-
-		break;
-	}
-
-	freeaddrinfo(ai);
-
-	if (fd < 0)
+	if ((conn->channel = i_io_channel_unix_new_address(address, port, TRUE)) == NULL)
 	{
 		return FALSE;
 	}
 
-	conn->channel = g_io_channel_unix_new(fd);
-	g_io_channel_set_flags(conn->channel, g_io_channel_get_flags(conn->channel) | G_IO_FLAG_NONBLOCK, NULL);
 	g_io_channel_set_close_on_unref(conn->channel, TRUE);
 	g_io_channel_set_encoding(conn->channel, NULL, NULL);
 
