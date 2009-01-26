@@ -50,7 +50,7 @@ struct maki_dcc_send_in
 	goffset size;
 	guint sources[s_num];
 
-	guint32 address;
+	gchar* address;
 	guint16 port;
 };
 
@@ -221,7 +221,7 @@ makiDCCSendIn* maki_dcc_send_in_new (makiServer* serv, const gchar* dir_name, co
 	dcc_in->sources[s_read] = 0;
 	dcc_in->sources[s_write] = 0;
 
-	dcc_in->address = address;
+	dcc_in->address = g_strdup_printf("%u.%u.%u.%u", (address & 0xff000000) >> 24, (address & 0x00ff0000) >> 16, (address & 0x0000ff00) >> 8, (address & 0x000000ff) >> 0);
 	dcc_in->port = port;
 
 	g_free(downloads_dir);
@@ -237,52 +237,26 @@ void maki_dcc_send_in_free (makiDCCSendIn* dcc_in)
 		g_io_channel_unref(dcc_in->channel);
 	}
 
+	g_free(dcc_in->address);
 	g_free(dcc_in->path);
 	g_free(dcc_in);
 }
 
 gboolean maki_dcc_send_in_accept (makiDCCSendIn* dcc_in)
 {
-	gint fd = -1;
-
-	struct sockaddr_in sa;
 	GIOChannel* channel;
 
 	g_return_val_if_fail(dcc_in != NULL, FALSE);
 
-	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+	if ((channel = i_io_channel_unix_new_address(dcc_in->address, dcc_in->port, TRUE)) == NULL)
 	{
-		goto error;
+		return FALSE;
 	}
 
-	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
-
-	sa.sin_family = AF_INET;
-	sa.sin_port = htons(dcc_in->port);
-	sa.sin_addr.s_addr = htonl(dcc_in->address);
-
-	if (connect(fd, (struct sockaddr*)&sa, sizeof(sa)) < 0)
-	{
-		if (errno != EINPROGRESS)
-		{
-			goto error;
-		}
-	}
-
-	channel = g_io_channel_unix_new(fd);
-	g_io_channel_set_flags(channel, g_io_channel_get_flags(channel) | G_IO_FLAG_NONBLOCK, NULL);
 	g_io_channel_set_close_on_unref(channel, TRUE);
 	g_io_channel_set_encoding(channel, NULL, NULL);
 
 	dcc_in->sources[s_write] = g_io_add_watch(channel, G_IO_OUT | G_IO_HUP | G_IO_ERR, maki_dcc_send_in_write, dcc_in);
 
 	return TRUE;
-
-error:
-	if (fd >= 0)
-	{
-		close(fd);
-	}
-
-	return FALSE;
 }
