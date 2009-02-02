@@ -322,7 +322,7 @@ GIOStatus i_io_channel_write_chars (GIOChannel* channel, const gchar* buf, gssiz
 		{
 			nwritten += ntmp;
 
-			if (nwritten == count)
+			if (nwritten == (gsize)count)
 			{
 				break;
 			}
