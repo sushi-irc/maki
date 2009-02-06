@@ -197,7 +197,7 @@ static gboolean sashimi_ping (gpointer data)
 	g_get_current_time(&timeval);
 
 	/* If we did not hear anything from the server, send a PING. */
-	if (conn->timeout > 0 && (timeval.tv_sec - conn->last_activity) > conn->timeout)
+	if (conn->timeout > 0 && (gulong)(timeval.tv_sec - conn->last_activity) > conn->timeout)
 	{
 		gchar* ping;
 
