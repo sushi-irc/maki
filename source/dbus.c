@@ -848,7 +848,6 @@ static gboolean maki_dbus_quit (makiDBus* self, const gchar* server, const gchar
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
 		maki_server_disconnect(serv, message);
-		g_hash_table_remove(maki_instance_servers(inst), server);
 	}
 
 	return TRUE;
