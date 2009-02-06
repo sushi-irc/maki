@@ -34,7 +34,6 @@ gboolean maki_config_is_empty (const gchar*);
 gboolean maki_config_is_empty_list (gchar**);
 
 void maki_debug (const gchar*, ...);
-gboolean maki_write (gint, const gchar*);
 void maki_log (makiServer*, const gchar*, const gchar*, ...);
 
 #endif

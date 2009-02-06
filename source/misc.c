@@ -57,7 +57,7 @@ gboolean maki_config_is_empty_list (gchar** list)
 
 void maki_debug (const gchar* format, ...)
 {
-	static int fd = -1;
+	static GIOChannel* channel = NULL;
 	gchar* message;
 	va_list args;
 	makiInstance* inst = maki_instance_get_default();
@@ -67,7 +67,7 @@ void maki_debug (const gchar* format, ...)
 		return;
 	}
 
-	if (G_UNLIKELY(fd == -1))
+	if (G_UNLIKELY(channel == NULL))
 	{
 		gchar* filename;
 		gchar* path;
@@ -79,7 +79,7 @@ void maki_debug (const gchar* format, ...)
 
 		g_mkdir_with_parents(logs_dir, 0777);
 
-		if ((fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0666)) == -1)
+		if ((channel = g_io_channel_new_file(path, "w", NULL)) == NULL)
 		{
 			g_print("%s\n", _("Could not open debug log file."));
 		}
@@ -95,32 +95,12 @@ void maki_debug (const gchar* format, ...)
 
 	g_print("%s", message);
 
-	if (G_LIKELY(fd != -1))
+	if (G_LIKELY(channel != NULL))
 	{
-		maki_write(fd, message);
+		i_io_channel_write_chars(channel, message, -1, NULL, NULL);
 	}
 
 	g_free(message);
-}
-
-gboolean maki_write (gint fd, const gchar* buf)
-{
-	gssize size;
-	gssize written;
-
-	size = strlen(buf);
-
-	if (G_UNLIKELY((written = write(fd, buf, size)) != size))
-	{
-		gssize tmp;
-
-		while (written < size && (tmp = write(fd, buf + written, size - written)) > 0)
-		{
-			written += tmp;
-		}
-	}
-
-	return (written >= size);
 }
 
 void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
