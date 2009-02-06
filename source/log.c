@@ -35,7 +35,7 @@
 
 struct maki_log
 {
-	int fd;
+	GIOChannel* channel;
 };
 
 makiLog* maki_log_new (makiInstance* inst, const gchar* server, const gchar* name)
@@ -55,17 +55,25 @@ makiLog* maki_log_new (makiInstance* inst, const gchar* server, const gchar* nam
 
 	g_mkdir_with_parents(dirname, 0777);
 
-	if ((log->fd = open(path, O_WRONLY | O_APPEND | O_CREAT, 0666)) == -1)
-	{
-		g_free(log);
-
-		log = NULL;
-	}
-
-	g_free(logs_dir);
-	g_free(path);
 	g_free(filename);
 	g_free(dirname);
+	g_free(logs_dir);
+
+	if ((log->channel = g_io_channel_new_file(path, "a", NULL)) == NULL)
+	{
+		maki_log_free(log);
+		g_free(path);
+
+		return NULL;
+	}
+
+	g_free(path);
+
+	g_io_channel_set_close_on_unref(log->channel, TRUE);
+	/*
+	g_io_channel_set_encoding(log->channel, NULL, NULL);
+	g_io_channel_set_buffered(log->channel, FALSE);
+	*/
 
 	return log;
 }
@@ -74,7 +82,11 @@ void maki_log_free (gpointer data)
 {
 	makiLog* log = data;
 
-	close(log->fd);
+	if (log->channel != NULL)
+	{
+		g_io_channel_shutdown(log->channel, FALSE, NULL);
+		g_io_channel_unref(log->channel);
+	}
 
 	g_free(log);
 }
@@ -85,11 +97,11 @@ void maki_log_write (makiLog* log, const gchar* message)
 
 	if ((time_str = i_get_current_time_string()) != NULL)
 	{
-		maki_write(log->fd, time_str);
-		maki_write(log->fd, " ");
+		i_io_channel_write_chars(log->channel, time_str, -1, NULL, NULL);
+		i_io_channel_write_chars(log->channel, " ", -1, NULL, NULL);
 		g_free(time_str);
 	}
 
-	maki_write(log->fd, message);
-	maki_write(log->fd, "\n");
+	i_io_channel_write_chars(log->channel, message, -1, NULL, NULL);
+	i_io_channel_write_chars(log->channel, "\n", -1, NULL, NULL);
 }
