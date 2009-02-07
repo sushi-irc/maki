@@ -98,7 +98,7 @@ guint maki_server_channels_count (makiServer*);
 void maki_server_channels_iter (makiServer*, GHashTableIter*);
 gboolean maki_server_queue (makiServer*, const gchar*, gboolean);
 gboolean maki_server_send (makiServer*, const gchar*);
-gboolean maki_server_send_printf (makiServer*, const gchar*, ...);
+gboolean maki_server_send_printf (makiServer*, const gchar*, ...) G_GNUC_PRINTF(2, 3);
 void maki_server_free (gpointer);
 gboolean maki_server_connect (makiServer*);
 gboolean maki_server_disconnect (makiServer*, const gchar*);
