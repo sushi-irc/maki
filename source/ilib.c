@@ -228,7 +228,7 @@ GIOChannel* i_io_channel_unix_new_address (const gchar* address, guint port, gbo
 	return channel;
 }
 
-GIOChannel* i_io_channel_unix_new_listen (guint port, gboolean nonblocking)
+GIOChannel* i_io_channel_unix_new_listen (const gchar* address, guint port, gboolean nonblocking)
 {
 	GIOChannel* channel;
 	gint fd = -1;
@@ -247,7 +247,7 @@ GIOChannel* i_io_channel_unix_new_listen (guint port, gboolean nonblocking)
 
 	port_str = g_strdup_printf("%u", port);
 
-	if (getaddrinfo(NULL, port_str, &hints, &ai) != 0)
+	if (getaddrinfo(address, port_str, &hints, &ai) != 0)
 	{
 		g_free(port_str);
 		return NULL;

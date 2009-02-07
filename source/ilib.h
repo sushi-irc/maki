@@ -38,7 +38,7 @@ guint i_timeout_add_seconds (guint, GSourceFunc, gpointer, GMainContext*);
 gboolean i_source_remove (guint, GMainContext*);
 
 GIOChannel* i_io_channel_unix_new_address (const gchar*, guint, gboolean);
-GIOChannel* i_io_channel_unix_new_listen (guint, gboolean);
+GIOChannel* i_io_channel_unix_new_listen (const gchar*, guint, gboolean);
 GIOStatus i_io_channel_write_chars (GIOChannel*, const gchar*, gssize, gsize*, GError**);
 GIOStatus i_io_channel_read_chars (GIOChannel*, gchar*, gsize, gsize*, GError**);
 
