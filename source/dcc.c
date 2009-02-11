@@ -172,7 +172,7 @@ gchar* maki_dcc_send_get_file_name (const gchar* string, gsize* length)
 			len++;
 		}
 
-		if (len - 2 > 0)
+		if (len > 2)
 		{
 			tmp = g_strndup(string + 1, len - 2);
 		}

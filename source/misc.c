@@ -98,6 +98,7 @@ void maki_debug (const gchar* format, ...)
 	if (G_LIKELY(channel != NULL))
 	{
 		i_io_channel_write_chars(channel, message, -1, NULL, NULL);
+		g_io_channel_flush(channel, NULL);
 	}
 
 	g_free(message);

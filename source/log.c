@@ -104,4 +104,6 @@ void maki_log_write (makiLog* log, const gchar* message)
 
 	i_io_channel_write_chars(log->channel, message, -1, NULL, NULL);
 	i_io_channel_write_chars(log->channel, "\n", -1, NULL, NULL);
+
+	g_io_channel_flush(log->channel, NULL);
 }
