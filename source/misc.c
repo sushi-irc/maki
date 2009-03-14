@@ -106,6 +106,9 @@ void maki_debug (const gchar* format, ...)
 
 void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 {
+	gchar* file;
+	gchar* file_tmp;
+	gchar* file_format;
 	gchar* tmp;
 	makiLog* log;
 	va_list args;
@@ -116,15 +119,29 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 		return;
 	}
 
-	if ((log = g_hash_table_lookup(serv->logs, name)) == NULL)
+	file_format = maki_instance_config_get_string(inst, "logging", "format");
+	file_tmp = i_strreplace(file_format, "$n", name, 0);
+	file = i_get_current_time_string(file_tmp);
+
+	g_free(file_format);
+	g_free(file_tmp);
+
+	if (file == NULL)
 	{
-		if ((log = maki_log_new(inst, serv->server, name)) == NULL)
+		return;
+	}
+
+	if ((log = g_hash_table_lookup(serv->logs, file)) == NULL)
+	{
+		if ((log = maki_log_new(inst, serv->server, file)) == NULL)
 		{
 			return;
 		}
 
-		g_hash_table_insert(serv->logs, g_strdup(name), log);
+		g_hash_table_insert(serv->logs, g_strdup(file), log);
 	}
+
+	g_free(file);
 
 	va_start(args, format);
 	tmp = g_strdup_vprintf(format, args);

@@ -399,6 +399,18 @@ gboolean i_key_file_to_file (GKeyFile* key_file, const gchar* file, gsize* lengt
 	return ret;
 }
 
+gchar* i_strreplace (const gchar* string, const gchar* search, const gchar* replace, guint max)
+{
+	gchar** p;
+	gchar* result;
+
+	p = g_strsplit(string, search, (max > 0) ? max + 1 : 0);
+	result = g_strjoinv(replace, p);
+	g_strfreev(p);
+
+	return result;
+}
+
 gboolean i_ascii_str_case_equal (gconstpointer v1, gconstpointer v2)
 {
 	return (g_ascii_strcasecmp(v1, v2) == 0);
@@ -416,7 +428,7 @@ guint i_ascii_str_case_hash (gconstpointer key)
 	return ret;
 }
 
-gchar* i_get_current_time_string (void)
+gchar* i_get_current_time_string (const gchar* format)
 {
 	gchar buf[1024];
 	time_t t;
@@ -434,7 +446,7 @@ gchar* i_get_current_time_string (void)
 		return NULL;
 	}
 
-	if (strftime(buf, 1024, "%Y-%m-%d %H:%M:%S", &tm) > 0)
+	if (strftime(buf, 1024, format, &tm) > 0)
 	{
 		return g_strdup(buf);
 	}

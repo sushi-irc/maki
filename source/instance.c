@@ -83,6 +83,11 @@ static void maki_instance_config_set_defaults (makiInstance* inst)
 		maki_instance_config_set_boolean(inst, "logging", "enabled", TRUE);
 	}
 
+	if (!maki_instance_config_exists(inst, "logging", "format"))
+	{
+		maki_instance_config_set_string(inst, "logging", "format", "$n/%Y-%m");
+	}
+
 	if (!maki_instance_config_exists(inst, "reconnect", "retries"))
 	{
 		maki_instance_config_set_integer(inst, "reconnect", "retries", 3);

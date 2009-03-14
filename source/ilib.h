@@ -44,10 +44,12 @@ GIOStatus i_io_channel_read_chars (GIOChannel*, gchar*, gsize, gsize*, GError**)
 
 gboolean i_key_file_to_file (GKeyFile*, const gchar*, gsize*, GError**);
 
+gchar* i_strreplace (const gchar*, const gchar*, const gchar*, guint);
+
 gboolean i_ascii_str_case_equal (gconstpointer, gconstpointer);
 guint i_ascii_str_case_hash (gconstpointer);
 
-gchar* i_get_current_time_string (void);
+gchar* i_get_current_time_string (const gchar*);
 
 
 struct i_cache;

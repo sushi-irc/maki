@@ -49,14 +49,14 @@ makiLog* maki_log_new (makiInstance* inst, const gchar* server, const gchar* nam
 	log = g_new(makiLog, 1);
 
 	logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
-	dirname = g_build_filename(logs_dir, server, NULL);
 	filename = g_strconcat(name, ".txt", NULL);
-	path = g_build_filename(dirname, filename, NULL);
+	path = g_build_filename(logs_dir, server, filename, NULL);
+	dirname = g_path_get_dirname(path);
 
 	g_mkdir_with_parents(dirname, 0777);
 
-	g_free(filename);
 	g_free(dirname);
+	g_free(filename);
 	g_free(logs_dir);
 
 	if ((log->channel = g_io_channel_new_file(path, "a", NULL)) == NULL)
@@ -95,7 +95,7 @@ void maki_log_write (makiLog* log, const gchar* message)
 {
 	gchar* time_str;
 
-	if ((time_str = i_get_current_time_string()) != NULL)
+	if ((time_str = i_get_current_time_string("%Y-%m-%d %H:%M:%S")) != NULL)
 	{
 		i_io_channel_write_chars(log->channel, time_str, -1, NULL, NULL);
 		i_io_channel_write_chars(log->channel, " ", -1, NULL, NULL);
