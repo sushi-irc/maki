@@ -580,13 +580,27 @@ static gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar*
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
 		int fd;
+		gchar* file;
+		gchar* file_format;
+		gchar* file_tmp;
 		gchar* filename;
 		gchar* path;
 		gchar* logs_dir;
 
-		filename = g_strconcat(target, ".txt", NULL);
+		file_format = maki_instance_config_get_string(inst, "logging", "format");
+		file_tmp = i_strreplace(file_format, "$n", target, 0);
+		file = i_get_current_time_string(file_tmp);
+
+		filename = g_strconcat(file, ".txt", NULL);
 		logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
 		path = g_build_filename(logs_dir, server, filename, NULL);
+
+		g_free(file_format);
+		g_free(file_tmp);
+		g_free(file);
+
+		g_free(filename);
+		g_free(logs_dir);
 
 		if ((fd = open(path, O_RDONLY)) != -1)
 		{
@@ -656,8 +670,6 @@ static gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar*
 			g_io_channel_unref(io_channel);
 		}
 
-		g_free(filename);
-		g_free(logs_dir);
 		g_free(path);
 	}
 
