@@ -579,13 +579,13 @@ static gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar*
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
-		int fd;
 		gchar* file;
 		gchar* file_format;
 		gchar* file_tmp;
 		gchar* filename;
 		gchar* path;
 		gchar* logs_dir;
+		GIOChannel* io_channel;
 
 		file_format = maki_instance_config_get_string(inst, "logging", "format");
 		file_tmp = i_strreplace(file_format, "$n", target, 0);
@@ -602,14 +602,12 @@ static gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar*
 		g_free(filename);
 		g_free(logs_dir);
 
-		if ((fd = open(path, O_RDONLY)) != -1)
+		if ((io_channel = g_io_channel_new_file(path, "r", NULL)) != NULL)
 		{
 			guint length = 0;
 			gchar* line;
 			gchar** tmp;
-			GIOChannel* io_channel;
 
-			io_channel = g_io_channel_unix_new(fd);
 			g_io_channel_set_close_on_unref(io_channel, TRUE);
 			g_io_channel_set_encoding(io_channel, NULL, NULL);
 			g_io_channel_seek_position(io_channel, -10 * 1024, G_SEEK_END, NULL);
@@ -626,10 +624,8 @@ static gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar*
 				g_strchomp(line);
 
 				tmp = g_renew(gchar*, tmp, length + 2);
-				/*
-				 * The DBus specification says that strings may contain only one \0 character.
-				 * Since line contains multiple \0 characters, provide a cleaned-up copy here.
-				 */
+				/* The DBus specification says that strings may contain only one \0 character.
+				 * Since line contains multiple \0 characters, provide a cleaned-up copy here. */
 				tmp[length] = g_strdup(line);
 				tmp[length + 1] = NULL;
 
