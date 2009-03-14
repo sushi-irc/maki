@@ -69,13 +69,11 @@ void maki_debug (const gchar* format, ...)
 
 	if (G_UNLIKELY(channel == NULL))
 	{
-		gchar* filename;
 		gchar* path;
 		gchar* logs_dir;
 
-		filename = g_strconcat("maki", ".txt", NULL);
 		logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
-		path = g_build_filename(logs_dir, filename, NULL);
+		path = g_build_filename(logs_dir, "maki.txt", NULL);
 
 		g_mkdir_with_parents(logs_dir, 0777);
 
@@ -84,7 +82,6 @@ void maki_debug (const gchar* format, ...)
 			g_print("%s\n", _("Could not open debug log file."));
 		}
 
-		g_free(filename);
 		g_free(logs_dir);
 		g_free(path);
 	}
