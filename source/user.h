@@ -32,11 +32,8 @@ struct maki_user;
 
 typedef struct maki_user makiUser;
 
-#include "server.h"
-
 gpointer maki_user_new (gpointer, gpointer);
 void maki_user_copy (makiUser*, makiUser*);
-makiServer* maki_user_server (makiUser*);
 const gchar* maki_user_from (makiUser*);
 const gchar* maki_user_nick (makiUser*);
 void maki_user_set_user (makiUser*, const gchar*);

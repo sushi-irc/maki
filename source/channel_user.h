@@ -32,15 +32,17 @@ struct maki_channel_user;
 
 typedef struct maki_channel_user makiChannelUser;
 
+#include "server.h"
 #include "user.h"
 
 struct maki_channel_user
 {
+	makiServer* server;
 	makiUser* user;
 	guint prefix;
 };
 
-makiChannelUser* maki_channel_user_new (makiUser*);
+makiChannelUser* maki_channel_user_new (makiServer*, const gchar*);
 void maki_channel_user_copy (makiChannelUser*, makiChannelUser*);
 void maki_channel_user_free (gpointer);
 

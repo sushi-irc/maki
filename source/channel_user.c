@@ -27,12 +27,13 @@
 
 #include "maki.h"
 
-makiChannelUser* maki_channel_user_new (makiUser* user)
+makiChannelUser* maki_channel_user_new (makiServer* serv, const gchar* nick)
 {
 	makiChannelUser* cuser;
 
 	cuser = g_new(makiChannelUser, 1);
-	cuser->user = user;
+	cuser->server = serv;
+	cuser->user = i_cache_insert(serv->users, nick);
 	cuser->prefix = 0;
 
 	return cuser;
@@ -42,6 +43,7 @@ void maki_channel_user_copy (makiChannelUser* src, makiChannelUser* dst)
 {
 	if (src != dst)
 	{
+		maki_user_copy(src->user, dst->user);
 		dst->prefix = src->prefix;
 	}
 }
@@ -50,7 +52,7 @@ void maki_channel_user_free (gpointer data)
 {
 	makiChannelUser* cuser = data;
 
-	i_cache_remove(maki_user_server(cuser->user)->users, maki_user_nick(cuser->user));
+	i_cache_remove(cuser->server->users, maki_user_nick(cuser->user));
 
 	g_free(cuser);
 }

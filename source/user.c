@@ -29,7 +29,6 @@
 
 struct maki_user
 {
-	makiServer* server;
 	gchar* from;
 	gchar* nick;
 	gchar* user;
@@ -55,11 +54,9 @@ static void maki_user_set_from (makiUser* user)
 gpointer maki_user_new (gpointer key, gpointer data)
 {
 	gchar* nick = key;
-	makiServer* serv = data;
 	makiUser* user;
 
 	user = g_new(makiUser, 1);
-	user->server = serv;
 	user->from = NULL;
 	user->nick = nick;
 	user->user = NULL;
@@ -81,11 +78,6 @@ void maki_user_copy (makiUser* src, makiUser* dst)
 		maki_user_set_away(dst, src->away);
 		maki_user_set_away_message(dst, src->away_message);
 	}
-}
-
-makiServer* maki_user_server (makiUser* user)
-{
-	return user->server;
 }
 
 const gchar* maki_user_from (makiUser* user)

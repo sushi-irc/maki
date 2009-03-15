@@ -343,10 +343,8 @@ static void maki_in_join (makiServer* serv, glong timestamp, makiUser* user, gch
 	if (chan != NULL)
 	{
 		makiChannelUser* cuser;
-		makiUser* new_user;
 
-		new_user = i_cache_insert(serv->users, maki_user_nick(user));
-		cuser = maki_channel_user_new(new_user);
+		cuser = maki_channel_user_new(serv, maki_user_nick(user));
 		maki_channel_add_user(chan, maki_user_nick(cuser->user), cuser);
 	}
 
@@ -608,15 +606,11 @@ static void maki_in_nick (makiServer* serv, glong timestamp, makiUser* user, gch
 		if ((cuser = maki_channel_get_user(chan, maki_user_nick(user))) != NULL)
 		{
 			makiChannelUser* tmp;
-			makiUser* new_user;
 
-			new_user = i_cache_insert(serv->users, new_nick);
-			maki_user_copy(cuser->user, new_user);
-
-			tmp = maki_channel_user_new(new_user);
+			tmp = maki_channel_user_new(serv, new_nick);
 			maki_channel_user_copy(cuser, tmp);
 
-			maki_channel_remove_user(chan, maki_user_nick(user));
+			maki_channel_remove_user(chan, maki_user_nick(cuser->user));
 			maki_channel_add_user(chan, maki_user_nick(tmp->user), tmp);
 
 			if (own)
@@ -916,7 +910,6 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 				guint prefix = 0;
 				gint pos;
 				makiChannelUser* cuser;
-				makiUser* user;
 
 				while ((pos = maki_prefix_position(serv, TRUE, *nick)) >= 0)
 				{
@@ -924,8 +917,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 					++nick;
 				}
 
-				user = i_cache_insert(serv->users, nick);
-				cuser = maki_channel_user_new(user);
+				cuser = maki_channel_user_new(serv, nick);
 				maki_channel_add_user(chan, maki_user_nick(cuser->user), cuser);
 				cuser->prefix = prefix;
 
