@@ -42,7 +42,7 @@ makiInstance* maki_instance_get_default (void)
 
 	if (G_UNLIKELY(inst == NULL))
 	{
-		inst = maki_instance_new();
+		inst = maki_instance_new(opt_config);
 	}
 
 	return inst;
@@ -99,15 +99,23 @@ static void maki_instance_config_set_defaults (makiInstance* inst)
 	}
 }
 
-makiInstance* maki_instance_new (void)
+makiInstance* maki_instance_new (const gchar* config)
 {
 	gchar* config_dir;
 	gchar* config_file;
 	gchar* servers_dir;
 	makiInstance* inst;
 
-	config_dir = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
-	servers_dir = g_build_filename(g_get_user_config_dir(), "sushi", "servers", NULL);
+	if (config != NULL)
+	{
+		config_dir = g_strdup(config);
+	}
+	else
+	{
+		config_dir = g_build_filename(g_get_user_config_dir(), "sushi", NULL);
+	}
+
+	servers_dir = g_build_filename(config_dir, "servers", NULL);
 
 	if (g_mkdir_with_parents(config_dir, 0777) != 0
 	    || g_mkdir_with_parents(servers_dir, 0777) != 0)

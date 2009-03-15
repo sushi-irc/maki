@@ -36,6 +36,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+gchar* opt_config = NULL;
 gboolean opt_debug = TRUE;
 
 makiDBus* dbus = NULL;
@@ -76,6 +77,7 @@ int main (int argc, char* argv[])
 	GOptionContext* context;
 	GOptionEntry entries[] =
 	{
+		{ "config", 'c', 0, G_OPTION_ARG_STRING, &opt_config, N_("Specify configuration directory"), NULL },
 		{ "daemon", 'd', 0, G_OPTION_ARG_NONE, &opt_daemon, N_("Run as daemon"), NULL },
 		{ "debug", 0, 0, G_OPTION_ARG_NONE, &opt_debug, N_("Output debug messages"), NULL },
 		{ NULL }
