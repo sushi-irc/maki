@@ -225,7 +225,7 @@ static gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gch
 
 		maki_log(serv, channel, "%s %s", serv->user->nick, tmp);
 
-		maki_dbus_emit_action(timeval.tv_sec, server, serv->user->nick, channel, tmp);
+		maki_dbus_emit_action(timeval.tv_sec, server, serv->user->from, channel, tmp);
 
 		g_free(tmp);
 	}
@@ -387,7 +387,7 @@ static gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar
 		maki_server_send_printf(serv, "PRIVMSG %s :\1%s\1", target, message);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit_ctcp(timeval.tv_sec, server, serv->user->nick, target, message);
+		maki_dbus_emit_ctcp(timeval.tv_sec, server, serv->user->from, target, message);
 		maki_log(serv, target, "=%s= %s", serv->user->nick, message);
 	}
 
@@ -772,7 +772,7 @@ static gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gch
 		maki_server_send_printf(serv, "NOTICE %s :%s", target, message);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit_notice(timeval.tv_sec, serv->server, serv->user->nick, target, message);
+		maki_dbus_emit_notice(timeval.tv_sec, serv->server, serv->user->from, target, message);
 		maki_log(serv, target, "-%s- %s", serv->user->nick, message);
 	}
 

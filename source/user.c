@@ -27,6 +27,20 @@
 
 #include "maki.h"
 
+static void maki_user_set_from (makiUser* user)
+{
+	g_free(user->from);
+
+	if (user->user != NULL && user->host != NULL)
+	{
+		user->from = g_strdup_printf("%s!%s@%s", user->nick, user->user, user->host);
+	}
+	else
+	{
+		user->from = g_strdup(user->nick);
+	}
+}
+
 gpointer maki_user_new (gpointer key, gpointer data)
 {
 	gchar* nick = key;
@@ -35,9 +49,14 @@ gpointer maki_user_new (gpointer key, gpointer data)
 
 	user = g_new(makiUser, 1);
 	user->server = serv;
+	user->from = NULL;
 	user->nick = nick;
+	user->user = NULL;
+	user->host = NULL;
 	user->away = FALSE;
 	user->away_message = NULL;
+
+	maki_user_set_from(user);
 
 	return user;
 }
@@ -51,10 +70,28 @@ void maki_user_copy (makiUser* src, makiUser* dst)
 	}
 }
 
+void maki_user_set_user (makiUser* user, const gchar* usr)
+{
+	g_free(user->user);
+	user->user = g_strdup(usr);
+	maki_user_set_from(user);
+}
+
+void maki_user_set_host (makiUser* user, const gchar* host)
+{
+	g_free(user->host);
+	user->host = g_strdup(host);
+	maki_user_set_from(user);
+}
+
 /* This function gets called when a user is removed from the users hash table. */
 void maki_user_free (gpointer value)
 {
 	makiUser* user = value;
+
+	g_free(user->from);
+	g_free(user->user);
+	g_free(user->host);
 
 	g_free(user->away_message);
 	g_free(user);

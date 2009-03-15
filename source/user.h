@@ -37,13 +37,18 @@ typedef struct maki_user makiUser;
 struct maki_user
 {
 	makiServer* server;
+	gchar* from;
 	gchar* nick;
+	gchar* user;
+	gchar* host;
 	gboolean away;
 	gchar* away_message;
 };
 
 gpointer maki_user_new (gpointer, gpointer);
 void maki_user_copy (makiUser*, makiUser*);
+void maki_user_set_user (makiUser*, const gchar*);
+void maki_user_set_host (makiUser*, const gchar*);
 void maki_user_free (gpointer);
 
 #endif
