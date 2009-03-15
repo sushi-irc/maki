@@ -275,13 +275,13 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, const gchar* nic
 				if (maki_is_channel(serv, target))
 				{
 					maki_log(serv, target, "=%s= %s", nick, message);
-					maki_dbus_emit_ctcp(timestamp, serv->server, nick, target, message);
 				}
 				else
 				{
 					maki_log(serv, nick, "=%s= %s", nick, message);
-					maki_dbus_emit_query_ctcp(timestamp, serv->server, nick, message);
 				}
+
+				maki_dbus_emit_ctcp(timestamp, serv->server, nick, target, message);
 			}
 		}
 		else
@@ -289,13 +289,13 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, const gchar* nic
 			if (maki_is_channel(serv, target))
 			{
 				maki_log(serv, target, "<%s> %s", nick, message);
-				maki_dbus_emit_message(timestamp, serv->server, nick, target, message);
 			}
 			else
 			{
 				maki_log(serv, nick, "<%s> %s", nick, message);
-				maki_dbus_emit_query(timestamp, serv->server, nick, message);
 			}
+
+			maki_dbus_emit_message(timestamp, serv->server, nick, target, message);
 		}
 	}
 
@@ -653,13 +653,13 @@ static void maki_in_notice (makiServer* serv, glong timestamp, const gchar* nick
 		if (maki_is_channel(serv, target))
 		{
 			maki_log(serv, target, "-%s- %s", nick, message);
-			maki_dbus_emit_notice(timestamp, serv->server, nick, target, message);
 		}
 		else
 		{
 			maki_log(serv, nick, "-%s- %s", nick, message);
-			maki_dbus_emit_query_notice(timestamp, serv->server, nick, message);
 		}
+
+		maki_dbus_emit_notice(timestamp, serv->server, nick, target, message);
 	}
 
 	g_strfreev(tmp);
