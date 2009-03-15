@@ -469,17 +469,19 @@ struct i_cache
 struct i_cache_item
 {
 	gint ref_count;
+	const gchar* key;
 	gpointer value;
 };
 
 typedef struct i_cache_item iCacheItem;
 
-static iCacheItem* i_cache_item_new (gpointer value)
+static iCacheItem* i_cache_item_new (const gchar* key, gpointer value)
 {
 	iCacheItem* item;
 
 	item = g_new(iCacheItem, 1);
 	item->ref_count = 1;
+	item->key = key;
 	item->value = value;
 
 	return item;
@@ -539,7 +541,7 @@ gpointer i_cache_insert (iCache* cache, const gchar* key)
 		new_key = g_strdup(key);
 		value = (*cache->value_new)(new_key, cache->value_data);
 
-		item = i_cache_item_new(value);
+		item = i_cache_item_new(new_key, value);
 
 		g_hash_table_insert(cache->hash_table, new_key, item);
 
@@ -578,7 +580,7 @@ void i_cache_remove (iCache* cache, const gchar* key)
 		if (item->ref_count == 0)
 		{
 			(*cache->value_free)(item->value);
-			g_hash_table_remove(cache->hash_table, key);
+			g_hash_table_remove(cache->hash_table, item->key);
 		}
 	}
 }
