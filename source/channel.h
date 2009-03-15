@@ -50,7 +50,7 @@ void maki_channel_set_key (makiChannel*, const gchar*);
 const gchar* maki_channel_topic (makiChannel*);
 void maki_channel_set_topic (makiChannel*, const gchar*);
 
-void maki_channel_add_user (makiChannel*, gchar*, makiChannelUser*);
+void maki_channel_add_user (makiChannel*, const gchar*, makiChannelUser*);
 makiChannelUser* maki_channel_get_user (makiChannel*, const gchar*);
 void maki_channel_remove_user (makiChannel*, const gchar*);
 void maki_channel_remove_users (makiChannel*);
