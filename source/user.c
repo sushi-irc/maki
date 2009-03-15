@@ -27,6 +27,17 @@
 
 #include "maki.h"
 
+struct maki_user
+{
+	makiServer* server;
+	gchar* from;
+	gchar* nick;
+	gchar* user;
+	gchar* host;
+	gboolean away;
+	gchar* away_message;
+};
+
 static void maki_user_set_from (makiUser* user)
 {
 	g_free(user->from);
@@ -65,9 +76,26 @@ void maki_user_copy (makiUser* src, makiUser* dst)
 {
 	if (src != dst)
 	{
-		dst->away = src->away;
-		dst->away_message = g_strdup(src->away_message);
+		maki_user_set_user(dst, src->user);
+		maki_user_set_host(dst, src->host);
+		maki_user_set_away(dst, src->away);
+		maki_user_set_away_message(dst, src->away_message);
 	}
+}
+
+makiServer* maki_user_server (makiUser* user)
+{
+	return user->server;
+}
+
+const gchar* maki_user_from (makiUser* user)
+{
+	return user->from;
+}
+
+const gchar* maki_user_nick (makiUser* user)
+{
+	return user->nick;
 }
 
 void maki_user_set_user (makiUser* user, const gchar* usr)
@@ -82,6 +110,27 @@ void maki_user_set_host (makiUser* user, const gchar* host)
 	g_free(user->host);
 	user->host = g_strdup(host);
 	maki_user_set_from(user);
+}
+
+gboolean maki_user_away (makiUser* user)
+{
+	return user->away;
+}
+
+void maki_user_set_away (makiUser* user, gboolean away)
+{
+	user->away = away;
+}
+
+const gchar* maki_user_away_message (makiUser* user)
+{
+	return user->away_message;
+}
+
+void maki_user_set_away_message (makiUser* user, const gchar* away_message)
+{
+	g_free(user->away_message);
+	user->away_message = g_strdup(away_message);
 }
 
 /* This function gets called when a user is removed from the users hash table. */

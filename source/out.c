@@ -72,7 +72,7 @@ void maki_out_nickserv (makiServer* serv)
 
 	if (!maki_config_is_empty(initial_nick) && !maki_config_is_empty(nickserv_password))
 	{
-		if (g_ascii_strcasecmp(serv->user->nick, initial_nick) != 0)
+		if (g_ascii_strcasecmp(maki_user_nick(serv->user), initial_nick) != 0)
 		{
 			if (maki_server_config_get_boolean(serv, "server", "nickserv_ghost"))
 			{
@@ -104,8 +104,8 @@ static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, co
 	maki_server_queue(serv, buffer, queue);
 	g_free(buffer);
 
-	maki_log(serv, target, "<%s> %s", serv->user->nick, message);
-	maki_dbus_emit_message(timeval.tv_sec, serv->server, serv->user->from, target, message);
+	maki_log(serv, target, "<%s> %s", maki_user_nick(serv->user), message);
+	maki_dbus_emit_message(timeval.tv_sec, serv->server, maki_user_from(serv->user), target, message);
 }
 
 void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)
@@ -118,7 +118,7 @@ void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* messa
 
 	/* :nickname!username@hostname PRIVMSG target :message\r\n */
 	length -= 1; /* : */
-	length -= strlen(serv->user->nick); /* nickname */
+	length -= strlen(maki_user_nick(serv->user)); /* nickname */
 	length -= 1; /* ! */
 	length -= 9; /* username */
 	length -= 1; /* @ */
@@ -202,5 +202,5 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 		}
 	}
 
-	maki_dbus_emit_quit(timeval.tv_sec, serv->server, serv->user->from, message);
+	maki_dbus_emit_quit(timeval.tv_sec, serv->server, maki_user_from(serv->user), message);
 }

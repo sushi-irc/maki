@@ -50,7 +50,7 @@ void maki_channel_user_free (gpointer data)
 {
 	makiChannelUser* cuser = data;
 
-	i_cache_remove(cuser->user->server->users, cuser->user->nick);
+	i_cache_remove(maki_user_server(cuser->user)->users, maki_user_nick(cuser->user));
 
 	g_free(cuser);
 }

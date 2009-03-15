@@ -34,21 +34,17 @@ typedef struct maki_user makiUser;
 
 #include "server.h"
 
-struct maki_user
-{
-	makiServer* server;
-	gchar* from;
-	gchar* nick;
-	gchar* user;
-	gchar* host;
-	gboolean away;
-	gchar* away_message;
-};
-
 gpointer maki_user_new (gpointer, gpointer);
 void maki_user_copy (makiUser*, makiUser*);
+makiServer* maki_user_server (makiUser*);
+const gchar* maki_user_from (makiUser*);
+const gchar* maki_user_nick (makiUser*);
 void maki_user_set_user (makiUser*, const gchar*);
 void maki_user_set_host (makiUser*, const gchar*);
+gboolean maki_user_away (makiUser*);
+void maki_user_set_away (makiUser*, gboolean);
+const gchar* maki_user_away_message (makiUser*);
+void maki_user_set_away_message (makiUser*, const gchar*);
 void maki_user_free (gpointer);
 
 #endif

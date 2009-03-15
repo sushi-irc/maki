@@ -33,6 +33,7 @@ struct maki_channel;
 typedef struct maki_channel makiChannel;
 
 #include "channel_user.h"
+#include "server.h"
 
 makiChannel* maki_channel_new (makiServer*, const gchar*);
 void maki_channel_free (gpointer);

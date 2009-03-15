@@ -223,9 +223,9 @@ static gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gch
 
 		maki_server_send_printf(serv, "PRIVMSG %s :\001ACTION %s\001", channel, tmp);
 
-		maki_log(serv, channel, "%s %s", serv->user->nick, tmp);
+		maki_log(serv, channel, "%s %s", maki_user_nick(serv->user), tmp);
 
-		maki_dbus_emit_action(timeval.tv_sec, server, serv->user->from, channel, tmp);
+		maki_dbus_emit_action(timeval.tv_sec, server, maki_user_from(serv->user), channel, tmp);
 
 		g_free(tmp);
 	}
@@ -241,8 +241,7 @@ static gboolean maki_dbus_away (makiDBus* self, const gchar* server, const gchar
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
 		maki_out_away(serv, message);
-		g_free(serv->user->away_message);
-		serv->user->away_message = g_strdup(message);
+		maki_user_set_away_message(serv->user, message);
 	}
 
 	return TRUE;
@@ -285,7 +284,7 @@ static gboolean maki_dbus_channel_nicks (makiDBus* self, const gchar* server, co
 			{
 				makiChannelUser* cuser = value;
 
-				*nick = g_strdup(cuser->user->nick);
+				*nick = g_strdup(maki_user_nick(cuser->user));
 				++nick;
 			}
 
@@ -387,8 +386,8 @@ static gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar
 		maki_server_send_printf(serv, "PRIVMSG %s :\1%s\1", target, message);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit_ctcp(timeval.tv_sec, server, serv->user->from, target, message);
-		maki_log(serv, target, "=%s= %s", serv->user->nick, message);
+		maki_dbus_emit_ctcp(timeval.tv_sec, server, maki_user_from(serv->user), target, message);
+		maki_log(serv, target, "=%s= %s", maki_user_nick(serv->user), message);
 	}
 
 	return TRUE;
@@ -739,7 +738,7 @@ static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar
 			GTimeVal timeval;
 
 			g_get_current_time(&timeval);
-			maki_dbus_emit_nick(timeval.tv_sec, serv->server, "", serv->user->nick);
+			maki_dbus_emit_nick(timeval.tv_sec, serv->server, "", maki_user_nick(serv->user));
 		}
 	}
 
@@ -772,8 +771,8 @@ static gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gch
 		maki_server_send_printf(serv, "NOTICE %s :%s", target, message);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit_notice(timeval.tv_sec, serv->server, serv->user->from, target, message);
-		maki_log(serv, target, "-%s- %s", serv->user->nick, message);
+		maki_dbus_emit_notice(timeval.tv_sec, serv->server, maki_user_from(serv->user), target, message);
+		maki_log(serv, target, "-%s- %s", maki_user_nick(serv->user), message);
 	}
 
 	return TRUE;
@@ -1202,7 +1201,7 @@ static gboolean maki_dbus_user_away (makiDBus* self, const gchar* server, const 
 
 		if ((user = i_cache_lookup(serv->users, nick)) != NULL)
 		{
-			*away = user->away;
+			*away = maki_user_away(user);
 		}
 	}
 

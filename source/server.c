@@ -321,7 +321,7 @@ void maki_server_free (gpointer data)
 	g_main_loop_unref(serv->main_loop);
 	g_main_context_unref(serv->main_context);
 
-	i_cache_remove(serv->users, serv->user->nick);
+	i_cache_remove(serv->users, maki_user_nick(serv->user));
 
 	g_key_file_free(serv->key_file);
 
@@ -451,7 +451,7 @@ void maki_server_connect_callback (gpointer data)
 
 	user = i_cache_insert(serv->users, initial_nick);
 	maki_user_copy(serv->user, user);
-	i_cache_remove(serv->users, serv->user->nick);
+	i_cache_remove(serv->users, maki_user_nick(serv->user));
 	serv->user = user;
 
 	maki_out_nick(serv, initial_nick);
@@ -462,7 +462,7 @@ void maki_server_connect_callback (gpointer data)
 
 	g_get_current_time(&timeval);
 	maki_dbus_emit_connected(timeval.tv_sec, serv->server);
-	maki_dbus_emit_nick(timeval.tv_sec, serv->server, "", serv->user->nick);
+	maki_dbus_emit_nick(timeval.tv_sec, serv->server, "", maki_user_nick(serv->user));
 
 	g_free(initial_nick);
 	g_free(name);
