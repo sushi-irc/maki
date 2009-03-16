@@ -401,6 +401,7 @@
 			<!-- nick == "" signifies the end of the list. -->
 			<arg name="nick" type="s" />
 			<arg name="channel" type="s" />
+			<arg name="prefix" type="s" />
 		</signal>
 
 		<signal name="nick">

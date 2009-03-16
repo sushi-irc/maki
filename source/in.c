@@ -892,7 +892,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 			return;
 		}
 
-		maki_dbus_emit_names(timestamp, serv->server, "", tmp[0]);
+		maki_dbus_emit_names(timestamp, serv->server, "", tmp[0], "");
 	}
 	else
 	{
@@ -907,12 +907,21 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 			for (i = 2; i < length; ++i)
 			{
 				gchar* nick = maki_remove_colon(tmp[i]);
+				gchar prefix_str[2];
 				guint prefix = 0;
 				gint pos;
 				makiChannelUser* cuser;
 
+				prefix_str[0] = '\0';
+				prefix_str[1] = '\0';
+
 				while ((pos = maki_prefix_position(serv, TRUE, *nick)) >= 0)
 				{
+					if (prefix_str[0] == '\0')
+					{
+						prefix_str[0] = serv->support.prefix.prefixes[pos];
+					}
+
 					prefix |= (1 << pos);
 					++nick;
 				}
@@ -921,7 +930,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 				maki_channel_add_user(chan, maki_user_nick(cuser->user), cuser);
 				cuser->prefix = prefix;
 
-				maki_dbus_emit_names(timestamp, serv->server, nick, tmp[1]);
+				maki_dbus_emit_names(timestamp, serv->server, nick, tmp[1], prefix_str);
 			}
 		}
 	}

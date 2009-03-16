@@ -156,9 +156,9 @@ void maki_dbus_emit_motd (gint64 timestamp, const gchar* server, const gchar* me
 	g_signal_emit(dbus, signals[s_motd], 0, timestamp, server, message);
 }
 
-void maki_dbus_emit_names (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel)
+void maki_dbus_emit_names (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* prefix)
 {
-	g_signal_emit(dbus, signals[s_names], 0, timestamp, server, nick, channel);
+	g_signal_emit(dbus, signals[s_names], 0, timestamp, server, nick, channel, prefix);
 }
 
 void maki_dbus_emit_nick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* new_nick)
@@ -1229,7 +1229,7 @@ static gboolean maki_dbus_user_channel_mode (makiDBus* self, const gchar* server
 				gint length;
 				gchar tmp = '\0';
 
-				length = strlen(serv->support.prefix.prefixes);
+				length = strlen(serv->support.prefix.modes);
 
 				for (pos = 0; pos < length; pos++)
 				{
@@ -1547,8 +1547,8 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
 		             0, NULL, NULL,
 		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+		             G_TYPE_NONE, 5,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 	signals[s_nick] =
 		g_signal_new("nick",
 		             G_OBJECT_CLASS_TYPE(klass),
