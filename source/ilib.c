@@ -306,8 +306,8 @@ GIOStatus i_io_channel_write_chars (GIOChannel* channel, const gchar* buf, gssiz
 	gsize ntmp;
 	GIOStatus ret;
 
-	g_return_val_if_fail(channel != NULL, FALSE);
-	g_return_val_if_fail(buf != NULL, FALSE);
+	g_return_val_if_fail(channel != NULL, G_IO_STATUS_ERROR);
+	g_return_val_if_fail(buf != NULL, G_IO_STATUS_ERROR);
 
 	if (count < 0)
 	{
@@ -348,8 +348,8 @@ GIOStatus i_io_channel_read_chars (GIOChannel* channel, gchar* buf, gsize count,
 	gsize ntmp;
 	GIOStatus ret;
 
-	g_return_val_if_fail(channel != NULL, FALSE);
-	g_return_val_if_fail(buf != NULL, FALSE);
+	g_return_val_if_fail(channel != NULL, G_IO_STATUS_ERROR);
+	g_return_val_if_fail(buf != NULL, G_IO_STATUS_ERROR);
 
 	while (TRUE)
 	{
