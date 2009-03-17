@@ -260,12 +260,13 @@ static gboolean maki_dbus_back (makiDBus* self, const gchar* server, GError** er
 	return TRUE;
 }
 
-static gboolean maki_dbus_channel_nicks (makiDBus* self, const gchar* server, const gchar* channel, gchar*** nicks, GError** error)
+static gboolean maki_dbus_channel_nicks (makiDBus* self, const gchar* server, const gchar* channel, gchar*** nicks, gchar*** prefixes, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
 	*nicks = NULL;
+	*prefixes = NULL;
 
 	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
 	{
@@ -274,21 +275,44 @@ static gboolean maki_dbus_channel_nicks (makiDBus* self, const gchar* server, co
 		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 		{
 			gchar** nick;
+			gchar** prefix;
+			gchar prefix_str[2];
+			gsize length;
 			GHashTableIter iter;
 			gpointer key, value;
 
 			nick = *nicks = g_new(gchar*, maki_channel_users_count(chan) + 1);
+			prefix = *prefixes = g_new(gchar*, maki_channel_users_count(chan) + 1);
 			maki_channel_users_iter(chan, &iter);
+
+			length = strlen(serv->support.prefix.prefixes);
+			prefix_str[1] = '\0';
 
 			while (g_hash_table_iter_next(&iter, &key, &value))
 			{
+				guint pos;
 				makiChannelUser* cuser = value;
 
 				*nick = g_strdup(maki_user_nick(cuser->user));
-				++nick;
+				nick++;
+
+				prefix_str[0] = '\0';
+
+				for (pos = 0; pos < length; pos++)
+				{
+					if (cuser->prefix & (1 << pos))
+					{
+						prefix_str[0] = serv->support.prefix.prefixes[pos];
+						break;
+					}
+				}
+
+				*prefix = g_strdup(prefix_str);
+				prefix++;
 			}
 
 			*nick = NULL;
+			*prefix = NULL;
 		}
 	}
 
