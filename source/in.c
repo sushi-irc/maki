@@ -871,8 +871,9 @@ static void maki_in_topic (makiServer* serv, glong timestamp, makiUser* user, gc
 
 static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* remaining, gboolean is_end)
 {
+	gchar** nicks;
+	gchar** prefixes;
 	gchar** tmp;
-	guint i;
 	guint length;
 	makiChannel* chan;
 
@@ -892,7 +893,13 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 			return;
 		}
 
-		maki_dbus_emit_names(timestamp, serv->server, "", tmp[0], "");
+		nicks = g_new(gchar*, 1);
+
+		nicks[0] = NULL;
+
+		maki_dbus_emit_names(timestamp, serv->server, tmp[0], nicks, nicks);
+
+		g_free(nicks);
 	}
 	else
 	{
@@ -904,7 +911,15 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 
 		if ((chan = maki_server_get_channel(serv, tmp[1])) != NULL)
 		{
-			for (i = 2; i < length; ++i)
+			guint i;
+			guint j;
+
+			nicks = g_new(gchar*, length - 1);
+			prefixes = g_new(gchar*, length - 1);
+
+			nicks[length - 2] = prefixes[length - 2] = NULL;
+
+			for (i = 2, j = 0; i < length; i++, j++)
 			{
 				gchar* nick = maki_remove_colon(tmp[i]);
 				gchar prefix_str[2];
@@ -923,15 +938,21 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 					}
 
 					prefix |= (1 << pos);
-					++nick;
+					nick++;
 				}
 
 				cuser = maki_channel_user_new(serv, nick);
 				maki_channel_add_user(chan, maki_user_nick(cuser->user), cuser);
 				cuser->prefix = prefix;
 
-				maki_dbus_emit_names(timestamp, serv->server, nick, tmp[1], prefix_str);
+				nicks[j] = nick;
+				prefixes[j] = g_strdup(prefix_str);
 			}
+
+			maki_dbus_emit_names(timestamp, serv->server, tmp[1], nicks, prefixes);
+
+			g_strfreev(prefixes);
+			g_free(nicks);
 		}
 	}
 

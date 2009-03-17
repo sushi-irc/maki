@@ -399,10 +399,10 @@
 		<signal name="names">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
-			<!-- nick == "" signifies the end of the list. -->
-			<arg name="nick" type="s" />
 			<arg name="channel" type="s" />
-			<arg name="prefix" type="s" />
+			<!-- len(nicks) == 0 signifies the end of the list. -->
+			<arg name="nicks" type="as" />
+			<arg name="prefixes" type="as" />
 		</signal>
 
 		<signal name="nick">
