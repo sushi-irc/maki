@@ -133,6 +133,10 @@ int main (int argc, char* argv[])
 	sigaction(SIGTERM, &sig, NULL);
 	sigaction(SIGQUIT, &sig, NULL);
 
+	sig.sa_handler = SIG_IGN;
+
+	sigaction(SIGPIPE, &sig, NULL);
+
 	servers = g_dir_open(maki_instance_directory(inst, "servers"), 0, NULL);
 
 	while ((file = g_dir_read_name(servers)) != NULL)
