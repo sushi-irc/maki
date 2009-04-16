@@ -254,6 +254,10 @@
 			<arg name="prefix" type="s" direction="out" />
 		</method>
 
+		<method name="version">
+			<arg name="version" type="at" direction="out" />
+		</method>
+
 		<method name="who">
 			<arg name="server" type="s" />
 			<arg name="mask" type="s" />

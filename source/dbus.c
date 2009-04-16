@@ -1332,6 +1332,30 @@ static gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* serv
 	return TRUE;
 }
 
+static gboolean maki_dbus_version (makiDBus* self, GArray** version, GError** error)
+{
+	gchar** p;
+	guint p_len;
+	guint i;
+
+	*version = g_array_new(FALSE, FALSE, sizeof(guint64));
+
+	p = g_strsplit(SUSHI_VERSION, ".", 0);
+	p_len = g_strv_length(p);
+
+	for (i = 0; i < p_len; i++)
+	{
+		guint64 v;
+
+		v = g_ascii_strtoull(p[i], NULL, 10);
+		*version = g_array_append_val(*version, v);
+	}
+
+	g_strfreev(p);
+
+	return TRUE;
+}
+
 static gboolean maki_dbus_who (makiDBus* self, const gchar* server, const gchar* mask, gboolean operators_only, GError** error)
 {
 	makiServer* serv;
