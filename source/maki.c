@@ -72,6 +72,7 @@ int main (int argc, char* argv[])
 	GDir* servers;
 	makiInstance* inst = NULL;
 	struct sigaction sig;
+	GError* error = NULL;
 
 	gboolean opt_daemon = FALSE;
 	GOptionContext* context;
@@ -97,7 +98,20 @@ int main (int argc, char* argv[])
 
 	context = g_option_context_new(NULL);
 	g_option_context_add_main_entries(context, entries, NULL);
-	g_option_context_parse(context, &argc, &argv, NULL);
+
+	if (!g_option_context_parse(context, &argc, &argv, &error))
+	{
+		g_option_context_free(context);
+
+		if (error)
+		{
+			g_printerr("%s\n", error->message);
+			g_error_free(error);
+		}
+
+		return 1;
+	}
+
 	g_option_context_free(context);
 
 	if (opt_daemon
