@@ -75,12 +75,14 @@ int main (int argc, char* argv[])
 	GError* error = NULL;
 
 	gboolean opt_daemon = FALSE;
+	gboolean opt_version = FALSE;
 	GOptionContext* context;
 	GOptionEntry entries[] =
 	{
 		{ "config", 'c', 0, G_OPTION_ARG_STRING, &opt_config, N_("Use alternative configuration directory"), N_("DIRECTORY") },
 		{ "daemon", 'd', 0, G_OPTION_ARG_NONE, &opt_daemon, N_("Run as daemon"), NULL },
 		{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &opt_verbose, N_("Output debug messages"), NULL },
+		{ "version", 0, 0, G_OPTION_ARG_NONE, &opt_version, NULL, NULL },
 		{ NULL }
 	};
 
@@ -113,6 +115,12 @@ int main (int argc, char* argv[])
 	}
 
 	g_option_context_free(context);
+
+	if (opt_version)
+	{
+		g_print("maki %s\n", SUSHI_VERSION);
+		return 0;
+	}
 
 	if (opt_daemon
 	    && !i_daemon(FALSE, FALSE))
