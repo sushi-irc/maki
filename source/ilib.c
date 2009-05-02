@@ -171,10 +171,10 @@ GIOChannel* i_io_channel_unix_new_address (const gchar* address, guint port, gbo
 	g_return_val_if_fail(port != 0, NULL);
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
+	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
-	hints.ai_flags = 0;
+	hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
 
 	port_str = g_strdup_printf("%u", port);
 
@@ -240,10 +240,10 @@ GIOChannel* i_io_channel_unix_new_listen (const gchar* address, guint port, gboo
 	g_return_val_if_fail(port != 0, NULL);
 
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_INET;
+	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = 0;
-	hints.ai_flags = AI_PASSIVE;
+	hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG | AI_PASSIVE;
 
 	port_str = g_strdup_printf("%u", port);
 
