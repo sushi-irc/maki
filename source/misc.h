@@ -28,6 +28,10 @@
 #ifndef H_MISC
 #define H_MISC
 
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 #include "server.h"
 
 gboolean maki_config_is_empty (const gchar*);
@@ -35,5 +39,7 @@ gboolean maki_config_is_empty_list (gchar**);
 
 void maki_debug (const gchar*, ...) G_GNUC_PRINTF(1, 2);
 void maki_log (makiServer*, const gchar*, const gchar*, ...) G_GNUC_PRINTF(3, 4);
+
+gchar* maki_get_ip (struct sockaddr*, socklen_t);
 
 #endif

@@ -148,3 +148,15 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 
 	g_free(tmp);
 }
+
+gchar* maki_get_ip (struct sockaddr* addr, socklen_t addrlen)
+{
+	gchar ip[1024];
+
+	if (getnameinfo(addr, addrlen, ip, 1024, NULL, 0, NI_NUMERICHOST) != 0)
+	{
+		return NULL;
+	}
+
+	return g_strdup(ip);
+}

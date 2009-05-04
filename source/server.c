@@ -99,14 +99,14 @@ static void maki_server_stun (makiServer* serv, const gchar* address)
 	{
 		struct sockaddr me;
 		socklen_t me_len = sizeof(me);
-		gchar ip[1024];
+		gchar* ip;
 
 		if (stun_usage_bind_run(p->ai_addr, p->ai_addrlen, &me, &me_len) != STUN_USAGE_BIND_RETURN_SUCCESS)
 		{
 			continue;
 		}
 
-		if (getnameinfo(&me, me_len, ip, 1024, NULL, 0, NI_NUMERICHOST) != 0)
+		if ((ip = maki_get_ip(&me, me_len)) == NULL)
 		{
 			continue;
 		}
@@ -115,7 +115,7 @@ static void maki_server_stun (makiServer* serv, const gchar* address)
 		serv->stun.addrlen = me_len;
 
 		g_free(serv->stun.ip);
-		serv->stun.ip = g_strdup(ip);
+		serv->stun.ip = ip;
 
 		break;
 	}
