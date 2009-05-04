@@ -19,4 +19,16 @@ On Debian-based systems these are available in the following packages:
 * pkg-config
 * gettext
 
+                             OPTIONAL DEPENDENCIES
+
+On Debian-based systems these are available in the following packages:
+
+* libnice0
+
+                          OPTIONAL BUILD DEPENDENCIES
+
+On Debian-based systems these are available in the following packages:
+
+* libnice-dev
+
 # vi:textwidth=80:expandtab
