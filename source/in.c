@@ -1242,7 +1242,6 @@ static void maki_in_err_cannot_join (makiServer* serv, glong timestamp, gchar* r
 void maki_in_callback (const gchar* message, gpointer data)
 {
 	makiServer* serv = data;
-	GTimeVal timeval;
 
 	/* Check for valid UTF-8, because strange crashes can occur otherwise. */
 	if (!g_utf8_validate(message, -1, NULL))
@@ -1260,9 +1259,21 @@ void maki_in_callback (const gchar* message, gpointer data)
 		return;
 	}
 
-	g_get_current_time(&timeval);
+	/* Extra check to avoid string operations when verbose is disabled. */
+	if (opt_verbose)
+	{
+		gchar* time_str;
 
-	maki_debug("IN: [%ld/%s] %s\n", timeval.tv_sec, serv->server, message);
+		if ((time_str = i_get_current_time_string("%Y-%m-%d %H:%M:%S")) != NULL)
+		{
+			maki_debug("IN: [%s/%s] %s\n", time_str, serv->server, message);
+			g_free(time_str);
+		}
+		else
+		{
+			maki_debug("IN: [%s] %s\n", serv->server, message);
+		}
+	}
 
 	if (G_LIKELY(message[0] == ':'))
 	{
@@ -1273,6 +1284,9 @@ void maki_in_callback (const gchar* message, gpointer data)
 		gchar* remaining;
 		guint from_length;
 		makiUser* user;
+		GTimeVal timeval;
+
+		g_get_current_time(&timeval);
 
 		parts = g_strsplit(message + 1, " ", 3);
 
