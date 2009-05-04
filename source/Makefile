@@ -6,6 +6,11 @@ SUSHI_CFLAGS := $(subst -pedantic,,$(SUSHI_CFLAGS))
 SUSHI_CFLAGS  += $(shell pkg-config --cflags dbus-glib-1) $(shell pkg-config --cflags glib-2.0) $(shell pkg-config --cflags gobject-2.0) $(shell pkg-config --cflags gthread-2.0)
 SUSHI_LDFLAGS += $(shell pkg-config --libs   dbus-glib-1) $(shell pkg-config --libs   glib-2.0) $(shell pkg-config --libs   gobject-2.0) $(shell pkg-config --libs   gthread-2.0)
 
+ifeq ($(shell ../../tools/pkg-config.sh nice), yes)
+	SUSHI_CFLAGS  += $(shell pkg-config --cflags nice) -DSUSHI_HAVE_NICE
+	SUSHI_LDFLAGS += $(shell pkg-config --libs   nice)
+endif
+
 SUSHI_CFLAGS += -DLOCALEDIR='"$(localedir)"'
 SUSHI_CFLAGS += -DSUSHI_VERSION='"$(SUSHI_VERSION)"'
 

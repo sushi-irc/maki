@@ -29,6 +29,10 @@
 
 #include "sashimi.h"
 
+#ifdef SUSHI_HAVE_NICE
+#include <stun/usages/bind.h>
+#endif
+
 #include <string.h>
 
 static gpointer maki_server_thread (gpointer data)
@@ -70,6 +74,56 @@ static void maki_server_config_set_defaults (makiServer* serv)
 	*/
 }
 
+static void maki_server_stun (makiServer* serv, const gchar* address)
+{
+#ifdef SUSHI_HAVE_NICE
+	struct addrinfo* ai;
+	struct addrinfo* p;
+	struct addrinfo hints;
+
+	g_return_if_fail(serv != NULL);
+	g_return_if_fail(address != NULL);
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = 0;
+	hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
+
+	if (getaddrinfo(address, "3478", NULL, &ai) != 0)
+	{
+		return;
+	}
+
+	for (p = ai; p != NULL; p = p->ai_next)
+	{
+		struct sockaddr me;
+		socklen_t me_len = sizeof(me);
+		gchar ip[1024];
+
+		if (stun_usage_bind_run(p->ai_addr, p->ai_addrlen, &me, &me_len) != STUN_USAGE_BIND_RETURN_SUCCESS)
+		{
+			continue;
+		}
+
+		if (getnameinfo(&me, me_len, ip, 1024, NULL, 0, NI_NUMERICHOST) != 0)
+		{
+			continue;
+		}
+
+		serv->stun.addr = me;
+		serv->stun.addrlen = me_len;
+
+		g_free(serv->stun.ip);
+		serv->stun.ip = g_strdup(ip);
+
+		break;
+	}
+
+	freeaddrinfo(ai);
+#endif
+}
+
 makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 {
 	gchar* nick;
@@ -92,6 +146,8 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 	serv->channels = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_channel_free);
 	serv->users = i_cache_new(maki_user_new, maki_user_free, serv, i_ascii_str_case_hash, i_ascii_str_case_equal);
 	serv->logs = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_log_free);
+	serv->stun.addrlen = 0;
+	serv->stun.ip = NULL;
 
 	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 	g_key_file_load_from_file(serv->key_file, path, G_KEY_FILE_NONE, NULL);
@@ -325,6 +381,7 @@ void maki_server_free (gpointer data)
 
 	g_key_file_free(serv->key_file);
 
+	g_free(serv->stun.ip);
 	g_free(serv->support.prefix.prefixes);
 	g_free(serv->support.prefix.modes);
 	g_free(serv->support.chantypes);
@@ -349,6 +406,9 @@ gboolean maki_server_connect (makiServer* serv)
 	if (!serv->connected && !maki_config_is_empty(address))
 	{
 		GTimeVal timeval;
+
+		/* FIXME this can block */
+		maki_server_stun(serv, "stun.ekiga.net");
 
 		sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
 		sashimi_read_callback(serv->connection, maki_in_callback, serv);

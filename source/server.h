@@ -28,6 +28,10 @@
 #ifndef H_SERVER
 #define H_SERVER
 
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 struct maki_server;
 
 typedef struct maki_server makiServer;
@@ -74,6 +78,14 @@ struct maki_server
 
 	GMainContext* main_context;
 	GMainLoop* main_loop;
+
+	struct
+	{
+		struct sockaddr addr;
+		socklen_t addrlen;
+		gchar* ip;
+	}
+	stun;
 };
 
 makiServer* maki_server_new (makiInstance*, const gchar*);
