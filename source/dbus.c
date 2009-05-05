@@ -407,11 +407,29 @@ static gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar
 	{
 		GTimeVal timeval;
 
-		maki_server_send_printf(serv, "PRIVMSG %s :\1%s\1", target, message);
+		maki_server_send_printf(serv, "PRIVMSG %s :\001%s\001", target, message);
 
 		g_get_current_time(&timeval);
 		maki_dbus_emit_ctcp(timeval.tv_sec, server, maki_user_from(serv->user), target, message);
 		maki_log(serv, target, "=%s= %s", maki_user_nick(serv->user), message);
+	}
+
+	return TRUE;
+}
+
+static gboolean maki_dbus_dcc_send (makiDBus* self, const gchar* server, const gchar* target, const gchar* path, GError** error)
+{
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	{
+		makiDCCSend* dcc;
+		makiUser* user;
+
+		user = i_cache_insert(serv->users, target);
+		dcc = maki_dcc_send_new_out(serv, user, path);
+		i_cache_remove(serv->users, maki_user_nick(user));
 	}
 
 	return TRUE;

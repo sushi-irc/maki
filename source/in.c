@@ -181,12 +181,9 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 		{
 			guint32 address;
 			guint16 port;
-			goffset file_size;
-			gchar* token;
-			makiDCCSendIn* dcc;
-
-			file_size = 0;
-			token = NULL;
+			goffset file_size = 0;
+			guint32 token = 0;
+			makiDCCSend* dcc;
 
 			address = g_ascii_strtoull(args[0], NULL, 10);
 			port = g_ascii_strtoull(args[1], NULL, 10);
@@ -198,14 +195,15 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 
 			if (args_len > 3)
 			{
-				token = args[3];
+				token = g_ascii_strtoull(args[3], NULL, 10);
 			}
 
-			dcc = maki_dcc_send_in_new(serv, maki_user_nick(user), file_name, address, port, file_size, token);
+			/* FIXME ref user? */
+			dcc = maki_dcc_send_new_in(serv, user, file_name, address, port, file_size, token);
 
 			if (maki_instance_config_get_boolean(serv->instance, "dcc", "accept_send"))
 			{
-				maki_dcc_send_in_accept(dcc);
+				maki_dcc_send_accept(dcc);
 			}
 		}
 

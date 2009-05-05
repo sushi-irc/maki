@@ -28,15 +28,16 @@
 #ifndef H_DCC
 #define H_DCC
 
-struct maki_dcc_send_in;
+struct maki_dcc_send;
 
-typedef struct maki_dcc_send_in makiDCCSendIn;
+typedef struct maki_dcc_send makiDCCSend;
 
 gchar* maki_dcc_send_get_file_name (const gchar*, gsize*);
 
-makiDCCSendIn* maki_dcc_send_in_new (makiServer*, const gchar*, const gchar*, guint32, guint16, goffset, const gchar*);
-void maki_dcc_send_in_free (makiDCCSendIn*);
+makiDCCSend* maki_dcc_send_new_in (makiServer*, makiUser*, const gchar*, guint32, guint16, goffset, guint32);
+makiDCCSend* maki_dcc_send_new_out (makiServer*, makiUser*, const gchar*);
+void maki_dcc_send_free (makiDCCSend*);
 
-gboolean maki_dcc_send_in_accept (makiDCCSendIn*);
+gboolean maki_dcc_send_accept (makiDCCSend*);
 
 #endif
