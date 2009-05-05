@@ -82,6 +82,8 @@ struct maki_dcc_send
 			}
 			ack;
 
+			gboolean wait;
+
 			guint sources[s_out_num];
 		}
 		out;
@@ -209,6 +211,7 @@ static gboolean maki_dcc_send_out_write (GIOChannel* source, GIOCondition condit
 
 		if (dcc->position >= dcc->size || status == G_IO_STATUS_EOF)
 		{
+			dcc->d.out.wait = TRUE;
 			goto finish;
 		}
 	}
@@ -221,10 +224,17 @@ static gboolean maki_dcc_send_out_write (GIOChannel* source, GIOCondition condit
 	return TRUE;
 
 finish:
-	maki_dcc_send_free(dcc);
+	if (!dcc->d.out.wait)
+	{
+		maki_dcc_send_free(dcc);
 
-	g_io_channel_shutdown(source, FALSE, NULL);
-	g_io_channel_unref(source);
+		g_io_channel_shutdown(source, FALSE, NULL);
+		g_io_channel_unref(source);
+	}
+	else
+	{
+		dcc->d.out.sources[s_out_write] = 0;
+	}
 
 	return FALSE;
 }
@@ -251,6 +261,11 @@ static gboolean maki_dcc_send_out_read (GIOChannel* source, GIOCondition conditi
 
 		dcc->d.out.ack.position = ntohl(dcc->d.out.ack.position);
 		dcc->d.out.ack.offset = 0;
+
+		if (dcc->d.out.ack.position >= dcc->size)
+		{
+			goto finish;
+		}
 	}
 
 	if (status == G_IO_STATUS_ERROR)
@@ -261,7 +276,17 @@ static gboolean maki_dcc_send_out_read (GIOChannel* source, GIOCondition conditi
 	return TRUE;
 
 finish:
-	dcc->d.out.sources[s_out_read] = 0;
+	if (dcc->d.out.wait)
+	{
+		maki_dcc_send_free(dcc);
+
+		g_io_channel_shutdown(source, FALSE, NULL);
+		g_io_channel_unref(source);
+	}
+	else
+	{
+		dcc->d.out.sources[s_out_read] = 0;
+	}
 
 	return FALSE;
 }
@@ -412,6 +437,8 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 
 	dcc->d.out.ack.position = 0;
 	dcc->d.out.ack.offset = 0;
+
+	dcc->d.out.wait = FALSE;
 
 	dcc->d.out.sources[s_out_listen] = 0;
 	dcc->d.out.sources[s_out_read] = 0;
