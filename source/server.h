@@ -83,7 +83,6 @@ struct maki_server
 	{
 		struct sockaddr addr;
 		socklen_t addrlen;
-		gchar* ip;
 	}
 	stun;
 };

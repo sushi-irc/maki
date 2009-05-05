@@ -84,8 +84,6 @@ static void maki_server_stun (makiServer* serv, const gchar* address)
 	g_return_if_fail(serv != NULL);
 	g_return_if_fail(address != NULL);
 
-	g_free(serv->stun.ip);
-	serv->stun.ip = NULL;
 	serv->stun.addrlen = 0;
 
 	memset(&hints, 0, sizeof(hints));
@@ -103,20 +101,12 @@ static void maki_server_stun (makiServer* serv, const gchar* address)
 	{
 		struct sockaddr me;
 		socklen_t me_len = sizeof(me);
-		gchar* ip;
 
 		if (stun_usage_bind_run(p->ai_addr, p->ai_addrlen, &me, &me_len) != STUN_USAGE_BIND_RETURN_SUCCESS)
 		{
 			continue;
 		}
 
-		if ((ip = maki_get_ip(&me, me_len)) == NULL)
-		{
-			continue;
-		}
-
-		g_free(serv->stun.ip);
-		serv->stun.ip = ip;
 		serv->stun.addr = me;
 		serv->stun.addrlen = me_len;
 
@@ -150,7 +140,6 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 	serv->users = i_cache_new(maki_user_new, maki_user_free, serv, i_ascii_str_case_hash, i_ascii_str_case_equal);
 	serv->logs = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_log_free);
 	serv->stun.addrlen = 0;
-	serv->stun.ip = NULL;
 
 	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 	g_key_file_load_from_file(serv->key_file, path, G_KEY_FILE_NONE, NULL);
@@ -384,7 +373,6 @@ void maki_server_free (gpointer data)
 
 	g_key_file_free(serv->key_file);
 
-	g_free(serv->stun.ip);
 	g_free(serv->support.prefix.prefixes);
 	g_free(serv->support.prefix.modes);
 	g_free(serv->support.chantypes);
@@ -408,10 +396,18 @@ gboolean maki_server_connect (makiServer* serv)
 
 	if (!serv->connected && !maki_config_is_empty(address))
 	{
+		gchar* stun;
 		GTimeVal timeval;
 
-		/* FIXME this can block */
-		maki_server_stun(serv, "stun.ekiga.net");
+		stun = maki_instance_config_get_string(serv->instance, "network", "stun");
+
+		if (!maki_config_is_empty(stun))
+		{
+			/* FIXME this can block */
+			maki_server_stun(serv, stun);
+		}
+
+		g_free(stun);
 
 		sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
 		sashimi_read_callback(serv->connection, maki_in_callback, serv);
