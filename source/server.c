@@ -84,6 +84,10 @@ static void maki_server_stun (makiServer* serv, const gchar* address)
 	g_return_if_fail(serv != NULL);
 	g_return_if_fail(address != NULL);
 
+	g_free(serv->stun.ip);
+	serv->stun.ip = NULL;
+	serv->stun.addrlen = 0;
+
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_DGRAM;
@@ -111,11 +115,10 @@ static void maki_server_stun (makiServer* serv, const gchar* address)
 			continue;
 		}
 
-		serv->stun.addr = me;
-		serv->stun.addrlen = me_len;
-
 		g_free(serv->stun.ip);
 		serv->stun.ip = ip;
+		serv->stun.addr = me;
+		serv->stun.addrlen = me_len;
 
 		break;
 	}
