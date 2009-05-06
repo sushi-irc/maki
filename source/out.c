@@ -105,7 +105,7 @@ static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, co
 	g_free(buffer);
 
 	maki_log(serv, target, "<%s> %s", maki_user_nick(serv->user), message);
-	maki_dbus_emit_message(timeval.tv_sec, serv->server, maki_user_from(serv->user), target, message);
+	maki_dbus_emit_message(timeval.tv_sec, maki_server_name(serv), maki_user_from(serv->user), target, message);
 }
 
 void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)
@@ -202,5 +202,5 @@ void maki_out_quit (makiServer* serv, const gchar* message)
 		}
 	}
 
-	maki_dbus_emit_quit(timeval.tv_sec, serv->server, maki_user_from(serv->user), message);
+	maki_dbus_emit_quit(timeval.tv_sec, maki_server_name(serv), maki_user_from(serv->user), message);
 }

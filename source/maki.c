@@ -167,7 +167,7 @@ int main (int argc, char* argv[])
 
 		if ((serv = maki_server_new(inst, file)) != NULL)
 		{
-			maki_instance_add_server(inst, serv->server, serv);
+			maki_instance_add_server(inst, maki_server_name(serv), serv);
 		}
 
 	}

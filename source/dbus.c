@@ -386,7 +386,7 @@ static gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError**
 	{
 		if ((serv = maki_server_new(inst, server)) != NULL)
 		{
-			maki_instance_add_server(inst, serv->server, serv);
+			maki_instance_add_server(inst, maki_server_name(serv), serv);
 
 			if (!maki_server_autoconnect(serv))
 			{
@@ -780,7 +780,7 @@ static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar
 			GTimeVal timeval;
 
 			g_get_current_time(&timeval);
-			maki_dbus_emit_nick(timeval.tv_sec, serv->server, "", maki_user_nick(serv->user));
+			maki_dbus_emit_nick(timeval.tv_sec, maki_server_name(serv), "", maki_user_nick(serv->user));
 		}
 	}
 
@@ -813,7 +813,7 @@ static gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gch
 		maki_server_send_printf(serv, "NOTICE %s :%s", target, message);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit_notice(timeval.tv_sec, serv->server, maki_user_from(serv->user), target, message);
+		maki_dbus_emit_notice(timeval.tv_sec, maki_server_name(serv), maki_user_from(serv->user), target, message);
 		maki_log(serv, target, "-%s- %s", maki_user_nick(serv->user), message);
 	}
 
@@ -1022,7 +1022,7 @@ static gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const
 		if ((serv = maki_server_new(inst, server)) != NULL)
 		{
 			maki_server_config_set_string(serv, group, key, value);
-			maki_instance_add_server(inst, serv->server, serv);
+			maki_instance_add_server(inst, maki_server_name(serv), serv);
 		}
 	}
 
@@ -1043,7 +1043,7 @@ static gboolean maki_dbus_server_set_list (makiDBus* self, const gchar* server, 
 		if ((serv = maki_server_new(inst, server)) != NULL)
 		{
 			maki_server_config_set_string_list(serv, group, key, list);
-			maki_instance_add_server(inst, serv->server, serv);
+			maki_instance_add_server(inst, maki_server_name(serv), serv);
 		}
 	}
 
@@ -1066,7 +1066,7 @@ static gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** er
 
 		if (serv->connected)
 		{
-			*server = g_strdup(serv->server);
+			*server = g_strdup(maki_server_name(serv));
 			++server;
 		}
 	}
@@ -1154,7 +1154,7 @@ static gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gcha
 				GTimeVal timeval;
 
 				g_get_current_time(&timeval);
-				maki_dbus_emit_topic(timeval.tv_sec, serv->server, "", channel, maki_channel_topic(chan));
+				maki_dbus_emit_topic(timeval.tv_sec, maki_server_name(serv), "", channel, maki_channel_topic(chan));
 			}
 			else
 			{

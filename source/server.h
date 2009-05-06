@@ -43,7 +43,7 @@ typedef struct maki_server makiServer;
 struct maki_server
 {
 	makiInstance* instance;
-	gchar* server;
+	gchar* name;
 	gboolean connected;
 	gboolean logged_in;
 	sashimiConnection* connection;
@@ -101,6 +101,7 @@ gboolean maki_server_config_remove_group (makiServer*, const gchar*);
 gchar** maki_server_config_get_keys (makiServer*, const gchar*);
 gchar** maki_server_config_get_groups (makiServer*);
 gboolean maki_server_config_exists (makiServer*, const gchar*, const gchar*);
+const gchar* maki_server_name (makiServer*);
 gboolean maki_server_autoconnect (makiServer*);
 makiChannel* maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
 makiChannel* maki_server_get_channel (makiServer*, const gchar*);

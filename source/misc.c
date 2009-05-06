@@ -130,7 +130,7 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 
 	if ((log = g_hash_table_lookup(serv->logs, file)) == NULL)
 	{
-		if ((log = maki_log_new(inst, serv->server, file)) == NULL)
+		if ((log = maki_log_new(inst, maki_server_name(serv), file)) == NULL)
 		{
 			return;
 		}

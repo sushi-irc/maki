@@ -117,7 +117,7 @@ static void maki_server_stun (makiServer* serv, const gchar* address)
 #endif
 }
 
-makiServer* maki_server_new (makiInstance* inst, const gchar* server)
+makiServer* maki_server_new (makiInstance* inst, const gchar* name)
 {
 	gchar* nick;
 	gchar* path;
@@ -127,7 +127,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 
 	serv = g_new(makiServer, 1);
 	serv->instance = inst;
-	serv->server = g_strdup(server);
+	serv->name = g_strdup(name);
 	serv->key_file = g_key_file_new();
 	serv->connected = FALSE;
 	serv->logged_in = FALSE;
@@ -141,7 +141,7 @@ makiServer* maki_server_new (makiInstance* inst, const gchar* server)
 	serv->logs = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_log_free);
 	serv->stun.addrlen = 0;
 
-	path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), name, NULL);
 	g_key_file_load_from_file(serv->key_file, path, G_KEY_FILE_NONE, NULL);
 	g_free(path);
 
@@ -191,7 +191,7 @@ void maki_server_config_set_boolean (makiServer* serv, const gchar* group, const
 
 	g_key_file_set_boolean(serv->key_file, group, key, value);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
+	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
@@ -207,7 +207,7 @@ void maki_server_config_set_integer (makiServer* serv, const gchar* group, const
 
 	g_key_file_set_integer(serv->key_file, group, key, value);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
+	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
@@ -223,7 +223,7 @@ void maki_server_config_set_string (makiServer* serv, const gchar* group, const 
 
 	g_key_file_set_string(serv->key_file, group, key, string);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
+	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
@@ -239,7 +239,7 @@ void maki_server_config_set_string_list (makiServer* serv, const gchar* group, c
 
 	g_key_file_set_string_list(serv->key_file, group, key, (const gchar* const*)list, g_strv_length(list));
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
+	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
@@ -251,7 +251,7 @@ gboolean maki_server_config_remove_key (makiServer* serv, const gchar* group, co
 
 	ret = g_key_file_remove_key(serv->key_file, group, key, NULL);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
+	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 
@@ -265,7 +265,7 @@ gboolean maki_server_config_remove_group (makiServer* serv, const gchar* group)
 
 	ret = g_key_file_remove_group(serv->key_file, group, NULL);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->server, NULL);
+	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 
@@ -285,6 +285,11 @@ gchar** maki_server_config_get_groups (makiServer* serv)
 gboolean maki_server_config_exists (makiServer* serv, const gchar* group, const gchar* key)
 {
 	return g_key_file_has_key(serv->key_file, group, key, NULL);
+}
+
+const gchar* maki_server_name (makiServer* serv)
+{
+	return serv->name;
 }
 
 gboolean maki_server_autoconnect (makiServer* serv)
@@ -381,7 +386,7 @@ void maki_server_free (gpointer data)
 	g_hash_table_destroy(serv->channels);
 	i_cache_free(serv->users);
 	sashimi_free(serv->connection);
-	g_free(serv->server);
+	g_free(serv->name);
 	g_free(serv);
 }
 
@@ -414,7 +419,7 @@ gboolean maki_server_connect (makiServer* serv)
 		sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit_connect(timeval.tv_sec, serv->server);
+		maki_dbus_emit_connect(timeval.tv_sec, serv->name);
 
 		if (!sashimi_connect(serv->connection, address, maki_server_config_get_integer(serv, "server", "port")))
 		{
@@ -520,8 +525,8 @@ void maki_server_connect_callback (gpointer data)
 	serv->connected = TRUE;
 
 	g_get_current_time(&timeval);
-	maki_dbus_emit_connected(timeval.tv_sec, serv->server);
-	maki_dbus_emit_nick(timeval.tv_sec, serv->server, "", maki_user_nick(serv->user));
+	maki_dbus_emit_connected(timeval.tv_sec, serv->name);
+	maki_dbus_emit_nick(timeval.tv_sec, serv->name, "", maki_user_nick(serv->user));
 
 	g_free(initial_nick);
 	g_free(name);
