@@ -33,7 +33,7 @@ struct maki_instance;
 typedef struct maki_instance makiInstance;
 
 makiInstance* maki_instance_get_default (void);
-makiInstance* maki_instance_new (const gchar*);
+makiInstance* maki_instance_new (void);
 gboolean maki_instance_config_get_boolean (makiInstance*, const gchar*, const gchar*);
 void maki_instance_config_set_boolean (makiInstance*, const gchar*, const gchar*, gboolean);
 gint maki_instance_config_get_integer (makiInstance*, const gchar*, const gchar*);

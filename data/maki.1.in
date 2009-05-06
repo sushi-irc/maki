@@ -15,9 +15,6 @@ maki \- IRC daemon
 \fB-?\fP, \fB--help\fP
 Show help options.
 .TP
-\fB-c\fP, \fB--config\fP=\fIDIRECTORY\fP
-Use alternative configuration directory.
-.TP
 \fB-d\fP, \fB--daemon\fP
 Run as daemon.
 .TP

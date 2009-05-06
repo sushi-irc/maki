@@ -50,7 +50,6 @@
 #include "server.h"
 #include "user.h"
 
-extern gchar* opt_config;
 extern gboolean opt_verbose;
 
 extern makiDBus* dbus;
