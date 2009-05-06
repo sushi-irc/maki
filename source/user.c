@@ -69,9 +69,9 @@ gpointer maki_user_new (gpointer key, gpointer data)
 	return user;
 }
 
-void maki_user_copy (makiUser* src, makiUser* dst)
+void maki_user_copy (makiUser* dst, makiUser* src)
 {
-	if (src != dst)
+	if (dst != src)
 	{
 		maki_user_set_user(dst, src->user);
 		maki_user_set_host(dst, src->host);

@@ -39,11 +39,11 @@ makiChannelUser* maki_channel_user_new (makiServer* serv, const gchar* nick)
 	return cuser;
 }
 
-void maki_channel_user_copy (makiChannelUser* src, makiChannelUser* dst)
+void maki_channel_user_copy (makiChannelUser* dst, makiChannelUser* src)
 {
-	if (src != dst)
+	if (dst != src)
 	{
-		maki_user_copy(src->user, dst->user);
+		maki_user_copy(dst->user, src->user);
 		dst->prefix = src->prefix;
 	}
 }

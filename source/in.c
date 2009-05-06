@@ -603,7 +603,7 @@ static void maki_in_nick (makiServer* serv, glong timestamp, makiUser* user, gch
 			makiChannelUser* tmp;
 
 			tmp = maki_channel_user_new(serv, new_nick);
-			maki_channel_user_copy(cuser, tmp);
+			maki_channel_user_copy(tmp, cuser);
 
 			maki_channel_remove_user(chan, maki_user_nick(cuser->user));
 			maki_channel_add_user(chan, maki_user_nick(tmp->user), tmp);

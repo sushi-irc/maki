@@ -306,7 +306,7 @@ void maki_server_set_user (makiServer* serv, const gchar* nick)
 
 	if (serv->user != NULL)
 	{
-		maki_user_copy(serv->user, user);
+		maki_user_copy(user, serv->user);
 		i_cache_remove(serv->users, maki_user_nick(serv->user));
 	}
 
