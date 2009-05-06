@@ -60,6 +60,16 @@ static void maki_instance_config_set_defaults (makiInstance* inst)
 		maki_instance_config_set_boolean(inst, "dcc", "accept_send", FALSE);
 	}
 
+	if (!maki_instance_config_exists(inst, "dcc", "port_first"))
+	{
+		maki_instance_config_set_integer(inst, "dcc", "port_first", 1024);
+	}
+
+	if (!maki_instance_config_exists(inst, "dcc", "port_last"))
+	{
+		maki_instance_config_set_integer(inst, "dcc", "port_last", 65535);
+	}
+
 	if (!maki_instance_config_exists(inst, "directories", "downloads"))
 	{
 		gchar* value;

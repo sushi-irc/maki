@@ -416,7 +416,7 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gchar* path)
 {
-	GIOChannel* channel;
+	GIOChannel* channel = NULL;
 	gchar* basename;
 	struct stat stbuf;
 	makiDCCSend* dcc;
@@ -451,8 +451,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 
 	dcc->size = stbuf.st_size;
 
-	/* FIXME */
-	for (dcc->port = 2000; dcc->port <= 2010; dcc->port++)
+	for (dcc->port = maki_instance_config_get_integer(serv->instance, "dcc", "port_first"); dcc->port <= maki_instance_config_get_integer(serv->instance, "dcc", "port_last"); dcc->port++)
 	{
 		if ((channel = i_io_channel_unix_new_listen(NULL, dcc->port, TRUE)) != NULL)
 		{
