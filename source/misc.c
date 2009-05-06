@@ -60,7 +60,6 @@ void maki_debug (const gchar* format, ...)
 	static GIOChannel* channel = NULL;
 	gchar* message;
 	va_list args;
-	makiInstance* inst = maki_instance_get_default();
 
 	if (!opt_verbose)
 	{
@@ -69,20 +68,20 @@ void maki_debug (const gchar* format, ...)
 
 	if (G_UNLIKELY(channel == NULL))
 	{
+		gchar* cache_dir;
 		gchar* path;
-		gchar* logs_dir;
 
-		logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
-		path = g_build_filename(logs_dir, "maki.txt", NULL);
+		cache_dir = g_build_filename(g_get_user_cache_dir(), "sushi", NULL);
+		path = g_build_filename(cache_dir, "maki.txt", NULL);
 
-		g_mkdir_with_parents(logs_dir, 0777);
+		g_mkdir_with_parents(cache_dir, 0777);
 
 		if ((channel = g_io_channel_new_file(path, "w", NULL)) == NULL)
 		{
 			g_print("%s\n", _("Could not open debug log file."));
 		}
 
-		g_free(logs_dir);
+		g_free(cache_dir);
 		g_free(path);
 	}
 
