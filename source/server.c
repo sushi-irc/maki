@@ -293,6 +293,26 @@ gboolean maki_server_config_exists (makiServer* serv, const gchar* group, const 
 	return g_key_file_has_key(serv->key_file, group, key, NULL);
 }
 
+makiUser* maki_server_user (makiServer* serv)
+{
+	return serv->user;
+}
+
+void maki_server_set_user (makiServer* serv, const gchar* nick)
+{
+	makiUser* user;
+
+	user = i_cache_insert(serv->users, nick);
+
+	if (serv->user != NULL)
+	{
+		maki_user_copy(serv->user, user);
+		i_cache_remove(serv->users, maki_user_nick(serv->user));
+	}
+
+	serv->user = user;
+}
+
 const gchar* maki_server_name (makiServer* serv)
 {
 	return serv->name;
@@ -507,7 +527,6 @@ void maki_server_connect_callback (gpointer data)
 	gchar* name;
 	GTimeVal timeval;
 	makiServer* serv = data;
-	makiUser* user;
 	makiInstance* inst = maki_instance_get_default();
 
 	if (serv->reconnect.source != 0)
@@ -521,10 +540,7 @@ void maki_server_connect_callback (gpointer data)
 	initial_nick = maki_server_config_get_string(serv, "server", "nick");
 	name = maki_server_config_get_string(serv, "server", "name");
 
-	user = i_cache_insert(serv->users, initial_nick);
-	maki_user_copy(serv->user, user);
-	i_cache_remove(serv->users, maki_user_nick(serv->user));
-	serv->user = user;
+	maki_server_set_user(serv, initial_nick);
 
 	maki_out_nick(serv, initial_nick);
 

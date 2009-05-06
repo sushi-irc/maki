@@ -223,9 +223,9 @@ static gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gch
 
 		maki_server_send_printf(serv, "PRIVMSG %s :\001ACTION %s\001", channel, tmp);
 
-		maki_log(serv, channel, "%s %s", maki_user_nick(serv->user), tmp);
+		maki_log(serv, channel, "%s %s", maki_user_nick(maki_server_user(serv)), tmp);
 
-		maki_dbus_emit_action(timeval.tv_sec, server, maki_user_from(serv->user), channel, tmp);
+		maki_dbus_emit_action(timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), channel, tmp);
 
 		g_free(tmp);
 	}
@@ -241,7 +241,7 @@ static gboolean maki_dbus_away (makiDBus* self, const gchar* server, const gchar
 	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_out_away(serv, message);
-		maki_user_set_away_message(serv->user, message);
+		maki_user_set_away_message(maki_server_user(serv), message);
 	}
 
 	return TRUE;
@@ -410,8 +410,8 @@ static gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar
 		maki_server_send_printf(serv, "PRIVMSG %s :\001%s\001", target, message);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit_ctcp(timeval.tv_sec, server, maki_user_from(serv->user), target, message);
-		maki_log(serv, target, "=%s= %s", maki_user_nick(serv->user), message);
+		maki_dbus_emit_ctcp(timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), target, message);
+		maki_log(serv, target, "=%s= %s", maki_user_nick(maki_server_user(serv)), message);
 	}
 
 	return TRUE;
@@ -780,7 +780,7 @@ static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar
 			GTimeVal timeval;
 
 			g_get_current_time(&timeval);
-			maki_dbus_emit_nick(timeval.tv_sec, maki_server_name(serv), "", maki_user_nick(serv->user));
+			maki_dbus_emit_nick(timeval.tv_sec, maki_server_name(serv), "", maki_user_nick(maki_server_user(serv)));
 		}
 	}
 
@@ -813,8 +813,8 @@ static gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gch
 		maki_server_send_printf(serv, "NOTICE %s :%s", target, message);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit_notice(timeval.tv_sec, maki_server_name(serv), maki_user_from(serv->user), target, message);
-		maki_log(serv, target, "-%s- %s", maki_user_nick(serv->user), message);
+		maki_dbus_emit_notice(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), target, message);
+		maki_log(serv, target, "-%s- %s", maki_user_nick(maki_server_user(serv)), message);
 	}
 
 	return TRUE;

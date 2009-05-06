@@ -99,6 +99,8 @@ gboolean maki_server_config_remove_group (makiServer*, const gchar*);
 gchar** maki_server_config_get_keys (makiServer*, const gchar*);
 gchar** maki_server_config_get_groups (makiServer*);
 gboolean maki_server_config_exists (makiServer*, const gchar*, const gchar*);
+makiUser* maki_server_user (makiServer*);
+void maki_server_set_user (makiServer*, const gchar*);
 const gchar* maki_server_name (makiServer*);
 gboolean maki_server_autoconnect (makiServer*);
 makiChannel* maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
