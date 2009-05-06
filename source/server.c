@@ -313,6 +313,21 @@ void maki_server_set_user (makiServer* serv, const gchar* nick)
 	serv->user = user;
 }
 
+makiUser* maki_server_add_user (makiServer* serv, const gchar* nick)
+{
+	return i_cache_insert(serv->users, nick);
+}
+
+makiUser* maki_server_get_user (makiServer* serv, const gchar* nick)
+{
+	return i_cache_lookup(serv->users, nick);
+}
+
+void maki_server_remove_user (makiServer* serv, makiUser* user)
+{
+	i_cache_remove(serv->users, maki_user_nick(user));
+}
+
 const gchar* maki_server_name (makiServer* serv)
 {
 	return serv->name;

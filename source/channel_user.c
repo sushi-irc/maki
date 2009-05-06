@@ -33,7 +33,7 @@ makiChannelUser* maki_channel_user_new (makiServer* serv, const gchar* nick)
 
 	cuser = g_new(makiChannelUser, 1);
 	cuser->server = serv;
-	cuser->user = i_cache_insert(serv->users, nick);
+	cuser->user = maki_server_add_user(serv, nick);
 	cuser->prefix = 0;
 
 	return cuser;
@@ -52,7 +52,7 @@ void maki_channel_user_free (gpointer data)
 {
 	makiChannelUser* cuser = data;
 
-	i_cache_remove(cuser->server->users, maki_user_nick(cuser->user));
+	maki_server_remove_user(cuser->server, cuser->user);
 
 	g_free(cuser);
 }

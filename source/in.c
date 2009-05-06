@@ -1327,7 +1327,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 		type = parts[1];
 		remaining = parts[2];
 
-		user = i_cache_insert(serv->users, from[0]);
+		user = maki_server_add_user(serv, from[0]);
 
 		if (from_length > 2)
 		{
@@ -1531,7 +1531,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 			}
 		}
 
-		i_cache_remove(serv->users, maki_user_nick(user));
+		maki_server_remove_user(serv, user);
 
 		g_strfreev(parts);
 		g_strfreev(from);

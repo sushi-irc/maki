@@ -427,9 +427,9 @@ static gboolean maki_dbus_dcc_send (makiDBus* self, const gchar* server, const g
 		makiDCCSend* dcc;
 		makiUser* user;
 
-		user = i_cache_insert(serv->users, target);
+		user = maki_server_add_user(serv, target);
 		dcc = maki_dcc_send_new_out(serv, user, path);
-		i_cache_remove(serv->users, maki_user_nick(user));
+		maki_server_remove_user(serv, user);
 	}
 
 	return TRUE;
@@ -1241,7 +1241,7 @@ static gboolean maki_dbus_user_away (makiDBus* self, const gchar* server, const 
 	{
 		makiUser* user;
 
-		if ((user = i_cache_lookup(serv->users, nick)) != NULL)
+		if ((user = maki_server_get_user(serv, nick)) != NULL)
 		{
 			*away = maki_user_away(user);
 		}
