@@ -206,10 +206,31 @@ const gchar* maki_instance_directory (makiInstance* inst, const gchar* directory
 	return g_hash_table_lookup(inst->directories, directory);
 }
 
-/* FIXME abstract more */
-GHashTable* maki_instance_servers (makiInstance* inst)
+makiServer* maki_instance_add_server (makiInstance* inst, const gchar* name, makiServer* serv)
 {
-	return inst->servers;
+	g_hash_table_insert(inst->servers, g_strdup(name), serv);
+
+	return serv;
+}
+
+makiServer* maki_instance_get_server (makiInstance* inst, const gchar* name)
+{
+	return g_hash_table_lookup(inst->servers, name);
+}
+
+gboolean maki_instance_remove_server (makiInstance* inst, const gchar* name)
+{
+	return g_hash_table_remove(inst->servers, name);
+}
+
+guint maki_instance_servers_count (makiInstance* inst)
+{
+	return g_hash_table_size(inst->servers);
+}
+
+void maki_instance_servers_iter (makiInstance* inst, GHashTableIter* iter)
+{
+	g_hash_table_iter_init(iter, inst->servers);
 }
 
 void maki_instance_free (makiInstance* inst)

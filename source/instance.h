@@ -42,7 +42,11 @@ gchar* maki_instance_config_get_string (makiInstance*, const gchar*, const gchar
 void maki_instance_config_set_string (makiInstance*, const gchar*, const gchar*, const gchar*);
 gboolean maki_instance_config_exists (makiInstance*, const gchar*, const gchar*);
 const gchar* maki_instance_directory (makiInstance*, const gchar*);
-GHashTable* maki_instance_servers (makiInstance*);
+makiServer* maki_instance_add_server (makiInstance*, const gchar*, makiServer*);
+makiServer* maki_instance_get_server (makiInstance*, const gchar*);
+gboolean maki_instance_remove_server (makiInstance*, const gchar*);
+guint maki_instance_servers_count (makiInstance*);
+void maki_instance_servers_iter (makiInstance*, GHashTableIter*);
 void maki_instance_free (makiInstance*);
 
 #endif

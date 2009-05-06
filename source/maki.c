@@ -49,7 +49,7 @@ static void maki_signal (int signo)
 	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
 
-	g_hash_table_iter_init(&iter, maki_instance_servers(inst));
+	maki_instance_servers_iter(inst, &iter);
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
@@ -167,7 +167,7 @@ int main (int argc, char* argv[])
 
 		if ((serv = maki_server_new(inst, file)) != NULL)
 		{
-			g_hash_table_replace(maki_instance_servers(inst), serv->server, serv);
+			maki_instance_add_server(inst, serv->server, serv);
 		}
 
 	}

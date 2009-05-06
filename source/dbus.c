@@ -212,7 +212,7 @@ static gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gch
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		gchar* tmp;
 
@@ -238,7 +238,7 @@ static gboolean maki_dbus_away (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_out_away(serv, message);
 		maki_user_set_away_message(serv->user, message);
@@ -252,7 +252,7 @@ static gboolean maki_dbus_back (makiDBus* self, const gchar* server, GError** er
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_server_send(serv, "AWAY");
 	}
@@ -268,7 +268,7 @@ static gboolean maki_dbus_channel_nicks (makiDBus* self, const gchar* server, co
 	*nicks = NULL;
 	*prefixes = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		makiChannel* chan;
 
@@ -326,7 +326,7 @@ static gboolean maki_dbus_channels (makiDBus* self, const gchar* server, gchar**
 
 	*channels = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		gchar** channel;
 		GHashTableIter iter;
@@ -376,7 +376,7 @@ static gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError**
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		/* Disconnect, because strange things happen if we call maki_server_connect() while still connected. */
 		maki_server_disconnect(serv, "");
@@ -386,7 +386,7 @@ static gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError**
 	{
 		if ((serv = maki_server_new(inst, server)) != NULL)
 		{
-			g_hash_table_replace(maki_instance_servers(inst), serv->server, serv);
+			maki_instance_add_server(inst, serv->server, serv);
 
 			if (!maki_server_autoconnect(serv))
 			{
@@ -403,7 +403,7 @@ static gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		GTimeVal timeval;
 
@@ -422,7 +422,7 @@ static gboolean maki_dbus_dcc_send (makiDBus* self, const gchar* server, const g
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		makiDCCSend* dcc;
 		makiUser* user;
@@ -440,7 +440,7 @@ static gboolean maki_dbus_ignore (makiDBus* self, const gchar* server, const gch
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		gchar** ignores;
 
@@ -477,7 +477,7 @@ static gboolean maki_dbus_ignores (makiDBus* self, const gchar* server, gchar***
 
 	*ignores = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		*ignores = maki_server_config_get_string_list(serv, "server", "ignores");
 	}
@@ -490,7 +490,7 @@ static gboolean maki_dbus_invite (makiDBus* self, const gchar* server, const gch
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_server_send_printf(serv, "INVITE %s %s", who, channel);
 	}
@@ -503,7 +503,7 @@ static gboolean maki_dbus_join (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		makiChannel* chan;
 
@@ -540,7 +540,7 @@ static gboolean maki_dbus_kick (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		if (message[0])
 		{
@@ -560,7 +560,7 @@ static gboolean maki_dbus_list (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		if (channel[0])
 		{
@@ -582,7 +582,7 @@ static gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar*
 
 	*log = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		gchar* file;
 		gchar* file_format;
@@ -683,7 +683,7 @@ static gboolean maki_dbus_message (makiDBus* self, const gchar* server, const gc
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		const gchar* buffer;
 		gchar** messages = NULL;
@@ -729,7 +729,7 @@ static gboolean maki_dbus_mode (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		if (mode[0])
 		{
@@ -749,7 +749,7 @@ static gboolean maki_dbus_names (makiDBus* self, const gchar* server, const gcha
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		if (channel[0] != '\0')
 		{
@@ -769,7 +769,7 @@ static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		if (nick[0] != '\0')
 		{
@@ -793,7 +793,7 @@ static gboolean maki_dbus_nickserv (makiDBus* self, const gchar* server, GError*
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_out_nickserv(serv);
 	}
@@ -806,7 +806,7 @@ static gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gch
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		GTimeVal timeval;
 
@@ -825,7 +825,7 @@ static gboolean maki_dbus_oper (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_server_send_printf(serv, "OPER %s %s", name, password);
 	}
@@ -838,7 +838,7 @@ static gboolean maki_dbus_part (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		if (message[0])
 		{
@@ -858,7 +858,7 @@ static gboolean maki_dbus_quit (makiDBus* self, const gchar* server, const gchar
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_server_disconnect(serv, message);
 	}
@@ -871,7 +871,7 @@ static gboolean maki_dbus_raw (makiDBus* self, const gchar* server, const gchar*
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_server_send(serv, command);
 	}
@@ -886,7 +886,7 @@ static gboolean maki_dbus_server_get (makiDBus* self, const gchar* server, const
 
 	*value = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		*value = maki_server_config_get_string(serv, group, key);
 	}
@@ -901,7 +901,7 @@ static gboolean maki_dbus_server_get_list (makiDBus* self, const gchar* server, 
 
 	*list = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		*list = maki_server_config_get_string_list(serv, group, key);
 	}
@@ -918,7 +918,7 @@ static gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, cons
 
 	if (server[0])
 	{
-		if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+		if ((serv = maki_instance_get_server(inst, server)) != NULL)
 		{
 			if (group[0])
 			{
@@ -938,9 +938,9 @@ static gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, cons
 		guint i = 0;
 		gchar** tmp;
 
-		tmp = g_new(gchar*, g_hash_table_size(maki_instance_servers(inst)) + 1);
+		tmp = g_new(gchar*, maki_instance_servers_count(inst) + 1);
 
-		g_hash_table_iter_init(&iter, maki_instance_servers(inst));
+		maki_instance_servers_iter(inst, &iter);
 
 		while (g_hash_table_iter_next(&iter, &key, &value))
 		{
@@ -962,7 +962,7 @@ static gboolean maki_dbus_server_remove (makiDBus* self, const gchar* server, co
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		if (group[0])
 		{
@@ -979,7 +979,7 @@ static gboolean maki_dbus_server_remove (makiDBus* self, const gchar* server, co
 		{
 			gchar* path;
 
-			g_hash_table_remove(maki_instance_servers(inst), server);
+			maki_instance_remove_server(inst, server);
 
 			path = g_build_filename(maki_instance_directory(inst, "servers"), server, NULL);
 			g_unlink(path);
@@ -1013,7 +1013,7 @@ static gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_server_config_set_string(serv, group, key, value);
 	}
@@ -1022,7 +1022,7 @@ static gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const
 		if ((serv = maki_server_new(inst, server)) != NULL)
 		{
 			maki_server_config_set_string(serv, group, key, value);
-			g_hash_table_replace(maki_instance_servers(inst), serv->server, serv);
+			maki_instance_add_server(inst, serv->server, serv);
 		}
 	}
 
@@ -1034,7 +1034,7 @@ static gboolean maki_dbus_server_set_list (makiDBus* self, const gchar* server, 
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_server_config_set_string_list(serv, group, key, list);
 	}
@@ -1043,7 +1043,7 @@ static gboolean maki_dbus_server_set_list (makiDBus* self, const gchar* server, 
 		if ((serv = maki_server_new(inst, server)) != NULL)
 		{
 			maki_server_config_set_string_list(serv, group, key, list);
-			g_hash_table_replace(maki_instance_servers(inst), serv->server, serv);
+			maki_instance_add_server(inst, serv->server, serv);
 		}
 	}
 
@@ -1057,8 +1057,8 @@ static gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** er
 	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
 
-	server = *servers = g_new(gchar*, g_hash_table_size(maki_instance_servers(inst)) + 1);
-	g_hash_table_iter_init(&iter, maki_instance_servers(inst));
+	server = *servers = g_new(gchar*, maki_instance_servers_count(inst) + 1);
+	maki_instance_servers_iter(inst, &iter);
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
@@ -1083,7 +1083,7 @@ static gboolean maki_dbus_shutdown (makiDBus* self, const gchar* message, GError
 	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
 
-	g_hash_table_iter_init(&iter, maki_instance_servers(inst));
+	maki_instance_servers_iter(inst, &iter);
 
 	while (g_hash_table_iter_next(&iter, &key, &value))
 	{
@@ -1107,7 +1107,7 @@ static gboolean maki_dbus_support_chantypes (makiDBus* self, const gchar* server
 
 	*chantypes = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		*chantypes = g_strdup(serv->support.chantypes);
 	}
@@ -1122,7 +1122,7 @@ static gboolean maki_dbus_support_prefix (makiDBus* self, const gchar* server, g
 
 	*prefix = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		*prefix = g_new(gchar*, 3);
 		(*prefix)[0] = g_strdup(serv->support.prefix.modes);
@@ -1138,7 +1138,7 @@ static gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gcha
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		if (topic[0])
 		{
@@ -1171,7 +1171,7 @@ static gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const g
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		gchar** ignores;
 
@@ -1237,7 +1237,7 @@ static gboolean maki_dbus_user_away (makiDBus* self, const gchar* server, const 
 
 	*away = FALSE;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		makiUser* user;
 
@@ -1257,7 +1257,7 @@ static gboolean maki_dbus_user_channel_mode (makiDBus* self, const gchar* server
 
 	*mode = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		makiChannel* chan;
 
@@ -1307,7 +1307,7 @@ static gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* serv
 
 	*prefix = NULL;
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		makiChannel* chan;
 
@@ -1379,7 +1379,7 @@ static gboolean maki_dbus_who (makiDBus* self, const gchar* server, const gchar*
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		if (operators_only)
 		{
@@ -1399,7 +1399,7 @@ static gboolean maki_dbus_whois (makiDBus* self, const gchar* server, const gcha
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
-	if ((serv = g_hash_table_lookup(maki_instance_servers(inst), server)) != NULL)
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		maki_server_send_printf(serv, "WHOIS %s", mask);
 	}

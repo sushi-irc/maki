@@ -304,9 +304,9 @@ makiChannel* maki_server_get_channel (makiServer* serv, const gchar* name)
 	return g_hash_table_lookup(serv->channels, name);
 }
 
-void maki_server_remove_channel (makiServer* serv, const gchar* name)
+gboolean maki_server_remove_channel (makiServer* serv, const gchar* name)
 {
-	g_hash_table_remove(serv->channels, name);
+	return g_hash_table_remove(serv->channels, name);
 }
 
 guint maki_server_channels_count (makiServer* serv)

@@ -104,7 +104,7 @@ gboolean maki_server_config_exists (makiServer*, const gchar*, const gchar*);
 gboolean maki_server_autoconnect (makiServer*);
 makiChannel* maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
 makiChannel* maki_server_get_channel (makiServer*, const gchar*);
-void maki_server_remove_channel (makiServer*, const gchar*);
+gboolean maki_server_remove_channel (makiServer*, const gchar*);
 guint maki_server_channels_count (makiServer*);
 void maki_server_channels_iter (makiServer*, GHashTableIter*);
 gboolean maki_server_queue (makiServer*, const gchar*, gboolean);
