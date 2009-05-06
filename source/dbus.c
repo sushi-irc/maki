@@ -384,7 +384,7 @@ static gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError**
 	}
 	else
 	{
-		if ((serv = maki_server_new(inst, server)) != NULL)
+		if ((serv = maki_server_new(server)) != NULL)
 		{
 			maki_instance_add_server(inst, maki_server_name(serv), serv);
 
@@ -1019,7 +1019,7 @@ static gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const
 	}
 	else
 	{
-		if ((serv = maki_server_new(inst, server)) != NULL)
+		if ((serv = maki_server_new(server)) != NULL)
 		{
 			maki_server_config_set_string(serv, group, key, value);
 			maki_instance_add_server(inst, maki_server_name(serv), serv);
@@ -1040,7 +1040,7 @@ static gboolean maki_dbus_server_set_list (makiDBus* self, const gchar* server, 
 	}
 	else
 	{
-		if ((serv = maki_server_new(inst, server)) != NULL)
+		if ((serv = maki_server_new(server)) != NULL)
 		{
 			maki_server_config_set_string_list(serv, group, key, list);
 			maki_instance_add_server(inst, maki_server_name(serv), serv);

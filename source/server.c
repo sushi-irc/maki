@@ -117,22 +117,22 @@ static void maki_server_stun (makiServer* serv, const gchar* address)
 #endif
 }
 
-makiServer* maki_server_new (makiInstance* inst, const gchar* name)
+makiServer* maki_server_new (const gchar* name)
 {
 	gchar* nick;
 	gchar* path;
 	gchar** group;
 	gchar** groups;
+	makiInstance* inst = maki_instance_get_default();
 	makiServer* serv;
 
 	serv = g_new(makiServer, 1);
-	serv->instance = inst;
 	serv->name = g_strdup(name);
 	serv->key_file = g_key_file_new();
 	serv->connected = FALSE;
 	serv->logged_in = FALSE;
 	serv->reconnect.source = 0;
-	serv->reconnect.retries = maki_instance_config_get_integer(serv->instance, "reconnect" ,"retries");
+	serv->reconnect.retries = maki_instance_config_get_integer(inst, "reconnect" ,"retries");
 	serv->main_context = g_main_context_new();
 	serv->main_loop = g_main_loop_new(serv->main_context, FALSE);
 	serv->connection = sashimi_new(serv->main_context);
@@ -188,10 +188,11 @@ gboolean maki_server_config_get_boolean (makiServer* serv, const gchar* group, c
 void maki_server_config_set_boolean (makiServer* serv, const gchar* group, const gchar* key, gboolean value)
 {
 	gchar* path;
+	makiInstance* inst = maki_instance_get_default();
 
 	g_key_file_set_boolean(serv->key_file, group, key, value);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
@@ -204,10 +205,11 @@ gint maki_server_config_get_integer (makiServer* serv, const gchar* group, const
 void maki_server_config_set_integer (makiServer* serv, const gchar* group, const gchar* key, gint value)
 {
 	gchar* path;
+	makiInstance* inst = maki_instance_get_default();
 
 	g_key_file_set_integer(serv->key_file, group, key, value);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
@@ -220,10 +222,11 @@ gchar* maki_server_config_get_string (makiServer* serv, const gchar* group, cons
 void maki_server_config_set_string (makiServer* serv, const gchar* group, const gchar* key, const gchar* string)
 {
 	gchar* path;
+	makiInstance* inst = maki_instance_get_default();
 
 	g_key_file_set_string(serv->key_file, group, key, string);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
@@ -236,10 +239,11 @@ gchar** maki_server_config_get_string_list (makiServer* serv, const gchar* group
 void maki_server_config_set_string_list (makiServer* serv, const gchar* group, const gchar* key, gchar** list)
 {
 	gchar* path;
+	makiInstance* inst = maki_instance_get_default();
 
 	g_key_file_set_string_list(serv->key_file, group, key, (const gchar* const*)list, g_strv_length(list));
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 }
@@ -248,10 +252,11 @@ gboolean maki_server_config_remove_key (makiServer* serv, const gchar* group, co
 {
 	gchar* path;
 	gboolean ret;
+	makiInstance* inst = maki_instance_get_default();
 
 	ret = g_key_file_remove_key(serv->key_file, group, key, NULL);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 
@@ -262,10 +267,11 @@ gboolean maki_server_config_remove_group (makiServer* serv, const gchar* group)
 {
 	gchar* path;
 	gboolean ret;
+	makiInstance* inst = maki_instance_get_default();
 
 	ret = g_key_file_remove_group(serv->key_file, group, NULL);
 
-	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), serv->name, NULL);
+	path = g_build_filename(maki_instance_directory(inst, "servers"), serv->name, NULL);
 	i_key_file_to_file(serv->key_file, path, NULL, NULL);
 	g_free(path);
 
@@ -403,8 +409,9 @@ gboolean maki_server_connect (makiServer* serv)
 	{
 		gchar* stun;
 		GTimeVal timeval;
+		makiInstance* inst = maki_instance_get_default();
 
-		stun = maki_instance_config_get_string(serv->instance, "network", "stun");
+		stun = maki_instance_config_get_string(inst, "network", "stun");
 
 		if (!maki_config_is_empty(stun))
 		{
@@ -501,6 +508,7 @@ void maki_server_connect_callback (gpointer data)
 	GTimeVal timeval;
 	makiServer* serv = data;
 	makiUser* user;
+	makiInstance* inst = maki_instance_get_default();
 
 	if (serv->reconnect.source != 0)
 	{
@@ -508,7 +516,7 @@ void maki_server_connect_callback (gpointer data)
 		serv->reconnect.source = 0;
 	}
 
-	serv->reconnect.retries = maki_instance_config_get_integer(serv->instance, "reconnect", "retries");
+	serv->reconnect.retries = maki_instance_config_get_integer(inst, "reconnect", "retries");
 
 	initial_nick = maki_server_config_get_string(serv, "server", "nick");
 	name = maki_server_config_get_string(serv, "server", "name");
@@ -536,6 +544,7 @@ void maki_server_connect_callback (gpointer data)
  * It schedules maki_server_reconnect() to be called regularly. */
 void maki_server_reconnect_callback (gpointer data)
 {
+	makiInstance* inst = maki_instance_get_default();
 	makiServer* serv = data;
 
 	/* Prevent maki_server_reconnect() from running twice. */
@@ -544,5 +553,5 @@ void maki_server_reconnect_callback (gpointer data)
 		return;
 	}
 
-	serv->reconnect.source = i_timeout_add_seconds(maki_instance_config_get_integer(serv->instance, "reconnect", "timeout"), maki_server_reconnect, serv, serv->main_context);
+	serv->reconnect.source = i_timeout_add_seconds(maki_instance_config_get_integer(inst, "reconnect", "timeout"), maki_server_reconnect, serv, serv->main_context);
 }

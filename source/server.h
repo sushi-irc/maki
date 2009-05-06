@@ -36,13 +36,11 @@ struct maki_server;
 
 typedef struct maki_server makiServer;
 
-#include "instance.h"
 #include "sashimi.h"
 #include "user.h"
 
 struct maki_server
 {
-	makiInstance* instance;
 	gchar* name;
 	gboolean connected;
 	gboolean logged_in;
@@ -87,7 +85,7 @@ struct maki_server
 	stun;
 };
 
-makiServer* maki_server_new (makiInstance*, const gchar*);
+makiServer* maki_server_new (const gchar*);
 gboolean maki_server_config_get_boolean (makiServer*, const gchar*, const gchar*);
 void maki_server_config_set_boolean (makiServer*, const gchar*, const gchar*, gboolean);
 gint maki_server_config_get_integer (makiServer*, const gchar*, const gchar*);

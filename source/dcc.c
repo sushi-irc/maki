@@ -388,9 +388,10 @@ gchar* maki_dcc_send_get_file_name (const gchar* string, gsize* length)
 makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar* file_name, guint32 address, guint16 port, goffset file_size, guint32 token)
 {
 	gchar* downloads_dir;
+	makiInstance* inst = maki_instance_get_default();
 	makiDCCSend* dcc;
 
-	downloads_dir = maki_instance_config_get_string(serv->instance, "directories", "downloads");
+	downloads_dir = maki_instance_config_get_string(inst, "directories", "downloads");
 
 	dcc = g_new(makiDCCSend, 1);
 
@@ -419,6 +420,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	GIOChannel* channel = NULL;
 	gchar* basename;
 	struct stat stbuf;
+	makiInstance* inst = maki_instance_get_default();
 	makiDCCSend* dcc;
 
 	dcc = g_new(makiDCCSend, 1);
@@ -451,7 +453,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 
 	dcc->size = stbuf.st_size;
 
-	for (dcc->port = maki_instance_config_get_integer(serv->instance, "dcc", "port_first"); dcc->port <= maki_instance_config_get_integer(serv->instance, "dcc", "port_last"); dcc->port++)
+	for (dcc->port = maki_instance_config_get_integer(inst, "dcc", "port_first"); dcc->port <= maki_instance_config_get_integer(inst, "dcc", "port_last"); dcc->port++)
 	{
 		if ((channel = i_io_channel_unix_new_listen(NULL, dcc->port, TRUE)) != NULL)
 		{
