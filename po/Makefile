@@ -9,7 +9,7 @@ all:
 
 install: $(PO:%.po=%.mo)
 	for file in $+; do \
-		INSTALL=$(INSTALL) ../../tools/install-mo.sh maki "$${file}" '$(DESTDIR)$(localedir)'; \
+		INSTALL='$(INSTALL)' ../../tools/install-mo.sh maki "$${file}" '$(DESTDIR)$(localedir)'; \
 	done
 
 clean:

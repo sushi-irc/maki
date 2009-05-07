@@ -1,6 +1,6 @@
 include ../../Makefile.common
 
-dbusdir = $(shell pkg-config --variable session_bus_services_dir dbus-1)
+dbusdir = $(shell $(PKG_CONFIG) --variable session_bus_services_dir dbus-1)
 
 all:
 
