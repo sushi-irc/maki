@@ -57,6 +57,11 @@
 			<arg name="path" type="s" />
 		</method>
 
+		<method name="dcc_send_remove">
+			<arg name="server" type="s" />
+			<arg name="id" type="t" />
+		</method>
+
 		<method name="ignore">
 			<arg name="server" type="s" />
 			<arg name="pattern" type="s" />
@@ -343,6 +348,18 @@
 			<arg name="from" type="s" />
 			<arg name="target" type="s" />
 			<arg name="message" type="s" />
+		</signal>
+
+		<signal name="dcc_send">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="id" type="t" />
+			<arg name="from" type="s" />
+			<arg name="filename" type="s" />
+			<arg name="size" type="t" />
+			<arg name="progress" type="t" />
+			<arg name="speed" type="t" />
+			<arg name="status" type="t" />
 		</signal>
 
 		<signal name="invite">

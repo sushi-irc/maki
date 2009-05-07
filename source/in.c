@@ -202,6 +202,8 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 			/* FIXME ref user? */
 			dcc = maki_dcc_send_new_in(serv, user, file_name, address, port, file_size, token);
 
+			serv->dcc.list = g_slist_prepend(serv->dcc.list, dcc);
+
 			if (maki_instance_config_get_boolean(inst, "dcc", "accept_send"))
 			{
 				maki_dcc_send_accept(dcc);

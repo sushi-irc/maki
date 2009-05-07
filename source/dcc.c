@@ -60,6 +60,9 @@ enum
 
 struct maki_dcc_send
 {
+	makiServer* server;
+	guint64 id;
+
 	GIOChannel* channel;
 	gchar* path;
 
@@ -71,7 +74,7 @@ struct maki_dcc_send
 
 	guint32 token;
 
-	guint32 status;
+	guint64 status;
 
 	union
 	{
@@ -98,6 +101,27 @@ struct maki_dcc_send
 	}
 	d;
 };
+
+static void maki_dcc_send_emit (makiDCCSend* dcc)
+{
+	gchar* filename;
+	GTimeVal timeval;
+
+	g_get_current_time(&timeval);
+
+	filename = g_path_get_basename(dcc->path);
+
+	if (dcc->status & s_incoming)
+	{
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, "", filename, dcc->size, dcc->position, 0, dcc->status);
+	}
+	else
+	{
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, "", filename, dcc->size, dcc->d.out.ack.position, 0, dcc->status);
+	}
+
+	g_free(filename);
+}
 
 static gboolean maki_dcc_send_in_read (GIOChannel* source, GIOCondition condition, gpointer data)
 {
@@ -142,10 +166,12 @@ error:
 finish:
 	dcc->status &= ~s_running;
 
-	maki_dcc_send_free(dcc);
-
 	g_io_channel_shutdown(source, FALSE, NULL);
 	g_io_channel_unref(source);
+
+	dcc->d.in.sources[s_in_read] = 0;
+
+	maki_dcc_send_emit(dcc);
 
 	return FALSE;
 }
@@ -190,16 +216,20 @@ static gboolean maki_dcc_send_in_write (GIOChannel* source, GIOCondition conditi
 	dcc->d.in.sources[s_in_write] = 0;
 	dcc->d.in.sources[s_in_read] = g_io_add_watch(source, G_IO_IN | G_IO_HUP | G_IO_ERR, maki_dcc_send_in_read, dcc);
 
+	maki_dcc_send_emit(dcc);
+
 	return FALSE;
 
 error:
 	dcc->status |= s_error;
 	dcc->status &= ~s_running;
 
-	maki_dcc_send_free(dcc);
-
 	g_io_channel_shutdown(source, FALSE, NULL);
 	g_io_channel_unref(source);
+
+	dcc->d.in.sources[s_in_write] = 0;
+
+	maki_dcc_send_emit(dcc);
 
 	return FALSE;
 }
@@ -247,10 +277,10 @@ finish:
 
 	if (!dcc->d.out.wait)
 	{
-		maki_dcc_send_free(dcc);
-
 		g_io_channel_shutdown(source, FALSE, NULL);
 		g_io_channel_unref(source);
+
+		maki_dcc_send_emit(dcc);
 	}
 	else
 	{
@@ -303,10 +333,10 @@ finish:
 
 	if (dcc->d.out.wait)
 	{
-		maki_dcc_send_free(dcc);
-
 		g_io_channel_shutdown(source, FALSE, NULL);
 		g_io_channel_unref(source);
+
+		maki_dcc_send_emit(dcc);
 	}
 	else
 	{
@@ -347,16 +377,20 @@ static gboolean maki_dcc_send_out_listen (GIOChannel* source, GIOCondition condi
 	g_io_channel_shutdown(source, FALSE, NULL);
 	g_io_channel_unref(source);
 
+	maki_dcc_send_emit(dcc);
+
 	return FALSE;
 
 error:
 	dcc->status |= s_error;
 	dcc->status &= ~s_running;
 
-	maki_dcc_send_free(dcc);
-
 	g_io_channel_shutdown(source, FALSE, NULL);
 	g_io_channel_unref(source);
+
+	dcc->d.out.sources[s_out_listen] = 0;
+
+	maki_dcc_send_emit(dcc);
 
 	return FALSE;
 }
@@ -425,6 +459,9 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 	dcc = g_new(makiDCCSend, 1);
 
+	dcc->server = serv;
+	dcc->id = maki_server_dcc_get_id(serv);
+
 	dcc->channel = NULL;
 	dcc->path = g_build_filename(downloads_dir, maki_user_nick(user), file_name, NULL);
 	dcc->position = 0;
@@ -442,6 +479,8 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 	g_free(downloads_dir);
 
+	maki_dcc_send_emit(dcc);
+
 	return dcc;
 }
 
@@ -454,6 +493,9 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	makiDCCSend* dcc;
 
 	dcc = g_new(makiDCCSend, 1);
+
+	dcc->server = serv;
+	dcc->id = maki_server_dcc_get_id(serv);
 
 	dcc->channel = NULL;
 	dcc->path = g_strdup(path);
@@ -496,6 +538,9 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 		goto error;
 	}
 
+	g_io_channel_set_close_on_unref(channel, TRUE);
+	g_io_channel_set_encoding(channel, NULL, NULL);
+
 	if (serv->stun.addrlen > 0)
 	{
 		dcc->address = ntohl(((struct sockaddr_in*)&serv->stun.addr)->sin_addr.s_addr);
@@ -508,9 +553,6 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 		getsockname(g_io_channel_unix_get_fd(channel), &addr, &addrlen);
 		dcc->address = ntohl(((struct sockaddr_in*)&addr)->sin_addr.s_addr);
 	}
-
-	g_io_channel_set_close_on_unref(channel, TRUE);
-	g_io_channel_set_encoding(channel, NULL, NULL);
 
 	if ((dcc->channel = g_io_channel_new_file(dcc->path, "r", NULL)) == NULL)
 	{
@@ -535,6 +577,8 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	g_free(basename);
 
 	dcc->d.out.sources[s_out_listen] = g_io_add_watch(channel, G_IO_IN | G_IO_HUP | G_IO_ERR, maki_dcc_send_out_listen, dcc);
+
+	maki_dcc_send_emit(dcc);
 
 	return dcc;
 
@@ -609,4 +653,9 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 	}
 
 	return TRUE;
+}
+
+guint64 maki_dcc_send_id (makiDCCSend* dcc)
+{
+	return dcc->id;
 }

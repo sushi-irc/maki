@@ -54,6 +54,7 @@ enum
 	s_connect,
 	s_connected,
 	s_ctcp,
+	s_dcc_send,
 	s_invite,
 	s_join,
 	s_kick,
@@ -119,6 +120,11 @@ void maki_dbus_emit_connected (gint64 timestamp, const gchar* server)
 void maki_dbus_emit_ctcp (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_ctcp], 0, timestamp, server, nick, target, message);
+}
+
+void maki_dbus_emit_dcc_send (gint64 timestamp, const gchar* server, guint64 id, const gchar* from, const gchar* filename, guint64 size, guint64 progress, guint64 speed, guint64 status)
+{
+	g_signal_emit(dbus, signals[s_dcc_send], 0, timestamp, server, id, from, filename, size, progress, speed, status);
 }
 
 void maki_dbus_emit_invite (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
@@ -428,8 +434,44 @@ static gboolean maki_dbus_dcc_send (makiDBus* self, const gchar* server, const g
 		makiUser* user;
 
 		user = maki_server_add_user(serv, target);
-		dcc = maki_dcc_send_new_out(serv, user, path);
+
+		if ((dcc = maki_dcc_send_new_out(serv, user, path)) != NULL)
+		{
+			serv->dcc.list = g_slist_prepend(serv->dcc.list, dcc);
+		}
+
 		maki_server_remove_user(serv, user);
+	}
+
+	return TRUE;
+}
+
+static gboolean maki_dbus_dcc_send_remove (makiDBus* self, const gchar* server, guint64 id, GError** error)
+{
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
+	{
+		GSList* list;
+
+		for (list = serv->dcc.list; list != NULL; list = list->next)
+		{
+			makiDCCSend* dcc = list->data;
+
+			if (maki_dcc_send_id(dcc) == id)
+			{
+				GTimeVal timeval;
+
+				serv->dcc.list = g_slist_remove(serv->dcc.list, dcc);
+
+				g_get_current_time(&timeval);
+
+				maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(serv), maki_dcc_send_id(dcc), "", "", 0, 0, 0, 0);
+
+				maki_dcc_send_free(dcc);
+			}
+		}
 	}
 
 	return TRUE;
@@ -1551,6 +1593,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_dcc_send] =
+		g_signal_new("dcc_send",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_UINT64_UINT64_UINT64_UINT64,
+		             G_TYPE_NONE, 9,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_UINT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT64, G_TYPE_UINT64, G_TYPE_UINT64, G_TYPE_UINT64);
 	signals[s_invite] =
 		g_signal_new("invite",
 		             G_OBJECT_CLASS_TYPE(klass),
