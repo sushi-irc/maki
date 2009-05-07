@@ -58,6 +58,7 @@ enum
 	s_out_num
 };
 
+/* FIXME support IPv6 */
 struct maki_dcc_send
 {
 	makiServer* server;
@@ -638,23 +639,28 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 
 	if (dcc->status & s_incoming)
 	{
-		gchar* address;
+		gchar address[INET_ADDRSTRLEN];
+		struct sockaddr_in addr;
+		socklen_t addrlen = sizeof(addr);
 
 		if (dcc->d.in.accept)
 		{
 			return FALSE;
 		}
 
-		/* FIXME ugly */
-		address = g_strdup_printf("%u.%u.%u.%u", (dcc->address & 0xff000000) >> 24, (dcc->address & 0x00ff0000) >> 16, (dcc->address & 0x0000ff00) >> 8, (dcc->address & 0x000000ff) >> 0);
+		addr.sin_family = AF_INET;
+		addr.sin_port = htons(dcc->port);
+		addr.sin_addr.s_addr = htonl(dcc->address);
 
-		if ((channel = i_io_channel_unix_new_address(address, dcc->port, TRUE)) == NULL)
+		if (getnameinfo((struct sockaddr*)&addr, addrlen, address, INET_ADDRSTRLEN, NULL, 0, NI_NUMERICHOST) != 0)
 		{
-			g_free(address);
 			return FALSE;
 		}
 
-		g_free(address);
+		if ((channel = i_io_channel_unix_new_address(address, dcc->port, TRUE)) == NULL)
+		{
+			return FALSE;
+		}
 
 		g_io_channel_set_close_on_unref(channel, TRUE);
 		g_io_channel_set_encoding(channel, NULL, NULL);
