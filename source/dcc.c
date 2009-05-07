@@ -111,6 +111,7 @@ static void maki_dcc_send_emit (makiDCCSend* dcc)
 
 	filename = g_path_get_basename(dcc->path);
 
+	/* FIXME user nick */
 	if (dcc->status & s_incoming)
 	{
 		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, "", filename, dcc->size, dcc->position, 0, dcc->status);
@@ -258,7 +259,11 @@ static gboolean maki_dcc_send_out_write (GIOChannel* source, GIOCondition condit
 
 		if (dcc->position >= dcc->size || status == G_IO_STATUS_EOF)
 		{
-			dcc->d.out.wait = TRUE;
+			if (dcc->d.out.ack.position < dcc->size)
+			{
+				dcc->d.out.wait = TRUE;
+			}
+
 			goto finish;
 		}
 	}
@@ -282,10 +287,8 @@ finish:
 
 		maki_dcc_send_emit(dcc);
 	}
-	else
-	{
-		dcc->d.out.sources[s_out_write] = 0;
-	}
+
+	dcc->d.out.sources[s_out_write] = 0;
 
 	return FALSE;
 }
@@ -338,10 +341,8 @@ finish:
 
 		maki_dcc_send_emit(dcc);
 	}
-	else
-	{
-		dcc->d.out.sources[s_out_read] = 0;
-	}
+
+	dcc->d.out.sources[s_out_read] = 0;
 
 	return FALSE;
 }
@@ -631,6 +632,7 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 
 	g_return_val_if_fail(dcc != NULL, FALSE);
 
+	/* FIXME can be done more than once */
 	if (dcc->status & s_incoming)
 	{
 		gchar* address;
