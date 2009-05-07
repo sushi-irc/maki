@@ -39,7 +39,7 @@
 
 #include "channel.h"
 #include "channel_user.h"
-#include "dcc.h"
+#include "dcc_send.h"
 #include "dbus.h"
 #include "in.h"
 #include "instance.h"

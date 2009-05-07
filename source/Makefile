@@ -14,9 +14,9 @@ endif
 SUSHI_CFLAGS += -DLOCALEDIR='"$(localedir)"'
 SUSHI_CFLAGS += -DSUSHI_VERSION='"$(SUSHI_VERSION)"'
 
-COMPONENTS = ilib channel channel_user dcc dbus in instance log marshal misc out server user
-HEADERS    = maki.h sashimi.h $(COMPONENTS:%=%.h) dbus_glue.h
-OBJECTS    = maki.o sashimi.o $(COMPONENTS:%=%.o)
+COMPONENTS = ilib sashimi channel channel_user dcc_send dbus in instance log maki marshal misc out server user
+HEADERS    = $(COMPONENTS:%=%.h) dbus_glue.h
+OBJECTS    = $(COMPONENTS:%=%.o)
 
 all: maki
 
