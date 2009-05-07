@@ -37,6 +37,14 @@
 
 enum
 {
+	s_incoming = (1 << 0),
+	s_resumed = (1 << 1),
+	s_running = (1 << 2),
+	s_error = (1 << 3)
+};
+
+enum
+{
 	s_in_read,
 	s_in_write,
 	s_in_num
@@ -63,7 +71,7 @@ struct maki_dcc_send
 
 	guint32 token;
 
-	gboolean in;
+	guint32 status;
 
 	union
 	{
@@ -100,7 +108,7 @@ static gboolean maki_dcc_send_in_read (GIOChannel* source, GIOCondition conditio
 
 	if (condition & (G_IO_HUP | G_IO_ERR))
 	{
-		goto finish;
+		goto error;
 	}
 
 	while ((status = g_io_channel_read_chars(source, buffer, 1024, &bytes_read, NULL)) == G_IO_STATUS_NORMAL)
@@ -110,10 +118,10 @@ static gboolean maki_dcc_send_in_read (GIOChannel* source, GIOCondition conditio
 		dcc->position += bytes_read;
 		pos = htonl(dcc->position);
 
-		g_io_channel_write_chars(dcc->channel, buffer, bytes_read, NULL, NULL);
+		i_io_channel_write_chars(dcc->channel, buffer, bytes_read, NULL, NULL);
 		g_io_channel_flush(dcc->channel, NULL);
 
-		g_io_channel_write_chars(source, (gchar*)&pos, sizeof(pos), NULL, NULL);
+		i_io_channel_write_chars(source, (gchar*)&pos, sizeof(pos), NULL, NULL);
 		g_io_channel_flush(source, NULL);
 
 		if (dcc->size > 0 && dcc->position >= dcc->size)
@@ -122,14 +130,18 @@ static gboolean maki_dcc_send_in_read (GIOChannel* source, GIOCondition conditio
 		}
 	}
 
-	if (status == G_IO_STATUS_EOF)
+	if (status == G_IO_STATUS_ERROR)
 	{
-		goto finish;
+		goto error;
 	}
 
 	return TRUE;
 
+error:
+	dcc->status |= s_error;
 finish:
+	dcc->status &= ~s_running;
+
 	maki_dcc_send_free(dcc);
 
 	g_io_channel_shutdown(source, FALSE, NULL);
@@ -173,12 +185,17 @@ static gboolean maki_dcc_send_in_write (GIOChannel* source, GIOCondition conditi
 	g_io_channel_set_close_on_unref(dcc->channel, TRUE);
 	g_io_channel_set_encoding(dcc->channel, NULL, NULL);
 
+	dcc->status |= s_running;
+
 	dcc->d.in.sources[s_in_write] = 0;
 	dcc->d.in.sources[s_in_read] = g_io_add_watch(source, G_IO_IN | G_IO_HUP | G_IO_ERR, maki_dcc_send_in_read, dcc);
 
 	return FALSE;
 
 error:
+	dcc->status |= s_error;
+	dcc->status &= ~s_running;
+
 	maki_dcc_send_free(dcc);
 
 	g_io_channel_shutdown(source, FALSE, NULL);
@@ -196,7 +213,7 @@ static gboolean maki_dcc_send_out_write (GIOChannel* source, GIOCondition condit
 
 	if (condition & (G_IO_HUP | G_IO_ERR))
 	{
-		goto finish;
+		goto error;
 	}
 
 	if ((status = g_io_channel_read_chars(dcc->channel, buffer, 1024, &bytes_read, NULL)) != G_IO_STATUS_ERROR)
@@ -218,12 +235,16 @@ static gboolean maki_dcc_send_out_write (GIOChannel* source, GIOCondition condit
 
 	if (status == G_IO_STATUS_ERROR)
 	{
-		goto finish;
+		goto error;
 	}
 
 	return TRUE;
 
+error:
+	dcc->status |= s_error;
 finish:
+	dcc->status &= ~s_running;
+
 	if (!dcc->d.out.wait)
 	{
 		maki_dcc_send_free(dcc);
@@ -247,7 +268,7 @@ static gboolean maki_dcc_send_out_read (GIOChannel* source, GIOCondition conditi
 
 	if (condition & (G_IO_HUP | G_IO_ERR))
 	{
-		goto finish;
+		goto error;
 	}
 
 	while ((status = g_io_channel_read_chars(source, ((gchar*)&dcc->d.out.ack.position) + dcc->d.out.ack.offset, sizeof(dcc->d.out.ack.position) - dcc->d.out.ack.offset, &bytes_read, NULL)) == G_IO_STATUS_NORMAL)
@@ -270,12 +291,16 @@ static gboolean maki_dcc_send_out_read (GIOChannel* source, GIOCondition conditi
 
 	if (status == G_IO_STATUS_ERROR)
 	{
-		goto finish;
+		goto error;
 	}
 
 	return TRUE;
 
+error:
+	dcc->status |= s_error;
 finish:
+	dcc->status &= ~s_running;
+
 	if (dcc->d.out.wait)
 	{
 		maki_dcc_send_free(dcc);
@@ -305,13 +330,15 @@ static gboolean maki_dcc_send_out_listen (GIOChannel* source, GIOCondition condi
 	fd = g_io_channel_unix_get_fd(source);
 	fd = accept(fd, NULL, NULL);
 
-	fcntl(fd, F_SETFL, O_NONBLOCK);
+	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
 
 	channel = g_io_channel_unix_new(fd);
 
 	g_io_channel_set_flags(channel, g_io_channel_get_flags(channel) | G_IO_FLAG_NONBLOCK, NULL);
 	g_io_channel_set_close_on_unref(channel, TRUE);
 	g_io_channel_set_encoding(channel, NULL, NULL);
+
+	dcc->status |= s_running;
 
 	dcc->d.out.sources[s_out_listen] = 0;
 	dcc->d.out.sources[s_out_read] = g_io_add_watch(channel, G_IO_IN | G_IO_HUP | G_IO_ERR, maki_dcc_send_out_read, dcc);
@@ -323,6 +350,9 @@ static gboolean maki_dcc_send_out_listen (GIOChannel* source, GIOCondition condi
 	return FALSE;
 
 error:
+	dcc->status |= s_error;
+	dcc->status &= ~s_running;
+
 	maki_dcc_send_free(dcc);
 
 	g_io_channel_shutdown(source, FALSE, NULL);
@@ -400,15 +430,15 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	dcc->position = 0;
 	dcc->size = file_size;
 
-	dcc->d.in.sources[s_in_read] = 0;
-	dcc->d.in.sources[s_in_write] = 0;
-
 	dcc->address = address;
 	dcc->port = port;
 
 	dcc->token = token;
 
-	dcc->in = TRUE;
+	dcc->status = s_incoming;
+
+	dcc->d.in.sources[s_in_read] = 0;
+	dcc->d.in.sources[s_in_write] = 0;
 
 	g_free(downloads_dir);
 
@@ -435,7 +465,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 
 	dcc->token = 0;
 
-	dcc->in = FALSE;
+	dcc->status = 0;
 
 	dcc->d.out.ack.position = 0;
 	dcc->d.out.ack.offset = 0;
@@ -516,7 +546,7 @@ error:
 
 void maki_dcc_send_free (makiDCCSend* dcc)
 {
-	if (dcc->in)
+	if (dcc->status & s_incoming)
 	{
 		guint i;
 
@@ -557,7 +587,7 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 
 	g_return_val_if_fail(dcc != NULL, FALSE);
 
-	if (dcc->in)
+	if (dcc->status & s_incoming)
 	{
 		gchar* address;
 
