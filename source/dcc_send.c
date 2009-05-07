@@ -80,6 +80,8 @@ struct maki_dcc_send
 	{
 		struct
 		{
+			gboolean accept;
+
 			guint sources[s_in_num];
 		}
 		in;
@@ -475,6 +477,8 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 	dcc->status = s_incoming;
 
+	dcc->d.in.accept = FALSE;
+
 	dcc->d.in.sources[s_in_read] = 0;
 	dcc->d.in.sources[s_in_write] = 0;
 
@@ -632,10 +636,14 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 
 	g_return_val_if_fail(dcc != NULL, FALSE);
 
-	/* FIXME can be done more than once */
 	if (dcc->status & s_incoming)
 	{
 		gchar* address;
+
+		if (dcc->d.in.accept)
+		{
+			return FALSE;
+		}
 
 		/* FIXME ugly */
 		address = g_strdup_printf("%u.%u.%u.%u", (dcc->address & 0xff000000) >> 24, (dcc->address & 0x00ff0000) >> 16, (dcc->address & 0x0000ff00) >> 8, (dcc->address & 0x000000ff) >> 0);
@@ -651,10 +659,13 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 		g_io_channel_set_close_on_unref(channel, TRUE);
 		g_io_channel_set_encoding(channel, NULL, NULL);
 
+		dcc->d.in.accept = TRUE;
 		dcc->d.in.sources[s_in_write] = g_io_add_watch(channel, G_IO_OUT | G_IO_HUP | G_IO_ERR, maki_dcc_send_in_write, dcc);
+
+		return TRUE;
 	}
 
-	return TRUE;
+	return FALSE;
 }
 
 guint64 maki_dcc_send_id (makiDCCSend* dcc)
