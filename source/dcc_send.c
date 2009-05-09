@@ -105,28 +105,6 @@ struct maki_dcc_send
 	d;
 };
 
-static void maki_dcc_send_emit (makiDCCSend* dcc)
-{
-	gchar* filename;
-	GTimeVal timeval;
-
-	g_get_current_time(&timeval);
-
-	filename = g_path_get_basename(dcc->path);
-
-	/* FIXME user nick */
-	if (dcc->status & s_incoming)
-	{
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, "", filename, dcc->size, dcc->position, 0, dcc->status);
-	}
-	else
-	{
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, "", filename, dcc->size, dcc->d.out.ack.position, 0, dcc->status);
-	}
-
-	g_free(filename);
-}
-
 static gboolean maki_dcc_send_in_read (GIOChannel* source, GIOCondition condition, gpointer data)
 {
 	gchar buffer[1024];
@@ -677,4 +655,26 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 guint64 maki_dcc_send_id (makiDCCSend* dcc)
 {
 	return dcc->id;
+}
+
+void maki_dcc_send_emit (makiDCCSend* dcc)
+{
+	gchar* filename;
+	GTimeVal timeval;
+
+	g_get_current_time(&timeval);
+
+	filename = g_path_get_basename(dcc->path);
+
+	/* FIXME user nick */
+	if (dcc->status & s_incoming)
+	{
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, "", filename, dcc->size, dcc->position, 0, dcc->status);
+	}
+	else
+	{
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, "", filename, dcc->size, dcc->d.out.ack.position, 0, dcc->status);
+	}
+
+	g_free(filename);
 }

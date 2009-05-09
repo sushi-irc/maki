@@ -446,6 +446,70 @@ static gboolean maki_dbus_dcc_send (makiDBus* self, const gchar* server, const g
 	return TRUE;
 }
 
+static gboolean maki_dbus_dcc_sends (makiDBus* self, const gchar* server, GError** error)
+{
+	GSList* list;
+	makiDCCSend* dcc;
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	if (server[0] != '\0')
+	{
+		if ((serv = maki_instance_get_server(inst, server)) != NULL)
+		{
+			for (list = serv->dcc.list; list != NULL; list = list->next)
+			{
+				dcc = list->data;
+				maki_dcc_send_emit(dcc);
+			}
+		}
+	}
+	else
+	{
+		GHashTableIter iter;
+		gpointer key, value;
+
+		maki_instance_servers_iter(inst, &iter);
+
+		while (g_hash_table_iter_next(&iter, &key, &value))
+		{
+			serv = value;
+
+			for (list = serv->dcc.list; list != NULL; list = list->next)
+			{
+				dcc = list->data;
+				maki_dcc_send_emit(dcc);
+			}
+		}
+	}
+
+	return TRUE;
+}
+
+static gboolean maki_dbus_dcc_send_accept (makiDBus* self, const gchar* server, guint64 id, GError** error)
+{
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
+	{
+		GSList* list;
+
+		for (list = serv->dcc.list; list != NULL; list = list->next)
+		{
+			makiDCCSend* dcc = list->data;
+
+			if (maki_dcc_send_id(dcc) == id)
+			{
+				maki_dcc_send_accept(dcc);
+				break;
+			}
+		}
+	}
+
+	return TRUE;
+}
+
 static gboolean maki_dbus_dcc_send_remove (makiDBus* self, const gchar* server, guint64 id, GError** error)
 {
 	makiServer* serv;
@@ -466,10 +530,10 @@ static gboolean maki_dbus_dcc_send_remove (makiDBus* self, const gchar* server, 
 				serv->dcc.list = g_slist_remove(serv->dcc.list, dcc);
 
 				g_get_current_time(&timeval);
-
 				maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(serv), maki_dcc_send_id(dcc), "", "", 0, 0, 0, 0);
 
 				maki_dcc_send_free(dcc);
+				break;
 			}
 		}
 	}

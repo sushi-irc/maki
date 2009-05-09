@@ -41,5 +41,6 @@ void maki_dcc_send_free (makiDCCSend*);
 gboolean maki_dcc_send_accept (makiDCCSend*);
 
 guint64 maki_dcc_send_id (makiDCCSend*);
+void maki_dcc_send_emit (makiDCCSend*);
 
 #endif
