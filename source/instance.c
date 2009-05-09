@@ -136,7 +136,7 @@ makiInstance* maki_instance_new (void)
 
 	inst->key_file = g_key_file_new();
 	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, maki_server_free);
+	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_server_free);
 
 	g_hash_table_insert(inst->directories, g_strdup("config"), config_dir);
 	g_hash_table_insert(inst->directories, g_strdup("servers"), servers_dir);
