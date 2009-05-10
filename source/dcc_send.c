@@ -64,6 +64,8 @@ struct maki_dcc_send
 	makiServer* server;
 	guint64 id;
 
+	makiUser* user;
+
 	GIOChannel* channel;
 	gchar* path;
 
@@ -444,8 +446,10 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	dcc->server = serv;
 	dcc->id = maki_server_dcc_get_id(serv);
 
+	dcc->user = maki_user_ref(user);
+
 	dcc->channel = NULL;
-	dcc->path = g_build_filename(downloads_dir, maki_user_nick(user), file_name, NULL);
+	dcc->path = g_build_filename(downloads_dir, maki_user_nick(dcc->user), file_name, NULL);
 	dcc->position = 0;
 	dcc->size = file_size;
 
@@ -480,6 +484,8 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 
 	dcc->server = serv;
 	dcc->id = maki_server_dcc_get_id(serv);
+
+	dcc->user = maki_user_ref(user);
 
 	dcc->channel = NULL;
 	dcc->path = g_strdup(path);
@@ -551,11 +557,11 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 
 	if (strstr(basename, " ") == NULL)
 	{
-		maki_server_send_printf(serv, "PRIVMSG %s :\001DCC SEND %s %" G_GUINT32_FORMAT " %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(user), basename, dcc->address, dcc->port, dcc->size);
+		maki_server_send_printf(serv, "PRIVMSG %s :\001DCC SEND %s %" G_GUINT32_FORMAT " %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(dcc->user), basename, dcc->address, dcc->port, dcc->size);
 	}
 	else
 	{
-		maki_server_send_printf(serv, "PRIVMSG %s :\001DCC SEND \"%s\" %" G_GUINT32_FORMAT " %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(user), basename, dcc->address, dcc->port, dcc->size);
+		maki_server_send_printf(serv, "PRIVMSG %s :\001DCC SEND \"%s\" %" G_GUINT32_FORMAT " %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(dcc->user), basename, dcc->address, dcc->port, dcc->size);
 	}
 
 	g_free(basename);
@@ -604,6 +610,8 @@ void maki_dcc_send_free (makiDCCSend* dcc)
 		g_io_channel_shutdown(dcc->channel, FALSE, NULL);
 		g_io_channel_unref(dcc->channel);
 	}
+
+	maki_user_unref(dcc->user);
 
 	g_free(dcc->path);
 	g_free(dcc);
@@ -666,14 +674,13 @@ void maki_dcc_send_emit (makiDCCSend* dcc)
 
 	filename = g_path_get_basename(dcc->path);
 
-	/* FIXME user nick */
 	if (dcc->status & s_incoming)
 	{
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, "", filename, dcc->size, dcc->position, 0, dcc->status);
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->position, 0, dcc->status);
 	}
 	else
 	{
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, "", filename, dcc->size, dcc->d.out.ack.position, 0, dcc->status);
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->d.out.ack.position, 0, dcc->status);
 	}
 
 	g_free(filename);

@@ -137,7 +137,7 @@ makiServer* maki_server_new (const gchar* name)
 	serv->main_loop = g_main_loop_new(serv->main_context, FALSE);
 	serv->connection = sashimi_new(serv->main_context);
 	serv->channels = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_channel_free);
-	serv->users = i_cache_new(maki_user_new, maki_user_free, serv, i_ascii_str_case_hash, i_ascii_str_case_equal);
+	serv->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, NULL);
 	serv->logs = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_log_free);
 	serv->stun.addrlen = 0;
 	serv->dcc.id = 0;
@@ -150,7 +150,7 @@ makiServer* maki_server_new (const gchar* name)
 	maki_server_config_set_defaults(serv);
 
 	nick = maki_server_config_get_string(serv, "server", "nick");
-	serv->user = i_cache_insert(serv->users, nick);
+	serv->user = maki_user_new(serv, nick);
 	g_free(nick);
 
 	serv->support.chanmodes = NULL;
@@ -307,34 +307,19 @@ makiUser* maki_server_user (makiServer* serv)
 	return serv->user;
 }
 
-void maki_server_set_user (makiServer* serv, const gchar* nick)
+void maki_server_add_user (makiServer* serv, const gchar* nick, makiUser* user)
 {
-	makiUser* user;
-
-	user = i_cache_insert(serv->users, nick);
-
-	if (serv->user != NULL)
-	{
-		maki_user_copy(user, serv->user);
-		i_cache_remove(serv->users, maki_user_nick(serv->user));
-	}
-
-	serv->user = user;
-}
-
-makiUser* maki_server_add_user (makiServer* serv, const gchar* nick)
-{
-	return i_cache_insert(serv->users, nick);
+	g_hash_table_insert(serv->users, g_strdup(nick), user);
 }
 
 makiUser* maki_server_get_user (makiServer* serv, const gchar* nick)
 {
-	return i_cache_lookup(serv->users, nick);
+	return g_hash_table_lookup(serv->users, nick);
 }
 
-void maki_server_remove_user (makiServer* serv, makiUser* user)
+gboolean maki_server_remove_user (makiServer* serv, const gchar* nick)
 {
-	i_cache_remove(serv->users, maki_user_nick(user));
+	return g_hash_table_remove(serv->users, nick);
 }
 
 const gchar* maki_server_name (makiServer* serv)
@@ -439,7 +424,7 @@ void maki_server_free (gpointer data)
 	g_main_loop_unref(serv->main_loop);
 	g_main_context_unref(serv->main_context);
 
-	i_cache_remove(serv->users, maki_user_nick(serv->user));
+	maki_user_unref(serv->user);
 
 	g_key_file_free(serv->key_file);
 
@@ -449,7 +434,7 @@ void maki_server_free (gpointer data)
 	g_free(serv->support.chanmodes);
 	g_hash_table_destroy(serv->logs);
 	g_hash_table_destroy(serv->channels);
-	i_cache_free(serv->users);
+	g_hash_table_destroy(serv->users);
 	sashimi_free(serv->connection);
 	g_free(serv->name);
 	g_free(serv);
@@ -579,7 +564,7 @@ void maki_server_connect_callback (gpointer data)
 	initial_nick = maki_server_config_get_string(serv, "server", "nick");
 	name = maki_server_config_get_string(serv, "server", "name");
 
-	maki_server_set_user(serv, initial_nick);
+	maki_user_set_nick(serv->user, initial_nick);
 
 	maki_out_nick(serv, initial_nick);
 

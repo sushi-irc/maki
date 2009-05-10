@@ -52,6 +52,7 @@ void maki_channel_set_topic (makiChannel*, const gchar*);
 
 void maki_channel_add_user (makiChannel*, const gchar*, makiChannelUser*);
 makiChannelUser* maki_channel_get_user (makiChannel*, const gchar*);
+makiChannelUser* maki_channel_rename_user (makiChannel*, const gchar*, const gchar*);
 void maki_channel_remove_user (makiChannel*, const gchar*);
 void maki_channel_remove_users (makiChannel*);
 guint maki_channel_users_count (makiChannel*);

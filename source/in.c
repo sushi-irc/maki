@@ -199,7 +199,6 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 				token = g_ascii_strtoull(args[3], NULL, 10);
 			}
 
-			/* FIXME ref user? */
 			dcc = maki_dcc_send_new_in(serv, user, file_name, address, port, file_size, token);
 
 			serv->dcc.list = g_slist_prepend(serv->dcc.list, dcc);
@@ -343,10 +342,7 @@ static void maki_in_join (makiServer* serv, glong timestamp, makiUser* user, gch
 
 	if (chan != NULL)
 	{
-		makiChannelUser* cuser;
-
-		cuser = maki_channel_user_new(serv, maki_user_nick(user));
-		maki_channel_add_user(chan, maki_user_nick(cuser->user), cuser);
+		maki_channel_add_user(chan, maki_user_nick(user), maki_channel_user_new(user));
 	}
 
 	maki_dbus_emit_join(timestamp, maki_server_name(serv), maki_user_from(user), channel);
@@ -557,7 +553,7 @@ static void maki_in_kick (makiServer* serv, glong timestamp, makiUser* user, gch
 
 static void maki_in_nick (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
 {
-	gboolean own = FALSE;
+	gboolean own;
 	gchar* new_nick;
 	GHashTableIter iter;
 	gpointer key, value;
@@ -568,24 +564,7 @@ static void maki_in_nick (makiServer* serv, glong timestamp, makiUser* user, gch
 	}
 
 	new_nick = maki_remove_colon(remaining);
-
-	if (g_ascii_strcasecmp(maki_user_nick(user), maki_user_nick(maki_server_user(serv))) == 0)
-	{
-		gchar* initial_nick;
-
-		maki_server_set_user(serv, new_nick);
-
-		initial_nick = maki_server_config_get_string(serv, "server", "nick");
-
-		if (!maki_config_is_empty(initial_nick) && g_ascii_strcasecmp(maki_user_nick(maki_server_user(serv)), initial_nick) == 0)
-		{
-			maki_out_nickserv(serv);
-		}
-
-		g_free(initial_nick);
-
-		own = TRUE;
-	}
+	own = (g_ascii_strcasecmp(maki_user_nick(user), maki_user_nick(maki_server_user(serv))) == 0);
 
 	maki_server_channels_iter(serv, &iter);
 
@@ -602,13 +581,7 @@ static void maki_in_nick (makiServer* serv, glong timestamp, makiUser* user, gch
 
 		if ((cuser = maki_channel_get_user(chan, maki_user_nick(user))) != NULL)
 		{
-			makiChannelUser* tmp;
-
-			tmp = maki_channel_user_new(serv, new_nick);
-			maki_channel_user_copy(tmp, cuser);
-
-			maki_channel_remove_user(chan, maki_user_nick(cuser->user));
-			maki_channel_add_user(chan, maki_user_nick(tmp->user), tmp);
+			maki_channel_rename_user(chan, maki_user_nick(user), new_nick);
 
 			if (own)
 			{
@@ -622,6 +595,26 @@ static void maki_in_nick (makiServer* serv, glong timestamp, makiUser* user, gch
 	}
 
 	maki_dbus_emit_nick(timestamp, maki_server_name(serv), maki_user_from(user), new_nick);
+	maki_user_set_nick(user, new_nick);
+
+	if (own)
+	{
+		gchar* initial_nick;
+
+		/* FIXME redundant */
+		maki_user_set_nick(maki_server_user(serv), new_nick);
+
+		initial_nick = maki_server_config_get_string(serv, "server", "nick");
+
+		if (!maki_config_is_empty(initial_nick) && g_ascii_strcasecmp(new_nick, initial_nick) == 0)
+		{
+			maki_out_nickserv(serv);
+		}
+
+		g_free(initial_nick);
+
+		own = TRUE;
+	}
 }
 
 static void maki_in_notice (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
@@ -922,6 +915,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 				gchar prefix_str[2];
 				guint prefix = 0;
 				gint pos;
+				makiUser* user;
 				makiChannelUser* cuser;
 
 				prefix_str[0] = '\0';
@@ -938,12 +932,16 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 					nick++;
 				}
 
-				cuser = maki_channel_user_new(serv, nick);
-				maki_channel_add_user(chan, maki_user_nick(cuser->user), cuser);
+				user = maki_user_new(serv, nick);
+
+				cuser = maki_channel_user_new(user);
+				maki_channel_add_user(chan, nick, cuser);
 				cuser->prefix = prefix;
 
 				nicks[j] = nick;
 				prefixes[j] = g_strdup(prefix_str);
+
+				maki_user_unref(user);
 			}
 
 			maki_dbus_emit_names(timestamp, maki_server_name(serv), tmp[1], nicks, prefixes);
@@ -1329,7 +1327,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 		type = parts[1];
 		remaining = parts[2];
 
-		user = maki_server_add_user(serv, from[0]);
+		user = maki_user_new(serv, from[0]);
 
 		if (from_length > 2)
 		{
@@ -1411,7 +1409,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 
 						maki_dbus_emit_nick(timeval.tv_sec, maki_server_name(serv), maki_user_nick(maki_server_user(serv)), nick);
 
-						maki_server_set_user(serv, nick);
+						maki_user_set_nick(maki_server_user(serv), nick);
 
 						g_free(nick);
 
@@ -1533,7 +1531,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 			}
 		}
 
-		maki_server_remove_user(serv, user);
+		maki_user_unref(user);
 
 		g_strfreev(parts);
 		g_strfreev(from);

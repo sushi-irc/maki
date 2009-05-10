@@ -27,32 +27,36 @@
 
 #include "maki.h"
 
-makiChannelUser* maki_channel_user_new (makiServer* serv, const gchar* nick)
+makiChannelUser* maki_channel_user_new (makiUser* user)
 {
 	makiChannelUser* cuser;
 
 	cuser = g_new(makiChannelUser, 1);
-	cuser->server = serv;
-	cuser->user = maki_server_add_user(serv, nick);
+	cuser->user = maki_user_ref(user);
 	cuser->prefix = 0;
+
+	cuser->ref_count = 1;
 
 	return cuser;
 }
 
-void maki_channel_user_copy (makiChannelUser* dst, makiChannelUser* src)
+makiChannelUser* maki_channel_user_ref (makiChannelUser* cuser)
 {
-	if (dst != src)
-	{
-		maki_user_copy(dst->user, src->user);
-		dst->prefix = src->prefix;
-	}
+	cuser->ref_count++;
+
+	return cuser;
 }
 
-void maki_channel_user_free (gpointer data)
+void maki_channel_user_unref (gpointer data)
 {
 	makiChannelUser* cuser = data;
 
-	maki_server_remove_user(cuser->server, cuser->user);
+	cuser->ref_count--;
 
-	g_free(cuser);
+	if (cuser->ref_count == 0)
+	{
+		maki_user_unref(cuser->user);
+
+		g_free(cuser);
+	}
 }

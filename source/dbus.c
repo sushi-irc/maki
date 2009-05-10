@@ -433,14 +433,14 @@ static gboolean maki_dbus_dcc_send (makiDBus* self, const gchar* server, const g
 		makiDCCSend* dcc;
 		makiUser* user;
 
-		user = maki_server_add_user(serv, target);
+		user = maki_user_new(serv, target);
 
 		if ((dcc = maki_dcc_send_new_out(serv, user, path)) != NULL)
 		{
 			serv->dcc.list = g_slist_prepend(serv->dcc.list, dcc);
 		}
 
-		maki_server_remove_user(serv, user);
+		maki_user_unref(user);
 	}
 
 	return TRUE;

@@ -53,7 +53,7 @@ makiChannel* maki_channel_new (makiServer* serv, const gchar* name)
 	chan->server = serv;
 	chan->name = g_strdup(name);
 	chan->joined = FALSE;
-	chan->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_channel_user_free);
+	chan->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_channel_user_unref);
 	chan->topic = NULL;
 
 	maki_channel_set_defaults(chan);
@@ -117,12 +117,26 @@ void maki_channel_set_topic (makiChannel* chan, const gchar* topic)
 
 void maki_channel_add_user (makiChannel* chan, const gchar* name, makiChannelUser* cuser)
 {
-	g_hash_table_replace(chan->users, g_strdup(name), cuser);
+	g_hash_table_insert(chan->users, g_strdup(name), cuser);
 }
 
 makiChannelUser* maki_channel_get_user (makiChannel* chan, const gchar* name)
 {
 	return g_hash_table_lookup(chan->users, name);
+}
+
+makiChannelUser* maki_channel_rename_user (makiChannel* chan, const gchar* old_nick, const gchar* new_nick)
+{
+	makiChannelUser* cuser = NULL;
+
+	if ((cuser = g_hash_table_lookup(chan->users, old_nick)) != NULL)
+	{
+		maki_channel_user_ref(cuser);
+		g_hash_table_remove(chan->users, old_nick);
+		g_hash_table_insert(chan->users, g_strdup(new_nick), cuser);
+	}
+
+	return cuser;
 }
 
 void maki_channel_remove_user (makiChannel* chan, const gchar* name)

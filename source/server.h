@@ -46,7 +46,7 @@ struct maki_server
 	gboolean logged_in;
 	sashimiConnection* connection;
 	GHashTable* channels;
-	iCache* users;
+	GHashTable* users;
 	GHashTable* logs;
 
 	makiUser* user;
@@ -108,10 +108,9 @@ gchar** maki_server_config_get_groups (makiServer*);
 gboolean maki_server_config_exists (makiServer*, const gchar*, const gchar*);
 guint64 maki_server_dcc_get_id (makiServer*);
 makiUser* maki_server_user (makiServer*);
-void maki_server_set_user (makiServer*, const gchar*);
-makiUser* maki_server_add_user (makiServer*, const gchar*);
+void maki_server_add_user (makiServer*, const gchar*, makiUser*);
 makiUser* maki_server_get_user (makiServer*, const gchar*);
-void maki_server_remove_user (makiServer*, makiUser*);
+gboolean maki_server_remove_user (makiServer*, const gchar*);
 const gchar* maki_server_name (makiServer*);
 gboolean maki_server_autoconnect (makiServer*);
 makiChannel* maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
