@@ -79,6 +79,8 @@ struct maki_dcc_send
 
 	guint64 status;
 
+	GTimeVal start_time;
+
 	union
 	{
 		struct
@@ -194,6 +196,8 @@ static gboolean maki_dcc_send_in_write (GIOChannel* source, GIOCondition conditi
 
 	g_io_channel_set_close_on_unref(dcc->channel, TRUE);
 	g_io_channel_set_encoding(dcc->channel, NULL, NULL);
+
+	g_get_current_time(&dcc->start_time);
 
 	dcc->status |= s_running;
 
@@ -351,6 +355,8 @@ static gboolean maki_dcc_send_out_listen (GIOChannel* source, GIOCondition condi
 	g_io_channel_set_flags(channel, g_io_channel_get_flags(channel) | G_IO_FLAG_NONBLOCK, NULL);
 	g_io_channel_set_close_on_unref(channel, TRUE);
 	g_io_channel_set_encoding(channel, NULL, NULL);
+
+	g_get_current_time(&dcc->start_time);
 
 	dcc->status |= s_running;
 
@@ -672,6 +678,8 @@ guint64 maki_dcc_send_id (makiDCCSend* dcc)
 
 void maki_dcc_send_emit (makiDCCSend* dcc)
 {
+	glong duration;
+	guint64 speed = 0;
 	gchar* filename;
 	GTimeVal timeval;
 
@@ -681,11 +689,23 @@ void maki_dcc_send_emit (makiDCCSend* dcc)
 
 	if (dcc->status & s_incoming)
 	{
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->position, 0, dcc->status);
+		if (dcc->status & s_running)
+		{
+			duration = MAX(timeval.tv_sec - dcc->start_time.tv_sec, 1);
+			speed = dcc->position / duration;
+		}
+
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->position, speed, dcc->status);
 	}
 	else
 	{
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->d.out.ack.position, 0, dcc->status);
+		if (dcc->status & s_running)
+		{
+			duration = MAX(timeval.tv_sec - dcc->start_time.tv_sec, 1);
+			speed = dcc->d.out.ack.position / duration;
+		}
+
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->d.out.ack.position, speed, dcc->status);
 	}
 
 	g_free(filename);
