@@ -435,6 +435,7 @@ gchar* maki_dcc_send_get_file_name (const gchar* string, gsize* length)
 
 makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar* file_name, guint32 address, guint16 port, goffset file_size, guint32 token)
 {
+	guint i;
 	gchar* downloads_dir;
 	makiInstance* inst = maki_instance_get_default();
 	makiDCCSend* dcc;
@@ -462,8 +463,10 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 	dcc->d.in.accept = FALSE;
 
-	dcc->d.in.sources[s_in_read] = 0;
-	dcc->d.in.sources[s_in_write] = 0;
+	for (i = 0; i < s_in_num; i++)
+	{
+		dcc->d.in.sources[i] = 0;
+	}
 
 	g_free(downloads_dir);
 
@@ -474,6 +477,7 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gchar* path)
 {
+	guint i;
 	GIOChannel* channel = NULL;
 	gchar* basename;
 	struct stat stbuf;
@@ -504,9 +508,10 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 
 	dcc->d.out.wait = FALSE;
 
-	dcc->d.out.sources[s_out_listen] = 0;
-	dcc->d.out.sources[s_out_read] = 0;
-	dcc->d.out.sources[s_out_write] = 0;
+	for (i = 0; i < s_out_num; i++)
+	{
+		dcc->d.out.sources[i] = 0;
+	}
 
 	if (stat(dcc->path, &stbuf) != 0)
 	{

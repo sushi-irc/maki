@@ -410,14 +410,14 @@ void maki_server_free (gpointer data)
 		GTimeVal timeval;
 		makiDCCSend* dcc = list->data;
 
-		serv->dcc.list = g_slist_remove(serv->dcc.list, dcc);
-
 		g_get_current_time(&timeval);
 
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(serv), maki_dcc_send_id(dcc), "", "", 0, 0, 0, 0);
+		maki_dbus_emit_dcc_send(timeval.tv_sec, serv->name, maki_dcc_send_id(dcc), "", "", 0, 0, 0, 0);
 
 		maki_dcc_send_free(dcc);
 	}
+
+	g_slist_free(serv->dcc.list);
 
 	g_main_loop_quit(serv->main_loop);
 
