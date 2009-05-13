@@ -71,6 +71,7 @@ struct maki_dcc_send
 
 	goffset position;
 	goffset size;
+	goffset resume;
 
 	guint32 address;
 	guint16 port;
@@ -459,6 +460,7 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	dcc->path = g_build_filename(downloads_dir, maki_user_nick(dcc->user), file_name, NULL);
 	dcc->position = 0;
 	dcc->size = file_size;
+	dcc->resume = 0;
 
 	dcc->address = address;
 	dcc->port = port;
@@ -501,6 +503,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	dcc->path = g_strdup(path);
 	dcc->position = 0;
 	dcc->size = 0;
+	dcc->resume = 0;
 
 	dcc->address = 0;
 	dcc->port = 0;
@@ -671,6 +674,50 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 	return FALSE;
 }
 
+gboolean maki_dcc_send_resume (makiDCCSend* dcc, const gchar* filename, guint16 port, goffset position, guint32 token)
+{
+	g_return_val_if_fail(dcc != NULL, FALSE);
+
+	if (dcc->status & s_incoming)
+	{
+		return FALSE;
+	}
+	else
+	{
+		gchar* basename;
+
+		basename = g_path_get_basename(dcc->path);
+
+		if (strcmp(basename, filename) != 0)
+		{
+			g_free(basename);
+			return FALSE;
+		}
+
+		g_free(basename);
+
+		if (dcc->port != port)
+		{
+			return FALSE;
+		}
+
+		if (g_io_channel_seek_position(dcc->channel, position, G_SEEK_SET, NULL) != G_IO_STATUS_NORMAL)
+		{
+			return FALSE;
+		}
+
+		dcc->position = position;
+		dcc->resume = position;
+		dcc->d.out.ack.position = position;
+
+		dcc->status |= s_resumed;
+
+		maki_dcc_send_emit(dcc);
+	}
+
+	return TRUE;
+}
+
 guint64 maki_dcc_send_id (makiDCCSend* dcc)
 {
 	return dcc->id;
@@ -692,7 +739,7 @@ void maki_dcc_send_emit (makiDCCSend* dcc)
 		if (dcc->status & s_running)
 		{
 			duration = MAX(timeval.tv_sec - dcc->start_time.tv_sec, 1);
-			speed = dcc->position / duration;
+			speed = (dcc->position - dcc->resume) / duration;
 		}
 
 		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->position, speed, dcc->status);
@@ -702,7 +749,7 @@ void maki_dcc_send_emit (makiDCCSend* dcc)
 		if (dcc->status & s_running)
 		{
 			duration = MAX(timeval.tv_sec - dcc->start_time.tv_sec, 1);
-			speed = dcc->d.out.ack.position / duration;
+			speed = (dcc->d.out.ack.position - dcc->resume) / duration;
 		}
 
 		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->d.out.ack.position, speed, dcc->status);

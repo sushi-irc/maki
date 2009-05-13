@@ -215,6 +215,57 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 	}
 }
 
+static void maki_in_dcc_resume (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+{
+	gchar* file_name;
+	gsize file_name_len;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	if ((file_name = maki_dcc_send_get_file_name(remaining, &file_name_len)) != NULL)
+	{
+		gchar** args;
+		guint args_len;
+
+		args = g_strsplit(remaining + file_name_len + 1, " ", 3);
+		args_len = g_strv_length(args);
+
+		if (args_len >= 2)
+		{
+			guint16 port;
+			goffset position;
+			guint32 token = 0;
+			GSList* list;
+
+			port = g_ascii_strtoull(args[0], NULL, 10);
+			position = g_ascii_strtoull(args[1], NULL, 10);
+
+			if (args_len > 2)
+			{
+				token = g_ascii_strtoull(args[2], NULL, 10);
+			}
+
+			for (list = serv->dcc.list; list != NULL; list = list->next)
+			{
+				makiDCCSend* dcc = list->data;
+
+				if (maki_dcc_send_resume(dcc, file_name, port, position, token))
+				{
+					maki_server_send_printf(serv, "PRIVMSG %s :\001DCC ACCEPT %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(user), file_name, port, position, token);
+					break;
+				}
+			}
+		}
+
+		g_strfreev(args);
+
+		g_free(file_name);
+	}
+}
+
 static void maki_in_privmsg (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
 {
 	gchar** tmp;
@@ -269,6 +320,10 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, makiUser* user, 
 					else if (strncmp(message, "DCC SEND ", 9) == 0)
 					{
 						maki_in_dcc_send(serv, timestamp, user, message + 9);
+					}
+					else if (strncmp(message, "DCC RESUME ", 11) == 0)
+					{
+						maki_in_dcc_resume(serv, timestamp, user, message + 11);
 					}
 				}
 
