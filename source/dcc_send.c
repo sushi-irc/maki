@@ -166,7 +166,6 @@ finish:
 static gboolean maki_dcc_send_in_write (GIOChannel* source, GIOCondition condition, gpointer data)
 {
 	gint val;
-	gchar* dirname;
 	socklen_t len = sizeof(val);
 	makiDCCSend* dcc = data;
 
@@ -180,23 +179,6 @@ static gboolean maki_dcc_send_in_write (GIOChannel* source, GIOCondition conditi
 	{
 		goto error;
 	}
-
-	if (g_file_test(dcc->path, G_FILE_TEST_EXISTS))
-	{
-		goto error;
-	}
-
-	dirname = g_path_get_dirname(dcc->path);
-	g_mkdir_with_parents(dirname, 0777);
-	g_free(dirname);
-
-	if ((dcc->channel = g_io_channel_new_file(dcc->path, "w", NULL)) == NULL)
-	{
-		goto error;
-	}
-
-	g_io_channel_set_close_on_unref(dcc->channel, TRUE);
-	g_io_channel_set_encoding(dcc->channel, NULL, NULL);
 
 	g_get_current_time(&dcc->start_time);
 
@@ -442,8 +424,11 @@ gchar* maki_dcc_send_get_file_name (const gchar* string, gsize* length)
 
 makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar* file_name, guint32 address, guint16 port, goffset file_size, guint32 token)
 {
+	gboolean do_resume;
 	guint i;
+	gchar* dirname;
 	gchar* downloads_dir;
+	struct stat stbuf;
 	makiInstance* inst = maki_instance_get_default();
 	makiDCCSend* dcc;
 
@@ -478,9 +463,63 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 	g_free(downloads_dir);
 
+	dirname = g_path_get_dirname(dcc->path);
+	g_mkdir_with_parents(dirname, 0777);
+	g_free(dirname);
+
+	do_resume = (stat(dcc->path, &stbuf) == 0 && stbuf.st_size > 0);
+
+	if (do_resume)
+	{
+		dcc->channel = g_io_channel_new_file(dcc->path, "r+", NULL);
+	}
+	else
+	{
+		dcc->channel = g_io_channel_new_file(dcc->path, "w", NULL);
+	}
+
+	if (dcc->channel == NULL)
+	{
+		goto error;
+	}
+
+	g_io_channel_set_close_on_unref(dcc->channel, TRUE);
+	g_io_channel_set_encoding(dcc->channel, NULL, NULL);
+	g_io_channel_set_buffered(dcc->channel, FALSE);
+
 	maki_dcc_send_emit(dcc);
 
+	if (do_resume)
+	{
+		gchar* basename;
+
+		basename = g_path_get_basename(dcc->path);
+
+		if (token > 0)
+		{
+			maki_server_send_printf(serv, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(user), basename, dcc->port, stbuf.st_size, token);
+		}
+		else
+		{
+			maki_server_send_printf(serv, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(user), basename, dcc->port, stbuf.st_size);
+		}
+
+		g_free(basename);
+	}
+	else
+	{
+		if (maki_instance_config_get_boolean(inst, "dcc", "accept_send"))
+		{
+			maki_dcc_send_accept(dcc);
+		}
+	}
+
 	return dcc;
+
+error:
+	maki_dcc_send_free(dcc);
+
+	return NULL;
 }
 
 makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gchar* path)
@@ -680,7 +719,45 @@ gboolean maki_dcc_send_resume (makiDCCSend* dcc, const gchar* filename, guint16 
 
 	if (dcc->status & s_incoming)
 	{
-		return FALSE;
+		gchar* basename;
+		makiInstance* inst = maki_instance_get_default();
+
+		basename = g_path_get_basename(dcc->path);
+
+		if (strcmp(basename, filename) != 0)
+		{
+			g_free(basename);
+			return FALSE;
+		}
+
+		g_free(basename);
+
+		if (dcc->port != port)
+		{
+			return FALSE;
+		}
+
+		if (dcc->d.in.accept)
+		{
+			return FALSE;
+		}
+
+		if (g_io_channel_seek_position(dcc->channel, position, G_SEEK_SET, NULL) != G_IO_STATUS_NORMAL)
+		{
+			return FALSE;
+		}
+
+		dcc->position = position;
+		dcc->resume = position;
+
+		dcc->status |= s_resumed;
+
+		maki_dcc_send_emit(dcc);
+
+		if (maki_instance_config_get_boolean(inst, "dcc", "accept_send"))
+		{
+			maki_dcc_send_accept(dcc);
+		}
 	}
 	else
 	{

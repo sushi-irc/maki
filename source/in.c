@@ -183,7 +183,6 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 			guint16 port;
 			goffset file_size = 0;
 			guint32 token = 0;
-			makiInstance* inst = maki_instance_get_default();
 			makiDCCSend* dcc;
 
 			address = g_ascii_strtoull(args[0], NULL, 10);
@@ -202,11 +201,6 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 			dcc = maki_dcc_send_new_in(serv, user, file_name, address, port, file_size, token);
 
 			serv->dcc.list = g_slist_prepend(serv->dcc.list, dcc);
-
-			if (maki_instance_config_get_boolean(inst, "dcc", "accept_send"))
-			{
-				maki_dcc_send_accept(dcc);
-			}
 		}
 
 		g_strfreev(args);
@@ -215,7 +209,7 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 	}
 }
 
-static void maki_in_dcc_resume (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+static void maki_in_dcc_resume_accept (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining, gboolean is_resume)
 {
 	gchar* file_name;
 	gsize file_name_len;
@@ -254,7 +248,18 @@ static void maki_in_dcc_resume (makiServer* serv, glong timestamp, makiUser* use
 
 				if (maki_dcc_send_resume(dcc, file_name, port, position, token))
 				{
-					maki_server_send_printf(serv, "PRIVMSG %s :\001DCC ACCEPT %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(user), file_name, port, position, token);
+					if (is_resume)
+					{
+						if (token > 0)
+						{
+							maki_server_send_printf(serv, "PRIVMSG %s :\001DCC ACCEPT %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(user), file_name, port, position, token);
+						}
+						else
+						{
+							maki_server_send_printf(serv, "PRIVMSG %s :\001DCC ACCEPT %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(user), file_name, port, position);
+						}
+					}
+
 					break;
 				}
 			}
@@ -323,7 +328,11 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, makiUser* user, 
 					}
 					else if (strncmp(message, "DCC RESUME ", 11) == 0)
 					{
-						maki_in_dcc_resume(serv, timestamp, user, message + 11);
+						maki_in_dcc_resume_accept(serv, timestamp, user, message + 11, TRUE);
+					}
+					else if (strncmp(message, "DCC ACCEPT ", 11) == 0)
+					{
+						maki_in_dcc_resume_accept(serv, timestamp, user, message + 11, FALSE);
 					}
 				}
 
