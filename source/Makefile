@@ -1,4 +1,4 @@
-include ../../Makefile.common
+include ../Makefile.common
 
 # To quiet warnings from generated code.
 SUSHI_CFLAGS := $(subst -pedantic,,$(SUSHI_CFLAGS))
@@ -6,7 +6,7 @@ SUSHI_CFLAGS := $(subst -pedantic,,$(SUSHI_CFLAGS))
 SUSHI_CFLAGS  += $(shell $(PKG_CONFIG) --cflags dbus-glib-1) $(shell $(PKG_CONFIG) --cflags glib-2.0) $(shell $(PKG_CONFIG) --cflags gobject-2.0) $(shell $(PKG_CONFIG) --cflags gthread-2.0)
 SUSHI_LDFLAGS += $(shell $(PKG_CONFIG) --libs   dbus-glib-1) $(shell $(PKG_CONFIG) --libs   glib-2.0) $(shell $(PKG_CONFIG) --libs   gobject-2.0) $(shell $(PKG_CONFIG) --libs   gthread-2.0)
 
-ifeq ($(shell PKG_CONFIG='$(PKG_CONFIG)' ../../tools/pkg-config.sh nice), yes)
+ifeq ($(shell PKG_CONFIG='$(PKG_CONFIG)' ../tools/pkg-config.sh nice), yes)
 	SUSHI_CFLAGS  += $(shell $(PKG_CONFIG) --cflags nice) -DSUSHI_HAVE_NICE
 	SUSHI_LDFLAGS += $(shell $(PKG_CONFIG) --libs   nice)
 endif

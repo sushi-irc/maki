@@ -1,4 +1,4 @@
-include ../../Makefile.common
+include ../Makefile.common
 
 dbusdir = $(shell $(PKG_CONFIG) --variable session_bus_services_dir dbus-1)
 

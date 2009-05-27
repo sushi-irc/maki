@@ -1,3 +1,10 @@
+                                  INSTALLATION
+
+Just type "make", followed by "make install". This will install all the
+necessary files in your home directory. Other directories can be specified by
+calling make with the prefix variable, for example, "make prefix=/usr", followed
+by "make prefix=/usr install".
+
                                   REQUIREMENTS
 
 You will need the DBus, GLib and DBus-GLib libraries.
