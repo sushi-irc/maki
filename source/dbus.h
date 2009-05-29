@@ -31,6 +31,38 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-bindings.h>
 
+enum
+{
+	s_action,
+	s_away,
+	s_away_message,
+	s_back,
+	s_banlist,
+	s_cannot_join,
+	s_connect,
+	s_connected,
+	s_ctcp,
+	s_dcc_send,
+	s_invite,
+	s_join,
+	s_kick,
+	s_list,
+	s_message,
+	s_mode,
+	s_motd,
+	s_names,
+	s_nick,
+	s_no_such,
+	s_notice,
+	s_oper,
+	s_part,
+	s_quit,
+	s_shutdown,
+	s_topic,
+	s_whois,
+	s_last
+};
+
 struct maki_dbus;
 struct maki_dbus_class;
 
@@ -48,32 +80,6 @@ GType maki_dbus_get_type (void);
 
 gboolean maki_dbus_connected (makiDBus*);
 
-void maki_dbus_emit_action (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_away (gint64, const gchar*);
-void maki_dbus_emit_away_message (gint64, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_back (gint64, const gchar*);
-void maki_dbus_emit_banlist (gint64, const gchar*, const gchar*, const gchar*, const gchar*, gint64);
-void maki_dbus_emit_cannot_join (gint64, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_connect (gint64, const gchar*);
-void maki_dbus_emit_connected (gint64, const gchar*);
-void maki_dbus_emit_ctcp (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_dcc_send (gint64, const gchar*, guint64, const gchar*, const gchar*, guint64, guint64, guint64, guint64);
-void maki_dbus_emit_invite (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_join (gint64, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_kick (gint64, const gchar*, const gchar*, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_list (gint64, const gchar*, const gchar*, gint64, const gchar*);
-void maki_dbus_emit_message (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_mode (gint64, const gchar*, const gchar*, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_motd (gint64, const gchar*, const gchar*);
-void maki_dbus_emit_names (gint64, const gchar*, const gchar*, gchar**, gchar**);
-void maki_dbus_emit_nick (gint64, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_no_such (gint64, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_notice (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_oper (gint64, const gchar*);
-void maki_dbus_emit_part (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_quit (gint64, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_shutdown (gint64);
-void maki_dbus_emit_topic (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
-void maki_dbus_emit_whois (gint64, const gchar*, const gchar*, const gchar*);
+void maki_dbus_emit (guint, ...);
 
 #endif
