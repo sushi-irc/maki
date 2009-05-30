@@ -34,6 +34,8 @@ struct maki_instance
 	GHashTable* servers;
 
 	GHashTable* directories;
+
+	GModule* plugins[1];
 };
 
 makiInstance* maki_instance_get_default (void)
@@ -147,6 +149,8 @@ makiInstance* maki_instance_new (void)
 
 	maki_instance_config_set_defaults(inst);
 
+	inst->plugins[0] = maki_plugin_load("nm");
+
 	return inst;
 }
 
@@ -237,6 +241,11 @@ void maki_instance_servers_iter (makiInstance* inst, GHashTableIter* iter)
 
 void maki_instance_free (makiInstance* inst)
 {
+	if (inst->plugins[0] != NULL)
+	{
+		maki_plugin_unload(inst->plugins[0]);
+	}
+
 	g_key_file_free(inst->key_file);
 
 	g_hash_table_destroy(inst->servers);

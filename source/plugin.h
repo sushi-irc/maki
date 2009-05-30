@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Michael Kuhn
+ * Copyright (c) 2009 Michael Kuhn
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,15 @@
  * SUCH DAMAGE.
  */
 
-#ifndef H_MAKI
-#define H_MAKI
+#ifndef H_PLUGIN
+#define H_PLUGIN
 
-#define G_DISABLE_DEPRECATED
-#define _XOPEN_SOURCE
+#include <gmodule.h>
 
-#include <glib.h>
-#include <glib/gi18n.h>
-#include <glib/gstdio.h>
+typedef gboolean (*makiPluginInitFunc) (void);
+typedef void (*makiPluginDeinitFunc) (void);
 
-#include "ilib.h"
-
-#include "channel.h"
-#include "channel_user.h"
-#include "dcc_send.h"
-#include "dbus.h"
-#include "in.h"
-#include "instance.h"
-#include "log.h"
-#include "maki.h"
-#include "misc.h"
-#include "out.h"
-#include "plugin.h"
-#include "server.h"
-#include "user.h"
-
-extern gboolean opt_verbose;
-
-extern makiDBus* dbus;
-extern GMainLoop* main_loop;
+GModule* maki_plugin_load (const gchar*);
+void maki_plugin_unload (GModule*);
 
 #endif

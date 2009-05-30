@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Michael Kuhn
+ * Copyright (c) 2009 Michael Kuhn
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,65 @@
  * SUCH DAMAGE.
  */
 
-#ifndef H_MAKI
-#define H_MAKI
+#include <glib-object.h>
+#include <gmodule.h>
 
-#define G_DISABLE_DEPRECATED
-#define _XOPEN_SOURCE
+#include <nm-client.h>
 
-#include <glib.h>
-#include <glib/gi18n.h>
-#include <glib/gstdio.h>
-
-#include "ilib.h"
-
-#include "channel.h"
-#include "channel_user.h"
-#include "dcc_send.h"
-#include "dbus.h"
-#include "in.h"
-#include "instance.h"
-#include "log.h"
 #include "maki.h"
-#include "misc.h"
-#include "out.h"
-#include "plugin.h"
-#include "server.h"
-#include "user.h"
 
-extern gboolean opt_verbose;
+gboolean init (void);
+void deinit (void);
 
-extern makiDBus* dbus;
-extern GMainLoop* main_loop;
+static NMClient* nm_client;
+static NMState nm_state;
 
-#endif
+static void notify_state_cb (NMClient* client, GParamSpec* pspec, gpointer data)
+{
+	GHashTableIter iter;
+	gpointer key, value;
+	makiInstance* inst = maki_instance_get_default();
+	NMState state;
+
+	state = nm_client_get_state(client);
+
+	maki_instance_servers_iter(inst, &iter);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		makiServer* serv = value;
+
+		/* FIXME thread safety */
+		/* Connected */
+		if (state == NM_STATE_UNKNOWN || state == NM_STATE_CONNECTED)
+		{
+			maki_server_connect(serv);
+		}
+		/* Asleep or Disconnected */
+		else if (state == NM_STATE_ASLEEP || state == NM_STATE_CONNECTING || state == NM_STATE_DISCONNECTED)
+		{
+			maki_server_disconnect(serv, "NetworkManager disconnected.");
+		}
+	}
+
+	nm_state = state;
+}
+
+G_MODULE_EXPORT
+gboolean init (void)
+{
+	nm_client = nm_client_new();
+	nm_state = nm_client_get_state(nm_client);
+
+	/* FIXME do something with state */
+
+	g_signal_connect(nm_client, "notify::state", G_CALLBACK(notify_state_cb), NULL);
+
+	return TRUE;
+}
+
+G_MODULE_EXPORT
+void deinit (void)
+{
+	g_object_unref(nm_client);
+}

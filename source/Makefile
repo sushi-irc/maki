@@ -3,28 +3,34 @@ include ../Makefile.common
 # To quiet warnings from generated code.
 SUSHI_CFLAGS := $(subst -pedantic,,$(SUSHI_CFLAGS))
 
-SUSHI_CFLAGS  += $(shell $(PKG_CONFIG) --cflags dbus-glib-1) $(shell $(PKG_CONFIG) --cflags glib-2.0) $(shell $(PKG_CONFIG) --cflags gobject-2.0) $(shell $(PKG_CONFIG) --cflags gthread-2.0)
-SUSHI_LDFLAGS += $(shell $(PKG_CONFIG) --libs   dbus-glib-1) $(shell $(PKG_CONFIG) --libs   glib-2.0) $(shell $(PKG_CONFIG) --libs   gobject-2.0) $(shell $(PKG_CONFIG) --libs   gthread-2.0)
+SUSHI_CFLAGS  += $(shell $(PKG_CONFIG) --cflags dbus-glib-1 glib-2.0 gobject-2.0 gthread-2.0 gmodule-2.0)
+SUSHI_LDFLAGS += $(shell $(PKG_CONFIG) --libs   dbus-glib-1 glib-2.0 gobject-2.0 gthread-2.0 gmodule-2.0)
 
 ifeq ($(shell PKG_CONFIG='$(PKG_CONFIG)' ../tools/pkg-config.sh nice), yes)
 	SUSHI_CFLAGS  += $(shell $(PKG_CONFIG) --cflags nice) -DSUSHI_HAVE_NICE
 	SUSHI_LDFLAGS += $(shell $(PKG_CONFIG) --libs   nice)
 endif
 
+SUSHI_CFLAGS += -DMAKI_PLUGIN_DIRECTORY='"$(libdir)/sushi/maki/plugins"'
 SUSHI_CFLAGS += -DLOCALEDIR='"$(localedir)"'
 SUSHI_CFLAGS += -DSUSHI_VERSION='"$(SUSHI_VERSION)"'
 
-COMPONENTS = ilib sashimi channel channel_user dcc_send dbus in instance log maki marshal misc out server user
+COMPONENTS = ilib sashimi channel channel_user dcc_send dbus in instance log maki marshal misc out plugin server user
 HEADERS    = $(COMPONENTS:%=%.h) dbus_glue.h
 OBJECTS    = $(COMPONENTS:%=%.o)
 
 all: maki
+	$(MAKE) -C plugins $@
 
 install: all
 	$(INSTALL) -d -m 755 '$(DESTDIR)$(bindir)'
 	$(INSTALL) -m 755 maki '$(DESTDIR)$(bindir)'
 
+	$(MAKE) -C plugins $@
+
 clean:
+	$(MAKE) -C plugins $@
+
 	$(RM) -f maki
 	$(RM) -f $(OBJECTS)
 	$(RM) -f dbus_glue.h marshal.list marshal.c marshal.h

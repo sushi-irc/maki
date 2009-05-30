@@ -10,6 +10,7 @@ SUSHI_VERSION = 1.1.0
 # prefix _must_ be an absolute path.
 prefix    = $(HOME)
 bindir    = $(prefix)/bin
+libdir    = $(prefix)/lib
 sharedir  = $(prefix)/share
 docdir    = $(sharedir)/doc
 localedir = $(sharedir)/locale
