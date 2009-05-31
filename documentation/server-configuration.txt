@@ -1,0 +1,38 @@
+                              SERVER CONFIGURATION
+
+All configuration values are stored as strings. Boolean values are stored as
+“true” and “false”. The following configuration values are supported:
+
+Group “server”
+  Key “autoconnect”
+    Boolean
+    Default “false”
+  Key “address”
+    String
+  Key “port”
+    Integer
+    Default “6667”
+  Key “nick”
+    String
+    Default “$USER”
+  Key “name”
+    String
+    Default “$FIXME”
+  Key “nickserv”
+    String
+  Key “nickserv_ghost”
+    Boolean
+    Default “false”
+  Key “commands”
+    String Array
+  Key “ignores”
+    String Array
+
+Group “#channel”
+  Key “autojoin”
+    Boolean
+    Default “false”
+  Key “key”
+    String
+
+# vi:textwidth=80:expandtab

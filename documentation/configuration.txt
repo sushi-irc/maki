@@ -1,0 +1,35 @@
+				 CONFIGURATION
+
+All configuration values are stored as strings. Boolean values are stored as
+“true” and “false”. The following configuration values are supported:
+
+Group “dcc”
+  Key “accept_chat”
+    Boolean
+    Default “false”
+  Key “accept_send”
+    Boolean
+    Default “false”
+
+Group “directories”
+  Key “downloads”
+    String
+    Default “$XDG_DATA_HOME/sushi/downloads”
+  Key “logs”
+    String
+    Default “$XDG_DATA_HOME/sushi/logs”
+
+Group “logging”
+  Key “logs”
+    Boolean
+    Default “true”
+
+Group “reconnect”
+  Key “retries”
+    Integer
+    Default “3”
+  Key “timeout”
+    Integer
+    Default “10”
+
+# vi:textwidth=80:expandtab
