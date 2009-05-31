@@ -819,7 +819,7 @@ void maki_dcc_send_emit (makiDCCSend* dcc)
 			speed = (dcc->position - dcc->resume) / duration;
 		}
 
-		maki_dbus_emit(s_dcc_send, timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->position, speed, dcc->status);
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->position, speed, dcc->status);
 	}
 	else
 	{
@@ -829,7 +829,7 @@ void maki_dcc_send_emit (makiDCCSend* dcc)
 			speed = (dcc->d.out.ack.position - dcc->resume) / duration;
 		}
 
-		maki_dbus_emit(s_dcc_send, timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->d.out.ack.position, speed, dcc->status);
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->d.out.ack.position, speed, dcc->status);
 	}
 
 	g_free(filename);

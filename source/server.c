@@ -412,7 +412,7 @@ void maki_server_free (gpointer data)
 
 		g_get_current_time(&timeval);
 
-		maki_dbus_emit(s_dcc_send, timeval.tv_sec, serv->name, maki_dcc_send_id(dcc), "", "", 0, 0, 0, 0);
+		maki_dbus_emit_dcc_send(timeval.tv_sec, serv->name, maki_dcc_send_id(dcc), "", "", 0, 0, 0, 0);
 
 		maki_dcc_send_free(dcc);
 	}
@@ -470,7 +470,7 @@ gboolean maki_server_connect (makiServer* serv)
 		sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit(s_connect, timeval.tv_sec, serv->name);
+		maki_dbus_emit_connect(timeval.tv_sec, serv->name);
 
 		if (!sashimi_connect(serv->connection, address, maki_server_config_get_integer(serv, "server", "port")))
 		{
@@ -573,8 +573,8 @@ void maki_server_connect_callback (gpointer data)
 	serv->connected = TRUE;
 
 	g_get_current_time(&timeval);
-	maki_dbus_emit(s_connected, timeval.tv_sec, serv->name);
-	maki_dbus_emit(s_nick, timeval.tv_sec, serv->name, "", maki_user_nick(serv->user));
+	maki_dbus_emit_connected(timeval.tv_sec, serv->name);
+	maki_dbus_emit_nick(timeval.tv_sec, serv->name, "", maki_user_nick(serv->user));
 
 	g_free(initial_nick);
 	g_free(name);

@@ -43,15 +43,173 @@ struct maki_dbus_class
 	GObjectClass parent;
 };
 
+enum
+{
+	s_action,
+	s_away,
+	s_away_message,
+	s_back,
+	s_banlist,
+	s_cannot_join,
+	s_connect,
+	s_connected,
+	s_ctcp,
+	s_dcc_send,
+	s_invite,
+	s_join,
+	s_kick,
+	s_list,
+	s_message,
+	s_mode,
+	s_motd,
+	s_names,
+	s_nick,
+	s_no_such,
+	s_notice,
+	s_oper,
+	s_part,
+	s_quit,
+	s_shutdown,
+	s_topic,
+	s_whois,
+	s_last
+};
+
 static guint signals[s_last];
 
-void maki_dbus_emit (guint signal_id, ...)
+void maki_dbus_emit_action (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	va_list args;
+	g_signal_emit(dbus, signals[s_action], 0, timestamp, server, nick, target, message);
+}
 
-	va_start(args, signal_id);
-	g_signal_emit_valist(dbus, signals[signal_id], 0, args);
-	va_end(args);
+void maki_dbus_emit_away (gint64 timestamp, const gchar* server)
+{
+	g_signal_emit(dbus, signals[s_away], 0, timestamp, server);
+}
+
+void maki_dbus_emit_away_message (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
+{
+	g_signal_emit(dbus, signals[s_away_message], 0, timestamp, server, nick, message);
+}
+
+void maki_dbus_emit_back (gint64 timestamp, const gchar* server)
+{
+	g_signal_emit(dbus, signals[s_back], 0, timestamp, server);
+}
+
+void maki_dbus_emit_banlist (gint64 timestamp, const gchar* server, const gchar* channel, const gchar* mask, const gchar* who, gint64 when)
+{
+	g_signal_emit(dbus, signals[s_banlist], 0, timestamp, server, channel, mask, who, when);
+}
+
+void maki_dbus_emit_cannot_join (gint64 timestamp, const gchar* server, const gchar* channel, const gchar* reason)
+{
+	g_signal_emit(dbus, signals[s_cannot_join], 0, timestamp, server, channel, reason);
+}
+
+void maki_dbus_emit_connect (gint64 timestamp, const gchar* server)
+{
+	g_signal_emit(dbus, signals[s_connect], 0, timestamp, server);
+}
+
+void maki_dbus_emit_connected (gint64 timestamp, const gchar* server)
+{
+	g_signal_emit(dbus, signals[s_connected], 0, timestamp, server);
+}
+
+void maki_dbus_emit_ctcp (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
+{
+	g_signal_emit(dbus, signals[s_ctcp], 0, timestamp, server, nick, target, message);
+}
+
+void maki_dbus_emit_dcc_send (gint64 timestamp, const gchar* server, guint64 id, const gchar* from, const gchar* filename, guint64 size, guint64 progress, guint64 speed, guint64 status)
+{
+	g_signal_emit(dbus, signals[s_dcc_send], 0, timestamp, server, id, from, filename, size, progress, speed, status);
+}
+
+void maki_dbus_emit_invite (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
+{
+	g_signal_emit(dbus, signals[s_invite], 0, timestamp, server, nick, channel, who);
+}
+
+void maki_dbus_emit_join (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel)
+{
+	g_signal_emit(dbus, signals[s_join], 0, timestamp, server, nick, channel);
+}
+
+void maki_dbus_emit_kick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who, const gchar* message)
+{
+	g_signal_emit(dbus, signals[s_kick], 0, timestamp, server, nick, channel, who, message);
+}
+
+void maki_dbus_emit_list (gint64 timestamp, const gchar* server, const gchar* channel, gint64 users, const gchar* topic)
+{
+	g_signal_emit(dbus, signals[s_list], 0, timestamp, server, channel, users, topic);
+}
+
+void maki_dbus_emit_message (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
+{
+	g_signal_emit(dbus, signals[s_message], 0, timestamp, server, nick, target, message);
+}
+
+void maki_dbus_emit_mode (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* mode, const gchar* parameter)
+{
+	g_signal_emit(dbus, signals[s_mode], 0, timestamp, server, nick, target, mode, parameter);
+}
+
+void maki_dbus_emit_motd (gint64 timestamp, const gchar* server, const gchar* message)
+{
+	g_signal_emit(dbus, signals[s_motd], 0, timestamp, server, message);
+}
+
+void maki_dbus_emit_names (gint64 timestamp, const gchar* server, const gchar* channel, gchar** nicks, gchar** prefixes)
+{
+	g_signal_emit(dbus, signals[s_names], 0, timestamp, server, channel, nicks, prefixes);
+}
+
+void maki_dbus_emit_nick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* new_nick)
+{
+	g_signal_emit(dbus, signals[s_nick], 0, timestamp, server, nick, new_nick);
+}
+
+void maki_dbus_emit_no_such (gint64 timestamp, const gchar* server, const gchar* target, const gchar* type)
+{
+	g_signal_emit(dbus, signals[s_no_such], 0, timestamp, server, target, type);
+}
+
+void maki_dbus_emit_notice (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
+{
+	g_signal_emit(dbus, signals[s_notice], 0, timestamp, server, nick, target, message);
+}
+
+void maki_dbus_emit_oper (gint64 timestamp, const gchar* server)
+{
+	g_signal_emit(dbus, signals[s_oper], 0, timestamp, server);
+}
+
+void maki_dbus_emit_part (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* message)
+{
+	g_signal_emit(dbus, signals[s_part], 0, timestamp, server, nick, channel, message);
+}
+
+void maki_dbus_emit_quit (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
+{
+	g_signal_emit(dbus, signals[s_quit], 0, timestamp, server, nick, message);
+}
+
+void maki_dbus_emit_shutdown (gint64 timestamp)
+{
+	g_signal_emit(dbus, signals[s_shutdown], 0, timestamp);
+}
+
+void maki_dbus_emit_topic (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* topic)
+{
+	g_signal_emit(dbus, signals[s_topic], 0, timestamp, server, nick, channel, topic);
+}
+
+void maki_dbus_emit_whois (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
+{
+	g_signal_emit(dbus, signals[s_whois], 0, timestamp, server, nick, message);
 }
 
 static gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gchar* channel, const gchar* message, GError** error)
@@ -73,7 +231,7 @@ static gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gch
 
 		maki_log(serv, channel, "%s %s", maki_user_nick(maki_server_user(serv)), tmp);
 
-		maki_dbus_emit(s_action, timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), channel, tmp);
+		maki_dbus_emit_action(timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), channel, tmp);
 
 		g_free(tmp);
 	}
@@ -258,7 +416,7 @@ static gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar
 		maki_server_send_printf(serv, "PRIVMSG %s :\001%s\001", target, message);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit(s_ctcp, timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), target, message);
+		maki_dbus_emit_ctcp(timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), target, message);
 		maki_log(serv, target, "=%s= %s", maki_user_nick(maki_server_user(serv)), message);
 	}
 
@@ -372,7 +530,7 @@ static gboolean maki_dbus_dcc_send_remove (makiDBus* self, const gchar* server, 
 				serv->dcc.list = g_slist_remove(serv->dcc.list, dcc);
 
 				g_get_current_time(&timeval);
-				maki_dbus_emit(s_dcc_send, timeval.tv_sec, maki_server_name(serv), maki_dcc_send_id(dcc), "", "", 0, 0, 0, 0);
+				maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(serv), maki_dcc_send_id(dcc), "", "", 0, 0, 0, 0);
 
 				maki_dcc_send_free(dcc);
 				break;
@@ -728,7 +886,7 @@ static gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar
 			GTimeVal timeval;
 
 			g_get_current_time(&timeval);
-			maki_dbus_emit(s_nick, timeval.tv_sec, maki_server_name(serv), "", maki_user_nick(maki_server_user(serv)));
+			maki_dbus_emit_nick(timeval.tv_sec, maki_server_name(serv), "", maki_user_nick(maki_server_user(serv)));
 		}
 	}
 
@@ -761,7 +919,7 @@ static gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gch
 		maki_server_send_printf(serv, "NOTICE %s :%s", target, message);
 
 		g_get_current_time(&timeval);
-		maki_dbus_emit(s_notice, timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), target, message);
+		maki_dbus_emit_notice(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), target, message);
 		maki_log(serv, target, "-%s- %s", maki_user_nick(maki_server_user(serv)), message);
 	}
 
@@ -1041,7 +1199,7 @@ static gboolean maki_dbus_shutdown (makiDBus* self, const gchar* message, GError
 	}
 
 	g_get_current_time(&timeval);
-	maki_dbus_emit(s_shutdown, timeval.tv_sec);
+	maki_dbus_emit_shutdown(timeval.tv_sec);
 
 	g_main_loop_quit(main_loop);
 
@@ -1102,7 +1260,7 @@ static gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gcha
 				GTimeVal timeval;
 
 				g_get_current_time(&timeval);
-				maki_dbus_emit(s_topic, timeval.tv_sec, maki_server_name(serv), "", channel, maki_channel_topic(chan));
+				maki_dbus_emit_topic(timeval.tv_sec, maki_server_name(serv), "", channel, maki_channel_topic(chan));
 			}
 			else
 			{
