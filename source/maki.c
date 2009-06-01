@@ -66,7 +66,7 @@ static void maki_signal (int signo)
 int main (int argc, char* argv[])
 {
 	gchar* bus_address;
-	gchar* bus_address_file;
+	gchar* bus_address_file = NULL;
 	const gchar* file;
 	GDir* servers;
 	makiInstance* inst = NULL;
@@ -138,6 +138,14 @@ int main (int argc, char* argv[])
 		goto error;
 	}
 
+	bus_address_file = g_build_filename(maki_instance_directory(inst, "config"), "bus_address", NULL);
+
+	if ((bus_address = g_strdup(g_getenv("DBUS_SESSION_BUS_ADDRESS"))) != NULL)
+	{
+		g_file_set_contents(bus_address_file, bus_address, -1, NULL);
+		g_free(bus_address);
+	}
+
 	if ((inst = maki_instance_get_default()) == NULL)
 	{
 		g_warning("%s\n", _("Could not create maki instance."));
@@ -172,16 +180,6 @@ int main (int argc, char* argv[])
 
 	g_dir_close(servers);
 
-	bus_address_file = g_build_filename(maki_instance_directory(inst, "config"), "bus_address", NULL);
-	bus_address = g_strdup(g_getenv("DBUS_SESSION_BUS_ADDRESS"));
-
-	if (bus_address != NULL)
-	{
-		g_file_set_contents(bus_address_file, bus_address, -1, NULL);
-	}
-
-	g_free(bus_address);
-
 	main_loop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(main_loop);
 	g_main_loop_unref(main_loop);
@@ -198,6 +196,12 @@ error:
 	if (inst != NULL)
 	{
 		maki_instance_free(inst);
+	}
+
+	if (bus_address_file != NULL)
+	{
+		g_unlink(bus_address_file);
+		g_free(bus_address_file);
 	}
 
 	if (dbus != NULL)
