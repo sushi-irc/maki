@@ -1,6 +1,6 @@
 include ../../Makefile.common
 
-SUSHI_CFLAGS  += -I.. $(shell $(PKG_CONFIG) --cflags glib-2.0 gmodule-2.0)
+SUSHI_CFLAGS  += $(shell $(PKG_CONFIG) --cflags glib-2.0 gmodule-2.0) -I..
 SUSHI_LDFLAGS += $(shell $(PKG_CONFIG) --libs   glib-2.0 gmodule-2.0)
 
 PLUGINS =

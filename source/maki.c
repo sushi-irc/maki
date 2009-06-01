@@ -66,7 +66,7 @@ static void maki_signal (int signo)
 int main (int argc, char* argv[])
 {
 	gchar* bus_address;
-	gchar* bus_address_file = NULL;
+	gchar* bus_address_file;
 	const gchar* file;
 	GDir* servers;
 	makiInstance* inst = NULL;
