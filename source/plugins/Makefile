@@ -17,7 +17,7 @@ all: $(LIBRARIES)
 
 install: all
 	$(INSTALL) -d -m 755 '$(DESTDIR)$(libdir)/sushi/maki/plugins'
-	$(INSTALL) -m 644 $(LIBRARIES) '$(DESTDIR)$(libdir)/sushi/maki/plugins'
+	test -z '$(LIBRARIES)' || $(INSTALL) -m 644 $(LIBRARIES) '$(DESTDIR)$(libdir)/sushi/maki/plugins'
 
 clean:
 	$(RM) -f $(LIBRARIES)
