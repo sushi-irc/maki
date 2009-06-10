@@ -442,7 +442,7 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	dcc->user = maki_user_ref(user);
 
 	dcc->channel = NULL;
-	dcc->path = g_build_filename(downloads_dir, maki_user_nick(dcc->user), file_name, NULL);
+	dcc->path = g_build_filename(downloads_dir, maki_server_name(dcc->server), maki_user_nick(dcc->user), file_name, NULL);
 	dcc->position = 0;
 	dcc->size = file_size;
 	dcc->resume = 0;
