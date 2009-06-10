@@ -140,8 +140,6 @@ makiServer* maki_server_new (const gchar* name)
 	serv->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, NULL);
 	serv->logs = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_log_free);
 	serv->stun.addrlen = 0;
-	serv->dcc.id = 0;
-	serv->dcc.list = NULL;
 
 	path = g_build_filename(maki_instance_directory(inst, "servers"), name, NULL);
 	g_key_file_load_from_file(serv->key_file, path, G_KEY_FILE_NONE, NULL);
@@ -295,13 +293,6 @@ gboolean maki_server_config_exists (makiServer* serv, const gchar* group, const 
 	return g_key_file_has_key(serv->key_file, group, key, NULL);
 }
 
-guint64 maki_server_dcc_get_id (makiServer* serv)
-{
-	serv->dcc.id++;
-
-	return serv->dcc.id;
-}
-
 makiUser* maki_server_user (makiServer* serv)
 {
 	return serv->user;
@@ -395,7 +386,6 @@ gboolean maki_server_send_printf (makiServer* serv, const gchar* format, ...)
 /* This function gets called when a server is removed from the servers hash table. */
 void maki_server_free (gpointer data)
 {
-	GSList* list;
 	makiServer* serv = data;
 
 	maki_server_disconnect(serv, NULL);
@@ -404,20 +394,6 @@ void maki_server_free (gpointer data)
 	{
 		i_source_remove(serv->reconnect.source, serv->main_context);
 	}
-
-	for (list = serv->dcc.list; list != NULL; list = list->next)
-	{
-		GTimeVal timeval;
-		makiDCCSend* dcc = list->data;
-
-		g_get_current_time(&timeval);
-
-		maki_dbus_emit_dcc_send(timeval.tv_sec, serv->name, maki_dcc_send_id(dcc), "", "", 0, 0, 0, 0);
-
-		maki_dcc_send_free(dcc);
-	}
-
-	g_slist_free(serv->dcc.list);
 
 	g_main_loop_quit(serv->main_loop);
 

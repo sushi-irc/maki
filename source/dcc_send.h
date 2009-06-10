@@ -42,6 +42,14 @@ gboolean maki_dcc_send_accept (makiDCCSend*);
 gboolean maki_dcc_send_resume (makiDCCSend*, const gchar*, guint16, goffset, guint32);
 
 guint64 maki_dcc_send_id (makiDCCSend*);
+goffset maki_dcc_send_size (makiDCCSend*);
+goffset maki_dcc_send_progress (makiDCCSend*);
+guint64 maki_dcc_send_speed (makiDCCSend*);
+guint maki_dcc_send_status (makiDCCSend*);
+makiServer* maki_dcc_send_server (makiDCCSend*);
+makiUser* maki_dcc_send_user (makiDCCSend*);
+gchar* maki_dcc_send_filename (makiDCCSend*);
+
 void maki_dcc_send_emit (makiDCCSend*);
 
 #endif

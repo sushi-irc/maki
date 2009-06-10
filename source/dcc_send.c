@@ -437,7 +437,7 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	dcc = g_new(makiDCCSend, 1);
 
 	dcc->server = serv;
-	dcc->id = maki_server_dcc_get_id(serv);
+	dcc->id = maki_instance_get_dcc_send_id(inst);
 
 	dcc->user = maki_user_ref(user);
 
@@ -534,7 +534,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	dcc = g_new(makiDCCSend, 1);
 
 	dcc->server = serv;
-	dcc->id = maki_server_dcc_get_id(serv);
+	dcc->id = maki_instance_get_dcc_send_id(inst);
 
 	dcc->user = maki_user_ref(user);
 
@@ -800,16 +800,30 @@ guint64 maki_dcc_send_id (makiDCCSend* dcc)
 	return dcc->id;
 }
 
-void maki_dcc_send_emit (makiDCCSend* dcc)
+goffset maki_dcc_send_size (makiDCCSend* dcc)
+{
+	return dcc->size;
+}
+
+goffset maki_dcc_send_progress (makiDCCSend* dcc)
+{
+	if (dcc->status & s_incoming)
+	{
+		return dcc->position;
+	}
+	else
+	{
+		return dcc->d.out.ack.position;
+	}
+}
+
+guint64 maki_dcc_send_speed (makiDCCSend* dcc)
 {
 	glong duration;
 	guint64 speed = 0;
-	gchar* filename;
 	GTimeVal timeval;
 
 	g_get_current_time(&timeval);
-
-	filename = g_path_get_basename(dcc->path);
 
 	if (dcc->status & s_incoming)
 	{
@@ -818,8 +832,6 @@ void maki_dcc_send_emit (makiDCCSend* dcc)
 			duration = MAX(timeval.tv_sec - dcc->start_time.tv_sec, 1);
 			speed = (dcc->position - dcc->resume) / duration;
 		}
-
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->position, speed, dcc->status);
 	}
 	else
 	{
@@ -828,9 +840,40 @@ void maki_dcc_send_emit (makiDCCSend* dcc)
 			duration = MAX(timeval.tv_sec - dcc->start_time.tv_sec, 1);
 			speed = (dcc->d.out.ack.position - dcc->resume) / duration;
 		}
-
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_server_name(dcc->server), dcc->id, maki_user_nick(dcc->user), filename, dcc->size, dcc->d.out.ack.position, speed, dcc->status);
 	}
+
+	return speed;
+}
+
+guint maki_dcc_send_status (makiDCCSend* dcc)
+{
+	return dcc->status;
+}
+
+makiServer* maki_dcc_send_server (makiDCCSend* dcc)
+{
+	return dcc->server;
+}
+
+makiUser* maki_dcc_send_user (makiDCCSend* dcc)
+{
+	return dcc->user;
+}
+
+gchar* maki_dcc_send_filename (makiDCCSend* dcc)
+{
+	return g_path_get_basename(dcc->path);
+}
+
+void maki_dcc_send_emit (makiDCCSend* dcc)
+{
+	gchar* filename;
+	GTimeVal timeval;
+
+	g_get_current_time(&timeval);
+	filename = maki_dcc_send_filename(dcc);
+
+	maki_dbus_emit_dcc_send(timeval.tv_sec, dcc->id, maki_server_name(dcc->server), maki_user_from(dcc->user), filename, dcc->size, maki_dcc_send_progress(dcc), maki_dcc_send_speed(dcc), dcc->status);
 
 	g_free(filename);
 }

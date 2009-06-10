@@ -184,6 +184,7 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 			goffset file_size = 0;
 			guint32 token = 0;
 			makiDCCSend* dcc;
+			makiInstance* inst = maki_instance_get_default();
 
 			address = g_ascii_strtoull(args[0], NULL, 10);
 			port = g_ascii_strtoull(args[1], NULL, 10);
@@ -200,7 +201,7 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 
 			dcc = maki_dcc_send_new_in(serv, user, file_name, address, port, file_size, token);
 
-			serv->dcc.list = g_slist_prepend(serv->dcc.list, dcc);
+			maki_instance_add_dcc_send(inst, dcc);
 		}
 
 		g_strfreev(args);
@@ -232,7 +233,7 @@ static void maki_in_dcc_resume_accept (makiServer* serv, glong timestamp, makiUs
 			guint16 port;
 			goffset position;
 			guint32 token = 0;
-			GSList* list;
+			makiInstance* inst = maki_instance_get_default();
 
 			port = g_ascii_strtoull(args[0], NULL, 10);
 			position = g_ascii_strtoull(args[1], NULL, 10);
@@ -242,25 +243,18 @@ static void maki_in_dcc_resume_accept (makiServer* serv, glong timestamp, makiUs
 				token = g_ascii_strtoull(args[2], NULL, 10);
 			}
 
-			for (list = serv->dcc.list; list != NULL; list = list->next)
+			if (maki_instance_resume_dcc_send(inst, file_name, port, position, token))
 			{
-				makiDCCSend* dcc = list->data;
-
-				if (maki_dcc_send_resume(dcc, file_name, port, position, token))
+				if (is_resume)
 				{
-					if (is_resume)
+					if (token > 0)
 					{
-						if (token > 0)
-						{
-							maki_server_send_printf(serv, "PRIVMSG %s :\001DCC ACCEPT %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(user), file_name, port, position, token);
-						}
-						else
-						{
-							maki_server_send_printf(serv, "PRIVMSG %s :\001DCC ACCEPT %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(user), file_name, port, position);
-						}
+						maki_server_send_printf(serv, "PRIVMSG %s :\001DCC ACCEPT %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(user), file_name, port, position, token);
 					}
-
-					break;
+					else
+					{
+						maki_server_send_printf(serv, "PRIVMSG %s :\001DCC ACCEPT %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(user), file_name, port, position);
+					}
 				}
 			}
 		}

@@ -58,16 +58,21 @@
 		</method>
 
 		<method name="dcc_sends">
-			<arg name="server" type="s" />
+			<arg name="ids" type="at" direction="out" />
+			<arg name="servers" type="as" direction="out" />
+			<arg name="froms" type="as" direction="out" />
+			<arg name="filenames" type="as" direction="out" />
+			<arg name="sizes" type="at" direction="out" />
+			<arg name="progresses" type="at" direction="out" />
+			<arg name="speeds" type="at" direction="out" />
+			<arg name="statuses" type="at" direction="out" />
 		</method>
 
 		<method name="dcc_send_accept">
-			<arg name="server" type="s" />
 			<arg name="id" type="t" />
 		</method>
 
 		<method name="dcc_send_remove">
-			<arg name="server" type="s" />
 			<arg name="id" type="t" />
 		</method>
 

@@ -36,6 +36,14 @@ struct maki_instance
 	GHashTable* directories;
 
 	GModule* plugins[1];
+
+	struct
+	{
+		guint64 id;
+		GSList* list;
+		GMutex* mutex;
+	}
+	dcc;
 };
 
 makiInstance* maki_instance_get_default (void)
@@ -151,6 +159,10 @@ makiInstance* maki_instance_new (void)
 
 	inst->plugins[0] = maki_plugin_load("nm");
 
+	inst->dcc.id = 0;
+	inst->dcc.list = NULL;
+	inst->dcc.mutex = g_mutex_new();
+
 	return inst;
 }
 
@@ -239,8 +251,176 @@ void maki_instance_servers_iter (makiInstance* inst, GHashTableIter* iter)
 	g_hash_table_iter_init(iter, inst->servers);
 }
 
+guint64 maki_instance_get_dcc_send_id (makiInstance* inst)
+{
+	guint64 id;
+
+	g_mutex_lock(inst->dcc.mutex);
+
+	inst->dcc.id++;
+	id = inst->dcc.id;
+
+	g_mutex_unlock(inst->dcc.mutex);
+
+	return id;
+}
+
+void maki_instance_add_dcc_send (makiInstance* inst, makiDCCSend* dcc)
+{
+	g_mutex_lock(inst->dcc.mutex);
+
+	inst->dcc.list = g_slist_prepend(inst->dcc.list, dcc);
+
+	g_mutex_unlock(inst->dcc.mutex);
+}
+
+gboolean maki_instance_accept_dcc_send (makiInstance* inst, guint64 id)
+{
+	gboolean ret = FALSE;
+	GSList* list;
+
+	g_mutex_lock(inst->dcc.mutex);
+
+	for (list = inst->dcc.list; list != NULL; list = list->next)
+	{
+		makiDCCSend* dcc = list->data;
+
+		if (maki_dcc_send_id(dcc) == id)
+		{
+			maki_dcc_send_accept(dcc);
+
+			ret = TRUE;
+			break;
+		}
+	}
+
+	g_mutex_unlock(inst->dcc.mutex);
+
+	return ret;
+}
+
+gboolean maki_instance_resume_dcc_send (makiInstance* inst, gchar* file_name, guint16 port, goffset position, guint32 token)
+{
+	gboolean ret = FALSE;
+	GSList* list;
+
+	g_mutex_lock(inst->dcc.mutex);
+
+	for (list = inst->dcc.list; list != NULL; list = list->next)
+	{
+		makiDCCSend* dcc = list->data;
+
+		if (maki_dcc_send_resume(dcc, file_name, port, position, token))
+		{
+			ret = TRUE;
+			break;
+		}
+	}
+
+	g_mutex_unlock(inst->dcc.mutex);
+
+	return ret;
+}
+
+gboolean maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
+{
+	gboolean ret = FALSE;
+	GSList* list;
+
+	g_mutex_lock(inst->dcc.mutex);
+
+	for (list = inst->dcc.list; list != NULL; list = list->next)
+	{
+		makiDCCSend* dcc = list->data;
+
+		if (maki_dcc_send_id(dcc) == id)
+		{
+			GTimeVal timeval;
+
+			inst->dcc.list = g_slist_remove(inst->dcc.list, dcc);
+
+			g_get_current_time(&timeval);
+			maki_dbus_emit_dcc_send(timeval.tv_sec, maki_dcc_send_id(dcc), "", "", "", 0, 0, 0, 0);
+
+			maki_dcc_send_free(dcc);
+
+			ret = TRUE;
+			break;
+		}
+	}
+
+	g_mutex_unlock(inst->dcc.mutex);
+
+	return ret;
+}
+
+guint maki_instance_dcc_sends_count (makiInstance* inst)
+{
+	guint ret;
+
+	g_mutex_lock(inst->dcc.mutex);
+
+	ret = g_slist_length(inst->dcc.list);
+
+	g_mutex_unlock(inst->dcc.mutex);
+
+	return ret;
+}
+
+void maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** servers, gchar*** froms, gchar*** filenames, GArray** sizes, GArray** progresses, GArray** speeds, GArray** statuses)
+{
+	guint i;
+	GSList* list;
+
+	g_mutex_lock(inst->dcc.mutex);
+
+	for (list = inst->dcc.list, i = 0; list != NULL; list = list->next, i++)
+	{
+		guint64 id;
+		guint64 size;
+		guint64 progress;
+		guint64 speed;
+		guint64 status;
+		makiDCCSend* dcc = list->data;
+
+		id = maki_dcc_send_id(dcc);
+		size = maki_dcc_send_size(dcc);
+		progress = maki_dcc_send_progress(dcc);
+		speed = maki_dcc_send_speed(dcc);
+		status = maki_dcc_send_status(dcc);
+
+		*ids = g_array_append_val(*ids, id);
+		(*servers)[i] = g_strdup(maki_server_name(maki_dcc_send_server(dcc)));
+		(*froms)[i] = g_strdup(maki_user_from(maki_dcc_send_user(dcc)));
+		(*filenames)[i] = maki_dcc_send_filename(dcc);
+		*sizes = g_array_append_val(*sizes, size);
+		*progresses = g_array_append_val(*progresses, progress);
+		*speeds = g_array_append_val(*speeds, speed);
+		*statuses = g_array_append_val(*statuses, status);
+	}
+
+	g_mutex_unlock(inst->dcc.mutex);
+}
+
 void maki_instance_free (makiInstance* inst)
 {
+	GSList* list;
+
+	for (list = inst->dcc.list; list != NULL; list = list->next)
+	{
+		GTimeVal timeval;
+		makiDCCSend* dcc = list->data;
+
+		g_get_current_time(&timeval);
+
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_dcc_send_id(dcc), "", "", "", 0, 0, 0, 0);
+
+		maki_dcc_send_free(dcc);
+	}
+
+	g_slist_free(inst->dcc.list);
+	g_mutex_free(inst->dcc.mutex);
+
 	if (inst->plugins[0] != NULL)
 	{
 		maki_plugin_unload(inst->plugins[0]);

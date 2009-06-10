@@ -83,13 +83,6 @@ struct maki_server
 		socklen_t addrlen;
 	}
 	stun;
-
-	struct
-	{
-		guint64 id;
-		GSList* list;
-	}
-	dcc;
 };
 
 makiServer* maki_server_new (const gchar*);
@@ -106,7 +99,6 @@ gboolean maki_server_config_remove_group (makiServer*, const gchar*);
 gchar** maki_server_config_get_keys (makiServer*, const gchar*);
 gchar** maki_server_config_get_groups (makiServer*);
 gboolean maki_server_config_exists (makiServer*, const gchar*, const gchar*);
-guint64 maki_server_dcc_get_id (makiServer*);
 makiUser* maki_server_user (makiServer*);
 void maki_server_add_user (makiServer*, const gchar*, makiUser*);
 makiUser* maki_server_get_user (makiServer*, const gchar*);
