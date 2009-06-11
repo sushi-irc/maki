@@ -1,0 +1,7 @@
+                                    SOLARIS
+
+* sed 's/-std=c99//' Makefile.common
+* gmake CC=gcc GREP=ggrep LDFLAGS+=-lsocket
+* gmake INSTALL=ginstall install
+
+# vi:textwidth=80:expandtab

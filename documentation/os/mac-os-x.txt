@@ -1,0 +1,15 @@
+* Install MacPorts (AKA darwin ports)
+* Install depends by ports
+* You have to install X for GTK
+
+Running
+
+* start X (simply run X.app)
+* if you've compiled X support into DBus you can now run maki/tekka
+* if you haven't a dbus with X support the autolaunch of the
+  session bus will fail and you've to start it on your own:
+  % dbus-launch xterm
+  in the new term:
+  % maki -d
+  % tekka
+
