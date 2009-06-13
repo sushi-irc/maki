@@ -1,0 +1,83 @@
+                                   PLUGIN API
+
+Each client should provide its own sushi plugin interface represented by a class
+called sushi.Plugin. This document only covers the Python plugin interface.
+
+__init__ ()
+
+  Called when the plugin is loaded.
+
+unload ()
+
+  Called when the plugin is unloaded.
+
+get_bus ()
+
+  Returns a DBus interface connected to ''de.ikkoku.sushi'' or ''None''.
+
+get_nick (server)
+
+  Returns the nick on ''server'' or ''None''.
+
+add_command (command, callback)
+
+  Connects the given ''command'' to ''callback''. The callback will be called
+  with the three arguments ''server'', ''channel'' and ''args''. ''server'' and
+  ''channel'' are strings, while ''args'' is a string array containing the
+  command parameters (without the command itself). Returns ''True'' (on
+  success) or ''False''.
+
+remove_command (command, callback)
+
+  Disconnects the given ''command'' from ''callback''. Returns ''True'' (on
+  success) or ''False''.
+
+set_option (key, value)
+
+  Sets the option ''key'' to the given ''value''. Allows plugins to save
+  configuration values to a file.
+
+get_option (key)
+
+  Returns the value of option ''key'' from the configuration file or ''None''.
+
+display_error (message)
+
+  Displays an error ''message''.
+
+                                 EXAMPLE PLUGIN
+
+import sushi
+
+plugin_info = (
+  "Does foo.",
+  "1.0",
+  "Anony Mouse"
+)
+
+class foo (sushi.Plugin):
+
+  def __init__ (self):
+    sushi.Plugin.__init__(self, "foo")
+
+    self.do_foo = bool(self.get_option("do_foo"))
+
+    self.add_command("foo", self.foo_cb)
+    self.connect_signal("message", self.message_cb)
+
+  def unload (self):
+    self.disconnect_signal("message", self.message_cb)
+    self.remove_command("foo", self.foo_cb)
+
+  def foo_cb (self, server, target, args):
+    self.set_option("do_foo", str(not self.do_foo))
+
+  def message_cb (self, time, server, from_str, channel, text):
+    nick = from_str.split("!")[0]
+
+    if nick == self.get_nick(server):
+      self.display_error("foo")
+    else:
+      self.display_error("bar")
+
+# vi:textwidth=80:expandtab

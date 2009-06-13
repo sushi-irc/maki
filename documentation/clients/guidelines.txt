@@ -1,0 +1,17 @@
+                               CLIENT GUIDELINES
+
+Clients should -- to the extent possible -- only rely on signals. For example, a
+new window should be opened whenever a join signal is received and not only when
+the user joins a channel in the client (for example, by typing "/join #foo").
+
+Clients should not close windows automatically. For example, on receiving part
+or quit signals, the corresponding windows should remain open.
+
+Clients should forward unknown commands via the raw method. For example, if the
+user types /kline user@host, the client should call raw("KLINE user@host").
+
+Clients should check for the environment variable SUSHI_REMOTE_BUS_ADDRESS and
+use its content as the bus address to connect to. If it is not set, they should
+simply connect to the session bus.
+
+# vi:textwidth=80:expandtab
