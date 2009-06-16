@@ -84,6 +84,8 @@ maki_dbus_server_new_connection_cb (DBusServer* server, DBusConnection* connecti
 
 	g_print("new connection %p\n", connection);
 
+	dbus_connection_set_allow_anonymous(connection, TRUE);
+
 	dbus_connection_register_fallback(connection, DBUS_PATH_LOCAL, &vtable, dserv);
 
 	dbus_connection_ref(connection);
