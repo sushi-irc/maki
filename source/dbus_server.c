@@ -108,7 +108,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "away"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "away"))
 	{
 		gchar* server;
 		gchar* message;
@@ -124,7 +124,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "back"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "back"))
 	{
 		gchar* server;
 
@@ -138,7 +138,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "channel_nicks"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "channel_nicks"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -163,7 +163,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "channels"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "channels"))
 	{
 		gchar* server;
 
@@ -183,7 +183,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "config_get"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "config_get"))
 	{
 		gchar* group;
 		gchar* key;
@@ -205,7 +205,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "config_set"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "config_set"))
 	{
 		gchar* group;
 		gchar* key;
@@ -223,7 +223,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "connect"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "connect"))
 	{
 		gchar* server;
 
@@ -235,7 +235,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "ctcp"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "ctcp"))
 	{
 		gchar* server;
 		gchar* target;
@@ -253,7 +253,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "dcc_send"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "dcc_send"))
 	{
 		gchar* server;
 		gchar* target;
@@ -271,8 +271,42 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	/* FIXME dcc_sends */
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "dcc_send_accept"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "dcc_sends"))
+	{
+		GArray* ids;
+		gchar** servers;
+		gchar** froms;
+		gchar** filenames;
+		GArray* sizes;
+		GArray* progresses;
+		GArray* speeds;
+		GArray* statuses;
+
+		maki_dbus_dcc_sends(dbus, &ids, &servers, &froms, &filenames, &sizes, &progresses, &speeds, &statuses, NULL);
+
+		maki_dbus_server_reply(connection, msg,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(ids->data), ids->len,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &servers, g_strv_length(servers),
+			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &froms, g_strv_length(froms),
+			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &filenames, g_strv_length(filenames),
+			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(sizes->data), sizes->len,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(progresses->data), progresses->len,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(speeds->data), speeds->len,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(statuses->data), statuses->len,
+			DBUS_TYPE_INVALID);
+
+		g_array_free(ids, TRUE);
+		g_strfreev(servers);
+		g_strfreev(froms);
+		g_strfreev(filenames);
+		g_array_free(sizes, TRUE);
+		g_array_free(progresses, TRUE);
+		g_array_free(speeds, TRUE);
+		g_array_free(statuses, TRUE);
+
+		ret = DBUS_HANDLER_RESULT_HANDLED;
+	}
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "dcc_send_accept"))
 	{
 		guint64 id;
 
@@ -286,7 +320,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "dcc_send_remove"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "dcc_send_remove"))
 	{
 		guint64 id;
 
@@ -300,7 +334,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "ignore"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "ignore"))
 	{
 		gchar* server;
 		gchar* pattern;
@@ -316,7 +350,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "ignores"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "ignores"))
 	{
 		gchar* server;
 
@@ -336,7 +370,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "invite"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "invite"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -354,7 +388,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "join"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "join"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -372,7 +406,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "kick"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "kick"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -392,7 +426,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "list"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "list"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -408,7 +442,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "log"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "log"))
 	{
 		gchar* server;
 		gchar* target;
@@ -432,7 +466,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "message"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "message"))
 	{
 		gchar* server;
 		gchar* target;
@@ -450,7 +484,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "mode"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "mode"))
 	{
 		gchar* server;
 		gchar* target;
@@ -468,7 +502,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "names"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "names"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -484,7 +518,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "nick"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "nick"))
 	{
 		gchar* server;
 		gchar* nick;
@@ -500,7 +534,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "nickserv"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "nickserv"))
 	{
 		gchar* server;
 
@@ -514,7 +548,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "notice"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "notice"))
 	{
 		gchar* server;
 		gchar* target;
@@ -532,7 +566,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "oper"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "oper"))
 	{
 		gchar* server;
 		gchar* name;
@@ -550,7 +584,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "part"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "part"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -568,7 +602,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "quit"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "quit"))
 	{
 		gchar* server;
 		gchar* message;
@@ -584,7 +618,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "raw"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "raw"))
 	{
 		gchar* server;
 		gchar* command;
@@ -600,7 +634,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_get"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_get"))
 	{
 		gchar* server;
 		gchar* group;
@@ -624,7 +658,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_get_list"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_get_list"))
 	{
 		gchar* server;
 		gchar* group;
@@ -648,7 +682,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_list"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_list"))
 	{
 		gchar* server;
 		gchar* group;
@@ -670,7 +704,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_remove"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_remove"))
 	{
 		gchar* server;
 		gchar* group;
@@ -688,7 +722,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_rename"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_rename"))
 	{
 		gchar* old;
 		gchar* new;
@@ -704,7 +738,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_set"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_set"))
 	{
 		gchar* server;
 		gchar* group;
@@ -724,8 +758,30 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	/* FIXME server_set_list */
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "servers"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "server_set_list"))
+	{
+		gchar* server;
+		gchar* group;
+		gchar* key;
+		gchar** list;
+		gint list_len;
+
+		dbus_message_get_args(msg, NULL,
+			DBUS_TYPE_STRING, &server,
+			DBUS_TYPE_STRING, &group,
+			DBUS_TYPE_STRING, &key,
+			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &list, &list_len,
+			DBUS_TYPE_INVALID);
+
+		maki_dbus_server_set_list(dbus, server, group, key, list, NULL);
+
+		dbus_free_string_array(list);
+
+		maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
+
+		ret = DBUS_HANDLER_RESULT_HANDLED;
+	}
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "servers"))
 	{
 		gchar** servers;
 
@@ -739,7 +795,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "shutdown"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "shutdown"))
 	{
 		gchar* message;
 
@@ -753,7 +809,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "support_chantypes"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "support_chantypes"))
 	{
 		gchar* server;
 
@@ -773,7 +829,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "support_prefix"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "support_prefix"))
 	{
 		gchar* server;
 
@@ -793,7 +849,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "topic"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "topic"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -811,7 +867,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "unignore"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "unignore"))
 	{
 		gchar* server;
 		gchar* pattern;
@@ -827,7 +883,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "user_away"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "user_away"))
 	{
 		gchar* server;
 		gchar* nick;
@@ -847,7 +903,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "user_channel_mode"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "user_channel_mode"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -871,7 +927,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "user_channel_prefix"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "user_channel_prefix"))
 	{
 		gchar* server;
 		gchar* channel;
@@ -895,7 +951,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "version"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "version"))
 	{
 		GArray* version;
 
@@ -909,7 +965,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "who"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "who"))
 	{
 		gchar* server;
 		gchar* mask;
@@ -927,7 +983,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "whois"))
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "whois"))
 	{
 		gchar* server;
 		gchar* mask;
