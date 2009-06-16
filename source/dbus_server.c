@@ -163,8 +163,33 @@ maki_dbus_server_address (makiDBusServer* dserv)
 	return dserv->address;
 }
 
-GSList*
-maki_dbus_server_connections (makiDBusServer* dserv)
+void
+maki_dbus_server_emit (makiDBusServer* dserv, const gchar* name, gint type, ...)
 {
-	return dserv->connections;
+	if (dserv != NULL)
+	{
+		va_list ap;
+		DBusMessage* message;
+		GSList* list;
+
+		g_print("SIGNAL /de/ikkoku/sushi: de.ikkoku.sushi %s\n", name);
+
+		va_start(ap, type);
+
+		message = dbus_message_new_signal("/de/ikkoku/sushi", "de.ikkoku.sushi", name);
+		dbus_message_set_sender(message, "de.ikkoku.sushi");
+		dbus_message_append_args_valist(message, type, ap);
+
+		for (list = dserv->connections; list != NULL; list = list->next)
+		{
+			DBusConnection* connection = list->data;
+
+			dbus_connection_send(connection, message, NULL);
+		}
+
+		dbus_message_unref(message);
+
+		va_end(ap);
+	}
 }
+

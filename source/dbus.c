@@ -80,136 +80,331 @@ static guint signals[s_last];
 void maki_dbus_emit_action (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_action], 0, timestamp, server, nick, target, message);
+
+	maki_dbus_server_emit(dbus_server, "action",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &target,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_away (gint64 timestamp, const gchar* server)
 {
 	g_signal_emit(dbus, signals[s_away], 0, timestamp, server);
+
+	maki_dbus_server_emit(dbus_server, "away",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_away_message (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_away_message], 0, timestamp, server, nick, message);
+
+	maki_dbus_server_emit(dbus_server, "away_message",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_back (gint64 timestamp, const gchar* server)
 {
 	g_signal_emit(dbus, signals[s_back], 0, timestamp, server);
+
+	maki_dbus_server_emit(dbus_server, "back",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_banlist (gint64 timestamp, const gchar* server, const gchar* channel, const gchar* mask, const gchar* who, gint64 when)
 {
 	g_signal_emit(dbus, signals[s_banlist], 0, timestamp, server, channel, mask, who, when);
+
+	maki_dbus_server_emit(dbus_server, "banlist",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &channel,
+		DBUS_TYPE_STRING, &mask,
+		DBUS_TYPE_STRING, &who,
+		DBUS_TYPE_INT64, &when,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_cannot_join (gint64 timestamp, const gchar* server, const gchar* channel, const gchar* reason)
 {
 	g_signal_emit(dbus, signals[s_cannot_join], 0, timestamp, server, channel, reason);
+
+	maki_dbus_server_emit(dbus_server, "cannot_join",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &channel,
+		DBUS_TYPE_STRING, &reason,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_connect (gint64 timestamp, const gchar* server)
 {
 	g_signal_emit(dbus, signals[s_connect], 0, timestamp, server);
+
+	maki_dbus_server_emit(dbus_server, "connect",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_connected (gint64 timestamp, const gchar* server)
 {
 	g_signal_emit(dbus, signals[s_connected], 0, timestamp, server);
+
+	maki_dbus_server_emit(dbus_server, "connected",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_ctcp (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_ctcp], 0, timestamp, server, nick, target, message);
+
+	maki_dbus_server_emit(dbus_server, "ctcp",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &target,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_dcc_send (gint64 timestamp, guint64 id, const gchar* server, const gchar* from, const gchar* filename, guint64 size, guint64 progress, guint64 speed, guint64 status)
 {
 	g_signal_emit(dbus, signals[s_dcc_send], 0, timestamp, id, server, from, filename, size, progress, speed, status);
+
+	maki_dbus_server_emit(dbus_server, "dcc_send",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_UINT64, &id,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &from,
+		DBUS_TYPE_STRING, &filename,
+		DBUS_TYPE_UINT64, &size,
+		DBUS_TYPE_UINT64, &progress,
+		DBUS_TYPE_UINT64, &speed,
+		DBUS_TYPE_UINT64, &status,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_invite (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
 {
 	g_signal_emit(dbus, signals[s_invite], 0, timestamp, server, nick, channel, who);
+
+	maki_dbus_server_emit(dbus_server, "invite",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &channel,
+		DBUS_TYPE_STRING, &who,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_join (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel)
 {
 	g_signal_emit(dbus, signals[s_join], 0, timestamp, server, nick, channel);
+
+	maki_dbus_server_emit(dbus_server, "join",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &channel,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_kick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_kick], 0, timestamp, server, nick, channel, who, message);
+
+	maki_dbus_server_emit(dbus_server, "kick",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &channel,
+		DBUS_TYPE_STRING, &who,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_list (gint64 timestamp, const gchar* server, const gchar* channel, gint64 users, const gchar* topic)
 {
 	g_signal_emit(dbus, signals[s_list], 0, timestamp, server, channel, users, topic);
+
+	maki_dbus_server_emit(dbus_server, "list",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &channel,
+		DBUS_TYPE_INT64, &users,
+		DBUS_TYPE_STRING, &topic,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_message (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_message], 0, timestamp, server, nick, target, message);
+
+	maki_dbus_server_emit(dbus_server, "message",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &target,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_mode (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* mode, const gchar* parameter)
 {
 	g_signal_emit(dbus, signals[s_mode], 0, timestamp, server, nick, target, mode, parameter);
+
+	maki_dbus_server_emit(dbus_server, "mode",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &target,
+		DBUS_TYPE_STRING, &mode,
+		DBUS_TYPE_STRING, &parameter,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_motd (gint64 timestamp, const gchar* server, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_motd], 0, timestamp, server, message);
+
+	maki_dbus_server_emit(dbus_server, "motd",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_names (gint64 timestamp, const gchar* server, const gchar* channel, gchar** nicks, gchar** prefixes)
 {
 	g_signal_emit(dbus, signals[s_names], 0, timestamp, server, channel, nicks, prefixes);
+
+	maki_dbus_server_emit(dbus_server, "names",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &channel,
+		DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &nicks, g_strv_length(nicks),
+		DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &prefixes, g_strv_length(prefixes),
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_nick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* new_nick)
 {
 	g_signal_emit(dbus, signals[s_nick], 0, timestamp, server, nick, new_nick);
+
+	maki_dbus_server_emit(dbus_server, "nick",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &new_nick,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_no_such (gint64 timestamp, const gchar* server, const gchar* target, const gchar* type)
 {
 	g_signal_emit(dbus, signals[s_no_such], 0, timestamp, server, target, type);
+
+	maki_dbus_server_emit(dbus_server, "no_such",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &target,
+		DBUS_TYPE_STRING, &type,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_notice (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_notice], 0, timestamp, server, nick, target, message);
+
+	maki_dbus_server_emit(dbus_server, "notice",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &target,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_oper (gint64 timestamp, const gchar* server)
 {
 	g_signal_emit(dbus, signals[s_oper], 0, timestamp, server);
+
+	maki_dbus_server_emit(dbus_server, "oper",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_part (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_part], 0, timestamp, server, nick, channel, message);
+
+	maki_dbus_server_emit(dbus_server, "part",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &channel,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_quit (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_quit], 0, timestamp, server, nick, message);
+
+	maki_dbus_server_emit(dbus_server, "quit",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_shutdown (gint64 timestamp)
 {
 	g_signal_emit(dbus, signals[s_shutdown], 0, timestamp);
+
+	maki_dbus_server_emit(dbus_server, "shutdown",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_topic (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* topic)
 {
 	g_signal_emit(dbus, signals[s_topic], 0, timestamp, server, nick, channel, topic);
+
+	maki_dbus_server_emit(dbus_server, "topic",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &channel,
+		DBUS_TYPE_STRING, &topic,
+		DBUS_TYPE_INVALID);
 }
 
 void maki_dbus_emit_whois (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
 {
 	g_signal_emit(dbus, signals[s_whois], 0, timestamp, server, nick, message);
+
+	maki_dbus_server_emit(dbus_server, "whois",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &nick,
+		DBUS_TYPE_STRING, &message,
+		DBUS_TYPE_INVALID);
 }
 
 static gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gchar* channel, const gchar* message, GError** error)

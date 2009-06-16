@@ -40,6 +40,7 @@ makiDBusServer* maki_dbus_server_new (void);
 void maki_dbus_server_free (makiDBusServer*);
 
 const gchar* maki_dbus_server_address (makiDBusServer*);
-GSList* maki_dbus_server_connections (makiDBusServer*);
+
+void maki_dbus_server_emit (makiDBusServer*, const gchar*, gint, ...);
 
 #endif
