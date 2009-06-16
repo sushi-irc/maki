@@ -56,9 +56,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* messa
 	DBusHandlerResult ret = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 	makiDBusServer* dserv = data;
 
-	g_print("handling connection %p message %p\n", connection, message);
-
-	g_print("path %s\ninterface %s\nmember %s\n", dbus_message_get_path(message), dbus_message_get_interface(message), dbus_message_get_member(message));
+	g_print("METHOD %s: %s %s\n", dbus_message_get_path(message), dbus_message_get_interface(message), dbus_message_get_member(message));
 
 	if (strcmp(dbus_message_get_path(message), DBUS_PATH_LOCAL) == 0)
 	{

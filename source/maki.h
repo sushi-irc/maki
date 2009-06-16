@@ -55,6 +55,7 @@
 extern gboolean opt_verbose;
 
 extern makiDBus* dbus;
+extern makiDBusServer* dbus_server;
 extern GMainLoop* main_loop;
 
 #endif

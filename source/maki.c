@@ -39,6 +39,7 @@
 gboolean opt_verbose = FALSE;
 
 makiDBus* dbus = NULL;
+makiDBusServer* dbus_server = NULL;
 GMainLoop* main_loop = NULL;
 
 static void maki_signal (int signo)
@@ -65,8 +66,7 @@ static void maki_signal (int signo)
 
 int main (int argc, char* argv[])
 {
-	gchar* bus_address;
-	gchar* bus_address_file;
+	gchar* bus_address_file = NULL;
 	const gchar* file;
 	GDir* servers;
 	makiInstance* inst = NULL;
@@ -74,11 +74,13 @@ int main (int argc, char* argv[])
 	GError* error = NULL;
 
 	gboolean opt_daemon = FALSE;
+	gboolean opt_dbus_server = FALSE;
 	gboolean opt_version = FALSE;
 	GOptionContext* context;
 	GOptionEntry entries[] =
 	{
 		{ "daemon", 'd', 0, G_OPTION_ARG_NONE, &opt_daemon, N_("Run as daemon"), NULL },
+		{ "dbus-server", 0, 0, G_OPTION_ARG_NONE, &opt_dbus_server, N_("Start DBus server"), NULL },
 		{ "verbose", 'v', 0, G_OPTION_ARG_NONE, &opt_verbose, N_("Output debug messages"), NULL },
 		{ "version", 0, 0, G_OPTION_ARG_NONE, &opt_version, NULL, NULL },
 		{ NULL }
@@ -144,6 +146,19 @@ int main (int argc, char* argv[])
 		goto error;
 	}
 
+	if (opt_dbus_server)
+	{
+		if ((dbus_server = maki_dbus_server_new()) == NULL)
+		{
+			goto error;
+		}
+
+		g_print("SUSHI_REMOTE_BUS_ADDRESS=%s\n", maki_dbus_server_address(dbus_server));
+
+		bus_address_file = g_build_filename(maki_instance_directory(inst, "config"), "bus_address", NULL);
+		g_file_set_contents(bus_address_file, maki_dbus_server_address(dbus_server), -1, NULL);
+	}
+
 	sig.sa_handler = maki_signal;
 	sigemptyset(&sig.sa_mask);
 	sig.sa_flags = 0;
@@ -156,14 +171,6 @@ int main (int argc, char* argv[])
 	sig.sa_handler = SIG_IGN;
 
 	sigaction(SIGPIPE, &sig, NULL);
-
-	bus_address_file = g_build_filename(maki_instance_directory(inst, "config"), "bus_address", NULL);
-
-	if ((bus_address = g_strdup(g_getenv("DBUS_SESSION_BUS_ADDRESS"))) != NULL)
-	{
-		g_file_set_contents(bus_address_file, bus_address, -1, NULL);
-		g_free(bus_address);
-	}
 
 	servers = g_dir_open(maki_instance_directory(inst, "servers"), 0, NULL);
 
@@ -184,8 +191,13 @@ int main (int argc, char* argv[])
 	g_main_loop_run(main_loop);
 	g_main_loop_unref(main_loop);
 
-	g_unlink(bus_address_file);
-	g_free(bus_address_file);
+	if (dbus_server != NULL)
+	{
+		g_unlink(bus_address_file);
+		g_free(bus_address_file);
+
+		maki_dbus_server_free(dbus_server);
+	}
 
 	maki_instance_free(inst);
 	g_object_unref(dbus);
@@ -196,6 +208,11 @@ error:
 	if (inst != NULL)
 	{
 		maki_instance_free(inst);
+	}
+
+	if (dbus_server != NULL)
+	{
+		maki_dbus_server_free(dbus_server);
 	}
 
 	if (dbus != NULL)
