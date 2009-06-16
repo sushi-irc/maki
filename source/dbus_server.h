@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Michael Kuhn
+ * Copyright (c) 2009 Michael Kuhn
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,36 +25,20 @@
  * SUCH DAMAGE.
  */
 
-#ifndef H_MAKI
-#define H_MAKI
+#ifndef H_DBUS_SERVER
+#define H_DBUS_SERVER
 
-#define G_DISABLE_DEPRECATED
-#define _XOPEN_SOURCE
+#include <dbus/dbus-glib.h>
+#include <dbus/dbus-glib-bindings.h>
+#include <dbus/dbus-glib-lowlevel.h>
 
-#include <glib.h>
-#include <glib/gi18n.h>
-#include <glib/gstdio.h>
+#include <dbus/dbus.h>
 
-#include "ilib.h"
+typedef struct maki_dbus_server makiDBusServer;
 
-#include "channel.h"
-#include "channel_user.h"
-#include "dcc_send.h"
-#include "dbus.h"
-#include "dbus_server.h"
-#include "in.h"
-#include "instance.h"
-#include "log.h"
-#include "maki.h"
-#include "misc.h"
-#include "out.h"
-#include "plugin.h"
-#include "server.h"
-#include "user.h"
+makiDBusServer* maki_dbus_server_new (void);
+void maki_dbus_server_free (makiDBusServer*);
 
-extern gboolean opt_verbose;
-
-extern makiDBus* dbus;
-extern GMainLoop* main_loop;
+const gchar* maki_dbus_server_address (makiDBusServer*);
 
 #endif
