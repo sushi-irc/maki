@@ -18,6 +18,9 @@ Show help options.
 \fB-d\fP, \fB--daemon\fP
 Run as daemon.
 .TP
+\fB--dbus-server\fP
+Start DBus server.
+.TP
 \fB-v\fP, \fB--verbose\fP
 Output debug messages.
 .HP
@@ -27,7 +30,7 @@ Output debug messages.
 $ maki --daemon --verbose
 
 .SH SEE ALSO
-\fBtekka\fP(1), \fBnigiri\fP(1), \fBmaki-remote\fP(1), \fBsushi-remote\fP(1)
+\fBtekka\fP(1), \fBnigiri\fP(1), \fBsushi-remote\fP(1)
 
 .SH AUTHOR
 Michael Kuhn

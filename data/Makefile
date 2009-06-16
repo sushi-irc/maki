@@ -9,5 +9,6 @@ install: all
 	$(INSTALL) -d -m 755 '$(DESTDIR)$(mandir)/man1'
 	-$(SED) 's#@bindir@#$(bindir)#' 'de.ikkoku.sushi.service' > '$(DESTDIR)$(dbusdir)/de.ikkoku.sushi.service'
 	$(SED) 's#@SUSHI_VERSION@#$(SUSHI_VERSION)#' 'maki.1.in' | $(GZIP) > '$(DESTDIR)$(mandir)/man1/maki.1.gz'
+	$(SED) 's#@SUSHI_VERSION@#$(SUSHI_VERSION)#' 'sushi-remote.1.in' | $(GZIP) > '$(DESTDIR)$(mandir)/man1/sushi-remote.1.gz'
 
 clean:

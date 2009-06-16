@@ -1,0 +1,11 @@
+                                     REMOTE
+
+To use sushi remotely, use the following instructions.
+
+On the server:
+  $ maki --dbus-server
+
+On the client (this requires that you can log in as $user on $host via SSH):
+  $ sushi-remote $user@$host tekka
+
+# vi:textwidth=80:expandtab

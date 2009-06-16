@@ -25,6 +25,7 @@ all: maki
 install: all
 	$(INSTALL) -d -m 755 '$(DESTDIR)$(bindir)'
 	$(INSTALL) -m 755 maki '$(DESTDIR)$(bindir)'
+	$(INSTALL) -m 755 sushi-remote '$(DESTDIR)$(bindir)'
 
 	$(MAKE) -C plugins $@
 
