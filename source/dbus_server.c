@@ -50,6 +50,27 @@ maki_dbus_server_thread (gpointer data)
 	return NULL;
 }
 
+static void
+maki_dbus_server_reply (DBusConnection* connection, DBusMessage* message, gint type, ...)
+{
+	va_list ap;
+	DBusMessage* reply;
+
+	va_start(ap, type);
+
+	reply = dbus_message_new_method_return(message);
+
+	if (type != DBUS_TYPE_INVALID)
+	{
+		dbus_message_append_args_valist(reply, type, ap);
+	}
+
+	dbus_connection_send(connection, reply, NULL);
+	dbus_message_unref(reply);
+
+	va_end(ap);
+}
+
 static DBusHandlerResult
 maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* message, void* data)
 {
@@ -86,6 +107,7 @@ maki_dbus_server_new_connection_cb (DBusServer* server, DBusConnection* connecti
 
 	dbus_connection_set_allow_anonymous(connection, TRUE);
 
+	dbus_connection_register_object_path(connection, "/de/ikkoku/sushi", &vtable, dserv);
 	dbus_connection_register_fallback(connection, DBUS_PATH_LOCAL, &vtable, dserv);
 
 	dbus_connection_ref(connection);
