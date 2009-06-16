@@ -134,6 +134,18 @@ maki_dbus_server_new (void)
 void
 maki_dbus_server_free (makiDBusServer* dserv)
 {
+	GSList* list;
+
+	for (list = dserv->connections; list != NULL; list = list->next)
+	{
+		DBusConnection* connection = list->data;
+
+		dbus_connection_close(connection);
+		dbus_connection_unref(connection);
+	}
+
+	g_slist_free(dserv->connections);
+
 	g_main_loop_quit(dserv->main_loop);
 	g_thread_join(dserv->thread);
 
@@ -151,4 +163,10 @@ const gchar*
 maki_dbus_server_address (makiDBusServer* dserv)
 {
 	return dserv->address;
+}
+
+GSList*
+maki_dbus_server_connections (makiDBusServer* dserv)
+{
+	return dserv->connections;
 }
