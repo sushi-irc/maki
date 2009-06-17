@@ -517,6 +517,9 @@ gboolean maki_dbus_channel_nicks (makiDBus* self, const gchar* server, const gch
 		}
 	}
 
+	maki_ensure_string_array(nicks);
+	maki_ensure_string_array(prefixes);
+
 	return TRUE;
 }
 
@@ -551,6 +554,8 @@ gboolean maki_dbus_channels (makiDBus* self, const gchar* server, gchar*** chann
 		*channel = NULL;
 	}
 
+	maki_ensure_string_array(channels);
+
 	return TRUE;
 }
 
@@ -559,6 +564,8 @@ gboolean maki_dbus_config_get (makiDBus* self, const gchar* group, const gchar* 
 	makiInstance* inst = maki_instance_get_default();
 
 	*value = maki_instance_config_get_string(inst, group, key);
+
+	maki_ensure_string(value);
 
 	return TRUE;
 }
@@ -730,6 +737,8 @@ gboolean maki_dbus_ignores (makiDBus* self, const gchar* server, gchar*** ignore
 	{
 		*ignores = maki_server_config_get_string_list(serv, "server", "ignores");
 	}
+
+	maki_ensure_string_array(ignores);
 
 	return TRUE;
 }
@@ -922,6 +931,8 @@ gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target
 
 		g_free(path);
 	}
+
+	maki_ensure_string_array(log);
 
 	return TRUE;
 }
@@ -1140,6 +1151,8 @@ gboolean maki_dbus_server_get (makiDBus* self, const gchar* server, const gchar*
 		*value = maki_server_config_get_string(serv, group, key);
 	}
 
+	maki_ensure_string(value);
+
 	return TRUE;
 }
 
@@ -1154,6 +1167,8 @@ gboolean maki_dbus_server_get_list (makiDBus* self, const gchar* server, const g
 	{
 		*list = maki_server_config_get_string_list(serv, group, key);
 	}
+
+	maki_ensure_string_array(list);
 
 	return TRUE;
 }
@@ -1202,6 +1217,8 @@ gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, const gchar
 		tmp[i] = NULL;
 		*result = tmp;
 	}
+
+	maki_ensure_string_array(result);
 
 	return TRUE;
 }
@@ -1361,6 +1378,8 @@ gboolean maki_dbus_support_chantypes (makiDBus* self, const gchar* server, gchar
 		*chantypes = g_strdup(serv->support.chantypes);
 	}
 
+	maki_ensure_string(chantypes);
+
 	return TRUE;
 }
 
@@ -1378,6 +1397,8 @@ gboolean maki_dbus_support_prefix (makiDBus* self, const gchar* server, gchar***
 		(*prefix)[1] = g_strdup(serv->support.prefix.prefixes);
 		(*prefix)[2] = NULL;
 	}
+
+	maki_ensure_string_array(prefix);
 
 	return TRUE;
 }
@@ -1546,6 +1567,8 @@ gboolean maki_dbus_user_channel_mode (makiDBus* self, const gchar* server, const
 		}
 	}
 
+	maki_ensure_string(mode);
+
 	return TRUE;
 }
 
@@ -1595,6 +1618,8 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* server, con
 			}
 		}
 	}
+
+	maki_ensure_string(prefix);
 
 	return TRUE;
 }

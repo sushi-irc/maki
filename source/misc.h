@@ -42,4 +42,7 @@ void maki_log (makiServer*, const gchar*, const gchar*, ...) G_GNUC_PRINTF(3, 4)
 
 gchar* maki_get_ip (struct sockaddr*, socklen_t);
 
+void maki_ensure_string (gchar**);
+void maki_ensure_string_array (gchar***);
+
 #endif
