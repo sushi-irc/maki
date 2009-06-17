@@ -279,6 +279,13 @@
 			<arg name="prefix" type="s" direction="out" />
 		</method>
 
+		<method name="user_from">
+			<arg name="server" type="s" />
+			<!-- nick is optional and can be empty (""). This requests the own from. -->
+			<arg name="nick" type="s" />
+			<arg name="from" type="s" direction="out" />
+		</method>
+
 		<method name="version">
 			<arg name="version" type="at" direction="out" />
 		</method>

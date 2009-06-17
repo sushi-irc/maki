@@ -1624,6 +1624,36 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* server, con
 	return TRUE;
 }
 
+gboolean maki_dbus_user_from (makiDBus* self, const gchar* server, const gchar* nick, gchar** from, GError** error)
+{
+
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	*from = NULL;
+
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
+	{
+		if (nick[0] != '\0')
+		{
+			makiUser* user;
+
+			if ((user = maki_server_get_user(serv, nick)) != NULL)
+			{
+				*from = g_strdup(maki_user_from(user));
+			}
+		}
+		else
+		{
+			*from = g_strdup(maki_user_from(maki_server_user(serv)));
+		}
+	}
+
+	maki_ensure_string(from);
+
+	return TRUE;
+}
+
 gboolean maki_dbus_version (makiDBus* self, GArray** version, GError** error)
 {
 	gchar** p;

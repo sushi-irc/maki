@@ -122,6 +122,7 @@ gboolean maki_dbus_unignore (makiDBus*, const gchar*, const gchar*, GError**);
 gboolean maki_dbus_user_away (makiDBus*, const gchar*, const gchar*, gboolean*, GError**);
 gboolean maki_dbus_user_channel_mode (makiDBus*, const gchar*, const gchar*, const gchar*, gchar**, GError**);
 gboolean maki_dbus_user_channel_prefix (makiDBus*, const gchar*, const gchar*, const gchar*, gchar**, GError**);
+gboolean maki_dbus_user_from (makiDBus*, const gchar*, const gchar*, gchar**, GError**);
 gboolean maki_dbus_version (makiDBus*, GArray**, GError**);
 gboolean maki_dbus_who (makiDBus*, const gchar*, const gchar*, gboolean, GError**);
 gboolean maki_dbus_whois (makiDBus*, const gchar*, const gchar*, GError**);

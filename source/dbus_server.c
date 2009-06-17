@@ -89,6 +89,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 		return DBUS_HANDLER_RESULT_HANDLED;
 	}
 
+	/* FIXME introspection */
 	/* FIXME error handling */
 	if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "action"))
 	{
@@ -948,6 +949,28 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 			DBUS_TYPE_INVALID);
 
 		g_free(prefix);
+
+		ret = DBUS_HANDLER_RESULT_HANDLED;
+	}
+	else if (dbus_message_is_method_call(msg, "de.ikkoku.sushi", "user_from"))
+	{
+		gchar* server;
+		gchar* nick;
+
+		gchar* from;
+
+		dbus_message_get_args(msg, NULL,
+			DBUS_TYPE_STRING, &server,
+			DBUS_TYPE_STRING, &nick,
+			DBUS_TYPE_INVALID);
+
+		maki_dbus_user_from(dbus, server, nick, &from, NULL);
+
+		maki_dbus_server_reply(connection, msg,
+			DBUS_TYPE_STRING, &from,
+			DBUS_TYPE_INVALID);
+
+		g_free(from);
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
