@@ -31,6 +31,10 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-bindings.h>
 
+#define SUSHI_DBUS_SERVICE "de.ikkoku.sushi"
+#define SUSHI_DBUS_PATH "/de/ikkoku/sushi"
+#define SUSHI_DBUS_INTERFACE "de.ikkoku.sushi"
+
 struct maki_dbus;
 struct maki_dbus_class;
 

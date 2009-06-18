@@ -1723,11 +1723,11 @@ static void maki_dbus_init (makiDBus* self)
 
 	if ((self->bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error)) != NULL)
 	{
-		dbus_g_connection_register_g_object(self->bus, "/de/ikkoku/sushi", G_OBJECT(self));
+		dbus_g_connection_register_g_object(self->bus, SUSHI_DBUS_PATH, G_OBJECT(self));
 
 		if ((proxy = dbus_g_proxy_new_for_name(self->bus, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS)) != NULL)
 		{
-			if (dbus_g_proxy_call(proxy, "RequestName", &error, G_TYPE_STRING, "de.ikkoku.sushi", G_TYPE_UINT, 0, G_TYPE_INVALID, G_TYPE_UINT, &request_name_result, G_TYPE_INVALID))
+			if (dbus_g_proxy_call(proxy, "RequestName", &error, G_TYPE_STRING, SUSHI_DBUS_SERVICE, G_TYPE_UINT, 0, G_TYPE_INVALID, G_TYPE_UINT, &request_name_result, G_TYPE_INVALID))
 			{
 				if (request_name_result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
 				{

@@ -141,7 +141,6 @@
 
 		<method name="nick">
 			<arg name="server" type="s" />
-			<!-- nick == "" requests the current nick. -->
 			<arg name="nick" type="s" />
 		</method>
 
