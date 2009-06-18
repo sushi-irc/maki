@@ -170,7 +170,7 @@ makiServer* maki_server_new (const gchar* name)
 
 	g_strfreev(groups);
 
-	g_thread_create(maki_server_thread, serv, FALSE, NULL);
+	serv->thread = g_thread_create(maki_server_thread, serv, TRUE, NULL);
 
 	if (maki_server_autoconnect(serv))
 	{
@@ -396,6 +396,7 @@ void maki_server_free (gpointer data)
 	}
 
 	g_main_loop_quit(serv->main_loop);
+	g_thread_join(serv->thread);
 
 	g_main_loop_unref(serv->main_loop);
 	g_main_context_unref(serv->main_context);

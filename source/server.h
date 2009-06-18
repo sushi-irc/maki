@@ -76,6 +76,7 @@ struct maki_server
 
 	GMainContext* main_context;
 	GMainLoop* main_loop;
+	GThread* thread;
 
 	struct
 	{
