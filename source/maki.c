@@ -137,7 +137,16 @@ int main (int argc, char* argv[])
 	{
 		/* Use g_warning() here to not overwrite the debug log of the already running maki. */
 		g_warning("%s\n", _("Could not connect to DBus. maki may already be running."));
-		goto error;
+
+		if (opt_dbus_server)
+		{
+			g_object_unref(dbus);
+			dbus = NULL;
+		}
+		else
+		{
+			goto error;
+		}
 	}
 
 	if ((inst = maki_instance_get_default()) == NULL)
@@ -200,7 +209,11 @@ int main (int argc, char* argv[])
 	}
 
 	maki_instance_free(inst);
-	g_object_unref(dbus);
+
+	if (dbus != NULL)
+	{
+		g_object_unref(dbus);
+	}
 
 	return 0;
 
