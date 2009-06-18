@@ -96,15 +96,7 @@ static void sashimi_remove_sources (sashimiConnection* conn, gint id)
 	{
 		if (i != id && conn->sources[i] != 0)
 		{
-			GSource* source;
-
-			source = g_main_context_find_source_by_id(conn->main_context, conn->sources[i]);
-
-			if (source != NULL)
-			{
-				g_source_destroy(source);
-			}
-
+			i_source_remove(conn->sources[i], conn->main_context);
 			conn->sources[i] = 0;
 		}
 	}
@@ -285,7 +277,12 @@ sashimiConnection* sashimi_new (GMainContext* main_context)
 
 	conn = g_new(sashimiConnection, 1);
 
-	conn->main_context = g_main_context_ref(main_context);
+	if (main_context != NULL)
+	{
+		g_main_context_ref(main_context);
+	}
+
+	conn->main_context = main_context;
 
 	conn->queue_mutex = g_mutex_new();
 	conn->queue = g_queue_new();
@@ -390,7 +387,10 @@ void sashimi_free (sashimiConnection* conn)
 	g_queue_free(conn->queue);
 	g_mutex_free(conn->queue_mutex);
 
-	g_main_context_unref(conn->main_context);
+	if (conn->main_context != NULL)
+	{
+		g_main_context_unref(conn->main_context);
+	}
 
 	g_free(conn);
 }
@@ -411,7 +411,7 @@ gboolean sashimi_send (sashimiConnection* conn, const gchar* message)
 
 	tmp = g_strconcat(message, "\r\n", NULL);
 
-	if ((status = g_io_channel_write_chars(conn->channel, tmp, -1, NULL, NULL)) == G_IO_STATUS_NORMAL)
+	if ((status = i_io_channel_write_chars(conn->channel, tmp, -1, NULL, NULL)) == G_IO_STATUS_NORMAL)
 	{
 		g_io_channel_flush(conn->channel, NULL);
 		g_print("OUT: %s", tmp);
@@ -441,6 +441,9 @@ gboolean sashimi_queue (sashimiConnection* conn, const gchar* message)
 
 gboolean sashimi_send_or_queue (sashimiConnection* conn, const gchar* message)
 {
+	g_return_val_if_fail(conn != NULL, FALSE);
+	g_return_val_if_fail(message != NULL, FALSE);
+
 	if (g_queue_is_empty(conn->queue))
 	{
 		return sashimi_send(conn, message);
