@@ -77,7 +77,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	DBusHandlerResult ret = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 	makiDBusServer* dserv = data;
 
-	g_print("METHOD %s: %s %s\n", dbus_message_get_path(msg), dbus_message_get_interface(msg), dbus_message_get_member(msg));
+	maki_debug("METHOD %s: %s %s\n", dbus_message_get_path(msg), dbus_message_get_interface(msg), dbus_message_get_member(msg));
 
 	if (strcmp(dbus_message_get_path(msg), DBUS_PATH_LOCAL) == 0)
 	{
@@ -1037,7 +1037,7 @@ maki_dbus_server_new_connection_cb (DBusServer* server, DBusConnection* connecti
 
 	makiDBusServer* dserv = data;
 
-	g_print("new connection %p\n", connection);
+	maki_debug("new connection %p\n", connection);
 
 	dbus_connection_set_allow_anonymous(connection, TRUE);
 
@@ -1079,7 +1079,7 @@ maki_dbus_server_new (void)
 
 	dserv->connections = NULL;
 
-	g_print("server at %s\n", dserv->address);
+	maki_debug("server at %s\n", dserv->address);
 
 	dbus_server_setup_with_g_main(server, dserv->main_context);
 	dbus_server_set_new_connection_function(server, maki_dbus_server_new_connection_cb, dserv, NULL);
@@ -1130,7 +1130,7 @@ maki_dbus_server_emit (makiDBusServer* dserv, const gchar* name, gint type, ...)
 		DBusMessage* message;
 		GSList* list;
 
-		g_print("SIGNAL /de/ikkoku/sushi: de.ikkoku.sushi %s\n", name);
+		maki_debug("SIGNAL /de/ikkoku/sushi: de.ikkoku.sushi %s\n", name);
 
 		va_start(ap, type);
 

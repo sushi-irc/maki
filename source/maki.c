@@ -162,8 +162,6 @@ int main (int argc, char* argv[])
 			goto error;
 		}
 
-		g_print("SUSHI_REMOTE_BUS_ADDRESS=%s\n", maki_dbus_server_address(dbus_server));
-
 		bus_address_file = g_build_filename(maki_instance_directory(inst, "config"), "bus_address", NULL);
 		g_file_set_contents(bus_address_file, maki_dbus_server_address(dbus_server), -1, NULL);
 	}

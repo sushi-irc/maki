@@ -414,11 +414,11 @@ gboolean sashimi_send (sashimiConnection* conn, const gchar* message)
 	if ((status = i_io_channel_write_chars(conn->channel, tmp, -1, NULL, NULL)) == G_IO_STATUS_NORMAL)
 	{
 		g_io_channel_flush(conn->channel, NULL);
-		g_print("OUT: %s", tmp);
+		g_printerr("OUT: %s", tmp);
 	}
 	else
 	{
-		g_print("WRITE_STATUS %d\n", status);
+		g_printerr("WRITE_STATUS %d\n", status);
 		ret = FALSE;
 	}
 

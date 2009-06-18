@@ -78,7 +78,7 @@ void maki_debug (const gchar* format, ...)
 
 		if ((channel = g_io_channel_new_file(path, "w", NULL)) == NULL)
 		{
-			g_print("%s\n", _("Could not open debug log file."));
+			g_printerr("%s\n", _("Could not open debug log file."));
 		}
 
 		g_free(cache_dir);
@@ -89,7 +89,7 @@ void maki_debug (const gchar* format, ...)
 	message = g_strdup_vprintf(format, args);
 	va_end(args);
 
-	g_print("%s", message);
+	g_printerr("%s", message);
 
 	if (G_LIKELY(channel != NULL))
 	{
