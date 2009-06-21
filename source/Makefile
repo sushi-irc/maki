@@ -12,6 +12,7 @@ ifeq ($(shell PKG_CONFIG='$(PKG_CONFIG)' ../tools/pkg-config.sh nice), yes)
 endif
 
 SUSHI_CFLAGS += -DMAKI_PLUGIN_DIRECTORY='"$(libdir)/sushi/maki/plugins"'
+SUSHI_CFLAGS += -DMAKI_SHARE_DIRECTORY='"$(sharedir)/sushi/maki"'
 SUSHI_CFLAGS += -DLOCALEDIR='"$(localedir)"'
 SUSHI_CFLAGS += -DSUSHI_VERSION='"$(SUSHI_VERSION)"'
 
@@ -37,7 +38,7 @@ clean:
 	$(RM) -f dbus_glue.h marshal.list marshal.c marshal.h
 	$(RM) -f libsashimi.so
 
-dbus_glue.h: dbus.xml
+dbus_glue.h: ../data/dbus.xml
 	$(QUIET_GEN) dbus-binding-tool --mode=glib-server --prefix=maki_dbus $+ > $@
 
 marshal.list: dbus.c

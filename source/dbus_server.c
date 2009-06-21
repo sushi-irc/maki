@@ -38,6 +38,8 @@ struct maki_dbus_server
 	GThread* thread;
 
 	GSList* connections;
+
+	gchar* introspection;
 };
 
 static gpointer
@@ -84,12 +86,23 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 		if (dbus_message_is_signal(msg, DBUS_INTERFACE_LOCAL, "Disconnected"))
 		{
 			dserv->connections = g_slist_remove(dserv->connections, connection);
+
+			return DBUS_HANDLER_RESULT_HANDLED;
 		}
+
+		return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+	}
+
+	if (dbus_message_is_method_call(msg, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")
+	    && dserv->introspection != NULL)
+	{
+		maki_dbus_server_reply(connection, msg,
+			DBUS_TYPE_STRING, &(dserv->introspection),
+			DBUS_TYPE_INVALID);
 
 		return DBUS_HANDLER_RESULT_HANDLED;
 	}
 
-	/* FIXME introspection */
 	/* FIXME error handling */
 	if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "action"))
 	{
@@ -1054,6 +1067,7 @@ makiDBusServer*
 maki_dbus_server_new (void)
 {
 	gchar* address;
+	gchar* path;
 	DBusError error;
 	DBusServer* server;
 	makiDBusServer* dserv;
@@ -1078,6 +1092,16 @@ maki_dbus_server_new (void)
 	dserv->thread = g_thread_create(maki_dbus_server_thread, dserv, TRUE, NULL);
 
 	dserv->connections = NULL;
+
+	path = g_build_filename(MAKI_SHARE_DIRECTORY, "dbus.xml", NULL);
+
+	if (!g_file_get_contents(path, &(dserv->introspection), NULL, NULL))
+	{
+		dserv->introspection = NULL;
+		maki_debug("Introspection disabled");
+	}
+
+	g_free(path);
 
 	maki_debug("server at %s\n", dserv->address);
 
@@ -1111,6 +1135,7 @@ maki_dbus_server_free (makiDBusServer* dserv)
 	dbus_server_disconnect(dserv->server);
 	dbus_server_unref(dserv->server);
 
+	g_free(dserv->introspection);
 	g_free(dserv->address);
 	g_free(dserv);
 }
