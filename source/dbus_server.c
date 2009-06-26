@@ -87,6 +87,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 		{
 			dserv->connections = g_slist_remove(dserv->connections, connection);
 
+			dbus_connection_unref(connection);
+
 			return DBUS_HANDLER_RESULT_HANDLED;
 		}
 
