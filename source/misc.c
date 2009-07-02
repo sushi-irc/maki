@@ -57,6 +57,7 @@ gboolean maki_config_is_empty_list (gchar** list)
 
 void maki_debug (const gchar* format, ...)
 {
+	/* FIXME leak */
 	static GIOChannel* channel = NULL;
 	gchar* message;
 	va_list args;

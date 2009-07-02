@@ -27,6 +27,8 @@
 
 #include <glib.h>
 
+#include <string.h>
+
 static gchar* sushi_remote_print_bus_address (void)
 {
 	gchar* bus_address;
