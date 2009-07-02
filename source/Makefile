@@ -39,6 +39,7 @@ clean:
 	$(RM) -f maki
 	$(RM) -f $(OBJECTS)
 	$(RM) -f dbus_glue.h marshal.list marshal.c marshal.h
+	$(RM) -f sushi-remote.o
 	$(RM) -f libsashimi.so
 
 dbus_glue.h: ../data/dbus.xml
