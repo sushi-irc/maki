@@ -27,6 +27,8 @@
 
 #include "maki.h"
 
+#include <dbus/dbus-glib.h>
+
 #include <fcntl.h>
 #include <locale.h>
 #include <signal.h>

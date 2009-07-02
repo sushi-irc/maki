@@ -27,8 +27,6 @@
 
 #include "maki.h"
 
-#include "sashimi.h"
-
 #ifdef SUSHI_HAVE_NICE
 #include <stun/usages/bind.h>
 #endif

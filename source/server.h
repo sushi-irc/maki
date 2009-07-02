@@ -36,6 +36,7 @@ struct maki_server;
 
 typedef struct maki_server makiServer;
 
+#include "channel.h"
 #include "sashimi.h"
 #include "user.h"
 

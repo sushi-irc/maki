@@ -32,6 +32,9 @@ struct maki_dcc_send;
 
 typedef struct maki_dcc_send makiDCCSend;
 
+#include "server.h"
+#include "user.h"
+
 gchar* maki_dcc_send_get_file_name (const gchar*, gsize*);
 
 makiDCCSend* maki_dcc_send_new_in (makiServer*, makiUser*, const gchar*, guint32, guint16, goffset, guint32);

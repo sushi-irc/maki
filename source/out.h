@@ -28,6 +28,8 @@
 #ifndef H_OUT
 #define H_OUT
 
+#include "server.h"
+
 void maki_out_away (makiServer*, const gchar*);
 void maki_out_join (makiServer*, const gchar*, const gchar*);
 void maki_out_nick (makiServer*, const gchar*);

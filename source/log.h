@@ -32,6 +32,8 @@ struct maki_log;
 
 typedef struct maki_log makiLog;
 
+#include "instance.h"
+
 makiLog* maki_log_new (makiInstance*, const gchar*, const gchar*);
 void maki_log_free (gpointer);
 

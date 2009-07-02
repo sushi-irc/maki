@@ -27,6 +27,8 @@
 
 #include "maki.h"
 
+#include <gmodule.h>
+
 struct maki_instance
 {
 	GKeyFile* key_file;

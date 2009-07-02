@@ -25,12 +25,12 @@
  * SUCH DAMAGE.
  */
 
+#include "maki.h"
+
 #include <glib-object.h>
 #include <gmodule.h>
 
 #include <nm-client.h>
-
-#include "maki.h"
 
 gboolean init (void);
 void deinit (void);

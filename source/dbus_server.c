@@ -27,6 +27,10 @@
 
 #include "maki.h"
 
+#include <dbus/dbus-glib.h>
+#include <dbus/dbus-glib-lowlevel.h>
+#include <dbus/dbus.h>
+
 struct maki_dbus_server
 {
 	DBusServer* server;

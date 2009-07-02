@@ -27,6 +27,9 @@
 
 #include "maki.h"
 
+#include <dbus/dbus-glib.h>
+#include <dbus/dbus.h>
+
 #include <fcntl.h>
 #include <string.h>
 

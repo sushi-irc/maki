@@ -28,11 +28,7 @@
 #ifndef H_DBUS_SERVER
 #define H_DBUS_SERVER
 
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-bindings.h>
-#include <dbus/dbus-glib-lowlevel.h>
-
-#include <dbus/dbus.h>
+struct maki_dbus_server;
 
 typedef struct maki_dbus_server makiDBusServer;
 

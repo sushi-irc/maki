@@ -32,6 +32,9 @@ struct maki_instance;
 
 typedef struct maki_instance makiInstance;
 
+#include "dcc_send.h"
+#include "server.h"
+
 makiInstance* maki_instance_get_default (void);
 makiInstance* maki_instance_new (void);
 gboolean maki_instance_config_get_boolean (makiInstance*, const gchar*, const gchar*);
