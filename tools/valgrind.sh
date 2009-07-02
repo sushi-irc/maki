@@ -32,7 +32,7 @@ usage ()
 }
 
 export G_SLICE=always-malloc
-export G_DEBUG=gc-friendly
+export G_DEBUG=gc-friendly,debug-blocks
 
 dirname="${0%/*}"
 program="${1##*/}"
