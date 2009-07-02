@@ -16,11 +16,14 @@ SUSHI_CFLAGS += -DMAKI_SHARE_DIRECTORY='"$(sharedir)/sushi/maki"'
 SUSHI_CFLAGS += -DLOCALEDIR='"$(localedir)"'
 SUSHI_CFLAGS += -DSUSHI_VERSION='"$(SUSHI_VERSION)"'
 
+SUSHI_REMOTE_CFLAGS  += $(shell $(PKG_CONFIG) --cflags glib-2.0)
+SUSHI_REMOTE_LDFLAGS += $(shell $(PKG_CONFIG) --libs   glib-2.0)
+
 COMPONENTS = ilib sashimi channel channel_user dcc_send dbus dbus_server in instance log maki marshal misc out plugin server user
 HEADERS    = $(COMPONENTS:%=%.h) dbus_glue.h
 OBJECTS    = $(COMPONENTS:%=%.o)
 
-all: maki
+all: maki sushi-remote
 	$(MAKE) -C plugins $@
 
 install: all
@@ -58,6 +61,12 @@ $(OBJECTS): %.o: %.c $(HEADERS)
 
 maki: $(OBJECTS)
 	$(QUIET_LD) $(CC) $(SUSHI_LDFLAGS) -o $@ $+
+
+sushi-remote.o: sushi-remote.c
+	$(QUIET_CC) $(CC) $(SUSHI_REMOTE_CFLAGS) -c -o $@ $+
+
+sushi-remote: sushi-remote.o
+	$(QUIET_LD) $(CC) $(SUSHI_REMOTE_LDFLAGS) -o $@ $+
 
 libsashimi.so: sashimi.c
 	$(QUIET_CC) $(CC) $(SUSHI_CFLAGS) -fPIC $(SUSHI_LDFLAGS) -shared -Wl,-soname,$@ -o $@ $+
