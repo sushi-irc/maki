@@ -47,7 +47,7 @@ static gchar* sushi_remote_print_bus_address (void)
 static gchar* sushi_remote_get_bus_address (const gchar* userhost)
 {
 	gchar** command;
-	gchar* bus_address;
+	gchar* bus_address = NULL;
 	gchar* path;
 	gsize cur;
 
@@ -71,6 +71,17 @@ static gchar* sushi_remote_get_bus_address (const gchar* userhost)
 	if (!g_spawn_sync(NULL, command, NULL, G_SPAWN_SEARCH_PATH | G_SPAWN_STDERR_TO_DEV_NULL, NULL, NULL, &bus_address, NULL, NULL, NULL))
 	{
 		bus_address = NULL;
+	}
+
+	if (bus_address != NULL)
+	{
+		g_strstrip(bus_address);
+
+		if (strlen(bus_address) == 0)
+		{
+			g_free(bus_address);
+			bus_address = NULL;
+		}
 	}
 
 	g_strfreev(command);
@@ -216,8 +227,6 @@ int main (int argc, char* argv[])
 
 			return 1;
 		}
-
-		g_strstrip(bus_address);
 
 		bus_parts = g_strsplit(bus_address, ",", 0);
 
