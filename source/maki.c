@@ -133,31 +133,24 @@ int main (int argc, char* argv[])
 
 	umask(0077);
 
-	dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
-
-	if (!maki_dbus_connected(dbus))
-	{
-		/* Use g_warning() here to not overwrite the debug log of the already running maki. */
-		g_warning("%s\n", _("Could not connect to DBus. maki may already be running."));
-
-		if (opt_dbus_server)
-		{
-			g_object_unref(dbus);
-			dbus = NULL;
-		}
-		else
-		{
-			goto error;
-		}
-	}
-
 	if ((inst = maki_instance_get_default()) == NULL)
 	{
 		g_warning("%s\n", _("Could not create maki instance."));
 		goto error;
 	}
 
-	if (opt_dbus_server)
+	if (!opt_dbus_server)
+	{
+		dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
+
+		if (!maki_dbus_connected(dbus))
+		{
+			/* Use g_warning() here to not overwrite the debug log of the already running maki. */
+			g_warning("%s\n", _("Could not connect to DBus. maki may already be running."));
+			goto error;
+		}
+	}
+	else
 	{
 		if ((dbus_server = maki_dbus_server_new()) == NULL)
 		{
@@ -200,6 +193,11 @@ int main (int argc, char* argv[])
 	g_main_loop_run(main_loop);
 	g_main_loop_unref(main_loop);
 
+	if (dbus != NULL)
+	{
+		g_object_unref(dbus);
+	}
+
 	if (dbus_server != NULL)
 	{
 		g_unlink(bus_address_file);
@@ -210,17 +208,12 @@ int main (int argc, char* argv[])
 
 	maki_instance_free(inst);
 
-	if (dbus != NULL)
-	{
-		g_object_unref(dbus);
-	}
-
 	return 0;
 
 error:
-	if (inst != NULL)
+	if (dbus != NULL)
 	{
-		maki_instance_free(inst);
+		g_object_unref(dbus);
 	}
 
 	if (dbus_server != NULL)
@@ -228,9 +221,9 @@ error:
 		maki_dbus_server_free(dbus_server);
 	}
 
-	if (dbus != NULL)
+	if (inst != NULL)
 	{
-		g_object_unref(dbus);
+		maki_instance_free(inst);
 	}
 
 	return 1;

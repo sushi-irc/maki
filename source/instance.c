@@ -159,6 +159,7 @@ makiInstance* maki_instance_new (void)
 
 	maki_instance_config_set_defaults(inst);
 
+	/* FIXME load after instance */
 	inst->plugins[0] = maki_plugin_load("nm");
 
 	inst->dcc.id = 0;
