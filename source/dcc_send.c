@@ -819,27 +819,17 @@ goffset maki_dcc_send_progress (makiDCCSend* dcc)
 
 guint64 maki_dcc_send_speed (makiDCCSend* dcc)
 {
-	glong duration;
 	guint64 speed = 0;
-	GTimeVal timeval;
 
-	g_get_current_time(&timeval);
+	if (dcc->status & s_running)
+	{
+		glong duration;
+		GTimeVal timeval;
 
-	if (dcc->status & s_incoming)
-	{
-		if (dcc->status & s_running)
-		{
-			duration = MAX(timeval.tv_sec - dcc->start_time.tv_sec, 1);
-			speed = (dcc->position - dcc->resume) / duration;
-		}
-	}
-	else
-	{
-		if (dcc->status & s_running)
-		{
-			duration = MAX(timeval.tv_sec - dcc->start_time.tv_sec, 1);
-			speed = (dcc->d.out.ack.position - dcc->resume) / duration;
-		}
+		g_get_current_time(&timeval);
+
+		duration = MAX(timeval.tv_sec - dcc->start_time.tv_sec, 1);
+		speed = (maki_dcc_send_progress(dcc) - dcc->resume) / duration;
 	}
 
 	return speed;
