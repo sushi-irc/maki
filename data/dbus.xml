@@ -77,6 +77,10 @@
 			<arg name="id" type="t" />
 		</method>
 
+		<method name="dcc_send_resume">
+			<arg name="id" type="t" />
+		</method>
+
 		<method name="ignore">
 			<arg name="server" type="s" />
 			<arg name="pattern" type="s" />

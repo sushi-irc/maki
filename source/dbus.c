@@ -775,6 +775,15 @@ gboolean maki_dbus_dcc_send_remove (makiDBus* self, guint64 id, GError** error)
 	return TRUE;
 }
 
+gboolean maki_dbus_dcc_send_resume (makiDBus* self, guint64 id, GError** error)
+{
+	makiInstance* inst = maki_instance_get_default();
+
+	maki_instance_resume_dcc_send(inst, id);
+
+	return TRUE;
+}
+
 gboolean maki_dbus_ignore (makiDBus* self, const gchar* server, const gchar* pattern, GError** error)
 {
 	makiServer* serv;

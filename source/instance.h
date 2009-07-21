@@ -54,6 +54,7 @@ guint64 maki_instance_get_dcc_send_id (makiInstance*);
 void maki_instance_add_dcc_send (makiInstance*, makiDCCSend*);
 gboolean maki_instance_accept_dcc_send (makiInstance*, guint64);
 gboolean maki_instance_resume_accept_dcc_send (makiInstance*, gchar*, guint16, goffset, guint32, gboolean);
+gboolean maki_instance_resume_dcc_send (makiInstance*, guint64);
 gboolean maki_instance_remove_dcc_send (makiInstance*, guint64);
 guint maki_instance_dcc_sends_count (makiInstance*);
 void maki_instance_dcc_sends_xxx (makiInstance*, GArray**, gchar***, gchar***, gchar***, GArray**, GArray**, GArray**, GArray**);

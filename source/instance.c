@@ -325,6 +325,31 @@ gboolean maki_instance_resume_accept_dcc_send (makiInstance* inst, gchar* file_n
 	return ret;
 }
 
+gboolean maki_instance_resume_dcc_send (makiInstance* inst, guint64 id)
+{
+	gboolean ret = FALSE;
+	GSList* list;
+
+	g_mutex_lock(inst->dcc.mutex);
+
+	for (list = inst->dcc.list; list != NULL; list = list->next)
+	{
+		makiDCCSend* dcc = list->data;
+
+		if (maki_dcc_send_id(dcc) == id)
+		{
+			maki_dcc_send_resume(dcc);
+
+			ret = TRUE;
+			break;
+		}
+	}
+
+	g_mutex_unlock(inst->dcc.mutex);
+
+	return ret;
+}
+
 gboolean maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
 {
 	gboolean ret = FALSE;

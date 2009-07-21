@@ -87,6 +87,7 @@ struct maki_dcc_send
 		struct
 		{
 			gboolean accept;
+			gboolean resume;
 
 			guint sources[s_in_num];
 		}
@@ -455,6 +456,7 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	dcc->status = s_incoming;
 
 	dcc->d.in.accept = FALSE;
+	dcc->d.in.resume = FALSE;
 
 	for (i = 0; i < s_in_num; i++)
 	{
@@ -491,20 +493,10 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 	if (do_resume)
 	{
-		gchar* basename;
-
-		basename = g_path_get_basename(dcc->path);
-
-		if (token > 0)
+		if (maki_instance_config_get_boolean(inst, "dcc", "accept_resume"))
 		{
-			maki_server_send_printf(serv, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(user), basename, dcc->port, stbuf.st_size, token);
+			maki_dcc_send_resume(dcc);
 		}
-		else
-		{
-			maki_server_send_printf(serv, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(user), basename, dcc->port, stbuf.st_size);
-		}
-
-		g_free(basename);
 	}
 	else
 	{
@@ -672,8 +664,6 @@ void maki_dcc_send_free (makiDCCSend* dcc)
 
 gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 {
-	GIOChannel* channel;
-
 	g_return_val_if_fail(dcc != NULL, FALSE);
 
 	if (dcc->status & s_incoming)
@@ -681,6 +671,7 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 		gchar address[INET_ADDRSTRLEN];
 		struct sockaddr_in addr;
 		socklen_t addrlen = sizeof(addr);
+		GIOChannel* channel;
 
 		if (dcc->d.in.accept)
 		{
@@ -706,6 +697,46 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 
 		dcc->d.in.accept = TRUE;
 		dcc->d.in.sources[s_in_write] = g_io_add_watch(channel, G_IO_OUT | G_IO_HUP | G_IO_ERR, maki_dcc_send_in_write, dcc);
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+gboolean maki_dcc_send_resume (makiDCCSend* dcc)
+{
+	g_return_val_if_fail(dcc != NULL, FALSE);
+
+	if (dcc->status & s_incoming)
+	{
+		gchar* basename;
+		struct stat stbuf;
+
+		if (dcc->d.in.resume)
+		{
+			return FALSE;
+		}
+
+		if (stat(dcc->path, &stbuf) != 0 || stbuf.st_size == 0)
+		{
+			return FALSE;
+		}
+
+		basename = g_path_get_basename(dcc->path);
+
+		if (dcc->token > 0)
+		{
+			maki_server_send_printf(dcc->server, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(dcc->user), basename, dcc->port, stbuf.st_size, dcc->token);
+		}
+		else
+		{
+			maki_server_send_printf(dcc->server, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(dcc->user), basename, dcc->port, stbuf.st_size);
+		}
+
+		g_free(basename);
+
+		dcc->d.in.resume = TRUE;
 
 		return TRUE;
 	}

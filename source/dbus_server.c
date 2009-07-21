@@ -507,6 +507,30 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
+	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "dcc_send_resume"))
+	{
+		guint64 id;
+
+		got_args = dbus_message_get_args(msg, NULL,
+			DBUS_TYPE_UINT64, &id,
+			DBUS_TYPE_INVALID);
+
+		if (!got_args)
+		{
+			goto error;
+		}
+
+		maki_dbus_dcc_send_resume(dbus, id, NULL);
+
+		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
+
+		if (!sent_reply)
+		{
+			goto error;
+		}
+
+		ret = DBUS_HANDLER_RESULT_HANDLED;
+	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "ignore"))
 	{
 		gchar* server;
