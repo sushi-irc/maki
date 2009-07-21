@@ -42,7 +42,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer*, makiUser*, const gchar*);
 void maki_dcc_send_free (makiDCCSend*);
 
 gboolean maki_dcc_send_accept (makiDCCSend*);
-gboolean maki_dcc_send_resume (makiDCCSend*, const gchar*, guint16, goffset, guint32);
+gboolean maki_dcc_send_resume_accept (makiDCCSend*, const gchar*, guint16, goffset, guint32, gboolean);
 
 guint64 maki_dcc_send_id (makiDCCSend*);
 goffset maki_dcc_send_size (makiDCCSend*);

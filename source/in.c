@@ -210,7 +210,7 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 	}
 }
 
-static void maki_in_dcc_resume_accept (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining, gboolean is_resume)
+static void maki_in_dcc_resume_accept (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining, gboolean is_incoming)
 {
 	gchar* file_name;
 	gsize file_name_len;
@@ -243,9 +243,9 @@ static void maki_in_dcc_resume_accept (makiServer* serv, glong timestamp, makiUs
 				token = g_ascii_strtoull(args[2], NULL, 10);
 			}
 
-			if (maki_instance_resume_dcc_send(inst, file_name, port, position, token))
+			if (maki_instance_resume_accept_dcc_send(inst, file_name, port, position, token, is_incoming))
 			{
-				if (is_resume)
+				if (!is_incoming)
 				{
 					if (token > 0)
 					{
@@ -322,11 +322,11 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, makiUser* user, 
 					}
 					else if (strncmp(message, "DCC RESUME ", 11) == 0)
 					{
-						maki_in_dcc_resume_accept(serv, timestamp, user, message + 11, TRUE);
+						maki_in_dcc_resume_accept(serv, timestamp, user, message + 11, FALSE);
 					}
 					else if (strncmp(message, "DCC ACCEPT ", 11) == 0)
 					{
-						maki_in_dcc_resume_accept(serv, timestamp, user, message + 11, FALSE);
+						maki_in_dcc_resume_accept(serv, timestamp, user, message + 11, TRUE);
 					}
 				}
 

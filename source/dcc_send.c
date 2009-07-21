@@ -713,7 +713,7 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 	return FALSE;
 }
 
-gboolean maki_dcc_send_resume (makiDCCSend* dcc, const gchar* filename, guint16 port, goffset position, guint32 token)
+gboolean maki_dcc_send_resume_accept (makiDCCSend* dcc, const gchar* filename, guint16 port, goffset position, guint32 token, gboolean is_incoming)
 {
 	g_return_val_if_fail(dcc != NULL, FALSE);
 
@@ -721,6 +721,11 @@ gboolean maki_dcc_send_resume (makiDCCSend* dcc, const gchar* filename, guint16 
 	{
 		gchar* basename;
 		makiInstance* inst = maki_instance_get_default();
+
+		if (!is_incoming)
+		{
+			return FALSE;
+		}
 
 		basename = g_path_get_basename(dcc->path);
 
@@ -762,6 +767,11 @@ gboolean maki_dcc_send_resume (makiDCCSend* dcc, const gchar* filename, guint16 
 	else
 	{
 		gchar* basename;
+
+		if (is_incoming)
+		{
+			return FALSE;
+		}
 
 		basename = g_path_get_basename(dcc->path);
 

@@ -302,7 +302,7 @@ gboolean maki_instance_accept_dcc_send (makiInstance* inst, guint64 id)
 	return ret;
 }
 
-gboolean maki_instance_resume_dcc_send (makiInstance* inst, gchar* file_name, guint16 port, goffset position, guint32 token)
+gboolean maki_instance_resume_accept_dcc_send (makiInstance* inst, gchar* file_name, guint16 port, goffset position, guint32 token, gboolean is_incoming)
 {
 	gboolean ret = FALSE;
 	GSList* list;
@@ -313,7 +313,7 @@ gboolean maki_instance_resume_dcc_send (makiInstance* inst, gchar* file_name, gu
 	{
 		makiDCCSend* dcc = list->data;
 
-		if (maki_dcc_send_resume(dcc, file_name, port, position, token))
+		if (maki_dcc_send_resume_accept(dcc, file_name, port, position, token, is_incoming))
 		{
 			ret = TRUE;
 			break;
