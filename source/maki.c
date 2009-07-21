@@ -196,6 +196,7 @@ int main (int argc, char* argv[])
 	if (dbus != NULL)
 	{
 		g_object_unref(dbus);
+		dbus = NULL;
 	}
 
 	if (dbus_server != NULL)
@@ -204,8 +205,10 @@ int main (int argc, char* argv[])
 		g_free(bus_address_file);
 
 		maki_dbus_server_free(dbus_server);
+		dbus_server = NULL;
 	}
 
+	/* FIXME this may emit signals */
 	maki_instance_free(inst);
 
 	return 0;
