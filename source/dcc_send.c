@@ -38,9 +38,10 @@
 enum
 {
 	s_incoming = (1 << 0),
-	s_resumed = (1 << 1),
-	s_running = (1 << 2),
-	s_error = (1 << 3)
+	s_resumable = (1 << 1),
+	s_resumed = (1 << 2),
+	s_running = (1 << 3),
+	s_error = (1 << 4)
 };
 
 enum
@@ -474,6 +475,7 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	if (do_resume)
 	{
 		dcc->channel = g_io_channel_new_file(dcc->path, "r+", NULL);
+		dcc->status |= s_resumable;
 	}
 	else
 	{
@@ -786,6 +788,7 @@ gboolean maki_dcc_send_resume_accept (makiDCCSend* dcc, const gchar* filename, g
 		dcc->position = position;
 		dcc->resume = position;
 
+		dcc->status &= ~s_resumable;
 		dcc->status |= s_resumed;
 
 		maki_dcc_send_emit(dcc);
@@ -828,6 +831,7 @@ gboolean maki_dcc_send_resume_accept (makiDCCSend* dcc, const gchar* filename, g
 		dcc->resume = position;
 		dcc->d.out.ack.position = position;
 
+		dcc->status &= ~s_resumable;
 		dcc->status |= s_resumed;
 
 		maki_dcc_send_emit(dcc);
