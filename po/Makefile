@@ -13,7 +13,6 @@ install: $(PO:%.po=%.mo)
 	done
 
 clean:
-	$(RM) -f maki.pot
 	$(RM) -f *.mo
 
 maki.pot: $(C) $(H)

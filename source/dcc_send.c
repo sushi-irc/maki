@@ -250,10 +250,10 @@ static gboolean maki_dcc_send_out_write (GIOChannel* source, GIOCondition condit
 error:
 	dcc->status |= s_error;
 finish:
-	dcc->status &= ~s_running;
-
 	if (!dcc->d.out.wait)
 	{
+		dcc->status &= ~s_running;
+
 		g_io_channel_shutdown(source, FALSE, NULL);
 		g_io_channel_unref(source);
 
@@ -304,10 +304,10 @@ static gboolean maki_dcc_send_out_read (GIOChannel* source, GIOCondition conditi
 error:
 	dcc->status |= s_error;
 finish:
-	dcc->status &= ~s_running;
-
 	if (dcc->d.out.wait)
 	{
+		dcc->status &= ~s_running;
+
 		g_io_channel_shutdown(source, FALSE, NULL);
 		g_io_channel_unref(source);
 
