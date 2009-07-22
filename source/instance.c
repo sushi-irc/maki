@@ -67,6 +67,11 @@ static void maki_instance_config_set_defaults (makiInstance* inst)
 		maki_instance_config_set_boolean(inst, "dcc", "accept_chat", FALSE);
 	}
 
+	if (!maki_instance_config_exists(inst, "dcc", "accept_resume"))
+	{
+		maki_instance_config_set_boolean(inst, "dcc", "accept_resume", FALSE);
+	}
+
 	if (!maki_instance_config_exists(inst, "dcc", "accept_send"))
 	{
 		maki_instance_config_set_boolean(inst, "dcc", "accept_send", FALSE);
