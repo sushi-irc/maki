@@ -140,9 +140,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 	if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "action"))
 	{
-		gchar* server;
-		gchar* channel;
-		gchar* message;
+		const gchar* server;
+		const gchar* channel;
+		const gchar* message;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -168,8 +168,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "away"))
 	{
-		gchar* server;
-		gchar* message;
+		const gchar* server;
+		const gchar* message;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -194,7 +194,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "back"))
 	{
-		gchar* server;
+		const gchar* server;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -218,8 +218,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "channel_nicks"))
 	{
-		gchar* server;
-		gchar* channel;
+		const gchar* server;
+		const gchar* channel;
 
 		gchar** nicks;
 		gchar** prefixes;
@@ -253,7 +253,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "channels"))
 	{
-		gchar* server;
+		const gchar* server;
 
 		gchar** channels;
 
@@ -283,8 +283,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "config_get"))
 	{
-		gchar* group;
-		gchar* key;
+		const gchar* group;
+		const gchar* key;
 
 		gchar* value;
 
@@ -315,9 +315,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "config_set"))
 	{
-		gchar* group;
-		gchar* key;
-		gchar* value;
+		const gchar* group;
+		const gchar* key;
+		const gchar* value;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &group,
@@ -343,7 +343,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "connect"))
 	{
-		gchar* server;
+		const gchar* server;
 
 		got_args = dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &server, DBUS_TYPE_INVALID);
 
@@ -365,9 +365,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "ctcp"))
 	{
-		gchar* server;
-		gchar* target;
-		gchar* message;
+		const gchar* server;
+		const gchar* target;
+		const gchar* message;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -393,9 +393,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "dcc_send"))
 	{
-		gchar* server;
-		gchar* target;
-		gchar* path;
+		const gchar* server;
+		const gchar* target;
+		const gchar* path;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -533,8 +533,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "ignore"))
 	{
-		gchar* server;
-		gchar* pattern;
+		const gchar* server;
+		const gchar* pattern;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -559,7 +559,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "ignores"))
 	{
-		gchar* server;
+		const gchar* server;
 
 		gchar** ignores;
 
@@ -589,9 +589,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "invite"))
 	{
-		gchar* server;
-		gchar* channel;
-		gchar* who;
+		const gchar* server;
+		const gchar* channel;
+		const gchar* who;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -617,9 +617,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "join"))
 	{
-		gchar* server;
-		gchar* channel;
-		gchar* key;
+		const gchar* server;
+		const gchar* channel;
+		const gchar* key;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -645,10 +645,10 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "kick"))
 	{
-		gchar* server;
-		gchar* channel;
-		gchar* who;
-		gchar* message;
+		const gchar* server;
+		const gchar* channel;
+		const gchar* who;
+		const gchar* message;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -675,8 +675,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "list"))
 	{
-		gchar* server;
-		gchar* channel;
+		const gchar* server;
+		const gchar* channel;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -701,8 +701,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "log"))
 	{
-		gchar* server;
-		gchar* target;
+		const gchar* server;
+		const gchar* target;
 		guint64 lines;
 
 		gchar** log;
@@ -735,9 +735,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "message"))
 	{
-		gchar* server;
-		gchar* target;
-		gchar* message;
+		const gchar* server;
+		const gchar* target;
+		const gchar* message;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -763,9 +763,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "mode"))
 	{
-		gchar* server;
-		gchar* target;
-		gchar* mode;
+		const gchar* server;
+		const gchar* target;
+		const gchar* mode;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -791,8 +791,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "names"))
 	{
-		gchar* server;
-		gchar* channel;
+		const gchar* server;
+		const gchar* channel;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -817,8 +817,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "nick"))
 	{
-		gchar* server;
-		gchar* nick;
+		const gchar* server;
+		const gchar* nick;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -843,7 +843,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "nickserv"))
 	{
-		gchar* server;
+		const gchar* server;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -867,9 +867,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "notice"))
 	{
-		gchar* server;
-		gchar* target;
-		gchar* message;
+		const gchar* server;
+		const gchar* target;
+		const gchar* message;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -895,9 +895,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "oper"))
 	{
-		gchar* server;
-		gchar* name;
-		gchar* password;
+		const gchar* server;
+		const gchar* name;
+		const gchar* password;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -923,9 +923,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "part"))
 	{
-		gchar* server;
-		gchar* channel;
-		gchar* message;
+		const gchar* server;
+		const gchar* channel;
+		const gchar* message;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -951,8 +951,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "quit"))
 	{
-		gchar* server;
-		gchar* message;
+		const gchar* server;
+		const gchar* message;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -977,8 +977,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "raw"))
 	{
-		gchar* server;
-		gchar* command;
+		const gchar* server;
+		const gchar* command;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -1003,9 +1003,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_get"))
 	{
-		gchar* server;
-		gchar* group;
-		gchar* key;
+		const gchar* server;
+		const gchar* group;
+		const gchar* key;
 
 		gchar* value;
 
@@ -1037,9 +1037,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_get_list"))
 	{
-		gchar* server;
-		gchar* group;
-		gchar* key;
+		const gchar* server;
+		const gchar* group;
+		const gchar* key;
 
 		gchar** list;
 
@@ -1071,8 +1071,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_list"))
 	{
-		gchar* server;
-		gchar* group;
+		const gchar* server;
+		const gchar* group;
 
 		gchar** result;
 
@@ -1103,9 +1103,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_remove"))
 	{
-		gchar* server;
-		gchar* group;
-		gchar* key;
+		const gchar* server;
+		const gchar* group;
+		const gchar* key;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -1131,8 +1131,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_rename"))
 	{
-		gchar* old;
-		gchar* new;
+		const gchar* old;
+		const gchar* new;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &old,
@@ -1157,10 +1157,10 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_set"))
 	{
-		gchar* server;
-		gchar* group;
-		gchar* key;
-		gchar* value;
+		const gchar* server;
+		const gchar* group;
+		const gchar* key;
+		const gchar* value;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -1187,9 +1187,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_set_list"))
 	{
-		gchar* server;
-		gchar* group;
-		gchar* key;
+		const gchar* server;
+		const gchar* group;
+		const gchar* key;
 		gchar** list = NULL;
 		gint list_len;
 
@@ -1241,7 +1241,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "shutdown"))
 	{
-		gchar* message;
+		const gchar* message;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &message,
@@ -1265,7 +1265,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "support_chantypes"))
 	{
-		gchar* server;
+		const gchar* server;
 
 		gchar* chantypes;
 
@@ -1295,7 +1295,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "support_prefix"))
 	{
-		gchar* server;
+		const gchar* server;
 
 		gchar** prefix;
 
@@ -1325,9 +1325,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "topic"))
 	{
-		gchar* server;
-		gchar* channel;
-		gchar* topic;
+		const gchar* server;
+		const gchar* channel;
+		const gchar* topic;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -1353,8 +1353,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "unignore"))
 	{
-		gchar* server;
-		gchar* pattern;
+		const gchar* server;
+		const gchar* pattern;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
@@ -1379,8 +1379,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "user_away"))
 	{
-		gchar* server;
-		gchar* nick;
+		const gchar* server;
+		const gchar* nick;
 
 		gboolean away;
 
@@ -1409,9 +1409,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "user_channel_mode"))
 	{
-		gchar* server;
-		gchar* channel;
-		gchar* nick;
+		const gchar* server;
+		const gchar* channel;
+		const gchar* nick;
 
 		gchar* mode;
 
@@ -1443,9 +1443,9 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "user_channel_prefix"))
 	{
-		gchar* server;
-		gchar* channel;
-		gchar* nick;
+		const gchar* server;
+		const gchar* channel;
+		const gchar* nick;
 
 		gchar* prefix;
 
@@ -1477,8 +1477,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "user_from"))
 	{
-		gchar* server;
-		gchar* nick;
+		const gchar* server;
+		const gchar* nick;
 
 		gchar* from;
 
@@ -1528,8 +1528,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "who"))
 	{
-		gchar* server;
-		gchar* mask;
+		const gchar* server;
+		const gchar* mask;
 		gboolean operators_only;
 
 		got_args = dbus_message_get_args(msg, NULL,
@@ -1556,8 +1556,8 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "whois"))
 	{
-		gchar* server;
-		gchar* mask;
+		const gchar* server;
+		const gchar* mask;
 
 		got_args = dbus_message_get_args(msg, NULL,
 			DBUS_TYPE_STRING, &server,
