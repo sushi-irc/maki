@@ -304,7 +304,7 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 			DBUS_TYPE_STRING, &value,
 			DBUS_TYPE_INVALID);
 
-		g_free(key);
+		g_free(value);
 
 		if (!sent_reply)
 		{
