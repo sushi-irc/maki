@@ -79,6 +79,7 @@ gboolean maki_dbus_action (makiDBus*, const gchar*, const gchar*, const gchar*, 
 gboolean maki_dbus_away (makiDBus*, const gchar*, const gchar*, GError**);
 gboolean maki_dbus_back (makiDBus*, const gchar*, GError**);
 gboolean maki_dbus_channel_nicks (makiDBus*, const gchar*, const gchar*, gchar***, gchar***, GError**);
+gboolean maki_dbus_channel_topic (makiDBus*, const gchar*, const gchar*, gchar**, GError**);
 gboolean maki_dbus_channels (makiDBus*, const gchar*, gchar***, GError**);
 gboolean maki_dbus_config_get (makiDBus*, const gchar*, const gchar*, gchar**, GError**);
 gboolean maki_dbus_config_set (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);

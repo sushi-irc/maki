@@ -25,6 +25,12 @@
 			<arg name="prefixes" type="as" direction="out" />
 		</method>
 
+		<method name="channel_topic">
+			<arg name="server" type="s" />
+			<arg name="channel" type="s" />
+			<arg name="topic" type="s" direction="out" />
+		</method>
+
 		<method name="channels">
 			<arg name="server" type="s" />
 			<arg name="channels" type="as" direction="out" />
@@ -254,7 +260,6 @@
 		<method name="topic">
 			<arg name="server" type="s" />
 			<arg name="channel" type="s" />
-			<!-- topic is optional and can be empty (""). This requests the current topic. -->
 			<arg name="topic" type="s" />
 		</method>
 

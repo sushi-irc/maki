@@ -607,6 +607,28 @@ gboolean maki_dbus_channel_nicks (makiDBus* self, const gchar* server, const gch
 	return TRUE;
 }
 
+gboolean maki_dbus_channel_topic (makiDBus* self, const gchar* server, const gchar* channel, gchar** topic, GError** error)
+{
+	makiServer* serv;
+	makiInstance* inst = maki_instance_get_default();
+
+	*topic = NULL;
+
+	if ((serv = maki_instance_get_server(inst, server)) != NULL)
+	{
+		makiChannel* chan;
+
+		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
+		{
+			*topic = g_strdup(maki_channel_topic(chan));
+		}
+	}
+
+	maki_ensure_string(topic);
+
+	return TRUE;
+}
+
 gboolean maki_dbus_channels (makiDBus* self, const gchar* server, gchar*** channels, GError** error)
 {
 	makiServer* serv;
@@ -1130,6 +1152,7 @@ gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar* nick,
 		}
 		else
 		{
+			/* FIXME deprecated */
 			GTimeVal timeval;
 
 			g_get_current_time(&timeval);
@@ -1503,12 +1526,13 @@ gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gchar* chan
 
 	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
-		if (topic[0])
+		if (topic[0] != '\0')
 		{
 			maki_server_send_printf(serv, "TOPIC %s :%s", channel, topic);
 		}
 		else
 		{
+			/* FIXME deprecated */
 			makiChannel* chan;
 
 			if ((chan = maki_server_get_channel(serv, channel)) != NULL

@@ -251,6 +251,38 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
+	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "channel_topic"))
+	{
+		const gchar* server;
+		const gchar* channel;
+
+		gchar* topic;
+
+		got_args = dbus_message_get_args(msg, NULL,
+			DBUS_TYPE_STRING, &server,
+			DBUS_TYPE_STRING, &channel,
+			DBUS_TYPE_INVALID);
+
+		if (!got_args)
+		{
+			goto error;
+		}
+
+		maki_dbus_channel_topic(dbus, server, channel, &topic, NULL);
+
+		sent_reply = maki_dbus_server_reply(connection, msg,
+			DBUS_TYPE_STRING, &topic,
+			DBUS_TYPE_INVALID);
+
+		g_free(topic);
+
+		if (!sent_reply)
+		{
+			goto error;
+		}
+
+		ret = DBUS_HANDLER_RESULT_HANDLED;
+	}
 	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "channels"))
 	{
 		const gchar* server;
