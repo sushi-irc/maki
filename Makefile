@@ -1,6 +1,7 @@
 include Makefile.common
 
 all:
+	$(MAKE) -C po $@
 	$(MAKE) -C source $@
 
 install: all

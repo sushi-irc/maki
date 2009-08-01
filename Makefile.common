@@ -21,10 +21,13 @@ GREP       = grep
 GZIP       = gzip
 INSTALL    = install
 LN         = ln
+MSGCMP     = msgcmp
+MV         = mv
 PKG_CONFIG = pkg-config
 RM         = rm
 SED        = sed
 SORT       = sort
+TOUCH      = touch
 
 ifndef VERBOSE
 	QUIET_CC  = @echo " [CC]  $@";
