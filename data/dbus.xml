@@ -79,12 +79,24 @@
 			<arg name="id" type="t" />
 		</method>
 
+		<method name="dcc_send_get">
+			<arg name="id" type="t" />
+			<arg name="key" type="s" />
+			<arg name="value" type="s" direction="out" />
+		</method>
+
 		<method name="dcc_send_remove">
 			<arg name="id" type="t" />
 		</method>
 
 		<method name="dcc_send_resume">
 			<arg name="id" type="t" />
+		</method>
+
+		<method name="dcc_send_set">
+			<arg name="id" type="t" />
+			<arg name="key" type="s" />
+			<arg name="value" type="s" />
 		</method>
 
 		<method name="ignore">

@@ -788,6 +788,17 @@ gboolean maki_dbus_dcc_send_accept (makiDBus* self, guint64 id, GError** error)
 	return TRUE;
 }
 
+gboolean maki_dbus_dcc_send_get (makiDBus* self, guint64 id, const gchar* key, gchar** value, GError** error)
+{
+	makiInstance* inst = maki_instance_get_default();
+
+	*value = maki_instance_dcc_send_get(inst, id, key);
+
+	maki_ensure_string(value);
+
+	return TRUE;
+}
+
 gboolean maki_dbus_dcc_send_remove (makiDBus* self, guint64 id, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
@@ -802,6 +813,15 @@ gboolean maki_dbus_dcc_send_resume (makiDBus* self, guint64 id, GError** error)
 	makiInstance* inst = maki_instance_get_default();
 
 	maki_instance_resume_dcc_send(inst, id);
+
+	return TRUE;
+}
+
+gboolean maki_dbus_dcc_send_set (makiDBus* self, guint64 id, const gchar* key, const gchar* value, GError** error)
+{
+	makiInstance* inst = maki_instance_get_default();
+
+	maki_instance_dcc_send_set(inst, id, key, value);
 
 	return TRUE;
 }

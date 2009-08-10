@@ -88,8 +88,10 @@ gboolean maki_dbus_ctcp (makiDBus*, const gchar*, const gchar*, const gchar*, GE
 gboolean maki_dbus_dcc_send (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
 gboolean maki_dbus_dcc_sends (makiDBus*, GArray**, gchar***, gchar***, gchar***, GArray**, GArray**, GArray**, GArray**, GError**);
 gboolean maki_dbus_dcc_send_accept (makiDBus*, guint64, GError**);
+gboolean maki_dbus_dcc_send_get (makiDBus*, guint64, const gchar*, gchar**, GError**);
 gboolean maki_dbus_dcc_send_remove (makiDBus*, guint64, GError**);
 gboolean maki_dbus_dcc_send_resume (makiDBus*, guint64, GError**);
+gboolean maki_dbus_dcc_send_set (makiDBus*, guint64, const gchar*, const gchar*, GError**);
 gboolean maki_dbus_ignore (makiDBus*, const gchar*, const gchar*, GError**);
 gboolean maki_dbus_ignores (makiDBus*, const gchar*, gchar***, GError**);
 gboolean maki_dbus_invite (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);

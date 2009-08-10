@@ -52,6 +52,8 @@ guint64 maki_dcc_send_speed (makiDCCSend*);
 guint maki_dcc_send_status (makiDCCSend*);
 makiServer* maki_dcc_send_server (makiDCCSend*);
 makiUser* maki_dcc_send_user (makiDCCSend*);
+const gchar* maki_dcc_send_path (makiDCCSend*);
+gboolean maki_dcc_send_set_path (makiDCCSend*, const gchar*);
 gchar* maki_dcc_send_filename (makiDCCSend*);
 
 void maki_dcc_send_emit (makiDCCSend*);

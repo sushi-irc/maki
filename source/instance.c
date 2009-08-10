@@ -390,6 +390,65 @@ guint maki_instance_dcc_sends_count (makiInstance* inst)
 	return ret;
 }
 
+gchar* maki_instance_dcc_send_get (makiInstance* inst, guint64 id, const gchar* key)
+{
+	makiDCCSend* dcc = NULL;
+	gchar* value = NULL;
+
+	g_mutex_lock(inst->dcc.mutex);
+
+	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
+	{
+		if (strcmp(key, "directory") == 0)
+		{
+			value = g_path_get_dirname(maki_dcc_send_path(dcc));
+		}
+		else if (strcmp(key, "path") == 0)
+		{
+			value = g_strdup(maki_dcc_send_path(dcc));
+		}
+	}
+
+	g_mutex_unlock(inst->dcc.mutex);
+
+	return value;
+}
+
+gboolean maki_instance_dcc_send_set (makiInstance* inst, guint64 id, const gchar* key, const gchar* value)
+{
+	makiDCCSend* dcc = NULL;
+	gboolean ret = FALSE;
+
+	g_mutex_lock(inst->dcc.mutex);
+
+	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
+	{
+		if (strcmp(key, "directory") == 0)
+		{
+			const gchar* path;
+			gchar* basename;
+			gchar* new_path;
+
+			path = maki_dcc_send_path(dcc);
+			basename = g_path_get_basename(path);
+			new_path = g_build_filename(value, basename, NULL);
+
+			ret = maki_dcc_send_set_path(dcc, new_path);
+
+			g_free(basename);
+			g_free(new_path);
+		}
+		else if (strcmp(key, "path") == 0)
+		{
+			ret = maki_dcc_send_set_path(dcc, value);
+		}
+	}
+
+	g_mutex_unlock(inst->dcc.mutex);
+
+	return ret;
+}
+
 void maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** servers, gchar*** froms, gchar*** filenames, GArray** sizes, GArray** progresses, GArray** speeds, GArray** statuses)
 {
 	guint i;

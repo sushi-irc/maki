@@ -895,6 +895,22 @@ makiUser* maki_dcc_send_user (makiDCCSend* dcc)
 	return dcc->user;
 }
 
+const gchar* maki_dcc_send_path (makiDCCSend* dcc)
+{
+	return dcc->path;
+}
+
+gboolean maki_dcc_send_set_path (makiDCCSend* dcc, const gchar* path)
+{
+	if (dcc->status == s_incoming || dcc->status == (s_incoming | s_resumable))
+	{
+		g_free(dcc->path);
+		dcc->path = g_strdup(path);
+	}
+
+	return FALSE;
+}
+
 gchar* maki_dcc_send_filename (makiDCCSend* dcc)
 {
 	return g_path_get_basename(dcc->path);
