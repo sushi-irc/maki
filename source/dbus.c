@@ -58,6 +58,7 @@ enum
 	s_connected,
 	s_ctcp,
 	s_dcc_send,
+	s_error,
 	s_invite,
 	s_join,
 	s_kick,
@@ -228,6 +229,22 @@ void maki_dbus_emit_dcc_send (gint64 timestamp, guint64 id, const gchar* server,
 		DBUS_TYPE_UINT64, &progress,
 		DBUS_TYPE_UINT64, &speed,
 		DBUS_TYPE_UINT64, &status,
+		DBUS_TYPE_INVALID);
+}
+
+void maki_dbus_emit_error (gint64 timestamp, const gchar* server, const gchar* domain, const gchar* reason, gchar** arguments)
+{
+	if (dbus != NULL)
+	{
+		g_signal_emit(dbus, signals[s_error], 0, timestamp, server, domain, reason, arguments);
+	}
+
+	maki_dbus_server_emit(dbus_server, "error",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &domain,
+		DBUS_TYPE_STRING, &reason,
+		DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &arguments, g_strv_length(arguments),
 		DBUS_TYPE_INVALID);
 }
 
@@ -2000,6 +2017,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_UINT64_UINT64_UINT64_UINT64,
 		             G_TYPE_NONE, 9,
 		             G_TYPE_INT64, G_TYPE_UINT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT64, G_TYPE_UINT64, G_TYPE_UINT64, G_TYPE_UINT64);
+	signals[s_error] =
+		g_signal_new("error",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             maki_marshal_VOID__INT64_STRING_STRING_STRING_POINTER,
+		             G_TYPE_NONE, 5,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRV);
 	signals[s_invite] =
 		g_signal_new("invite",
 		             G_OBJECT_CLASS_TYPE(klass),

@@ -1201,7 +1201,9 @@ static void maki_in_rpl_whois (makiServer* serv, glong timestamp, gchar* remaini
 
 static void maki_in_err_nosuch (makiServer* serv, glong timestamp, gchar* remaining, gint numeric)
 {
-	gchar type[2];
+	const gchar* reason;
+	const gchar* type;
+	gchar** arguments;
 	gchar** tmp;
 
 	if (!remaining)
@@ -1221,31 +1223,41 @@ static void maki_in_err_nosuch (makiServer* serv, glong timestamp, gchar* remain
 	{
 		/* ERR_NOSUCHNICK */
 		case 401:
-			type[0] = 'n';
+			reason = "nick";
+			type = "n";
 			break;
 		/* ERR_NOSUCHSERVER */
 		case 402:
-			type[0] = 's';
+			reason = "server";
+			type = "s";
 			break;
 		/* ERR_NOSUCHCHANNEL */
 		case 403:
-			type[0] = 'c';
+			reason = "channel";
+			type = "c";
 			break;
 		default:
 			g_warn_if_reached();
 			break;
 	}
 
-	type[1] = '\0';
+	arguments = g_new(gchar*, 2);
+	arguments[0] = tmp[0];
+	arguments[1] = NULL;
 
+	maki_dbus_emit_error(timestamp, maki_server_name(serv), "no_such", reason, arguments);
 	maki_dbus_emit_no_such(timestamp, maki_server_name(serv), tmp[0], type);
+
+	g_free(arguments);
 
 	g_strfreev(tmp);
 }
 
 static void maki_in_err_cannot_join (makiServer* serv, glong timestamp, gchar* remaining, gint numeric)
 {
-	gchar reason[2];
+	const gchar* reason;
+	const gchar* type;
+	gchar** arguments;
 	gchar** tmp;
 
 	if (!remaining)
@@ -1265,28 +1277,37 @@ static void maki_in_err_cannot_join (makiServer* serv, glong timestamp, gchar* r
 	{
 		/* ERR_CHANNELISFULL */
 		case 471:
-			reason[0] = 'l';
+			reason = "full";
+			type = "l";
 			break;
 		/* ERR_INVITEONLYCHAN */
 		case 473:
-			reason[0] = 'i';
+			reason = "invite";
+			type = "i";
 			break;
 		/* ERR_BANNEDFROMCHAN */
 		case 474:
-			reason[0] = 'b';
+			reason = "banned";
+			type = "b";
 			break;
 		/* ERR_BADCHANNELKEY */
 		case 475:
-			reason[0] = 'k';
+			reason = "key";
+			type = "k";
 			break;
 		default:
 			g_warn_if_reached();
 			break;
 	}
 
-	reason[1] = '\0';
+	arguments = g_new(gchar*, 2);
+	arguments[0] = tmp[0];
+	arguments[1] = NULL;
 
-	maki_dbus_emit_cannot_join(timestamp, maki_server_name(serv), tmp[0], reason);
+	maki_dbus_emit_error(timestamp, maki_server_name(serv), "cannot_join", reason, arguments);
+	maki_dbus_emit_cannot_join(timestamp, maki_server_name(serv), tmp[0], type);
+
+	g_free(arguments);
 
 	g_strfreev(tmp);
 }

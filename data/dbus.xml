@@ -361,6 +361,7 @@
 			<!-- mask == "" and who == "" and when == -1 signifies the end of the list. -->
 		</signal>
 
+		<!-- FIXME deprecated -->
 		<signal name="cannot_join">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
@@ -402,6 +403,14 @@
 			<arg name="progress" type="t" />
 			<arg name="speed" type="t" />
 			<arg name="status" type="t" />
+		</signal>
+
+		<signal name="error">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="domain" type="s" />
+			<arg name="reason" type="s" />
+			<arg name="arguments" type="as" />
 		</signal>
 
 		<signal name="invite">
@@ -482,6 +491,7 @@
 			<arg name="new_nick" type="s" />
 		</signal>
 
+		<!-- FIXME deprecated -->
 		<signal name="no_such">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />
