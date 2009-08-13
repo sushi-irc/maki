@@ -426,9 +426,7 @@ gchar* maki_dcc_send_get_file_name (const gchar* string, gsize* length)
 
 makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar* file_name, guint32 address, guint16 port, goffset file_size, guint32 token)
 {
-	gboolean do_resume;
 	guint i;
-	gchar* dirname;
 	gchar* downloads_dir;
 	struct stat stbuf;
 	makiInstance* inst = maki_instance_get_default();
@@ -466,34 +464,14 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 	g_free(downloads_dir);
 
-	dirname = g_path_get_dirname(dcc->path);
-	g_mkdir_with_parents(dirname, 0777);
-	g_free(dirname);
-
-	do_resume = (stat(dcc->path, &stbuf) == 0 && stbuf.st_size > 0);
-
-	if (do_resume)
+	if (stat(dcc->path, &stbuf) == 0 && stbuf.st_size > 0 && (stbuf.st_size < file_size || file_size == 0))
 	{
-		dcc->channel = g_io_channel_new_file(dcc->path, "r+", NULL);
 		dcc->status |= s_resumable;
 	}
-	else
-	{
-		dcc->channel = g_io_channel_new_file(dcc->path, "w", NULL);
-	}
-
-	if (dcc->channel == NULL)
-	{
-		goto error;
-	}
-
-	g_io_channel_set_close_on_unref(dcc->channel, TRUE);
-	g_io_channel_set_encoding(dcc->channel, NULL, NULL);
-	g_io_channel_set_buffered(dcc->channel, FALSE);
 
 	maki_dcc_send_emit(dcc);
 
-	if (do_resume)
+	if (dcc->status & s_resumable)
 	{
 		if (maki_instance_config_get_boolean(inst, "dcc", "accept_resume"))
 		{
@@ -509,11 +487,6 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	}
 
 	return dcc;
-
-error:
-	maki_dcc_send_free(dcc);
-
-	return NULL;
 }
 
 makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gchar* path)
@@ -697,6 +670,24 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 		g_io_channel_set_close_on_unref(channel, TRUE);
 		g_io_channel_set_encoding(channel, NULL, NULL);
 
+		if (dcc->channel == NULL)
+		{
+			gchar* dirname;
+
+			dirname = g_path_get_dirname(dcc->path);
+			g_mkdir_with_parents(dirname, 0777);
+			g_free(dirname);
+
+			if ((dcc->channel = g_io_channel_new_file(dcc->path, "w", NULL)) == NULL)
+			{
+				return FALSE;
+			}
+
+			g_io_channel_set_close_on_unref(dcc->channel, TRUE);
+			g_io_channel_set_encoding(dcc->channel, NULL, NULL);
+			g_io_channel_set_buffered(dcc->channel, FALSE);
+		}
+
 		dcc->d.in.accept = TRUE;
 		dcc->d.in.sources[s_in_write] = g_io_add_watch(channel, G_IO_OUT | G_IO_HUP | G_IO_ERR, maki_dcc_send_in_write, dcc);
 
@@ -715,7 +706,7 @@ gboolean maki_dcc_send_resume (makiDCCSend* dcc)
 		gchar* basename;
 		struct stat stbuf;
 
-		if (dcc->d.in.resume)
+		if (dcc->d.in.accept || dcc->d.in.resume)
 		{
 			return FALSE;
 		}
@@ -753,6 +744,7 @@ gboolean maki_dcc_send_resume_accept (makiDCCSend* dcc, const gchar* filename, g
 	if (dcc->status & s_incoming)
 	{
 		gchar* basename;
+		gchar* dirname;
 		makiInstance* inst = maki_instance_get_default();
 
 		if (!is_incoming)
@@ -779,6 +771,19 @@ gboolean maki_dcc_send_resume_accept (makiDCCSend* dcc, const gchar* filename, g
 		{
 			return FALSE;
 		}
+
+		dirname = g_path_get_dirname(dcc->path);
+		g_mkdir_with_parents(dirname, 0777);
+		g_free(dirname);
+
+		if ((dcc->channel = g_io_channel_new_file(dcc->path, "r+", NULL)) == NULL)
+		{
+			return FALSE;
+		}
+
+		g_io_channel_set_close_on_unref(dcc->channel, TRUE);
+		g_io_channel_set_encoding(dcc->channel, NULL, NULL);
+		g_io_channel_set_buffered(dcc->channel, FALSE);
 
 		if (g_io_channel_seek_position(dcc->channel, position, G_SEEK_SET, NULL) != G_IO_STATUS_NORMAL)
 		{
@@ -902,10 +907,17 @@ const gchar* maki_dcc_send_path (makiDCCSend* dcc)
 
 gboolean maki_dcc_send_set_path (makiDCCSend* dcc, const gchar* path)
 {
-	if (dcc->status == s_incoming || dcc->status == (s_incoming | s_resumable))
+	if (dcc->status & s_incoming)
 	{
+		if (dcc->d.in.accept || dcc->d.in.resume)
+		{
+			return FALSE;
+		}
+
 		g_free(dcc->path);
 		dcc->path = g_strdup(path);
+
+		return TRUE;
 	}
 
 	return FALSE;
