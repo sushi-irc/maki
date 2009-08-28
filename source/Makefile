@@ -6,7 +6,7 @@ SUSHI_CFLAGS := $(subst -pedantic,,$(SUSHI_CFLAGS))
 SUSHI_CFLAGS  += $(shell $(PKG_CONFIG) --cflags dbus-1 dbus-glib-1 glib-2.0 gobject-2.0 gthread-2.0 gmodule-2.0)
 SUSHI_LDFLAGS += $(shell $(PKG_CONFIG) --libs   dbus-1 dbus-glib-1 glib-2.0 gobject-2.0 gthread-2.0 gmodule-2.0)
 
-ifeq ($(shell PKG_CONFIG='$(PKG_CONFIG)' ../tools/pkg-config.sh nice), yes)
+ifeq ($(shell if $(PKG_CONFIG) --exists nice; then echo yes; fi), yes)
 	SUSHI_CFLAGS  += $(shell $(PKG_CONFIG) --cflags nice) -DSUSHI_HAVE_NICE
 	SUSHI_LDFLAGS += $(shell $(PKG_CONFIG) --libs   nice)
 endif

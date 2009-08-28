@@ -5,7 +5,7 @@ SUSHI_LDFLAGS += $(shell $(PKG_CONFIG) --libs   glib-2.0 gmodule-2.0)
 
 PLUGINS =
 
-ifeq ($(shell PKG_CONFIG='$(PKG_CONFIG)' ../../tools/pkg-config.sh libnm_glib), yes)
+ifeq ($(shell if $(PKG_CONFIG) --exists libnm_glib && $(PKG_CONFIG) --atleast-version=0.7.0 libnm_glib; then echo yes; fi), yes)
 	PLUGINS += nm
 	NM_CFLAGS  = $(shell $(PKG_CONFIG) --cflags gobject-2.0 libnm_glib)
 	NM_LDFLAGS = $(shell $(PKG_CONFIG) --libs   gobject-2.0 libnm_glib)
