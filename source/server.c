@@ -487,10 +487,18 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 
 		serv->connected = FALSE;
 		serv->logged_in = FALSE;
+
 		return sashimi_disconnect(serv->connection);
 	}
 
 	return TRUE;
+}
+
+void maki_server_reset (makiServer* serv)
+{
+	makiInstance* inst = maki_instance_get_default();
+
+	serv->reconnect.retries = maki_instance_config_get_integer(inst, "reconnect", "retries");
 }
 
 /* This function handles unexpected reconnects. */
@@ -526,15 +534,12 @@ void maki_server_connect_callback (gpointer data)
 	gchar* name;
 	GTimeVal timeval;
 	makiServer* serv = data;
-	makiInstance* inst = maki_instance_get_default();
 
 	if (serv->reconnect.source != 0)
 	{
 		i_source_remove(serv->reconnect.source, serv->main_context);
 		serv->reconnect.source = 0;
 	}
-
-	serv->reconnect.retries = maki_instance_config_get_integer(inst, "reconnect", "retries");
 
 	initial_nick = maki_server_config_get_string(serv, "server", "nick");
 	name = maki_server_config_get_string(serv, "server", "name");

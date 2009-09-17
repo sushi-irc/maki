@@ -798,6 +798,7 @@ gboolean maki_dcc_send_resume_accept (makiDCCSend* dcc, const gchar* filename, g
 
 		maki_dcc_send_emit(dcc);
 
+		/* FIXME */
 		if (maki_instance_config_get_boolean(inst, "dcc", "accept_send"))
 		{
 			maki_dcc_send_accept(dcc);

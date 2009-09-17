@@ -711,6 +711,7 @@ gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError** error)
 	{
 		/* Disconnect, because strange things happen if we call maki_server_connect() while still connected. */
 		maki_server_disconnect(serv, "");
+		maki_server_reset(serv);
 		maki_server_connect(serv);
 	}
 	else
