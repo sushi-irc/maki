@@ -488,6 +488,8 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 		serv->connected = FALSE;
 		serv->logged_in = FALSE;
 
+		/* FIXME disconnect signal */
+
 		return sashimi_disconnect(serv->connection);
 	}
 

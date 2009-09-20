@@ -345,6 +345,8 @@ gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint p
 	g_return_val_if_fail(address != NULL, FALSE);
 	g_return_val_if_fail(port != 0, FALSE);
 
+	sashimi_disconnect(conn);
+
 	if ((conn->channel = i_io_channel_unix_new_address(address, port, TRUE)) == NULL)
 	{
 		return FALSE;
