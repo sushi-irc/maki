@@ -57,7 +57,10 @@ static void notify_state_cb (NMClient* client, GParamSpec* pspec, gpointer data)
 		/* Connected */
 		if (state == NM_STATE_UNKNOWN || state == NM_STATE_CONNECTED)
 		{
-			maki_server_connect(serv);
+			if (maki_server_autoconnect(serv))
+			{
+				maki_server_connect(serv);
+			}
 		}
 		/* Asleep or Disconnected */
 		else if (state == NM_STATE_ASLEEP || state == NM_STATE_CONNECTING || state == NM_STATE_DISCONNECTED)
