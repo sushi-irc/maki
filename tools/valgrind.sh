@@ -44,6 +44,7 @@ valgrind \
 	--tool=memcheck \
 	--leak-check=full \
 	--leak-resolution=high \
+	--track-origins=yes \
 	--trace-children=yes \
 	--num-callers=20 \
 	--suppressions="${dirname}/${program}.sup" \

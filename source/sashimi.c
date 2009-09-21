@@ -380,6 +380,8 @@ void sashimi_free (sashimiConnection* conn)
 {
 	g_return_if_fail(conn != NULL);
 
+	sashimi_disconnect(conn);
+
 	/* Clean up the queue. */
 	while (!g_queue_is_empty(conn->queue))
 	{
