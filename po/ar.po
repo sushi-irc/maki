@@ -1,0 +1,177 @@
+# Arabic translation for maki
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the maki package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: maki 1.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-07-13 14:00+0200\n"
+"PO-Revision-Date: 2009-07-28 03:21+0000\n"
+"Last-Translator: benihb <benohamid@gmail.com>\n"
+"Language-Team: Arabic\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Launchpad-Export-Date: 2009-10-09 11:20+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../source/in.c:394
+msgid "» You join."
+msgstr "» لقد انضممت."
+
+#: ../source/in.c:398
+#, c-format
+msgid "» %s joins."
+msgstr "» %s انضمو."
+
+#: ../source/in.c:458
+#, c-format
+msgid "« You part (%s)."
+msgstr "« قسمك/اقسامك (%s)."
+
+#: ../source/in.c:462
+msgid "« You part."
+msgstr "« قسمك."
+
+#: ../source/in.c:469
+#, c-format
+msgid "« %s parts (%s)."
+msgstr "« %s اقسام (%s)."
+
+#: ../source/in.c:473
+#, c-format
+msgid "« %s parts."
+msgstr "« %s اقسام."
+
+#: ../source/in.c:510
+#, c-format
+msgid "« %s quits (%s)."
+msgstr "« %s استقالة (%s)."
+
+#: ../source/in.c:514
+#, c-format
+msgid "« %s quits."
+msgstr "« %s استقالة."
+
+#: ../source/in.c:581
+#, c-format
+msgid "« %s kicks you (%s)."
+msgstr "« %s نصيبك انت (%s)."
+
+#: ../source/in.c:585
+#, c-format
+msgid "« %s kicks you."
+msgstr "« %s نصيبك انت."
+
+#: ../source/in.c:592
+#, c-format
+msgid "« %s kicks %s (%s)."
+msgstr "« %s نصيب %s (%s)."
+
+#: ../source/in.c:596
+#, c-format
+msgid "« %s kicks %s."
+msgstr "« %s نصيب %s."
+
+#: ../source/in.c:646
+#, c-format
+msgid "• You are now known as %s."
+msgstr "انت الان تعرف كما %s"
+
+#: ../source/in.c:650
+#, c-format
+msgid "• %s is now known as %s."
+msgstr "• %s انه الان يعرف كما %s."
+
+#: ../source/in.c:782
+#, c-format
+msgid "• Mode: %s %s"
+msgstr "• نمط: %s %s"
+
+#: ../source/in.c:790
+#, c-format
+msgid "• You set mode: %s %s"
+msgstr "• انت عين النمط: %s %s"
+
+#: ../source/in.c:794
+#, c-format
+msgid "• %s sets mode: %s %s"
+msgstr "• %s مجموعة نمط: %s %s"
+
+#: ../source/in.c:806
+#, c-format
+msgid "• Mode: %s"
+msgstr "• نمط: %s"
+
+#: ../source/in.c:814
+#, c-format
+msgid "• You set mode: %s"
+msgstr "• انت عين النمط: %s"
+
+#: ../source/in.c:818
+#, c-format
+msgid "• %s sets mode: %s"
+msgstr "• %s مجموعات النمط: %s"
+
+#: ../source/in.c:855
+#, c-format
+msgid "• You successfully invite %s."
+msgstr ""
+
+#: ../source/in.c:861
+#, c-format
+msgid "• %s invites %s."
+msgstr ""
+
+#: ../source/in.c:899
+#, c-format
+msgid "• Topic: %s"
+msgstr ""
+
+#: ../source/in.c:907
+#, c-format
+msgid "• You change the topic: %s"
+msgstr ""
+
+#: ../source/in.c:911
+#, c-format
+msgid "• %s changes the topic: %s"
+msgstr ""
+
+#: ../source/maki.c:84
+msgid "Run as daemon"
+msgstr ""
+
+#: ../source/maki.c:85
+msgid "Start DBus server"
+msgstr ""
+
+#: ../source/maki.c:86
+msgid "Output debug messages"
+msgstr ""
+
+#: ../source/maki.c:130
+msgid "Could not switch to daemon mode."
+msgstr ""
+
+#: ../source/maki.c:138
+msgid "Could not create maki instance."
+msgstr ""
+
+#: ../source/maki.c:149
+msgid "Could not connect to DBus. maki may already be running."
+msgstr ""
+
+#: ../source/misc.c:82
+msgid "Could not open debug log file."
+msgstr ""
+
+#: ../source/out.c:196
+#, c-format
+msgid "« You quit (%s)."
+msgstr ""
+
+#: ../source/out.c:200
+msgid "« You quit."
+msgstr ""
