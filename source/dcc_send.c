@@ -41,7 +41,8 @@ enum
 	s_resumable = (1 << 1),
 	s_resumed = (1 << 2),
 	s_running = (1 << 3),
-	s_error = (1 << 4)
+	s_error = (1 << 4),
+	s_automatic = (1 << 5)
 };
 
 enum
@@ -475,6 +476,8 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	{
 		if (maki_instance_config_get_boolean(inst, "dcc", "accept_resume"))
 		{
+			dcc->status |= s_automatic;
+
 			maki_dcc_send_resume(dcc);
 		}
 	}
@@ -482,6 +485,8 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	{
 		if (maki_instance_config_get_boolean(inst, "dcc", "accept_send"))
 		{
+			dcc->status |= s_automatic;
+
 			maki_dcc_send_accept(dcc);
 		}
 	}
@@ -745,7 +750,6 @@ gboolean maki_dcc_send_resume_accept (makiDCCSend* dcc, const gchar* filename, g
 	{
 		gchar* basename;
 		gchar* dirname;
-		makiInstance* inst = maki_instance_get_default();
 
 		if (!is_incoming)
 		{
@@ -767,7 +771,7 @@ gboolean maki_dcc_send_resume_accept (makiDCCSend* dcc, const gchar* filename, g
 			return FALSE;
 		}
 
-		if (dcc->d.in.accept)
+		if (dcc->d.in.accept || !dcc->d.in.resume)
 		{
 			return FALSE;
 		}
@@ -798,11 +802,7 @@ gboolean maki_dcc_send_resume_accept (makiDCCSend* dcc, const gchar* filename, g
 
 		maki_dcc_send_emit(dcc);
 
-		/* FIXME */
-		if (maki_instance_config_get_boolean(inst, "dcc", "accept_send"))
-		{
-			maki_dcc_send_accept(dcc);
-		}
+		maki_dcc_send_accept(dcc);
 	}
 	else
 	{
