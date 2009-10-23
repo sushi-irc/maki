@@ -16,14 +16,7 @@ clean:
 	$(RM) -f *.mo
 
 maki.pot: $(C) $(H)
-	$(QUIET_GEN) xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --output=$@.tmp $+; \
-		if $(MSGCMP) --use-untranslated $@ $@.tmp; \
-		then \
-			$(RM) -f $@.tmp; \
-			$(TOUCH) $@; \
-		else \
-			$(MV) $@.tmp $@; \
-		fi
+	$(QUIET_GEN) xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --output=$@ $+
 
 %.mo: %.po
 	$(QUIET_GEN) msgfmt --output-file=$@ $+
