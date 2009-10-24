@@ -1,6 +1,6 @@
 include ../Makefile.common
 
-LANGUAGES = ar de es
+LANGUAGES = ar de es pt
 PO        = $(LANGUAGES:%=%.po)
 C         = $(wildcard ../source/*.c)
 H         = $(wildcard ../source/*.h)
