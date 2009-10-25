@@ -37,12 +37,12 @@
 
 enum
 {
-	s_incoming = (1 << 0),
-	s_resumable = (1 << 1),
-	s_resumed = (1 << 2),
-	s_running = (1 << 3),
-	s_error = (1 << 4),
-	s_automatic = (1 << 5)
+	s_new = (1 << 0),
+	s_incoming = (1 << 1),
+	s_resumable = (1 << 2),
+	s_resumed = (1 << 3),
+	s_running = (1 << 4),
+	s_error = (1 << 5)
 };
 
 enum
@@ -453,7 +453,7 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 
 	dcc->token = token;
 
-	dcc->status = s_incoming;
+	dcc->status = s_new | s_incoming;
 
 	dcc->d.in.accept = FALSE;
 	dcc->d.in.resume = FALSE;
@@ -470,13 +470,11 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 		dcc->status |= s_resumable;
 	}
 
-	maki_dcc_send_emit(dcc);
-
 	if (dcc->status & s_resumable)
 	{
 		if (maki_instance_config_get_boolean(inst, "dcc", "accept_resume"))
 		{
-			dcc->status |= s_automatic;
+			dcc->status &= ~s_new;
 
 			maki_dcc_send_resume(dcc);
 		}
@@ -485,11 +483,15 @@ makiDCCSend* maki_dcc_send_new_in (makiServer* serv, makiUser* user, const gchar
 	{
 		if (maki_instance_config_get_boolean(inst, "dcc", "accept_send"))
 		{
-			dcc->status |= s_automatic;
+			dcc->status &= ~s_new;
 
 			maki_dcc_send_accept(dcc);
 		}
 	}
+
+	maki_dcc_send_emit(dcc);
+
+	dcc->status &= ~s_new;
 
 	return dcc;
 }
@@ -716,7 +718,7 @@ gboolean maki_dcc_send_resume (makiDCCSend* dcc)
 			return FALSE;
 		}
 
-		if (stat(dcc->path, &stbuf) != 0 || stbuf.st_size == 0)
+		if (stat(dcc->path, &stbuf) != 0 || stbuf.st_size == 0 || (stbuf.st_size >= dcc->size && dcc->size > 0))
 		{
 			return FALSE;
 		}
@@ -910,6 +912,8 @@ gboolean maki_dcc_send_set_path (makiDCCSend* dcc, const gchar* path)
 {
 	if (dcc->status & s_incoming)
 	{
+		struct stat stbuf;
+
 		if (dcc->d.in.accept || dcc->d.in.resume)
 		{
 			return FALSE;
@@ -917,6 +921,17 @@ gboolean maki_dcc_send_set_path (makiDCCSend* dcc, const gchar* path)
 
 		g_free(dcc->path);
 		dcc->path = g_strdup(path);
+
+		if (stat(dcc->path, &stbuf) == 0 && stbuf.st_size > 0 && (stbuf.st_size < dcc->size || dcc->size == 0))
+		{
+			dcc->status |= s_resumable;
+		}
+		else
+		{
+			dcc->status &= ~s_resumable;
+		}
+
+		maki_dcc_send_emit(dcc);
 
 		return TRUE;
 	}
