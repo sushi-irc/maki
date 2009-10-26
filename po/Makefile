@@ -16,7 +16,14 @@ clean:
 	$(RM) -f *.mo
 
 maki.pot: $(C) $(H)
-	$(QUIET_GEN) xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --output=$@ $+
+	$(QUIET_GEN) xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --output=$@.tmp $+; \
+		if $(DIFF) -u $@ $@.tmp | $(GREP) '^[+-]msg' > /dev/null 2>&1; \
+		then \
+			$(MV) $@.tmp $@; \
+		else \
+			$(RM) -f $@.tmp; \
+			$(TOUCH) $@; \
+		fi
 
 %.mo: %.po
 	$(QUIET_GEN) msgfmt --output-file=$@ $+

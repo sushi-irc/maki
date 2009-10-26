@@ -17,11 +17,11 @@ localedir = $(sharedir)/locale
 mandir    = $(sharedir)/man
 
 CHMOD      = chmod
+DIFF       = diff
 GREP       = grep
 GZIP       = gzip
 INSTALL    = install
 LN         = ln
-MSGCMP     = msgcmp
 MV         = mv
 PKG_CONFIG = pkg-config
 RM         = rm
