@@ -41,6 +41,8 @@
 #define SUSHI_DBUS_PATH "/de/ikkoku/sushi"
 #define SUSHI_DBUS_INTERFACE "de.ikkoku.sushi"
 
+#include "config.h"
+
 #include "channel.h"
 #include "channel_user.h"
 #include "dcc_send.h"

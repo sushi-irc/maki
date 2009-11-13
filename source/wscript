@@ -1,0 +1,121 @@
+#!/usr/bin/env python
+
+import os
+
+import Utils
+
+def configure (conf):
+	conf.sub_config('plugins')
+
+	conf.check_tool('dbus')
+	conf.check_tool('gcc')
+	conf.check_tool('glib2')
+	conf.check_tool('gnu_dirs')
+	conf.check_tool('intltool')
+
+	conf.check_cfg(
+		package = 'dbus-1',
+		args = '--cflags --libs',
+		mandatory = True
+	)
+
+	conf.check_cfg(
+		package = 'dbus-glib-1',
+		args = '--cflags --libs',
+		mandatory = True
+	)
+
+	conf.check_cfg(
+		package = 'glib-2.0',
+		args = '--cflags --libs',
+		mandatory = True
+	)
+
+	conf.check_cfg(
+		package = 'gobject-2.0',
+		args = '--cflags --libs',
+		mandatory = True
+	)
+
+	conf.check_cfg(
+		package = 'gthread-2.0',
+		args = '--cflags --libs',
+		mandatory = True
+	)
+
+	conf.check_cfg(
+		package = 'gmodule-2.0',
+		args = '--cflags --libs',
+		mandatory = True
+	)
+
+	conf.check_cfg(
+		package = 'nice',
+		args = '--cflags --libs'
+	)
+
+	conf.find_program('grep', var = 'GREP')
+	conf.find_program('sed', var = 'SED')
+	conf.find_program('sort', var = 'SORT')
+
+	if not conf.env.VERSION:
+		conf.env.VERSION = ''
+
+	if not conf.is_defined('VERSION'):
+		conf.define('SUSHI_VERSION', conf.env.VERSION)
+
+	conf.write_config_header('config.h')
+
+def build (bld):
+	components = ('ilib', 'sashimi', 'channel', 'channel_user', 'dcc_send', 'dbus', 'dbus_server', 'in', 'instance', 'log', 'maki', 'misc', 'out', 'plugin', 'server', 'user')
+
+	bld.new_task_gen(
+		source = '../data/dbus.xml',
+		target = 'dbus_glue.h',
+		rule = '${DBUS_BINDING_TOOL} --mode=glib-server --prefix=maki_dbus ${SRC} > ${TGT}'
+	)
+
+	bld.new_task_gen(
+		source = 'dbus.c',
+		target = 'marshal.list',
+		rule = '${GREP} -E -h -o \'maki_marshal_[0-9A-Z]+__([0-9A-Z]+_)*[0-9A-Z]+\' ${SRC} \
+		| ${SED} -e \'s/^maki_marshal_//\' -e \'s/__/:/\' -e \'s/_/,/g\' \
+		| ${SORT} -u \
+		> ${TGT}'
+	)
+
+	bld.add_group()
+
+	# FIXME To quiet warnings from generated code.
+	e = bld.env.copy()
+	e.CCFLAGS = bld.env.CCFLAGS[:]
+	e.CCFLAGS.remove('-pedantic')
+
+	o = bld.new_task_gen(
+		features = 'cc cprogram',
+		source = ['%s.c' % (c) for c in components],
+		target = 'maki',
+		uselib = ['DBUS-1', 'DBUS-GLIB-1', 'GLIB-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE'],
+		includes = ['.'],
+		defines = ['MAKI_PLUGIN_DIRECTORY="%s"' % (Utils.subst_vars('${LIBDIR}/sushi/maki/plugins', bld.env)),
+			'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATAROOTDIR}/sushi/maki', bld.env))],
+		env = e
+	)
+
+	o.add_marshal_file('marshal.list', 'maki_marshal')
+
+	bld.new_task_gen(
+		features = 'cc cprogram',
+		source = 'sushi-remote.c',
+		target = 'sushi-remote',
+		uselib = ['GLIB-2.0']
+	)
+
+	#bld.new_task_gen(
+	#	features = 'cc cshlib',
+	#	source = 'sashimi.c',
+	#	target = 'sashimi',
+	#	uselib = ['GLIB-2.0']
+	#)
+
+	bld.add_subdirs('plugins')

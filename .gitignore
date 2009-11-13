@@ -1,4 +1,7 @@
-*.core
-*.so
-*.o
+# Vim
 *.swp
+
+# Waf
+build
+.lock-wscript
+.waf-*

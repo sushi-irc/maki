@@ -27,7 +27,7 @@
 
 #include "maki.h"
 
-#ifdef SUSHI_HAVE_NICE
+#ifdef HAVE_NICE
 #include <stun/usages/bind.h>
 #endif
 
@@ -74,7 +74,7 @@ static void maki_server_config_set_defaults (makiServer* serv)
 
 static void maki_server_stun (makiServer* serv, const gchar* address)
 {
-#ifdef SUSHI_HAVE_NICE
+#ifdef HAVE_NICE
 	struct addrinfo* ai;
 	struct addrinfo* p;
 	struct addrinfo hints;

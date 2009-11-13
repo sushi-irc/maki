@@ -1,9 +1,9 @@
                                   INSTALLATION
 
-Just type "make", followed by "make install". This will install all the
-necessary files in your home directory. Other directories can be specified by
-calling make with the prefix variable, for example, "make prefix=/usr", followed
-by "make prefix=/usr install".
+Just type "./waf configure --prefix=${HOME}", followed by "./waf install". This
+will install all the necessary files in your home directory. Other directories
+can be specified with the prefix option, for example, "./waf configure
+--prefix=/usr".
 
                                   REQUIREMENTS
 
@@ -17,7 +17,7 @@ On Debian-based systems these are available in the following packages:
                                BUILD REQUIREMENTS
 
 You will need the DBus, GLib and DBus-GLib development libraries and headers.
-Additionally, you will need the pkg-config and gettext tools.
+Additionally, you will need the pkg-config, gettext and intltool tools.
 On Debian-based systems these are available in the following packages:
 
 * libdbus-1-dev
@@ -25,6 +25,7 @@ On Debian-based systems these are available in the following packages:
 * libdbus-glib-1-dev
 * pkg-config
 * gettext
+* intltool
 
                              OPTIONAL DEPENDENCIES
 
