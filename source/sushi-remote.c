@@ -28,6 +28,8 @@
 #include <glib.h>
 
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 static gchar* sushi_remote_print_bus_address (void)
 {
@@ -50,7 +52,6 @@ static gchar* sushi_remote_get_bus_address (const gchar* userhost)
 {
 	gchar** command;
 	gchar* bus_address = NULL;
-	gchar* path;
 	gsize cur;
 
 	if (strcmp(userhost, "localhost") != 0)
