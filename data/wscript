@@ -15,7 +15,7 @@ def configure (conf):
 		conf.env.VERSION = ''
 
 def build (bld):
-	if bld.env.DBUSDIR:
+	if bld.env.DBUSDIR and bld.env.DBUSDIR.startswith(bld.env.PREFIX):
 		bld.new_task_gen(
 			features = 'subst',
 			source = 'de.ikkoku.sushi.service.in',
