@@ -6,6 +6,8 @@ import subprocess
 def configure (conf):
 	conf.check_tool('misc')
 
+	conf.find_program('gzip', var = 'GZIP')
+
 	p = subprocess.Popen(['pkg-config', '--variable', 'session_bus_services_dir', 'dbus-1'], stdout=subprocess.PIPE, close_fds=True)
 	v = p.communicate()[0].strip()
 
@@ -24,13 +26,19 @@ def build (bld):
 		)
 
 	for man in ('maki.1', 'sushi-remote.1'):
-		# FIXME gzip
 		bld.new_task_gen(
 			features = 'subst',
 			source = '%s.in' % (man),
 			target = man,
-			install_path = '${MANDIR}/man1',
+			install_path = None,
 			dict = {'SUSHI_VERSION': bld.env.VERSION}
+		)
+
+		bld.new_task_gen(
+			source = man,
+			target = '%s.gz' % (man),
+			rule = '${GZIP} -c ${SRC} > ${TGT}',
+			install_path = '${MANDIR}/man1'
 		)
 
 	bld.install_files('${DATAROOTDIR}/sushi/maki', 'dbus.xml')
