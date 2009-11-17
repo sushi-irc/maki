@@ -727,11 +727,11 @@ gboolean maki_dcc_send_resume (makiDCCSend* dcc)
 
 		if (dcc->token > 0)
 		{
-			maki_server_send_printf(dcc->server, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(dcc->user), basename, dcc->port, stbuf.st_size, dcc->token);
+			maki_server_send_printf(dcc->server, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GINT64_FORMAT " %" G_GUINT32_FORMAT "\001", maki_user_nick(dcc->user), basename, dcc->port, stbuf.st_size, dcc->token);
 		}
 		else
 		{
-			maki_server_send_printf(dcc->server, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GUINT64_FORMAT "\001", maki_user_nick(dcc->user), basename, dcc->port, stbuf.st_size);
+			maki_server_send_printf(dcc->server, "PRIVMSG %s :\001DCC RESUME %s %" G_GUINT16_FORMAT " %" G_GINT64_FORMAT "\001", maki_user_nick(dcc->user), basename, dcc->port, stbuf.st_size);
 		}
 
 		g_free(basename);
