@@ -17,6 +17,8 @@ def configure (conf):
 		conf.env.VERSION = ''
 
 def build (bld):
+	bld.install_files('${DATAROOTDIR}/sushi/maki', 'dbus.xml')
+
 	if bld.env.DBUSDIR and bld.env.DBUSDIR.startswith(bld.env.PREFIX):
 		bld.new_task_gen(
 			features = 'subst',
@@ -34,11 +36,12 @@ def build (bld):
 			dict = {'SUSHI_VERSION': bld.env.VERSION}
 		)
 
+	bld.add_group()
+
+	for man in ('maki.1', 'sushi-remote.1'):
 		bld.new_task_gen(
 			source = man,
 			target = '%s.gz' % (man),
 			rule = '${GZIP} -c ${SRC} > ${TGT}',
 			install_path = '${MANDIR}/man1'
 		)
-
-	bld.install_files('${DATAROOTDIR}/sushi/maki', 'dbus.xml')
