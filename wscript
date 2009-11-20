@@ -2,6 +2,8 @@
 
 import subprocess
 
+import Utils
+
 APPNAME = 'maki'
 VERSION = '1.1.0'
 
@@ -16,7 +18,7 @@ def _getconf (key):
 	if not v:
 		return []
 
-	return [v]
+	return Utils.to_list(v)
 
 def configure (conf):
 	conf.env.CCFLAGS = ['-g', '-O', '-pipe', '-std=c99', '-Wall', '-pedantic']
