@@ -45,4 +45,6 @@ gchar* maki_get_ip (struct sockaddr*, socklen_t);
 void maki_ensure_string (gchar**);
 void maki_ensure_string_array (gchar***);
 
+gchar* maki_get_local_ip (void);
+
 #endif

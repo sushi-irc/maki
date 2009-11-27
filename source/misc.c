@@ -31,6 +31,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef HAVE_NICE
+#include <interfaces.h>
+#endif
+
 gboolean maki_config_is_empty (const gchar* value)
 {
 	gboolean ret = TRUE;
@@ -164,4 +168,30 @@ void maki_ensure_string_array (gchar*** string_array)
 		*string_array = g_new(gchar*, 1);
 		(*string_array)[0] = NULL;
 	}
+}
+
+gchar* maki_get_local_ip (void)
+{
+#ifdef HAVE_NICE
+	GList* ips;
+	GList* l;
+	gchar* ret = NULL;
+
+	ips = nice_interfaces_get_local_ips(FALSE);
+
+	for (l = ips; l != NULL; l = g_list_next(l))
+	{
+		if (ret == NULL)
+		{
+			ret = g_strdup(l->data);
+		}
+
+		g_free(l->data);
+	}
+
+	g_list_free(ips);
+
+	return ret;
+#endif
+	return NULL;
 }

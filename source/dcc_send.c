@@ -35,6 +35,10 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#ifdef HAVE_GUPNP_IGD_1_0
+#include <libgupnp-igd/gupnp-simple-igd.h>
+#endif
+
 enum
 {
 	s_new = (1 << 0),
@@ -113,6 +117,10 @@ struct maki_dcc_send
 			gboolean wait;
 
 			guint sources[s_out_num];
+
+#ifdef HAVE_GUPNP_IGD_1_0
+			GUPnPSimpleIgd* upnp_igd;
+#endif
 		}
 		out;
 	}
@@ -214,6 +222,19 @@ error:
 	return FALSE;
 }
 
+static void maki_dcc_send_out_upnp (makiDCCSend* dcc)
+{
+#ifdef HAVE_GUPNP_IGD_1_0
+	if (dcc->d.out.upnp_igd != NULL)
+	{
+		gupnp_simple_igd_remove_port(dcc->d.out.upnp_igd, "TCP", dcc->port);
+
+		g_object_unref(dcc->d.out.upnp_igd);
+		dcc->d.out.upnp_igd = NULL;
+	}
+#endif
+}
+
 static gboolean maki_dcc_send_out_write (GIOChannel* source, GIOCondition condition, gpointer data)
 {
 	gchar buffer[1024];
@@ -268,6 +289,8 @@ finish:
 	}
 
 	dcc->d.out.sources[s_out_write] = 0;
+
+	maki_dcc_send_out_upnp(dcc);
 
 	return FALSE;
 }
@@ -374,6 +397,8 @@ error:
 	dcc->d.out.sources[s_out_listen] = 0;
 
 	maki_dcc_send_emit(dcc);
+
+	maki_dcc_send_out_upnp(dcc);
 
 	return FALSE;
 }
@@ -509,6 +534,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 {
 	guint i;
 	gchar* basename;
+	gchar* ip;
 	struct stat stbuf;
 	makiInstance* inst = maki_instance_get_default();
 	makiDCCSend* dcc;
@@ -544,6 +570,10 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	{
 		dcc->d.out.sources[i] = 0;
 	}
+
+#ifdef HAVE_GUPNP_IGD_1_0
+	dcc->d.out.upnp_igd = gupnp_simple_igd_new(NULL);
+#endif
 
 	if (stat(dcc->path, &stbuf) != 0)
 	{
@@ -590,6 +620,15 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	g_io_channel_set_encoding(dcc->channel.file, NULL, NULL);
 	g_io_channel_set_buffered(dcc->channel.file, FALSE);
 
+	if ((ip = maki_get_local_ip()) != NULL)
+	{
+#ifdef HAVE_GUPNP_IGD_1_0
+		gupnp_simple_igd_add_port(dcc->d.out.upnp_igd, "TCP", dcc->port, ip, dcc->port, 600, "maki DCC");
+#endif
+
+		g_free(ip);
+	}
+
 	basename = g_path_get_basename(dcc->path);
 
 	if (strstr(basename, " ") == NULL)
@@ -632,6 +671,8 @@ void maki_dcc_send_free (makiDCCSend* dcc)
 	else
 	{
 		guint i;
+
+		maki_dcc_send_out_upnp(dcc);
 
 		for (i = 0; i < s_out_num; i++)
 		{
