@@ -78,13 +78,6 @@ struct maki_server
 	GMainContext* main_context;
 	GMainLoop* main_loop;
 	GThread* thread;
-
-	struct
-	{
-		struct sockaddr addr;
-		socklen_t addrlen;
-	}
-	stun;
 };
 
 makiServer* maki_server_new (const gchar*);

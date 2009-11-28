@@ -72,7 +72,7 @@ def configure (conf):
 	conf.write_config_header('config.h')
 
 def build (bld):
-	components = ('ilib', 'sashimi', 'channel', 'channel_user', 'dcc_send', 'dbus', 'dbus_server', 'in', 'instance', 'log', 'maki', 'misc', 'out', 'plugin', 'server', 'user')
+	components = ('ilib', 'sashimi', 'channel', 'channel_user', 'dcc_send', 'dbus', 'dbus_server', 'in', 'instance', 'log', 'maki', 'misc', 'network', 'out', 'plugin', 'server', 'user')
 
 	bld.new_task_gen(
 		source = '../data/dbus.xml',

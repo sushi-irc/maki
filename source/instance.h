@@ -33,6 +33,7 @@ struct maki_instance;
 typedef struct maki_instance makiInstance;
 
 #include "dcc_send.h"
+#include "network.h"
 #include "server.h"
 
 makiInstance* maki_instance_get_default (void);
@@ -60,6 +61,7 @@ guint maki_instance_dcc_sends_count (makiInstance*);
 gchar* maki_instance_dcc_send_get (makiInstance*, guint64, const gchar*);
 gboolean maki_instance_dcc_send_set (makiInstance*, guint64, const gchar*, const gchar*);
 void maki_instance_dcc_sends_xxx (makiInstance*, GArray**, gchar***, gchar***, gchar***, GArray**, GArray**, GArray**, GArray**);
+makiNetwork* maki_instance_network (makiInstance*);
 void maki_instance_free (makiInstance*);
 
 #endif

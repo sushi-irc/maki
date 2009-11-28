@@ -27,10 +27,6 @@
 
 #include "maki.h"
 
-#ifdef HAVE_NICE
-#include <stun/usages/bind.h>
-#endif
-
 #include <string.h>
 
 static gpointer maki_server_thread (gpointer data)
@@ -72,49 +68,6 @@ static void maki_server_config_set_defaults (makiServer* serv)
 	*/
 }
 
-static void maki_server_stun (makiServer* serv, const gchar* address)
-{
-#ifdef HAVE_NICE
-	struct addrinfo* ai;
-	struct addrinfo* p;
-	struct addrinfo hints;
-
-	g_return_if_fail(serv != NULL);
-	g_return_if_fail(address != NULL);
-
-	serv->stun.addrlen = 0;
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_protocol = 0;
-	hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
-
-	if (getaddrinfo(address, "3478", NULL, &ai) != 0)
-	{
-		return;
-	}
-
-	for (p = ai; p != NULL; p = p->ai_next)
-	{
-		struct sockaddr me;
-		socklen_t me_len = sizeof(me);
-
-		if (stun_usage_bind_run(p->ai_addr, p->ai_addrlen, &me, &me_len) != STUN_USAGE_BIND_RETURN_SUCCESS)
-		{
-			continue;
-		}
-
-		serv->stun.addr = me;
-		serv->stun.addrlen = me_len;
-
-		break;
-	}
-
-	freeaddrinfo(ai);
-#endif
-}
-
 makiServer* maki_server_new (const gchar* name)
 {
 	gchar* nick;
@@ -137,7 +90,6 @@ makiServer* maki_server_new (const gchar* name)
 	serv->channels = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_channel_free);
 	serv->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, NULL);
 	serv->logs = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_log_free);
-	serv->stun.addrlen = 0;
 
 	path = g_build_filename(maki_instance_directory(inst, "servers"), name, NULL);
 	g_key_file_load_from_file(serv->key_file, path, G_KEY_FILE_NONE, NULL);
@@ -426,19 +378,16 @@ gboolean maki_server_connect (makiServer* serv)
 
 	if (!serv->connected && !maki_config_is_empty(address))
 	{
-		gchar* stun;
 		GTimeVal timeval;
+		/*
 		makiInstance* inst = maki_instance_get_default();
+		makiNetwork* net = maki_instance_network(inst);
+		*/
 
-		stun = maki_instance_config_get_string(inst, "network", "stun");
-
-		if (!maki_config_is_empty(stun))
-		{
-			/* FIXME this can block */
-			maki_server_stun(serv, stun);
-		}
-
-		g_free(stun);
+		/* FIXME thread-safety */
+		/*
+		maki_network_update(net);
+		*/
 
 		sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
 		sashimi_read_callback(serv->connection, maki_in_callback, serv);

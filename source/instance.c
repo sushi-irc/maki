@@ -46,6 +46,8 @@ struct maki_instance
 		GMutex* mutex;
 	}
 	dcc;
+
+	makiNetwork* network;
 };
 
 makiInstance* maki_instance_get_default (void)
@@ -187,6 +189,8 @@ makiInstance* maki_instance_new (void)
 	inst->dcc.id = 0;
 	inst->dcc.list = NULL;
 	inst->dcc.mutex = g_mutex_new();
+
+	inst->network = maki_network_new(inst);
 
 	return inst;
 }
@@ -484,9 +488,16 @@ void maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** ser
 	g_mutex_unlock(inst->dcc.mutex);
 }
 
+makiNetwork* maki_instance_network (makiInstance* inst)
+{
+	return inst->network;
+}
+
 void maki_instance_free (makiInstance* inst)
 {
 	GSList* list;
+
+	maki_network_free(inst->network);
 
 	for (list = inst->dcc.list; list != NULL; list = list->next)
 	{

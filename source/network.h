@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009 Michael Kuhn
+ * Copyright (c) 2009 Michael Kuhn
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,23 @@
  * SUCH DAMAGE.
  */
 
-#ifndef H_MAKI
-#define H_MAKI
+#ifndef H_NETWORK
+#define H_NETWORK
 
-#define G_DISABLE_DEPRECATED
-#define _XOPEN_SOURCE
+struct maki_network;
 
-#include <glib.h>
-#include <glib/gi18n.h>
-#include <glib/gstdio.h>
+typedef struct maki_network makiNetwork;
 
-#include "ilib.h"
-
-#define SUSHI_DBUS_SERVICE "de.ikkoku.sushi"
-#define SUSHI_DBUS_PATH "/de/ikkoku/sushi"
-#define SUSHI_DBUS_INTERFACE "de.ikkoku.sushi"
-
-#include "config.h"
-
-#include "channel.h"
-#include "channel_user.h"
-#include "dcc_send.h"
-#include "dbus.h"
-#include "dbus_server.h"
-#include "in.h"
 #include "instance.h"
-#include "log.h"
-#include "maki.h"
-#include "misc.h"
-#include "network.h"
-#include "out.h"
-#include "plugin.h"
-#include "server.h"
-#include "user.h"
 
-extern gboolean opt_verbose;
+makiNetwork* maki_network_new (makiInstance*);
+void maki_network_free (makiNetwork*);
 
-extern makiDBus* dbus;
-extern makiDBusServer* dbus_server;
-extern GMainLoop* main_loop;
+void maki_network_update (makiNetwork*);
+
+gboolean maki_network_remote_addr (makiNetwork*, struct sockaddr*, socklen_t*);
+
+gboolean maki_network_upnp_add_port (makiNetwork*, guint, const gchar*);
+gboolean maki_network_upnp_remove_port (makiNetwork*, guint);
 
 #endif

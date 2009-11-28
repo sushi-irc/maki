@@ -169,29 +169,3 @@ void maki_ensure_string_array (gchar*** string_array)
 		(*string_array)[0] = NULL;
 	}
 }
-
-gchar* maki_get_local_ip (void)
-{
-#ifdef HAVE_NICE
-	GList* ips;
-	GList* l;
-	gchar* ret = NULL;
-
-	ips = nice_interfaces_get_local_ips(FALSE);
-
-	for (l = ips; l != NULL; l = g_list_next(l))
-	{
-		if (ret == NULL)
-		{
-			ret = g_strdup(l->data);
-		}
-
-		g_free(l->data);
-	}
-
-	g_list_free(ips);
-
-	return ret;
-#endif
-	return NULL;
-}

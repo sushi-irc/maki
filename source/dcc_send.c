@@ -30,14 +30,11 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
-
-#ifdef HAVE_GUPNP_IGD_1_0
-#include <libgupnp-igd/gupnp-simple-igd.h>
-#endif
 
 enum
 {
@@ -118,9 +115,7 @@ struct maki_dcc_send
 
 			guint sources[s_out_num];
 
-#ifdef HAVE_GUPNP_IGD_1_0
-			GUPnPSimpleIgd* upnp_igd;
-#endif
+			gboolean upnp;
 		}
 		out;
 	}
@@ -224,15 +219,14 @@ error:
 
 static void maki_dcc_send_out_upnp (makiDCCSend* dcc)
 {
-#ifdef HAVE_GUPNP_IGD_1_0
-	if (dcc->d.out.upnp_igd != NULL)
+	if (dcc->d.out.upnp)
 	{
-		gupnp_simple_igd_remove_port(dcc->d.out.upnp_igd, "TCP", dcc->port);
+		makiInstance* inst = maki_instance_get_default();
+		makiNetwork* net = maki_instance_network(inst);
 
-		g_object_unref(dcc->d.out.upnp_igd);
-		dcc->d.out.upnp_igd = NULL;
+		maki_network_upnp_remove_port(net, dcc->port);
+		dcc->d.out.upnp = FALSE;
 	}
-#endif
 }
 
 static gboolean maki_dcc_send_out_write (GIOChannel* source, GIOCondition condition, gpointer data)
@@ -534,9 +528,11 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 {
 	guint i;
 	gchar* basename;
-	gchar* ip;
 	struct stat stbuf;
+	struct sockaddr_storage stun_addr;
+	socklen_t stun_addrlen = sizeof(stun_addr);
 	makiInstance* inst = maki_instance_get_default();
+	makiNetwork* net = maki_instance_network(inst);
 	makiDCCSend* dcc;
 
 	dcc = g_new(makiDCCSend, 1);
@@ -571,9 +567,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 		dcc->d.out.sources[i] = 0;
 	}
 
-#ifdef HAVE_GUPNP_IGD_1_0
-	dcc->d.out.upnp_igd = gupnp_simple_igd_new(NULL);
-#endif
+	dcc->d.out.upnp = FALSE;
 
 	if (stat(dcc->path, &stbuf) != 0)
 	{
@@ -598,16 +592,16 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	g_io_channel_set_close_on_unref(dcc->channel.connection, TRUE);
 	g_io_channel_set_encoding(dcc->channel.connection, NULL, NULL);
 
-	if (serv->stun.addrlen > 0)
+	if (maki_network_remote_addr(net, (struct sockaddr*)&stun_addr, &stun_addrlen))
 	{
-		dcc->address = ntohl(((struct sockaddr_in*)&serv->stun.addr)->sin_addr.s_addr);
+		dcc->address = ntohl(((struct sockaddr_in*)&stun_addr)->sin_addr.s_addr);
 	}
 	else
 	{
-		struct sockaddr addr;
+		struct sockaddr_storage addr;
 		socklen_t addrlen = sizeof(addr);
 
-		getsockname(g_io_channel_unix_get_fd(dcc->channel.connection), &addr, &addrlen);
+		getsockname(g_io_channel_unix_get_fd(dcc->channel.connection), (struct sockaddr*)&addr, &addrlen);
 		dcc->address = ntohl(((struct sockaddr_in*)&addr)->sin_addr.s_addr);
 	}
 
@@ -620,14 +614,7 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	g_io_channel_set_encoding(dcc->channel.file, NULL, NULL);
 	g_io_channel_set_buffered(dcc->channel.file, FALSE);
 
-	if ((ip = maki_get_local_ip()) != NULL)
-	{
-#ifdef HAVE_GUPNP_IGD_1_0
-		gupnp_simple_igd_add_port(dcc->d.out.upnp_igd, "TCP", dcc->port, ip, dcc->port, 600, "maki DCC");
-#endif
-
-		g_free(ip);
-	}
+	dcc->d.out.upnp = maki_network_upnp_add_port(net, dcc->port, "maki DCC Send");
 
 	basename = g_path_get_basename(dcc->path);
 
