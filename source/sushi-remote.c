@@ -136,7 +136,7 @@ static gboolean sushi_remote_execute_command (gint argc, gchar** argv)
 
 	command[argc - 2] = NULL;
 
-	ret = g_spawn_async(NULL, command, NULL, G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, &pid, NULL);
+	ret = g_spawn_async(NULL, command, NULL, G_SPAWN_SEARCH_PATH | G_SPAWN_DO_NOT_REAP_CHILD | G_SPAWN_CHILD_INHERITS_STDIN, NULL, NULL, &pid, NULL);
 	waitpid(pid, NULL, 0);
 	g_spawn_close_pid(pid);
 
