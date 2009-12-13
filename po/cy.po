@@ -1,4 +1,4 @@
-# Arabic translation for maki
+# Welsh translation for maki
 # Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
 # This file is distributed under the same license as the maki package.
 #
@@ -7,9 +7,9 @@ msgstr ""
 "Project-Id-Version: maki 1.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-11-13 19:27+0100\n"
-"PO-Revision-Date: 2009-10-09 18:18+0000\n"
-"Last-Translator: benihb <benohamid@gmail.com>\n"
-"Language-Team: Arabic\n"
+"PO-Revision-Date: 2009-12-02 15:58+0000\n"
+"Last-Translator: Cadan ap Tomos <cadz123@googlemail.com>\n"
+"Language-Team: Welsh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,134 +18,134 @@ msgstr ""
 
 #: ../source/in.c:394
 msgid "» You join."
-msgstr "» لقد انضممت."
+msgstr "» Yr ydych yn ymuno."
 
 #: ../source/in.c:398
 #, c-format
 msgid "» %s joins."
-msgstr "» %s انضمو."
+msgstr "» Mae %s yn ymuno."
 
 #: ../source/in.c:458
 #, c-format
 msgid "« You part (%s)."
-msgstr "« قسمك/اقسامك (%s)."
+msgstr "« Yr ydych yn gwahanu (%s)."
 
 #: ../source/in.c:462
 msgid "« You part."
-msgstr "« قسمك."
+msgstr "« Yr ydych yn gwahanu."
 
 #: ../source/in.c:469
 #, c-format
 msgid "« %s parts (%s)."
-msgstr "« %s اقسام (%s)."
+msgstr "« Mae %s yn gwahanu (%s)."
 
 #: ../source/in.c:473
 #, c-format
 msgid "« %s parts."
-msgstr "« %s اقسام."
+msgstr "« Mae %s yn gwahanu."
 
 #: ../source/in.c:510
 #, c-format
 msgid "« %s quits (%s)."
-msgstr "« %s استقالة (%s)."
+msgstr "« Mae %s yn ymadael (%s)."
 
 #: ../source/in.c:514
 #, c-format
 msgid "« %s quits."
-msgstr "« %s استقالة."
+msgstr "« Mae %s yn ymadael."
 
 #: ../source/in.c:581
 #, c-format
 msgid "« %s kicks you (%s)."
-msgstr "« %s نصيبك انت (%s)."
+msgstr "« Mae %s yn eich cicio (%s)."
 
 #: ../source/in.c:585
 #, c-format
 msgid "« %s kicks you."
-msgstr "« %s نصيبك انت."
+msgstr "« Mae %s yn eich cicio."
 
 #: ../source/in.c:592
 #, c-format
 msgid "« %s kicks %s (%s)."
-msgstr "« %s نصيب %s (%s)."
+msgstr "« Mae %s yn cicio %s (%s)."
 
 #: ../source/in.c:596
 #, c-format
 msgid "« %s kicks %s."
-msgstr "« %s نصيب %s."
+msgstr "« Mae %s yn cicio %s."
 
 #: ../source/in.c:646
 #, c-format
 msgid "• You are now known as %s."
-msgstr "انت الان تعرف كما %s"
+msgstr "• Yr ydych yn awr yn cael eich adnabod fel %s."
 
 #: ../source/in.c:650
 #, c-format
 msgid "• %s is now known as %s."
-msgstr "• %s انه الان يعرف كما %s."
+msgstr "• Mae %s yn awr yn cael ei adnabod fel %s."
 
 #: ../source/in.c:782
 #, c-format
 msgid "• Mode: %s %s"
-msgstr "• نمط: %s %s"
+msgstr "• Modd: %s %s"
 
 #: ../source/in.c:790
 #, c-format
 msgid "• You set mode: %s %s"
-msgstr "• انت عين النمط: %s %s"
+msgstr "• Yr ydych yn gosod y modd: %s %s"
 
 #: ../source/in.c:794
 #, c-format
 msgid "• %s sets mode: %s %s"
-msgstr "• %s مجموعة نمط: %s %s"
+msgstr "• Mae %s yn gosod y modd: %s %s"
 
 #: ../source/in.c:806
 #, c-format
 msgid "• Mode: %s"
-msgstr "• نمط: %s"
+msgstr "• Modd: %s"
 
 #: ../source/in.c:814
 #, c-format
 msgid "• You set mode: %s"
-msgstr "• انت عين النمط: %s"
+msgstr "• Yr ydych chi'n gosod y modd: %s"
 
 #: ../source/in.c:818
 #, c-format
 msgid "• %s sets mode: %s"
-msgstr "• %s مجموعات النمط: %s"
+msgstr "• Mae %s yn gosod y modd: %s"
 
 #: ../source/in.c:855
 #, c-format
 msgid "• You successfully invite %s."
-msgstr ""
+msgstr "• Yr ydych yn gwahodd %s yn llwyddiannus."
 
 #: ../source/in.c:861
 #, c-format
 msgid "• %s invites %s."
-msgstr ""
+msgstr "• Mae %s yn gwahodd %s."
 
 #: ../source/in.c:899
 #, c-format
 msgid "• Topic: %s"
-msgstr ""
+msgstr "• Pwnc: %s"
 
 #: ../source/in.c:907
 #, c-format
 msgid "• You change the topic: %s"
-msgstr ""
+msgstr "• Yr ydych yn newid y pwnc: %s"
 
 #: ../source/in.c:911
 #, c-format
 msgid "• %s changes the topic: %s"
-msgstr ""
+msgstr "• Mae %s yn newid y pwnc: %s"
 
 #: ../source/maki.c:84
 msgid "Run as daemon"
-msgstr ""
+msgstr "Rhedeg fel daemon"
 
 #: ../source/maki.c:85
 msgid "Start DBus server"
-msgstr ""
+msgstr "Dechrau gweinyddwr DBus"
 
 #: ../source/maki.c:86
 msgid "Output debug messages"
@@ -153,26 +153,26 @@ msgstr ""
 
 #: ../source/maki.c:130
 msgid "Could not switch to daemon mode."
-msgstr ""
+msgstr "Na ellir amnewid i'r dull daemon."
 
 #: ../source/maki.c:138
 msgid "Could not create maki instance."
-msgstr ""
+msgstr "Na ellir ddechrau maki."
 
 #. Use g_warning() here to not overwrite the debug log of the already running maki.
 #: ../source/maki.c:149
 msgid "Could not connect to DBus. maki may already be running."
-msgstr ""
+msgstr "Na ellir gysylltu i DBus. Efallai bod maki yn rhedeg eisioes."
 
 #: ../source/misc.c:82
 msgid "Could not open debug log file."
-msgstr ""
+msgstr "Na ellir agor y ffeil log dadfygio."
 
 #: ../source/out.c:196
 #, c-format
 msgid "« You quit (%s)."
-msgstr ""
+msgstr "« Yr ydych yn ymadael (%s)."
 
 #: ../source/out.c:200
 msgid "« You quit."
-msgstr ""
+msgstr "« Yr ydych yn ymadael."
