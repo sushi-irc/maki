@@ -497,8 +497,6 @@ void maki_instance_free (makiInstance* inst)
 {
 	GSList* list;
 
-	maki_network_free(inst->network);
-
 	for (list = inst->dcc.list; list != NULL; list = list->next)
 	{
 		GTimeVal timeval;
@@ -518,6 +516,8 @@ void maki_instance_free (makiInstance* inst)
 	{
 		maki_plugin_unload(inst->plugins[0]);
 	}
+
+	maki_network_free(inst->network);
 
 	g_key_file_free(inst->key_file);
 

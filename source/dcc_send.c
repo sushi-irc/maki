@@ -107,6 +107,7 @@ struct maki_dcc_send
 			struct
 			{
 				guint32 position;
+				guint32 buffer;
 				gsize offset;
 			}
 			ack;
@@ -165,9 +166,6 @@ error:
 finish:
 	dcc->status &= ~s_running;
 
-	g_io_channel_shutdown(source, FALSE, NULL);
-	g_io_channel_unref(source);
-
 	dcc->d.in.sources[s_in_read] = 0;
 
 	maki_dcc_send_emit(dcc);
@@ -206,9 +204,6 @@ static gboolean maki_dcc_send_in_write (GIOChannel* source, GIOCondition conditi
 error:
 	dcc->status |= s_error;
 	dcc->status &= ~s_running;
-
-	g_io_channel_shutdown(source, FALSE, NULL);
-	g_io_channel_unref(source);
 
 	dcc->d.in.sources[s_in_write] = 0;
 
@@ -276,9 +271,6 @@ finish:
 	{
 		dcc->status &= ~s_running;
 
-		g_io_channel_shutdown(source, FALSE, NULL);
-		g_io_channel_unref(source);
-
 		maki_dcc_send_emit(dcc);
 	}
 
@@ -300,16 +292,16 @@ static gboolean maki_dcc_send_out_read (GIOChannel* source, GIOCondition conditi
 		goto error;
 	}
 
-	while ((status = g_io_channel_read_chars(source, ((gchar*)&dcc->d.out.ack.position) + dcc->d.out.ack.offset, sizeof(dcc->d.out.ack.position) - dcc->d.out.ack.offset, &bytes_read, NULL)) == G_IO_STATUS_NORMAL)
+	while ((status = g_io_channel_read_chars(source, ((gchar*)&dcc->d.out.ack.buffer) + dcc->d.out.ack.offset, sizeof(dcc->d.out.ack.buffer) - dcc->d.out.ack.offset, &bytes_read, NULL)) == G_IO_STATUS_NORMAL)
 	{
 		dcc->d.out.ack.offset += bytes_read;
 
-		if (dcc->d.out.ack.offset != sizeof(dcc->d.out.ack.position))
+		if (dcc->d.out.ack.offset != sizeof(dcc->d.out.ack.buffer))
 		{
-			break;
+			continue;
 		}
 
-		dcc->d.out.ack.position = ntohl(dcc->d.out.ack.position);
+		dcc->d.out.ack.position = ntohl(dcc->d.out.ack.buffer);
 		dcc->d.out.ack.offset = 0;
 
 		if (dcc->d.out.ack.position >= dcc->size)
@@ -331,9 +323,6 @@ finish:
 	if (dcc->d.out.wait)
 	{
 		dcc->status &= ~s_running;
-
-		g_io_channel_shutdown(source, FALSE, NULL);
-		g_io_channel_unref(source);
 
 		maki_dcc_send_emit(dcc);
 	}
@@ -384,9 +373,6 @@ static gboolean maki_dcc_send_out_listen (GIOChannel* source, GIOCondition condi
 error:
 	dcc->status |= s_error;
 	dcc->status &= ~s_running;
-
-	g_io_channel_shutdown(source, FALSE, NULL);
-	g_io_channel_unref(source);
 
 	dcc->d.out.sources[s_out_listen] = 0;
 
