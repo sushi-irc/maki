@@ -123,6 +123,32 @@ struct maki_dcc_send
 	d;
 };
 
+static void maki_dcc_send_close (makiDCCSend* dcc)
+{
+	if (!(dcc->status & s_incoming) && dcc->d.out.upnp)
+	{
+		makiInstance* inst = maki_instance_get_default();
+		makiNetwork* net = maki_instance_network(inst);
+
+		maki_network_upnp_remove_port(net, dcc->port);
+		dcc->d.out.upnp = FALSE;
+	}
+
+	if (dcc->channel.connection != NULL)
+	{
+		g_io_channel_shutdown(dcc->channel.connection, FALSE, NULL);
+		g_io_channel_unref(dcc->channel.connection);
+		dcc->channel.connection = NULL;
+	}
+
+	if (dcc->channel.file != NULL)
+	{
+		g_io_channel_shutdown(dcc->channel.file, FALSE, NULL);
+		g_io_channel_unref(dcc->channel.file);
+		dcc->channel.file = NULL;
+	}
+}
+
 static gboolean maki_dcc_send_in_read (GIOChannel* source, GIOCondition condition, gpointer data)
 {
 	gchar buffer[1024];
@@ -166,6 +192,8 @@ error:
 finish:
 	dcc->status &= ~s_running;
 
+	maki_dcc_send_close(dcc);
+
 	dcc->d.in.sources[s_in_read] = 0;
 
 	maki_dcc_send_emit(dcc);
@@ -205,23 +233,13 @@ error:
 	dcc->status |= s_error;
 	dcc->status &= ~s_running;
 
+	maki_dcc_send_close(dcc);
+
 	dcc->d.in.sources[s_in_write] = 0;
 
 	maki_dcc_send_emit(dcc);
 
 	return FALSE;
-}
-
-static void maki_dcc_send_out_upnp (makiDCCSend* dcc)
-{
-	if (dcc->d.out.upnp)
-	{
-		makiInstance* inst = maki_instance_get_default();
-		makiNetwork* net = maki_instance_network(inst);
-
-		maki_network_upnp_remove_port(net, dcc->port);
-		dcc->d.out.upnp = FALSE;
-	}
 }
 
 static gboolean maki_dcc_send_out_write (GIOChannel* source, GIOCondition condition, gpointer data)
@@ -271,12 +289,12 @@ finish:
 	{
 		dcc->status &= ~s_running;
 
+		maki_dcc_send_close(dcc);
+
 		maki_dcc_send_emit(dcc);
 	}
 
 	dcc->d.out.sources[s_out_write] = 0;
-
-	maki_dcc_send_out_upnp(dcc);
 
 	return FALSE;
 }
@@ -324,12 +342,12 @@ finish:
 	{
 		dcc->status &= ~s_running;
 
+		maki_dcc_send_close(dcc);
+
 		maki_dcc_send_emit(dcc);
 	}
 
 	dcc->d.out.sources[s_out_read] = 0;
-
-	maki_dcc_send_out_upnp(dcc);
 
 	return FALSE;
 }
@@ -374,11 +392,11 @@ error:
 	dcc->status |= s_error;
 	dcc->status &= ~s_running;
 
+	maki_dcc_send_close(dcc);
+
 	dcc->d.out.sources[s_out_listen] = 0;
 
 	maki_dcc_send_emit(dcc);
-
-	maki_dcc_send_out_upnp(dcc);
 
 	return FALSE;
 }
@@ -645,8 +663,6 @@ void maki_dcc_send_free (makiDCCSend* dcc)
 	{
 		guint i;
 
-		maki_dcc_send_out_upnp(dcc);
-
 		for (i = 0; i < s_out_num; i++)
 		{
 			if (dcc->d.out.sources[i] != 0)
@@ -656,17 +672,7 @@ void maki_dcc_send_free (makiDCCSend* dcc)
 		}
 	}
 
-	if (dcc->channel.connection != NULL)
-	{
-		g_io_channel_shutdown(dcc->channel.connection, FALSE, NULL);
-		g_io_channel_unref(dcc->channel.connection);
-	}
-
-	if (dcc->channel.file != NULL)
-	{
-		g_io_channel_shutdown(dcc->channel.file, FALSE, NULL);
-		g_io_channel_unref(dcc->channel.file);
-	}
+	maki_dcc_send_close(dcc);
 
 	maki_user_unref(dcc->user);
 
