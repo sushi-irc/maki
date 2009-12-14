@@ -1241,9 +1241,7 @@ static void maki_in_err_nosuch (makiServer* serv, glong timestamp, gchar* remain
 			break;
 	}
 
-	arguments = g_new(gchar*, 2);
-	arguments[0] = tmp[0];
-	arguments[1] = NULL;
+	arguments = i_strv_new(NULL, tmp[0], NULL);
 
 	maki_dbus_emit_error(timestamp, maki_server_name(serv), "no_such", reason, arguments);
 	maki_dbus_emit_no_such(timestamp, maki_server_name(serv), tmp[0], type);
@@ -1300,12 +1298,37 @@ static void maki_in_err_cannot_join (makiServer* serv, glong timestamp, gchar* r
 			break;
 	}
 
-	arguments = g_new(gchar*, 2);
-	arguments[0] = tmp[0];
-	arguments[1] = NULL;
+	arguments = i_strv_new(NULL, tmp[0], NULL);
 
 	maki_dbus_emit_error(timestamp, maki_server_name(serv), "cannot_join", reason, arguments);
 	maki_dbus_emit_cannot_join(timestamp, maki_server_name(serv), tmp[0], type);
+
+	g_free(arguments);
+
+	g_strfreev(tmp);
+}
+
+static void maki_in_err_chanoprivsneeded (makiServer* serv, glong timestamp, gchar* remaining)
+{
+	gchar** arguments;
+	gchar** tmp;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 2);
+
+	if (g_strv_length(tmp) < 1)
+	{
+		g_strfreev(tmp);
+		return;
+	}
+
+	arguments = i_strv_new(NULL, tmp[0], NULL);
+
+	maki_dbus_emit_error(timestamp, maki_server_name(serv), "privilege", "channel_operator", arguments);
 
 	g_free(arguments);
 
@@ -1555,6 +1578,9 @@ void maki_in_callback (const gchar* message, gpointer data)
 				/* ERR_BADCHANNELKEY */
 				case 475:
 					maki_in_err_cannot_join(serv, timeval.tv_sec, remaining, numeric);
+					break;
+				case 482:
+					maki_in_err_chanoprivsneeded(serv, timeval.tv_sec, remaining);
 					break;
 
 				default:
