@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2008-2010 Michael Kuhn
- * Copyright (c) 2009 Michael Neumann
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -375,6 +374,25 @@ GIOStatus i_io_channel_read_chars (GIOChannel* channel, gchar* buf, gsize count,
 	if (bytes_read != NULL)
 	{
 		*bytes_read = nread;
+	}
+
+	return ret;
+}
+
+GIOStatus i_io_channel_flush (GIOChannel* channel, GError** error)
+{
+	GIOStatus ret;
+
+	g_return_val_if_fail(channel != NULL, G_IO_STATUS_ERROR);
+
+	while (TRUE)
+	{
+		ret = g_io_channel_flush(channel, error);
+
+		if (ret != G_IO_STATUS_AGAIN)
+		{
+			break;
+		}
 	}
 
 	return ret;

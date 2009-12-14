@@ -59,6 +59,11 @@ static void maki_server_config_set_defaults (makiServer* serv)
 		maki_server_config_set_integer(serv, "server", "port", 6667);
 	}
 
+	if (!maki_server_config_exists(serv, "server", "ssl"))
+	{
+		maki_server_config_set_boolean(serv, "server", "ssl", FALSE);
+	}
+
 	if (!maki_server_config_exists(serv, "server", "nick"))
 	{
 		maki_server_config_set_string(serv, "server", "nick", g_get_user_name());
@@ -405,7 +410,7 @@ gboolean maki_server_connect (makiServer* serv)
 		g_get_current_time(&timeval);
 		maki_dbus_emit_connect(timeval.tv_sec, serv->name);
 
-		if (!sashimi_connect(serv->connection, address, maki_server_config_get_integer(serv, "server", "port")))
+		if (!sashimi_connect(serv->connection, address, maki_server_config_get_integer(serv, "server", "port"), maki_server_config_get_boolean(serv, "server", "ssl")))
 		{
 			maki_server_reconnect_callback(serv);
 			ret = FALSE;

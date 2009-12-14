@@ -28,9 +28,13 @@
 #define G_DISABLE_DEPRECATED
 #define _XOPEN_SOURCE
 
+#include "config.h"
+
 #include "sashimi.h"
 
 #include "ilib.h"
+
+#include "ssl.h"
 
 #include <arpa/inet.h>
 #include <errno.h>
@@ -55,6 +59,7 @@ enum
 struct sashimi_connection
 {
 	GIOChannel* channel;
+	gint fd;
 
 	glong last_activity;
 	guint timeout;
@@ -86,6 +91,10 @@ struct sashimi_connection
 		gpointer data;
 	}
 	reconnect;
+
+#ifdef HAVE_GNUTLS
+	SoupSSLCredentials* ssl_credentials;
+#endif
 };
 
 static void sashimi_remove_sources (sashimiConnection* conn, gint id)
@@ -237,7 +246,7 @@ static gboolean sashimi_write (GIOChannel* source, GIOCondition condition, gpoin
 		goto reconnect;
 	}
 
-	if (getsockopt(g_io_channel_unix_get_fd(conn->channel), SOL_SOCKET, SO_ERROR, &val, &len) == -1
+	if (getsockopt(conn->fd, SOL_SOCKET, SO_ERROR, &val, &len) == -1
 	    || val != 0)
 	{
 		goto reconnect;
@@ -288,6 +297,7 @@ sashimiConnection* sashimi_new (GMainContext* main_context)
 	conn->queue = g_queue_new();
 
 	conn->channel = NULL;
+	conn->fd = -1;
 	conn->last_activity = 0;
 	conn->timeout = 0;
 
@@ -304,6 +314,10 @@ sashimiConnection* sashimi_new (GMainContext* main_context)
 
 	conn->reconnect.callback = NULL;
 	conn->reconnect.data = NULL;
+
+#ifdef HAVE_GNUTLS
+	conn->ssl_credentials = soup_ssl_get_client_credentials(NULL);
+#endif
 
 	return conn;
 }
@@ -339,7 +353,7 @@ void sashimi_timeout (sashimiConnection* conn, guint timeout)
 	conn->timeout = timeout;
 }
 
-gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint port)
+gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint port, gboolean ssl)
 {
 	g_return_val_if_fail(conn != NULL, FALSE);
 	g_return_val_if_fail(address != NULL, FALSE);
@@ -352,8 +366,31 @@ gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint p
 		return FALSE;
 	}
 
+	conn->fd = g_io_channel_unix_get_fd(conn->channel);
+
 	g_io_channel_set_close_on_unref(conn->channel, TRUE);
 	g_io_channel_set_encoding(conn->channel, NULL, NULL);
+
+	if (ssl)
+	{
+#ifdef HAVE_GNUTLS
+		GIOChannel* channel;
+
+		if ((channel = soup_ssl_wrap_iochannel(conn->channel, TRUE, address, conn->ssl_credentials)) == NULL)
+		{
+			sashimi_disconnect(conn);
+
+			return FALSE;
+		}
+
+		g_io_channel_unref(conn->channel);
+		conn->channel = channel;
+#else
+		sashimi_disconnect(conn);
+
+		return FALSE;
+#endif
+	}
 
 	conn->sources[s_write] = sashimi_io_add_watch(conn, G_IO_OUT | G_IO_HUP | G_IO_ERR, sashimi_write);
 
@@ -368,10 +405,11 @@ gboolean sashimi_disconnect (sashimiConnection* conn)
 
 	if (conn->channel != NULL)
 	{
-		g_io_channel_shutdown(conn->channel, FALSE, NULL);
 		g_io_channel_unref(conn->channel);
 		conn->channel = NULL;
 	}
+
+	conn->fd = -1;
 
 	return TRUE;
 }
@@ -381,6 +419,10 @@ void sashimi_free (sashimiConnection* conn)
 	g_return_if_fail(conn != NULL);
 
 	sashimi_disconnect(conn);
+
+#ifdef HAVE_GNUTLS
+	soup_ssl_free_client_credentials(conn->ssl_credentials);
+#endif
 
 	/* Clean up the queue. */
 	while (!g_queue_is_empty(conn->queue))
@@ -417,7 +459,7 @@ gboolean sashimi_send (sashimiConnection* conn, const gchar* message)
 
 	if ((status = i_io_channel_write_chars(conn->channel, tmp, -1, NULL, NULL)) == G_IO_STATUS_NORMAL)
 	{
-		g_io_channel_flush(conn->channel, NULL);
+		i_io_channel_flush(conn->channel, NULL);
 		g_printerr("OUT: %s", tmp);
 	}
 	else

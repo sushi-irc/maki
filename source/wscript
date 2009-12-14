@@ -60,6 +60,11 @@ def configure (conf):
 		args = '--cflags --libs'
 	)
 
+	conf.check_cfg(
+		package = 'gnutls',
+		args = '--cflags --libs'
+	)
+
 	conf.find_program('grep', var = 'GREP')
 	conf.find_program('sed', var = 'SED')
 	conf.find_program('sort', var = 'SORT')
@@ -72,7 +77,7 @@ def configure (conf):
 	conf.write_config_header('config.h')
 
 def build (bld):
-	components = ('ilib', 'sashimi', 'channel', 'channel_user', 'dcc_send', 'dbus', 'dbus_server', 'in', 'instance', 'log', 'maki', 'misc', 'network', 'out', 'plugin', 'server', 'user')
+	components = ('ilib', 'sashimi', 'channel', 'channel_user', 'dcc_send', 'dbus', 'dbus_server', 'in', 'instance', 'log', 'maki', 'misc', 'network', 'out', 'plugin', 'server', 'ssl', 'user')
 
 	bld.new_task_gen(
 		source = '../data/dbus.xml',
@@ -100,7 +105,7 @@ def build (bld):
 		features = 'cc cprogram',
 		source = ['%s.c' % (c) for c in components],
 		target = 'maki',
-		uselib = ['DBUS-1', 'DBUS-GLIB-1', 'GLIB-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE', 'GUPNP-IGD-1.0'],
+		uselib = ['DBUS-1', 'DBUS-GLIB-1', 'GLIB-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE', 'GUPNP-IGD-1.0', 'GNUTLS'],
 		includes = ['.'],
 		defines = ['MAKI_PLUGIN_DIRECTORY="%s"' % (Utils.subst_vars('${LIBDIR}/sushi/maki/plugins', bld.env)),
 			'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATAROOTDIR}/sushi/maki', bld.env))],
