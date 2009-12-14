@@ -30,6 +30,8 @@
 
 #include <glib.h>
 
+typedef gchar* (*IStrvNewFunc) (const gchar*);
+
 gboolean i_daemon (gboolean, gboolean);
 
 guint i_io_add_watch (GIOChannel*, GIOCondition, GIOFunc, gpointer, GMainContext*);
@@ -50,5 +52,7 @@ gboolean i_ascii_str_case_equal (gconstpointer, gconstpointer);
 guint i_ascii_str_case_hash (gconstpointer);
 
 gchar* i_get_current_time_string (const gchar*);
+
+gchar** i_strv_new (IStrvNewFunc, ...) G_GNUC_NULL_TERMINATED;
 
 #endif

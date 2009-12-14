@@ -455,3 +455,37 @@ gchar* i_get_current_time_string (const gchar* format)
 		return NULL;
 	}
 }
+
+gchar** i_strv_new (IStrvNewFunc func, ...)
+{
+	gsize n = 0;
+	gchar* p;
+	gchar** v;
+	va_list ap;
+
+	va_start(ap, func);
+
+	while (va_arg(ap, gchar*) != NULL)
+	{
+		n++;
+	}
+
+	va_end(ap);
+
+	v = g_new(gchar*, n + 1);
+	n = 0;
+
+	va_start(ap, func);
+
+	while ((p = va_arg(ap, gchar*)) != NULL)
+	{
+		v[n] = (func != NULL) ? func(p) : p;
+		n++;
+	}
+
+	va_end(ap);
+
+	v[n] = NULL;
+
+	return v;
+}
