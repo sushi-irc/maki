@@ -27,6 +27,9 @@
 
 #include "maki.h"
 
+#include "instance.h"
+#include "user.h"
+
 struct maki_user
 {
 	makiServer* server;

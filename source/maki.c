@@ -27,6 +27,12 @@
 
 #include "maki.h"
 
+#include "dbus.h"
+#include "dbus_server.h"
+#include "instance.h"
+
+#include "ilib.h"
+
 #include <dbus/dbus-glib.h>
 
 #include <fcntl.h>

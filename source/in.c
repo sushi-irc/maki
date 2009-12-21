@@ -27,6 +27,15 @@
 
 #include "maki.h"
 
+#include "dcc_send.h"
+#include "in.h"
+#include "instance.h"
+#include "misc.h"
+#include "out.h"
+#include "server.h"
+
+#include "ilib.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>

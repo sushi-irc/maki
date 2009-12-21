@@ -27,6 +27,10 @@
 
 #include "maki.h"
 
+#include "channel.h"
+
+#include "ilib.h"
+
 struct maki_channel
 {
 	makiServer* server;

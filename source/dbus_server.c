@@ -27,6 +27,9 @@
 
 #include "maki.h"
 
+#include "dbus_server.h"
+#include "misc.h"
+
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 #include <dbus/dbus.h>

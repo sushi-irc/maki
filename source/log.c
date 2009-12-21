@@ -27,6 +27,12 @@
 
 #include "maki.h"
 
+#include "instance.h"
+#include "log.h"
+#include "server.h"
+
+#include "ilib.h"
+
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>

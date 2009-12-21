@@ -27,6 +27,12 @@
 
 #include "maki.h"
 
+#include "dcc_send.h"
+#include "instance.h"
+#include "server.h"
+
+#include "ilib.h"
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>

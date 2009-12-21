@@ -27,6 +27,11 @@
 
 #include "maki.h"
 
+#include "instance.h"
+#include "plugin.h"
+
+#include "ilib.h"
+
 #include <gmodule.h>
 
 struct maki_instance

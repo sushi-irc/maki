@@ -27,6 +27,9 @@
 
 #include "maki.h"
 
+#include "misc.h"
+#include "out.h"
+
 #include <string.h>
 
 void maki_out_away (makiServer* serv, const gchar* message)

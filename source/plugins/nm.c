@@ -27,6 +27,8 @@
 
 #include "maki.h"
 
+#include "instance.h"
+
 #include <glib-object.h>
 #include <gmodule.h>
 

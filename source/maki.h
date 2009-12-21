@@ -35,29 +35,14 @@
 #include <glib/gi18n.h>
 #include <glib/gstdio.h>
 
-#include "ilib.h"
-
 #define SUSHI_DBUS_SERVICE "de.ikkoku.sushi"
 #define SUSHI_DBUS_PATH "/de/ikkoku/sushi"
 #define SUSHI_DBUS_INTERFACE "de.ikkoku.sushi"
 
 #include "config.h"
 
-#include "channel.h"
-#include "channel_user.h"
-#include "dcc_send.h"
 #include "dbus.h"
 #include "dbus_server.h"
-#include "in.h"
-#include "instance.h"
-#include "log.h"
-#include "maki.h"
-#include "misc.h"
-#include "network.h"
-#include "out.h"
-#include "plugin.h"
-#include "server.h"
-#include "user.h"
 
 extern gboolean opt_verbose;
 

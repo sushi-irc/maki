@@ -27,6 +27,15 @@
 
 #include "maki.h"
 
+#include "in.h"
+#include "instance.h"
+#include "log.h"
+#include "misc.h"
+#include "out.h"
+#include "server.h"
+
+#include "ilib.h"
+
 #include <string.h>
 
 static gpointer maki_server_thread (gpointer data)

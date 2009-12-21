@@ -27,6 +27,8 @@
 
 #include "maki.h"
 
+#include "plugin.h"
+
 #include <gmodule.h>
 
 GModule* maki_plugin_load (const gchar* name)

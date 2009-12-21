@@ -27,6 +27,8 @@
 
 #include "maki.h"
 
+#include "network.h"
+
 #ifdef HAVE_NICE
 #include <interfaces.h>
 #include <stun/usages/bind.h>
