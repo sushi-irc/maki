@@ -125,7 +125,7 @@ static gboolean sushi_remote_execute_command (gint argc, gchar** argv)
 	GPid pid;
 	gboolean ret;
 	gchar** command;
-	gsize cur;
+	gint cur;
 
 	command = g_new(gchar*, argc - 1);
 
