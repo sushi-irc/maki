@@ -1693,7 +1693,7 @@ maki_dbus_server_new_connection_cb (DBusServer* server, DBusConnection* connecti
 
 	makiDBusServer* dserv = data;
 
-	maki_debug("new connection %p\n", connection);
+	maki_debug("new connection %p\n", (gpointer)connection);
 
 	dbus_connection_set_allow_anonymous(connection, TRUE);
 

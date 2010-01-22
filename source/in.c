@@ -1210,8 +1210,8 @@ static void maki_in_rpl_whois (makiServer* serv, glong timestamp, gchar* remaini
 
 static void maki_in_err_nosuch (makiServer* serv, glong timestamp, gchar* remaining, gint numeric)
 {
-	const gchar* reason;
-	const gchar* type;
+	const gchar* reason = "";
+	const gchar* type = "";
 	gchar** arguments;
 	gchar** tmp;
 
@@ -1262,8 +1262,8 @@ static void maki_in_err_nosuch (makiServer* serv, glong timestamp, gchar* remain
 
 static void maki_in_err_cannot_join (makiServer* serv, glong timestamp, gchar* remaining, gint numeric)
 {
-	const gchar* reason;
-	const gchar* type;
+	const gchar* reason = "";
+	const gchar* type = "";
 	gchar** arguments;
 	gchar** tmp;
 
