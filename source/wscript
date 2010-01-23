@@ -67,8 +67,7 @@ def configure (conf):
 	if not conf.env.VERSION:
 		conf.env.VERSION = ''
 
-	if not conf.is_defined('VERSION'):
-		conf.define('SUSHI_VERSION', conf.env.VERSION)
+	conf.define('SUSHI_VERSION', conf.env.VERSION)
 
 	conf.write_config_header('config.h')
 
