@@ -1,5 +1,5 @@
-# Portuguese translation for maki
-# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# Danish translation for maki
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the maki package.
 #
 msgid ""
@@ -7,9 +7,9 @@ msgstr ""
 "Project-Id-Version: maki 1.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-11-13 19:27+0100\n"
-"PO-Revision-Date: 2009-12-22 22:45+0000\n"
-"Last-Translator: Charles Junior Rech <charlespito@gmail.com>\n"
-"Language-Team: Portuguese\n"
+"PO-Revision-Date: 2010-01-01 14:39+0000\n"
+"Last-Translator: nanker <Unknown>\n"
+"Language-Team: Danish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,161 +18,161 @@ msgstr ""
 
 #: ../source/in.c:394
 msgid "» You join."
-msgstr "Entraste"
+msgstr "» Du deltager i chatten."
 
 #: ../source/in.c:398
 #, c-format
 msgid "» %s joins."
-msgstr "%s entrou."
+msgstr "» %s deltager i chatten."
 
 #: ../source/in.c:458
 #, c-format
 msgid "« You part (%s)."
-msgstr "Saiste (%s)."
+msgstr "« Du forlader (%s)."
 
 #: ../source/in.c:462
 msgid "« You part."
-msgstr "Saiste."
+msgstr "« Du forlader."
 
 #: ../source/in.c:469
 #, c-format
 msgid "« %s parts (%s)."
-msgstr "%s saiste (%s)."
+msgstr "« %s forlader (%s)."
 
 #: ../source/in.c:473
 #, c-format
 msgid "« %s parts."
-msgstr "%s saiu."
+msgstr "« %s forlader."
 
 #: ../source/in.c:510
 #, c-format
 msgid "« %s quits (%s)."
-msgstr "%s saiu (%s)."
+msgstr "« %s forlader forbindelsen (%s)."
 
 #: ../source/in.c:514
 #, c-format
 msgid "« %s quits."
-msgstr "%s saiu."
+msgstr "« %s forlader forbindelsen."
 
 #: ../source/in.c:581
 #, c-format
 msgid "« %s kicks you (%s)."
-msgstr "%s kickou-te (%s)."
+msgstr "« %s sparker dig af (%s)."
 
 #: ../source/in.c:585
 #, c-format
 msgid "« %s kicks you."
-msgstr "%s kickou-te."
+msgstr "« %s sparker dig af."
 
 #: ../source/in.c:592
 #, c-format
 msgid "« %s kicks %s (%s)."
-msgstr "« %s kikou %s (%s)."
+msgstr "« %s sparker %s (%s) af."
 
 #: ../source/in.c:596
 #, c-format
 msgid "« %s kicks %s."
-msgstr "« %s kikou %s."
+msgstr "« %s sparker %s af."
 
 #: ../source/in.c:646
 #, c-format
 msgid "• You are now known as %s."
-msgstr "• Você está agora conhecido como  %s."
+msgstr "Du er ikke kendt som %s."
 
 #: ../source/in.c:650
 #, c-format
 msgid "• %s is now known as %s."
-msgstr "• %s agora é conhecido como %s."
+msgstr "• %s er kendt som %s."
 
 #: ../source/in.c:782
 #, c-format
 msgid "• Mode: %s %s"
-msgstr "• Modo: %s %s"
+msgstr "• Modus: %s %s"
 
 #: ../source/in.c:790
 #, c-format
 msgid "• You set mode: %s %s"
-msgstr "• Você colocou modo: %s %s"
+msgstr "Du sætter modus: %s %s"
 
 #: ../source/in.c:794
 #, c-format
 msgid "• %s sets mode: %s %s"
-msgstr "• % setou modo: %s %s"
+msgstr "• %s indstiller modus: %s %s"
 
 #: ../source/in.c:806
 #, c-format
 msgid "• Mode: %s"
-msgstr "• Modo: %s"
+msgstr "• Modus: %s"
 
 #: ../source/in.c:814
 #, c-format
 msgid "• You set mode: %s"
-msgstr "• Você colocou modo: %s"
+msgstr "• Du indstiller modus til: %s"
 
 #: ../source/in.c:818
 #, c-format
 msgid "• %s sets mode: %s"
-msgstr "• %s setou modo: %s"
+msgstr "• %s indstiller modus: %s"
 
 #: ../source/in.c:855
 #, c-format
 msgid "• You successfully invite %s."
-msgstr "Convidou %s com successo."
+msgstr "• Du har med succes inviteret %s."
 
 #: ../source/in.c:861
 #, c-format
 msgid "• %s invites %s."
-msgstr "%s convida %s."
+msgstr "• %s inviterer %s."
 
 #: ../source/in.c:899
 #, c-format
 msgid "• Topic: %s"
-msgstr "• Topico: %s"
+msgstr "• Emne: %s"
 
 #: ../source/in.c:907
 #, c-format
 msgid "• You change the topic: %s"
-msgstr "• Você mudou o tópico: %s"
+msgstr "• Du ændrer emnet: %s"
 
 #: ../source/in.c:911
 #, c-format
 msgid "• %s changes the topic: %s"
-msgstr "• %s mudou o tópico para : %s"
+msgstr "• %s ændre emnet: %s"
 
 #: ../source/maki.c:84
 msgid "Run as daemon"
-msgstr "Rodar como daemon"
+msgstr "Kør som dæmon"
 
 #: ../source/maki.c:85
 msgid "Start DBus server"
-msgstr "iniciar DBus server"
+msgstr "Start DBus server"
 
 #: ../source/maki.c:86
 msgid "Output debug messages"
-msgstr "Mensagens de saída de depuração"
+msgstr "Output fejlsøgningsmeddelelse"
 
 #: ../source/maki.c:130
 msgid "Could not switch to daemon mode."
-msgstr "Não foi possível mudar para o modo processo."
+msgstr "Kunne ikke skifte til dæmon modus."
 
 #: ../source/maki.c:138
 msgid "Could not create maki instance."
-msgstr "Não foi possível criar intância maki."
+msgstr "Kunne ikke skabe maki instance."
 
 #. Use g_warning() here to not overwrite the debug log of the already running maki.
 #: ../source/maki.c:149
 msgid "Could not connect to DBus. maki may already be running."
-msgstr "Não foi possível conectar ao DBus. Maki pode já estar em execução."
+msgstr "Kunne ikke forbinde til DBus. maki kører måske allerede."
 
 #: ../source/misc.c:82
 msgid "Could not open debug log file."
-msgstr "Não foi possível abrir o ficheiro de registo de depuração."
+msgstr "Kunne ikke åbne logfil for fejlsøgning."
 
 #: ../source/out.c:196
 #, c-format
 msgid "« You quit (%s)."
-msgstr "« Você saiu (%s)."
+msgstr "« Du forlod forbindelsen (%s)."
 
 #: ../source/out.c:200
 msgid "« You quit."
-msgstr "« Você saiu."
+msgstr "« Du forlod forbindelsen."
