@@ -5,7 +5,7 @@ import subprocess
 import Utils
 
 APPNAME = 'maki'
-VERSION = '1.1.0'
+VERSION = '1.1.1'
 
 srcdir = '.'
 blddir = 'build'
