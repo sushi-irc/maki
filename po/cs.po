@@ -1,5 +1,5 @@
-# Spanish translation for maki
-# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# Czech translation for maki
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the maki package.
 #
 msgid ""
@@ -7,9 +7,9 @@ msgstr ""
 "Project-Id-Version: maki 1.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-11-13 19:27+0100\n"
-"PO-Revision-Date: 2009-12-13 03:23+0000\n"
-"Last-Translator: Hector Louzao <os390l@gmail.com>\n"
-"Language-Team: Spanish\n"
+"PO-Revision-Date: 2010-01-24 13:15+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Czech\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,162 +18,161 @@ msgstr ""
 
 #: ../source/in.c:394
 msgid "» You join."
-msgstr "» Usted se une."
+msgstr "» Jste spojeni."
 
 #: ../source/in.c:398
 #, c-format
 msgid "» %s joins."
-msgstr "» %s se une."
+msgstr "» %s spojil."
 
 #: ../source/in.c:458
 #, c-format
 msgid "« You part (%s)."
-msgstr "« Segmenta (%s)."
+msgstr "« Jste částí (%s)."
 
 #: ../source/in.c:462
 msgid "« You part."
-msgstr "« Su parte."
+msgstr "« Jste částí."
 
 #: ../source/in.c:469
 #, c-format
 msgid "« %s parts (%s)."
-msgstr "%s segmentos (%s)"
+msgstr "« %s je částí (%s)."
 
 #: ../source/in.c:473
 #, c-format
 msgid "« %s parts."
-msgstr "« %s partes"
+msgstr "« %s je částí."
 
 #: ../source/in.c:510
 #, c-format
 msgid "« %s quits (%s)."
-msgstr "« %s sale (%s)."
+msgstr "« %s končí (%s)."
 
 #: ../source/in.c:514
 #, c-format
 msgid "« %s quits."
-msgstr "« %s cierra."
+msgstr "« %s končí."
 
 #: ../source/in.c:581
 #, c-format
 msgid "« %s kicks you (%s)."
-msgstr "« %s le expulsa (%s)."
+msgstr "« %s vás kope (%s)."
 
 #: ../source/in.c:585
 #, c-format
 msgid "« %s kicks you."
-msgstr "« %s le expulsa."
+msgstr "« %s vás kope."
 
 #: ../source/in.c:592
 #, c-format
 msgid "« %s kicks %s (%s)."
-msgstr "« %s expulsa a %s (%s)."
+msgstr "« %s kope %s (%s)."
 
 #: ../source/in.c:596
 #, c-format
 msgid "« %s kicks %s."
-msgstr "« %s expulsa a %s."
+msgstr "« %s kope %s."
 
 #: ../source/in.c:646
 #, c-format
 msgid "• You are now known as %s."
-msgstr "• Usted ahora es conocido como %s."
+msgstr "• Jste nyní známý jako %s."
 
 #: ../source/in.c:650
 #, c-format
 msgid "• %s is now known as %s."
-msgstr "• %s ahora es conocido como %s."
+msgstr "• %s je nyní známý %s."
 
 #: ../source/in.c:782
 #, c-format
 msgid "• Mode: %s %s"
-msgstr "• Modo: %s %s"
+msgstr "• Mód: %s %s"
 
 #: ../source/in.c:790
 #, c-format
 msgid "• You set mode: %s %s"
-msgstr "• Usted estableció el modo: %s %s"
+msgstr "• Nastavil jste mód: %s %s"
 
 #: ../source/in.c:794
 #, c-format
 msgid "• %s sets mode: %s %s"
-msgstr "• %s estableció el modo: %s %s"
+msgstr "• %s nastavuje mód: %s %s"
 
 #: ../source/in.c:806
 #, c-format
 msgid "• Mode: %s"
-msgstr "• Modo: %s"
+msgstr "• Mód: %s"
 
 #: ../source/in.c:814
 #, c-format
 msgid "• You set mode: %s"
-msgstr "• Usted estableció el modo: %s"
+msgstr "• nastavujete mód: %s"
 
 #: ../source/in.c:818
 #, c-format
 msgid "• %s sets mode: %s"
-msgstr "• %s estableció el modo: %s"
+msgstr "• %s nastavuje mód: %s"
 
 #: ../source/in.c:855
 #, c-format
 msgid "• You successfully invite %s."
-msgstr "• Usted invitó con éxito a %s."
+msgstr "• Úspěšně jste pozvali %s."
 
 #: ../source/in.c:861
 #, c-format
 msgid "• %s invites %s."
-msgstr "• %s invita a %s."
+msgstr "• %s pozval %s."
 
 #: ../source/in.c:899
 #, c-format
 msgid "• Topic: %s"
-msgstr "• Tema: %s"
+msgstr "• Téma: %s"
 
 #: ../source/in.c:907
 #, c-format
 msgid "• You change the topic: %s"
-msgstr "• Usted cambió el tema: %s"
+msgstr "• Změnili jste téma: %s"
 
 #: ../source/in.c:911
 #, c-format
 msgid "• %s changes the topic: %s"
-msgstr "• %s cambia el tema: %s"
+msgstr "• %s změnil téma: %s"
 
 #: ../source/maki.c:84
 msgid "Run as daemon"
-msgstr "Lanzar como demonio"
+msgstr "Spuštěno jako démon"
 
 #: ../source/maki.c:85
 msgid "Start DBus server"
-msgstr "Iniciar servidor DBus"
+msgstr "Start DBus serveru"
 
 #: ../source/maki.c:86
 msgid "Output debug messages"
-msgstr "Mensajes de depurado"
+msgstr "Odchozí ladící zprávy"
 
 #: ../source/maki.c:130
 msgid "Could not switch to daemon mode."
-msgstr "No se pudo cambiar al modo demonio."
+msgstr "Nelze přepnout do módu démona."
 
 #: ../source/maki.c:138
 msgid "Could not create maki instance."
-msgstr "No se puede crear una instancia maki"
+msgstr "Nelze vytvořit instanci maki."
 
 #. Use g_warning() here to not overwrite the debug log of the already running maki.
 #: ../source/maki.c:149
 msgid "Could not connect to DBus. maki may already be running."
-msgstr ""
-"No se pudo conectar a DBus. Puede que todavia se esté ejecutando maki."
+msgstr "Nelze se připojit k DBus. maki nemůže být spuštěno."
 
 #: ../source/misc.c:82
 msgid "Could not open debug log file."
-msgstr "No se pudo abrir el archivo de registro de depuración."
+msgstr "Nelze otevřít ladící záznam."
 
 #: ../source/out.c:196
 #, c-format
 msgid "« You quit (%s)."
-msgstr "« Usted sale (%s)."
+msgstr "« Končíte (%s)."
 
 #: ../source/out.c:200
 msgid "« You quit."
-msgstr "« Usted sale."
+msgstr "« Končíte."
