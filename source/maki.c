@@ -164,6 +164,20 @@ int main (int argc, char* argv[])
 		}
 
 		bus_address_file = g_build_filename(maki_instance_directory(inst, "config"), "bus_address", NULL);
+
+		/* FIXME Better use flock() or fcntl(). */
+		if (g_file_test(bus_address_file, G_FILE_TEST_EXISTS))
+		{
+			gchar* msg;
+
+			msg = g_strdup_printf(_("“%s” exists. maki may already be running."), bus_address_file);
+			g_warning("%s\n", msg);
+			g_free(msg);
+			g_free(bus_address_file);
+
+			goto error;
+		}
+
 		g_file_set_contents(bus_address_file, maki_dbus_server_address(dbus_server), -1, NULL);
 	}
 
