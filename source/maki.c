@@ -77,6 +77,7 @@ int main (int argc, char* argv[])
 	gchar* bus_address_file = NULL;
 	const gchar* file;
 	GDir* servers;
+	iLock* lock = NULL;
 	makiInstance* inst = NULL;
 	struct sigaction sig;
 	GError* error = NULL;
@@ -165,20 +166,21 @@ int main (int argc, char* argv[])
 
 		bus_address_file = g_build_filename(maki_instance_directory(inst, "config"), "bus_address", NULL);
 
-		/* FIXME Better use flock() or fcntl(). */
-		if (g_file_test(bus_address_file, G_FILE_TEST_EXISTS))
+		if ((lock = i_lock_new(bus_address_file)) == NULL)
 		{
-			gchar* msg;
-
-			msg = g_strdup_printf(_("“%s” exists. maki may already be running."), bus_address_file);
-			g_warning("%s\n", msg);
-			g_free(msg);
-			g_free(bus_address_file);
-
 			goto error;
 		}
 
-		g_file_set_contents(bus_address_file, maki_dbus_server_address(dbus_server), -1, NULL);
+		if (!i_lock_lock(lock, maki_dbus_server_address(dbus_server)))
+		{
+			gchar* msg;
+
+			msg = g_strdup_printf(_("“%s” is locked. maki may already be running."), bus_address_file);
+			g_warning("%s\n", msg);
+			g_free(msg);
+
+			goto error;
+		}
 	}
 
 	sig.sa_handler = maki_signal;
@@ -216,20 +218,29 @@ int main (int argc, char* argv[])
 	if (dbus != NULL)
 	{
 		g_object_unref(dbus);
-		dbus = NULL;
+	}
+
+	if (bus_address_file != NULL)
+	{
+		g_free(bus_address_file);
 	}
 
 	if (dbus_server != NULL)
 	{
-		g_unlink(bus_address_file);
-		g_free(bus_address_file);
-
 		maki_dbus_server_free(dbus_server);
-		dbus_server = NULL;
 	}
 
-	/* FIXME this may emit signals */
-	maki_instance_free(inst);
+	if (inst != NULL)
+	{
+		/* FIXME this may emit signals */
+		maki_instance_free(inst);
+	}
+
+	if (lock != NULL)
+	{
+		i_lock_unlock(lock);
+		i_lock_free(lock);
+	}
 
 	return 0;
 
@@ -237,6 +248,11 @@ error:
 	if (dbus != NULL)
 	{
 		g_object_unref(dbus);
+	}
+
+	if (bus_address_file != NULL)
+	{
+		g_free(bus_address_file);
 	}
 
 	if (dbus_server != NULL)
@@ -247,6 +263,12 @@ error:
 	if (inst != NULL)
 	{
 		maki_instance_free(inst);
+	}
+
+	if (lock != NULL)
+	{
+		i_lock_unlock(lock);
+		i_lock_free(lock);
 	}
 
 	return 1;
