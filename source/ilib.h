@@ -30,6 +30,9 @@
 
 #include <glib.h>
 
+struct i_lock;
+
+typedef struct i_lock iLock;
 typedef gchar* (*IStrvNewFunc) (const gchar*);
 
 gboolean i_daemon (gboolean, gboolean);
@@ -55,5 +58,10 @@ guint i_ascii_str_case_hash (gconstpointer);
 gchar* i_get_current_time_string (const gchar*);
 
 gchar** i_strv_new (IStrvNewFunc, ...) G_GNUC_NULL_TERMINATED;
+
+iLock* i_lock_new (const gchar*);
+gboolean i_lock_lock (iLock*, const gchar*);
+gboolean i_lock_unlock (iLock*);
+void i_lock_free (iLock*);
 
 #endif

@@ -26,7 +26,7 @@
  */
 
 #define G_DISABLE_DEPRECATED
-#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE 500
 
 #include <glib.h>
 #include <glib/gstdio.h>
@@ -35,6 +35,7 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <string.h>
+#include <sys/file.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -42,6 +43,12 @@
 #include <unistd.h>
 
 #include "ilib.h"
+
+struct i_lock
+{
+	gchar* path;
+	gint fd;
+};
 
 gboolean i_daemon (gboolean nochdir, gboolean noclose)
 {
@@ -507,4 +514,109 @@ gchar** i_strv_new (IStrvNewFunc func, ...)
 	v[n] = NULL;
 
 	return v;
+}
+
+iLock* i_lock_new (const gchar* path)
+{
+	iLock* lock;
+
+	g_return_val_if_fail(path != NULL, NULL);
+
+	lock = g_new(iLock, 1);
+	lock->path = g_strdup(path);
+	lock->fd = -1;
+
+	return lock;
+}
+
+gboolean i_lock_lock (iLock* lock, const gchar* contents)
+{
+	gint fd;
+
+	g_return_val_if_fail(lock != NULL, FALSE);
+
+	if ((fd = g_open(lock->path, O_CREAT | O_WRONLY, 0600)) == -1)
+	{
+		goto error;
+	}
+
+	if (flock(fd, LOCK_EX | LOCK_NB) == -1)
+	{
+		goto error;
+	}
+
+	if (ftruncate(fd, 0) == -1)
+	{
+		g_unlink(lock->path);
+
+		goto error;
+	}
+
+	if (contents != NULL)
+	{
+		gsize len;
+		gsize nwritten = 0;
+		gssize ret;
+
+		len = strlen(contents);
+
+		while (nwritten < len)
+		{
+			ret = write(fd, contents + nwritten, len - nwritten);
+
+			if (ret > 0)
+			{
+				nwritten += ret;
+
+				if (nwritten == len)
+				{
+					break;
+				}
+			}
+
+			if (ret == 0 || ret == -1)
+			{
+				g_unlink(lock->path);
+
+				goto error;
+			}
+		}
+	}
+
+	lock->fd = fd;
+
+	return TRUE;
+
+error:
+	if (fd != -1)
+	{
+		close(fd);
+	}
+
+	return FALSE;
+}
+
+gboolean i_lock_unlock (iLock* lock)
+{
+	g_return_val_if_fail(lock != NULL, FALSE);
+
+	if (lock->fd == -1)
+	{
+		return FALSE;
+	}
+
+	flock(lock->fd, LOCK_UN);
+	close(lock->fd);
+	lock->fd = -1;
+	g_unlink(lock->path);
+
+	return TRUE;
+}
+
+void i_lock_free (iLock* lock)
+{
+	g_return_if_fail(lock != NULL);
+
+	g_free(lock->path);
+	g_free(lock);
 }
