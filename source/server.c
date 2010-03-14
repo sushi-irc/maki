@@ -38,6 +38,28 @@
 
 #include <string.h>
 
+static gboolean maki_server_away (gpointer data)
+{
+	makiServer* serv = data;
+	GHashTableIter iter;
+	gpointer key, value;
+
+	g_hash_table_iter_init(&iter, serv->channels);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		const gchar* chan_name = key;
+		makiChannel* chan = value;
+
+		if (maki_channel_joined(chan) && maki_channel_users_count(chan) <= 100)
+		{
+			maki_server_send_printf(serv, "WHO %s", chan_name);
+		}
+	}
+
+	return TRUE;
+}
+
 static gpointer maki_server_thread (gpointer data)
 {
 	makiServer* serv = data;
@@ -98,6 +120,7 @@ makiServer* maki_server_new (const gchar* name)
 	serv->logged_in = FALSE;
 	serv->reconnect.source = 0;
 	serv->reconnect.retries = maki_instance_config_get_integer(inst, "reconnect" ,"retries");
+	serv->sources.away = 0;
 	serv->main_context = g_main_context_new();
 	serv->main_loop = g_main_loop_new(serv->main_context, FALSE);
 	serv->connection = sashimi_new(serv->main_context);
@@ -431,6 +454,12 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 		sashimi_read_callback(serv->connection, NULL, NULL);
 		sashimi_reconnect_callback(serv->connection, NULL, NULL);
 
+		if (serv->sources.away != 0)
+		{
+			i_source_remove(serv->sources.away, serv->main_context);
+			serv->sources.away = 0;
+		}
+
 		if (message != NULL)
 		{
 			GHashTableIter iter;
@@ -523,6 +552,13 @@ void maki_server_connect_callback (gpointer data)
 
 	g_free(initial_nick);
 	g_free(name);
+
+	if (serv->sources.away != 0)
+	{
+		i_source_remove(serv->sources.away, serv->main_context);
+	}
+
+	serv->sources.away = i_timeout_add_seconds(60, maki_server_away, serv, serv->main_context);
 }
 
 /* This function is called by sashimi if the connection drops.

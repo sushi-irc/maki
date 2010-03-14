@@ -63,6 +63,12 @@ struct maki_server
 
 	struct
 	{
+		guint away;
+	}
+	sources;
+
+	struct
+	{
 		gchar* chanmodes;
 		gchar* chantypes;
 

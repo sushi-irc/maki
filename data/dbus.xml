@@ -546,6 +546,13 @@
 			<arg name="topic" type="s" />
 		</signal>
 
+		<signal name="user_away">
+			<arg name="time" type="x" />
+			<arg name="server" type="s" />
+			<arg name="from" type="s" />
+			<arg name="away" type="b" />
+		</signal>
+
 		<signal name="whois">
 			<arg name="time" type="x" />
 			<arg name="server" type="s" />

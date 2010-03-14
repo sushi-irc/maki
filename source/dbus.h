@@ -74,6 +74,7 @@ void maki_dbus_emit_part (gint64, const gchar*, const gchar*, const gchar*, cons
 void maki_dbus_emit_quit (gint64, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_shutdown (gint64);
 void maki_dbus_emit_topic (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
+void maki_dbus_emit_user_away (gint64, const gchar*, const gchar*, gboolean);
 void maki_dbus_emit_whois (gint64, const gchar*, const gchar*, const gchar*);
 
 gboolean maki_dbus_action (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);

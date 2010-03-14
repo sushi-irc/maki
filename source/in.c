@@ -1021,6 +1021,51 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 	g_strfreev(tmp);
 }
 
+/* FIXME handle more stuff */
+static void maki_in_rpl_whoreply (makiServer* serv, glong timestamp, gchar* remaining, gboolean is_end)
+{
+	gchar** tmp;
+	guint length;
+
+	if (!remaining)
+	{
+		return;
+	}
+
+	tmp = g_strsplit(remaining, " ", 8);
+	length = g_strv_length(tmp);
+
+	if (is_end)
+	{
+	}
+	else
+	{
+		makiUser* user;
+
+		if (length < 8)
+		{
+			g_strfreev(tmp);
+			return;
+		}
+
+		if ((user = maki_server_get_user(serv, tmp[4])) != NULL)
+		{
+			gboolean away;
+
+			away = (tmp[5][0] == 'G');
+
+			if (maki_user_away(user) != away)
+			{
+				maki_user_set_away(user, away);
+
+				maki_dbus_emit_user_away(timestamp, maki_server_name(serv), maki_user_from(user), maki_user_away(user));
+			}
+		}
+	}
+
+	g_strfreev(tmp);
+}
+
 static void maki_in_rpl_away (makiServer* serv, glong timestamp, gchar* remaining)
 {
 	gchar** tmp;
@@ -1478,6 +1523,12 @@ void maki_in_callback (const gchar* message, gpointer data)
 				/* RPL_ENDOFNAMES */
 				case 366:
 					maki_in_rpl_namreply(serv, timeval.tv_sec, remaining, (numeric == 366));
+					break;
+				/* RPL_WHOREPLY */
+				case 352:
+				/* RPL_ENDOFWHO */
+				case 315:
+					maki_in_rpl_whoreply(serv, timeval.tv_sec, remaining, (numeric == 315));
 					break;
 				/* RPL_UNAWAY */
 				case 305:

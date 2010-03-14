@@ -83,6 +83,7 @@ enum
 	s_quit,
 	s_shutdown,
 	s_topic,
+	s_user_away,
 	s_whois,
 	s_last
 };
@@ -498,6 +499,21 @@ void maki_dbus_emit_topic (gint64 timestamp, const gchar* server, const gchar* n
 		DBUS_TYPE_STRING, &nick,
 		DBUS_TYPE_STRING, &channel,
 		DBUS_TYPE_STRING, &topic,
+		DBUS_TYPE_INVALID);
+}
+
+void maki_dbus_emit_user_away (gint64 timestamp, const gchar* server, const gchar* from, gboolean away)
+{
+	if (dbus != NULL)
+	{
+		g_signal_emit(dbus, signals[s_user_away], 0, timestamp, server, from, away);
+	}
+
+	maki_dbus_server_emit(dbus_server, "user_away",
+		DBUS_TYPE_INT64, &timestamp,
+		DBUS_TYPE_STRING, &server,
+		DBUS_TYPE_STRING, &from,
+		DBUS_TYPE_BOOLEAN, &away,
 		DBUS_TYPE_INVALID);
 }
 
