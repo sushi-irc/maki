@@ -1535,11 +1535,13 @@ void maki_in_callback (const gchar* message, gpointer data)
 					maki_user_set_away(maki_server_user(serv), FALSE);
 					maki_user_set_away_message(maki_server_user(serv), NULL);
 					maki_dbus_emit_back(timeval.tv_sec, maki_server_name(serv));
+					maki_dbus_emit_user_away(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), FALSE);
 					break;
 				/* RPL_NOWAWAY */
 				case 306:
 					maki_user_set_away(maki_server_user(serv), TRUE);
 					maki_dbus_emit_away(timeval.tv_sec, maki_server_name(serv));
+					maki_dbus_emit_user_away(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), TRUE);
 					break;
 				/* RPL_AWAY */
 				case 301:
