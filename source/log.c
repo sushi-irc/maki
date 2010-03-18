@@ -90,7 +90,6 @@ void maki_log_free (gpointer data)
 
 	if (log->channel != NULL)
 	{
-		g_io_channel_shutdown(log->channel, FALSE, NULL);
 		g_io_channel_unref(log->channel);
 	}
 

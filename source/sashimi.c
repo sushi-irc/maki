@@ -368,9 +368,6 @@ gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint p
 
 	conn->fd = g_io_channel_unix_get_fd(conn->channel);
 
-	g_io_channel_set_close_on_unref(conn->channel, TRUE);
-	g_io_channel_set_encoding(conn->channel, NULL, NULL);
-
 	if (ssl)
 	{
 #ifdef HAVE_GNUTLS
@@ -391,6 +388,9 @@ gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint p
 		return FALSE;
 #endif
 	}
+
+	g_io_channel_set_close_on_unref(conn->channel, TRUE);
+	g_io_channel_set_encoding(conn->channel, NULL, NULL);
 
 	conn->sources[s_write] = sashimi_io_add_watch(conn, G_IO_OUT | G_IO_HUP | G_IO_ERR, sashimi_write);
 

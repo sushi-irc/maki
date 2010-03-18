@@ -142,14 +142,12 @@ static void maki_dcc_send_close (makiDCCSend* dcc)
 
 	if (dcc->channel.connection != NULL)
 	{
-		g_io_channel_shutdown(dcc->channel.connection, FALSE, NULL);
 		g_io_channel_unref(dcc->channel.connection);
 		dcc->channel.connection = NULL;
 	}
 
 	if (dcc->channel.file != NULL)
 	{
-		g_io_channel_shutdown(dcc->channel.file, FALSE, NULL);
 		g_io_channel_unref(dcc->channel.file);
 		dcc->channel.file = NULL;
 	}
@@ -387,7 +385,6 @@ static gboolean maki_dcc_send_out_listen (GIOChannel* source, GIOCondition condi
 	dcc->d.out.sources[s_out_read] = g_io_add_watch(dcc->channel.connection, G_IO_IN | G_IO_HUP | G_IO_ERR, maki_dcc_send_out_read, dcc);
 	dcc->d.out.sources[s_out_write] = g_io_add_watch(dcc->channel.connection, G_IO_OUT | G_IO_HUP | G_IO_ERR, maki_dcc_send_out_write, dcc);
 
-	g_io_channel_shutdown(source, FALSE, NULL);
 	g_io_channel_unref(source);
 
 	maki_dcc_send_emit(dcc);

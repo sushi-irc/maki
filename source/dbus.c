@@ -1102,7 +1102,6 @@ gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target
 
 			*log = tmp;
 
-			g_io_channel_shutdown(io_channel, FALSE, NULL);
 			g_io_channel_unref(io_channel);
 		}
 
