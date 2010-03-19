@@ -2177,6 +2177,14 @@ static void maki_dbus_class_init (makiDBusClass* klass)
 		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
 		             G_TYPE_NONE, 5,
 		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+	signals[s_user_away] =
+		g_signal_new("user_away",
+		             G_OBJECT_CLASS_TYPE(klass),
+		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
+		             0, NULL, NULL,
+		             maki_marshal_VOID__INT64_STRING_STRING_BOOLEAN,
+		             G_TYPE_NONE, 4,
+		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
 	signals[s_whois] =
 		g_signal_new("whois",
 		             G_OBJECT_CLASS_TYPE(klass),
