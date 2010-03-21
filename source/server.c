@@ -143,6 +143,8 @@ makiServer* maki_server_new (const gchar* name)
 	serv->support.prefix.modes = g_strdup("ov");
 	serv->support.prefix.prefixes = g_strdup("@+");
 
+	serv->ref_count = 1;
+
 	sashimi_timeout(serv->connection, 60);
 
 	groups = g_key_file_get_groups(serv->key_file, NULL);
@@ -370,38 +372,52 @@ gboolean maki_server_send_printf (makiServer* serv, const gchar* format, ...)
 	return ret;
 }
 
+makiServer* maki_server_ref (makiServer* serv)
+{
+	g_return_val_if_fail(serv != NULL, NULL);
+
+	serv->ref_count++;
+
+	return serv;
+}
+
 /* This function gets called when a server is removed from the servers hash table. */
-void maki_server_free (gpointer data)
+void maki_server_unref (gpointer data)
 {
 	makiServer* serv = data;
 
-	maki_server_disconnect(serv, NULL);
+	serv->ref_count--;
 
-	if (serv->reconnect.source != 0)
+	if (serv->ref_count == 0)
 	{
-		i_source_remove(serv->reconnect.source, serv->main_context);
+		maki_server_disconnect(serv, NULL);
+
+		if (serv->reconnect.source != 0)
+		{
+			i_source_remove(serv->reconnect.source, serv->main_context);
+		}
+
+		g_main_loop_quit(serv->main_loop);
+		g_thread_join(serv->thread);
+
+		g_main_loop_unref(serv->main_loop);
+		g_main_context_unref(serv->main_context);
+
+		maki_user_unref(serv->user);
+
+		g_key_file_free(serv->key_file);
+
+		g_free(serv->support.prefix.prefixes);
+		g_free(serv->support.prefix.modes);
+		g_free(serv->support.chantypes);
+		g_free(serv->support.chanmodes);
+		g_hash_table_destroy(serv->logs);
+		g_hash_table_destroy(serv->channels);
+		g_hash_table_destroy(serv->users);
+		sashimi_free(serv->connection);
+		g_free(serv->name);
+		g_free(serv);
 	}
-
-	g_main_loop_quit(serv->main_loop);
-	g_thread_join(serv->thread);
-
-	g_main_loop_unref(serv->main_loop);
-	g_main_context_unref(serv->main_context);
-
-	maki_user_unref(serv->user);
-
-	g_key_file_free(serv->key_file);
-
-	g_free(serv->support.prefix.prefixes);
-	g_free(serv->support.prefix.modes);
-	g_free(serv->support.chantypes);
-	g_free(serv->support.chanmodes);
-	g_hash_table_destroy(serv->logs);
-	g_hash_table_destroy(serv->channels);
-	g_hash_table_destroy(serv->users);
-	sashimi_free(serv->connection);
-	g_free(serv->name);
-	g_free(serv);
 }
 
 /* This function is a wrapper around sashimi_connect().

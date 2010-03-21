@@ -1433,20 +1433,23 @@ gboolean maki_dbus_server_remove (makiDBus* self, const gchar* server, const gch
 	return TRUE;
 }
 
-/* FIXME */
 gboolean maki_dbus_server_rename (makiDBus* self, const gchar* old, const gchar* new, GError** error)
 {
-	gchar* old_path;
-	gchar* new_path;
 	makiInstance* inst = maki_instance_get_default();
 
-	old_path = g_build_filename(maki_instance_directory(inst, "servers"), old, NULL);
-	new_path = g_build_filename(maki_instance_directory(inst, "servers"), new, NULL);
+	if (maki_instance_rename_server(inst, old, new))
+	{
+		gchar* old_path;
+		gchar* new_path;
 
-	g_rename(old_path, new_path);
+		old_path = g_build_filename(maki_instance_directory(inst, "servers"), old, NULL);
+		new_path = g_build_filename(maki_instance_directory(inst, "servers"), new, NULL);
 
-	g_free(old_path);
-	g_free(new_path);
+		g_rename(old_path, new_path);
+
+		g_free(old_path);
+		g_free(new_path);
+	}
 
 	return TRUE;
 }

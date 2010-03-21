@@ -57,6 +57,7 @@ gboolean maki_instance_accept_dcc_send (makiInstance*, guint64);
 gboolean maki_instance_resume_accept_dcc_send (makiInstance*, gchar*, guint16, goffset, guint32, gboolean);
 gboolean maki_instance_resume_dcc_send (makiInstance*, guint64);
 gboolean maki_instance_remove_dcc_send (makiInstance*, guint64);
+gboolean maki_instance_rename_server (makiInstance*, const gchar*, const gchar*);
 guint maki_instance_dcc_sends_count (makiInstance*);
 gchar* maki_instance_dcc_send_get (makiInstance*, guint64, const gchar*);
 gboolean maki_instance_dcc_send_set (makiInstance*, guint64, const gchar*, const gchar*);

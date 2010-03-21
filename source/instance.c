@@ -177,7 +177,7 @@ makiInstance* maki_instance_new (void)
 
 	inst->key_file = g_key_file_new();
 	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
-	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_server_free);
+	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_server_unref);
 
 	g_hash_table_insert(inst->directories, g_strdup("config"), config_dir);
 	g_hash_table_insert(inst->directories, g_strdup("servers"), servers_dir);
@@ -273,6 +273,26 @@ makiServer* maki_instance_get_server (makiInstance* inst, const gchar* name)
 gboolean maki_instance_remove_server (makiInstance* inst, const gchar* name)
 {
 	return g_hash_table_remove(inst->servers, name);
+}
+
+gboolean maki_instance_rename_server (makiInstance* inst, const gchar* old_name, const gchar* new_name)
+{
+	makiServer* serv;
+
+	if ((serv = g_hash_table_lookup(inst->servers, new_name)) != NULL)
+	{
+		return FALSE;
+	}
+
+	if ((serv = g_hash_table_lookup(inst->servers, old_name)) == NULL)
+	{
+		return FALSE;
+	}
+
+	g_hash_table_insert(inst->servers, g_strdup(new_name), maki_server_ref(serv));
+	g_hash_table_remove(inst->servers, old_name);
+
+	return TRUE;
 }
 
 guint maki_instance_servers_count (makiInstance* inst)
