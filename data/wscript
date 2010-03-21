@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
-import os
-import subprocess
-
 def configure (conf):
+	conf.check_tool('gcc')
 	conf.check_tool('misc')
 
 	conf.find_program('gzip', var = 'GZIP')
 
-	p = subprocess.Popen(['pkg-config', '--variable', 'session_bus_services_dir', 'dbus-1'], stdout=subprocess.PIPE, close_fds=True)
-	v = p.communicate()[0].strip()
-
-	conf.env.DBUSDIR = v
+	conf.check_cfg(
+		package = 'dbus-1',
+		uselib_store = 'DBUS',
+		variables = ['session_bus_services_dir']
+	)
 
 	if not conf.env.VERSION:
 		conf.env.VERSION = ''
@@ -19,12 +18,14 @@ def configure (conf):
 def build (bld):
 	bld.install_files('${DATAROOTDIR}/sushi/maki', 'dbus.xml')
 
-	if bld.env.DBUSDIR and bld.env.DBUSDIR.startswith(bld.env.PREFIX):
+	dbus_dir = bld.env['DBUS_session_bus_services_dir']
+
+	if dbus_dir and dbus_dir.startswith(bld.env.PREFIX):
 		bld.new_task_gen(
 			features = 'subst',
 			source = 'de.ikkoku.sushi.service.in',
 			target = 'de.ikkoku.sushi.service',
-			install_path = '${DBUSDIR}'
+			install_path = '${DBUS_session_bus_services_dir}'
 		)
 
 	for man in ('maki.1', 'sushi-remote.1'):
