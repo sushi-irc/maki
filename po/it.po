@@ -6,174 +6,179 @@ msgid ""
 msgstr ""
 "Project-Id-Version: maki 1.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-13 19:27+0100\n"
-"PO-Revision-Date: 2010-01-23 11:50+0000\n"
-"Last-Translator: Michael Kuhn <Unknown>\n"
+"POT-Creation-Date: 2010-03-13 19:44+0100\n"
+"PO-Revision-Date: 2010-03-19 14:41+0000\n"
+"Last-Translator: BrainHell <Unknown>\n"
 "Language-Team: Italian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-02-14 21:48+0000\n"
+"X-Launchpad-Export-Date: 2010-04-29 18:20+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../source/in.c:394
+#: ../source/in.c:403
 msgid "» You join."
 msgstr "» Sei entrato."
 
-#: ../source/in.c:398
+#: ../source/in.c:407
 #, c-format
 msgid "» %s joins."
 msgstr "» %s è entrato."
 
-#: ../source/in.c:458
+#: ../source/in.c:467
 #, c-format
 msgid "« You part (%s)."
 msgstr "« Sei uscito (%s)."
 
-#: ../source/in.c:462
+#: ../source/in.c:471
 msgid "« You part."
 msgstr "« Sei uscito."
 
-#: ../source/in.c:469
+#: ../source/in.c:478
 #, c-format
 msgid "« %s parts (%s)."
 msgstr "« %s esce (%s)."
 
-#: ../source/in.c:473
+#: ../source/in.c:482
 #, c-format
 msgid "« %s parts."
 msgstr "« %s esce."
 
-#: ../source/in.c:510
+#: ../source/in.c:519
 #, c-format
 msgid "« %s quits (%s)."
 msgstr "« %s esce (%s)."
 
-#: ../source/in.c:514
+#: ../source/in.c:523
 #, c-format
 msgid "« %s quits."
 msgstr "« %s esce."
 
-#: ../source/in.c:581
+#: ../source/in.c:590
 #, c-format
 msgid "« %s kicks you (%s)."
 msgstr "« %s ti ha cacciato (%s)."
 
-#: ../source/in.c:585
+#: ../source/in.c:594
 #, c-format
 msgid "« %s kicks you."
 msgstr "« %s ti ha cacciato."
 
-#: ../source/in.c:592
+#: ../source/in.c:601
 #, c-format
 msgid "« %s kicks %s (%s)."
 msgstr "« %s caccia %s (%s)."
 
-#: ../source/in.c:596
+#: ../source/in.c:605
 #, c-format
 msgid "« %s kicks %s."
 msgstr "« %s caccia %s."
 
-#: ../source/in.c:646
+#: ../source/in.c:655
 #, c-format
 msgid "• You are now known as %s."
 msgstr "• Ora sei conosciuto come %s."
 
-#: ../source/in.c:650
+#: ../source/in.c:659
 #, c-format
 msgid "• %s is now known as %s."
 msgstr "• %s è ora conosciuto come %s."
 
-#: ../source/in.c:782
+#: ../source/in.c:791
 #, c-format
 msgid "• Mode: %s %s"
 msgstr "• Modalità: %s %s"
 
-#: ../source/in.c:790
+#: ../source/in.c:799
 #, c-format
 msgid "• You set mode: %s %s"
 msgstr "• Hai impostato la modalità: %s %s"
 
-#: ../source/in.c:794
+#: ../source/in.c:803
 #, c-format
 msgid "• %s sets mode: %s %s"
 msgstr "• %s imposta la modalità: %s %s"
 
-#: ../source/in.c:806
+#: ../source/in.c:815
 #, c-format
 msgid "• Mode: %s"
 msgstr "• Modalità: %s"
 
-#: ../source/in.c:814
+#: ../source/in.c:823
 #, c-format
 msgid "• You set mode: %s"
 msgstr "• Hai impostato la modalità: %s"
 
-#: ../source/in.c:818
+#: ../source/in.c:827
 #, c-format
 msgid "• %s sets mode: %s"
 msgstr "• %s imposta la modalità: %s"
 
-#: ../source/in.c:855
+#: ../source/in.c:864
 #, c-format
 msgid "• You successfully invite %s."
 msgstr "• Hai invitato con successo %s."
 
-#: ../source/in.c:861
+#: ../source/in.c:870
 #, c-format
 msgid "• %s invites %s."
 msgstr "• %s invita %s."
 
-#: ../source/in.c:899
+#: ../source/in.c:908
 #, c-format
 msgid "• Topic: %s"
 msgstr "• Topic: %s"
 
-#: ../source/in.c:907
+#: ../source/in.c:916
 #, c-format
 msgid "• You change the topic: %s"
 msgstr "• Hai cambiato il topic: %s"
 
-#: ../source/in.c:911
+#: ../source/in.c:920
 #, c-format
 msgid "• %s changes the topic: %s"
 msgstr "• %s ha cambiato il topic: %s"
 
-#: ../source/maki.c:84
+#: ../source/maki.c:91
 msgid "Run as daemon"
 msgstr "Esegui come demone"
 
-#: ../source/maki.c:85
+#: ../source/maki.c:92
 msgid "Start DBus server"
 msgstr "Avvia server DBus"
 
-#: ../source/maki.c:86
+#: ../source/maki.c:93
 msgid "Output debug messages"
 msgstr "Stampa i messaggi di debug"
 
-#: ../source/maki.c:130
+#: ../source/maki.c:137
 msgid "Could not switch to daemon mode."
 msgstr "Impossibile passare in modalità demone."
 
-#: ../source/maki.c:138
+#: ../source/maki.c:145
 msgid "Could not create maki instance."
 msgstr "Impossibile creare l'istanza maki."
 
 #. Use g_warning() here to not overwrite the debug log of the already running maki.
-#: ../source/maki.c:149
+#: ../source/maki.c:156
 msgid "Could not connect to DBus. maki may already be running."
 msgstr ""
 "Impossibile connettersi a DBus. maki potrebbe già essere in esecuzione."
 
-#: ../source/misc.c:82
+#: ../source/maki.c:178
+#, c-format
+msgid "“%s” is locked. maki may already be running."
+msgstr "“%s” è bloccato. maki può essere già in esecuzione."
+
+#: ../source/misc.c:92
 msgid "Could not open debug log file."
 msgstr "Impossibile aprire il file log di debug."
 
-#: ../source/out.c:196
+#: ../source/out.c:199
 #, c-format
 msgid "« You quit (%s)."
 msgstr "« Sei uscito (%s)."
 
-#: ../source/out.c:200
+#: ../source/out.c:203
 msgid "« You quit."
 msgstr "« Sei uscito."
