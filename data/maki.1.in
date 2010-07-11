@@ -12,25 +12,25 @@ maki \- IRC daemon
 
 .SH OPTIONS
 .TP
-\fB-?\fP, \fB--help\fP
+\fB\-?\fP, \fB\-\-help\fP
 Show help options.
 .TP
-\fB-d\fP, \fB--daemon\fP
+\fB\-d\fP, \fB\-\-daemon\fP
 Run as daemon.
 .TP
-\fB--dbus-server\fP
+\fB\-\-dbus\-server\fP
 Start DBus server.
 .TP
-\fB-v\fP, \fB--verbose\fP
+\fB\-v\fP, \fB\-\-verbose\fP
 Output debug messages.
 .HP
-\fB--version\fP
+\fB\-\-version\fP
 
 .SH EXAMPLES
-$ maki --daemon --verbose
+$ maki \-\-daemon \-\-verbose
 
 .SH SEE ALSO
-\fBtekka\fP(1), \fBnigiri\fP(1), \fBsushi-remote\fP(1)
+\fBtekka\fP(1), \fBnigiri\fP(1), \fBsushi\-remote\fP(1)
 
 .SH AUTHOR
 Michael Kuhn
