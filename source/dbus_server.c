@@ -126,6 +126,49 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 		return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 	}
 
+#if 0
+	if (strcmp(dbus_message_get_path(msg), DBUS_PATH_DBUS) == 0)
+	{
+		if (dbus_message_is_method_call(msg, DBUS_INTERFACE_DBUS, "AddMatch"))
+		{
+			const gchar* rule;
+
+			got_args = dbus_message_get_args(msg, NULL,
+					DBUS_TYPE_STRING, &rule,
+					DBUS_TYPE_INVALID);
+
+			if (!got_args)
+			{
+				goto error;
+			}
+
+			sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
+
+			if (!sent_reply)
+			{
+				goto error;
+			}
+
+			return DBUS_HANDLER_RESULT_HANDLED;
+		}
+		else if (dbus_message_is_method_call(msg, DBUS_INTERFACE_DBUS, "Hello"))
+		{
+			const gchar* id = "dummy";
+
+			sent_reply = maki_dbus_server_reply(connection, msg,
+				DBUS_TYPE_STRING, &id,
+				DBUS_TYPE_INVALID);
+
+			if (!sent_reply)
+			{
+				goto error;
+			}
+
+			return DBUS_HANDLER_RESULT_HANDLED;
+		}
+	}
+#endif
+
 	if (dbus_message_is_method_call(msg, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")
 	    && dserv->introspection != NULL)
 	{
@@ -1699,6 +1742,9 @@ maki_dbus_server_new_connection_cb (DBusServer* server, DBusConnection* connecti
 
 	dbus_connection_register_object_path(connection, SUSHI_DBUS_PATH, &vtable, dserv);
 	dbus_connection_register_fallback(connection, DBUS_PATH_LOCAL, &vtable, dserv);
+#if 0
+	dbus_connection_register_fallback(connection, DBUS_PATH_DBUS, &vtable, dserv);
+#endif
 
 	dbus_connection_ref(connection);
 	dbus_connection_setup_with_g_main(connection, dserv->main_context);
