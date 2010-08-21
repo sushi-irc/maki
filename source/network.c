@@ -105,7 +105,7 @@ static gboolean maki_network_update_remote (gpointer data)
 	g_mutex_lock(net->lock);
 	memset(&net->remote.addr, 0, sizeof(net->remote.addr));
 	net->remote.addrlen = 0;
-	g_mutex_lock(net->unlock);
+	g_mutex_unlock(net->lock);
 
 #ifdef HAVE_NICE
 	{
