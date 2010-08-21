@@ -216,6 +216,8 @@ static gboolean sashimi_queue_runner (gpointer data)
 {
 	sashimiConnection* conn = data;
 
+	g_mutex_lock(conn->queue_mutex);
+
 	if (!g_queue_is_empty(conn->queue))
 	{
 		gchar* message;
@@ -224,12 +226,12 @@ static gboolean sashimi_queue_runner (gpointer data)
 
 		if (sashimi_send(conn, message))
 		{
-			g_mutex_lock(conn->queue_mutex);
 			g_queue_pop_head(conn->queue);
-			g_mutex_unlock(conn->queue_mutex);
 			g_free(message);
 		}
 	}
+
+	g_mutex_unlock(conn->queue_mutex);
 
 	return TRUE;
 }
@@ -490,12 +492,19 @@ gboolean sashimi_send_or_queue (sashimiConnection* conn, const gchar* message)
 	g_return_val_if_fail(conn != NULL, FALSE);
 	g_return_val_if_fail(message != NULL, FALSE);
 
+	g_mutex_lock(conn->queue_mutex);
+
 	if (g_queue_is_empty(conn->queue))
 	{
+		g_mutex_unlock(conn->queue_mutex);
+
 		return sashimi_send(conn, message);
 	}
 	else
 	{
-		return sashimi_queue(conn, message);
+		g_queue_push_tail(conn->queue, g_strdup(message));
+		g_mutex_unlock(conn->queue_mutex);
+
+		return TRUE;
 	}
 }
