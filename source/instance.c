@@ -53,6 +53,10 @@ struct maki_instance
 	dcc;
 
 	makiNetwork* network;
+
+	GMainContext* main_context;
+	GMainLoop* main_loop;
+	GThread* thread;
 };
 
 makiInstance* maki_instance_get_default (void)
@@ -65,6 +69,15 @@ makiInstance* maki_instance_get_default (void)
 	}
 
 	return inst;
+}
+
+static gpointer maki_instance_thread (gpointer data)
+{
+	makiInstance* serv = data;
+
+	g_main_loop_run(serv->main_loop);
+
+	return NULL;
 }
 
 static makiDCCSend* maki_instance_get_dcc_send (makiInstance* inst, guint64 id)
@@ -175,6 +188,9 @@ makiInstance* maki_instance_new (void)
 
 	inst = g_new(makiInstance, 1);
 
+	inst->main_context = g_main_context_new();
+	inst->main_loop = g_main_loop_new(inst->main_context, FALSE);
+
 	inst->key_file = g_key_file_new();
 	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_server_unref);
@@ -196,6 +212,8 @@ makiInstance* maki_instance_new (void)
 	inst->dcc.mutex = g_mutex_new();
 
 	inst->network = maki_network_new(inst);
+
+	inst->thread = g_thread_create(maki_instance_thread, inst, TRUE, NULL);
 
 	return inst;
 }
@@ -251,6 +269,11 @@ void maki_instance_config_set_string (makiInstance* inst, const gchar* group, co
 gboolean maki_instance_config_exists (makiInstance* inst, const gchar* group, const gchar* key)
 {
 	return g_key_file_has_key(inst->key_file, group, key, NULL);
+}
+
+GMainContext* maki_instance_main_context (makiInstance* inst)
+{
+	return inst->main_context;
 }
 
 const gchar* maki_instance_directory (makiInstance* inst, const gchar* directory)
@@ -521,6 +544,12 @@ makiNetwork* maki_instance_network (makiInstance* inst)
 void maki_instance_free (makiInstance* inst)
 {
 	GSList* list;
+
+	g_main_loop_quit(inst->main_loop);
+	g_thread_join(inst->thread);
+
+	g_main_loop_unref(inst->main_loop);
+	g_main_context_unref(inst->main_context);
 
 	for (list = inst->dcc.list; list != NULL; list = list->next)
 	{

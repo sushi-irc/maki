@@ -69,6 +69,7 @@ static void maki_signal (int signo)
 	g_get_current_time(&timeval);
 	maki_dbus_emit_shutdown(timeval.tv_sec);
 
+	/* FIXME can be executed twice */
 	g_main_loop_quit(main_loop);
 }
 

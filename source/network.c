@@ -29,6 +29,8 @@
 
 #include "network.h"
 
+#include "ilib.h"
+
 #ifdef HAVE_NICE
 #include <interfaces.h>
 #include <stun/usages/bind.h>
@@ -55,15 +57,21 @@ struct maki_network
 	}
 	remote;
 
+	GMutex* lock;
+
 #ifdef HAVE_GUPNP_IGD_1_0
 	GUPnPSimpleIgd* upnp_igd;
 #endif
 };
 
-static void maki_network_update_local (makiNetwork* net)
+static gboolean maki_network_update_local (gpointer data)
 {
+	makiNetwork* net = data;
+
+	g_mutex_lock(net->lock);
 	g_free(net->local.ip);
 	net->local.ip = NULL;
+	g_mutex_unlock(net->lock);
 
 #ifdef HAVE_NICE
 	{
@@ -73,7 +81,9 @@ static void maki_network_update_local (makiNetwork* net)
 		{
 			GList* l;
 
+			g_mutex_lock(net->lock);
 			net->local.ip = g_strdup(ips->data);
+			g_mutex_unlock(net->lock);
 
 			for (l = ips; l != NULL; l = g_list_next(l))
 			{
@@ -84,12 +94,18 @@ static void maki_network_update_local (makiNetwork* net)
 		}
 	}
 #endif
+
+	return FALSE;
 }
 
-static void maki_network_update_remote (makiNetwork* net)
+static gboolean maki_network_update_remote (gpointer data)
 {
+	makiNetwork* net = data;
+
+	g_mutex_lock(net->lock);
 	memset(&net->remote.addr, 0, sizeof(net->remote.addr));
 	net->remote.addrlen = 0;
+	g_mutex_lock(net->unlock);
 
 #ifdef HAVE_NICE
 	{
@@ -103,10 +119,8 @@ static void maki_network_update_remote (makiNetwork* net)
 
 		if (stun == NULL)
 		{
-			return;
+			goto end;
 		}
-
-		net->remote.addrlen = 0;
 
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_UNSPEC;
@@ -117,7 +131,7 @@ static void maki_network_update_remote (makiNetwork* net)
 		if (getaddrinfo(stun, "3478", NULL, &ai) != 0)
 		{
 			g_free(stun);
-			return;
+			goto end;
 		}
 
 		g_free(stun);
@@ -132,8 +146,10 @@ static void maki_network_update_remote (makiNetwork* net)
 				continue;
 			}
 
+			g_mutex_lock(net->lock);
 			net->remote.addr = me;
 			net->remote.addrlen = me_len;
+			g_mutex_unlock(net->lock);
 
 			break;
 		}
@@ -141,6 +157,9 @@ static void maki_network_update_remote (makiNetwork* net)
 		freeaddrinfo(ai);
 	}
 #endif
+
+end:
+	return FALSE;
 }
 
 makiNetwork* maki_network_new (makiInstance* inst)
@@ -155,6 +174,8 @@ makiNetwork* maki_network_new (makiInstance* inst)
 
 	memset(&net->remote.addr, 0, sizeof(net->remote.addr));
 	net->remote.addrlen = 0;
+
+	net->lock = g_mutex_new();
 
 #ifdef HAVE_GUPNP_IGD_1_0
 	net->upnp_igd = gupnp_simple_igd_new(NULL);
@@ -171,6 +192,8 @@ void maki_network_free (makiNetwork* net)
 	g_object_unref(net->upnp_igd);
 #endif
 
+	g_mutex_free(net->lock);
+
 	g_free(net->local.ip);
 
 	g_free(net);
@@ -180,8 +203,8 @@ void maki_network_update (makiNetwork* net)
 {
 	g_return_if_fail(net != NULL);
 
-	maki_network_update_local(net);
-	maki_network_update_remote(net);
+	i_idle_add(maki_network_update_local, net, maki_instance_main_context(net->instance));
+	i_idle_add(maki_network_update_remote, net, maki_instance_main_context(net->instance));
 }
 
 gboolean maki_network_remote_addr (makiNetwork* net, struct sockaddr* addr, socklen_t* addrlen)
@@ -190,45 +213,64 @@ gboolean maki_network_remote_addr (makiNetwork* net, struct sockaddr* addr, sock
 	g_return_val_if_fail(addr != NULL, FALSE);
 	g_return_val_if_fail(addrlen != NULL, FALSE);
 
+	g_mutex_lock(net->lock);
+
 	if (*addrlen < net->remote.addrlen || net->remote.addrlen == 0)
 	{
-		return FALSE;
+		goto error;
 	}
 
 	memcpy(addr, &net->remote.addr, net->remote.addrlen);
 	*addrlen = net->remote.addrlen;
 
+	g_mutex_unlock(net->lock);
+
 	return TRUE;
+
+error:
+	g_mutex_unlock(net->lock);
+
+	return FALSE;
 }
 
 gboolean maki_network_upnp_add_port (makiNetwork* net, guint port, const gchar* description)
 {
+	gboolean ret = FALSE;
+
 	g_return_val_if_fail(net != NULL, FALSE);
 	g_return_val_if_fail(port != 0, FALSE);
 	g_return_val_if_fail(description != NULL, FALSE);
 
 #ifdef HAVE_GUPNP_IGD_1_0
+	g_mutex_lock(net->lock);
+
 	if (net->local.ip != NULL)
 	{
 		gupnp_simple_igd_add_port(net->upnp_igd, "TCP", port, net->local.ip, port, 600, description);
 	}
 
-	return TRUE;
+	g_mutex_unlock(net->lock);
+
+	ret = TRUE;
 #endif
 
-	return FALSE;
+	return ret;
 }
 
 gboolean maki_network_upnp_remove_port (makiNetwork* net, guint port)
 {
+	gboolean ret = FALSE;
+
 	g_return_val_if_fail(net != NULL, FALSE);
 	g_return_val_if_fail(port != 0, FALSE);
 
 #ifdef HAVE_GUPNP_IGD_1_0
+	g_mutex_lock(net->lock);
 	gupnp_simple_igd_remove_port(net->upnp_igd, "TCP", port);
+	g_mutex_unlock(net->lock);
 
-	return TRUE;
+	ret = TRUE;
 #endif
 
-	return FALSE;
+	return ret;
 }

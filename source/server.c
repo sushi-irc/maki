@@ -432,15 +432,10 @@ gboolean maki_server_connect (makiServer* serv)
 	if (!serv->connected && !maki_config_is_empty(address))
 	{
 		GTimeVal timeval;
-		/*
 		makiInstance* inst = maki_instance_get_default();
 		makiNetwork* net = maki_instance_network(inst);
-		*/
 
-		/* FIXME thread-safety */
-		/*
 		maki_network_update(net);
-		*/
 
 		sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
 		sashimi_read_callback(serv->connection, maki_in_callback, serv);
