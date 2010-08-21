@@ -403,6 +403,20 @@ gboolean sashimi_disconnect (sashimiConnection* conn)
 {
 	g_return_val_if_fail(conn != NULL, FALSE);
 
+	g_mutex_lock(conn->queue_mutex);
+
+	/* Try to flush queue. */
+	while (!g_queue_is_empty(conn->queue))
+	{
+		gchar* message;
+
+		message = g_queue_pop_head(conn->queue);
+		sashimi_send(conn, message);
+		g_free(message);
+	}
+
+	g_mutex_unlock(conn->queue_mutex);
+
 	sashimi_remove_sources(conn, -1);
 
 	if (conn->channel != NULL)
