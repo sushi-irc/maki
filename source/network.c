@@ -181,8 +181,6 @@ makiNetwork* maki_network_new (makiInstance* inst)
 	net->upnp_igd = gupnp_simple_igd_new(NULL);
 #endif
 
-	maki_network_update(net);
-
 	return net;
 }
 
