@@ -65,6 +65,13 @@ def configure (conf):
 		args = '--cflags --libs'
 	)
 
+	conf.check_cfg(
+		path = 'libgcrypt-config',
+		package = '',
+		args = '--cflags --libs',
+		uselib_store = 'GCRYPT'
+	)
+
 	conf.find_program('grep', var = 'GREP')
 	conf.find_program('sed', var = 'SED')
 	conf.find_program('sort', var = 'SORT')
@@ -105,7 +112,7 @@ def build (bld):
 		features = 'cc cprogram',
 		source = ['%s.c' % (c) for c in components],
 		target = 'maki',
-		uselib = ['DBUS-1', 'DBUS-GLIB-1', 'GLIB-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE', 'GUPNP-IGD-1.0', 'GNUTLS'],
+		uselib = ['DBUS-1', 'DBUS-GLIB-1', 'GLIB-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE', 'GUPNP-IGD-1.0', 'GNUTLS', 'GCRYPT'],
 		includes = ['.'],
 		defines = ['MAKI_PLUGIN_DIRECTORY="%s"' % (Utils.subst_vars('${LIBDIR}/sushi/maki/plugins', bld.env)),
 			'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATAROOTDIR}/sushi/maki', bld.env))],
