@@ -35,7 +35,6 @@
 #include <fcntl.h>
 #include <netdb.h>
 #include <string.h>
-#include <sys/file.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -540,7 +539,7 @@ gboolean i_lock_lock (iLock* lock, const gchar* contents)
 		goto error;
 	}
 
-	if (flock(fd, LOCK_EX | LOCK_NB) == -1)
+	if (lockf(fd, F_TLOCK, 0) == -1)
 	{
 		goto error;
 	}
@@ -605,7 +604,6 @@ gboolean i_lock_unlock (iLock* lock)
 		return FALSE;
 	}
 
-	flock(lock->fd, LOCK_UN);
 	close(lock->fd);
 	lock->fd = -1;
 	g_unlink(lock->path);
