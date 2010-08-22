@@ -157,6 +157,8 @@ int main (int argc, char* argv[])
 		{ NULL }
 	};
 
+	gchar* bus_address = NULL;
+
 	/*
 	setlocale(LC_ALL, "");
 	bindtextdomain("maki", LOCALEDIR);
@@ -168,49 +170,43 @@ int main (int argc, char* argv[])
 
 	if (!g_option_context_parse(context, &argc, &argv, &error))
 	{
-		g_option_context_free(context);
-
 		if (error)
 		{
 			g_printerr("%s\n", error->message);
 			g_error_free(error);
 		}
 
-		return 1;
+		goto error;
 	}
-
-	g_option_context_free(context);
 
 	if (opt_print_bus_address)
 	{
-		gint ret;
-		gchar* bus_address;
-
 		bus_address = sushi_remote_print_bus_address();
 
 		if (bus_address != NULL)
 		{
 			g_print("%s", bus_address);
-			ret = 0;
+			goto end;
 		}
 		else
 		{
 			g_printerr("Bus address could not be read.\n");
-			ret = 1;
+			goto error;
 		}
-
-		g_free(bus_address);
-
-		return ret;
 	}
 	else if (argc < 3)
 	{
-		return 1;
+		gchar* help;
+
+		help = g_option_context_get_help(context, TRUE, NULL);
+		g_print("%s", help);
+		g_free(help);
+
+		goto error;
 	}
 	else
 	{
 		const gchar* userhost = argv[1];
-		gchar* bus_address;
 		gchar** bus_parts;
 		gchar** p;
 		guint64 port = 0;
@@ -219,16 +215,14 @@ int main (int argc, char* argv[])
 		{
 			g_printerr("Bus address could not be determined.\n");
 
-			return 1;
+			goto error;
 		}
 
 		if (!g_str_has_prefix(bus_address, "tcp:"))
 		{
 			g_printerr("Bus address has wrong format.\n");
 
-			g_free(bus_address);
-
-			return 1;
+			goto error;
 		}
 
 		bus_parts = g_strsplit(bus_address, ",", 0);
@@ -242,14 +236,13 @@ int main (int argc, char* argv[])
 			}
 		}
 
+		g_strfreev(bus_parts);
+
 		if (port == 0)
 		{
 			g_printerr("Port could not be determined.\n");
 
-			g_strfreev(bus_parts);
-			g_free(bus_address);
-
-			return 1;
+			goto error;
 		}
 
 		sushi_remote_setup_forwarding(userhost, port);
@@ -258,17 +251,21 @@ int main (int argc, char* argv[])
 		{
 			g_printerr("Environment variable could not be set.\n");
 
-			g_strfreev(bus_parts);
-			g_free(bus_address);
-
-			return 1;
+			goto error;
 		}
 
 		sushi_remote_execute_command(argc, argv);
-
-		g_strfreev(bus_parts);
-		g_free(bus_address);
 	}
 
+end:
+	g_option_context_free(context);
+	g_free(bus_address);
+
 	return 0;
+
+error:
+	g_option_context_free(context);
+	g_free(bus_address);
+
+	return 1;
 }
