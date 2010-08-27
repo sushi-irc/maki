@@ -91,6 +91,11 @@ static void maki_server_config_set_defaults (makiServer* serv)
 		maki_server_config_set_string(serv, "server", "nick", g_get_user_name());
 	}
 
+	if (!maki_server_config_exists(serv, "server", "user"))
+	{
+		maki_server_config_set_string(serv, "server", "user", g_get_user_name());
+	}
+
 	if (!maki_server_config_exists(serv, "server", "name"))
 	{
 		maki_server_config_set_string(serv, "server", "name", g_get_real_name());
@@ -536,6 +541,7 @@ static gboolean maki_server_reconnect (gpointer data)
 void maki_server_connect_callback (gpointer data)
 {
 	gchar* initial_nick;
+	gchar* user;
 	gchar* name;
 	GTimeVal timeval;
 	makiServer* serv = data;
@@ -547,13 +553,14 @@ void maki_server_connect_callback (gpointer data)
 	}
 
 	initial_nick = maki_server_config_get_string(serv, "server", "nick");
+	user = maki_server_config_get_string(serv, "server", "user");
 	name = maki_server_config_get_string(serv, "server", "name");
 
 	maki_user_set_nick(serv->user, initial_nick);
 
 	maki_out_nick(serv, initial_nick);
 
-	maki_server_send_printf(serv, "USER %s 0 * :%s", initial_nick, name);
+	maki_server_send_printf(serv, "USER %s 0 * :%s", user, name);
 
 	serv->connected = TRUE;
 
