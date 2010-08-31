@@ -138,16 +138,16 @@ static gboolean maki_network_update_remote (gpointer data)
 
 		for (p = ai; p != NULL; p = p->ai_next)
 		{
-			struct sockaddr_storage me;
-			socklen_t me_len = sizeof(me);
+			makiNetworkAddress me;
+			socklen_t me_len = sizeof(me.ss);
 
-			if (stun_usage_bind_run(p->ai_addr, p->ai_addrlen, (struct sockaddr*)&me, &me_len) != STUN_USAGE_BIND_RETURN_SUCCESS)
+			if (stun_usage_bind_run(p->ai_addr, p->ai_addrlen, &(me.sa), &me_len) != STUN_USAGE_BIND_RETURN_SUCCESS)
 			{
 				continue;
 			}
 
 			g_mutex_lock(net->lock);
-			net->remote.addr = me;
+			net->remote.addr = me.ss;
 			net->remote.addrlen = me_len;
 			g_mutex_unlock(net->lock);
 

@@ -28,6 +28,19 @@
 #ifndef H_NETWORK
 #define H_NETWORK
 
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+union maki_network_address
+{
+	struct sockaddr sa;
+	struct sockaddr_storage ss;
+	struct sockaddr_in sin;
+	struct sockaddr_in6 sin6;
+};
+
+typedef union maki_network_address makiNetworkAddress;
+
 struct maki_network;
 
 typedef struct maki_network makiNetwork;

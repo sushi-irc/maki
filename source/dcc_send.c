@@ -29,6 +29,7 @@
 
 #include "dcc_send.h"
 #include "instance.h"
+#include "network.h"
 #include "server.h"
 
 #include "ilib.h"
@@ -536,8 +537,8 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	guint i;
 	gchar* basename;
 	struct stat stbuf;
-	struct sockaddr_storage stun_addr;
-	socklen_t stun_addrlen = sizeof(stun_addr);
+	makiNetworkAddress stun_addr;
+	socklen_t stun_addrlen = sizeof(stun_addr.ss);
 	makiInstance* inst = maki_instance_get_default();
 	makiNetwork* net = maki_instance_network(inst);
 	makiDCCSend* dcc;
@@ -599,17 +600,17 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	g_io_channel_set_close_on_unref(dcc->channel.connection, TRUE);
 	g_io_channel_set_encoding(dcc->channel.connection, NULL, NULL);
 
-	if (maki_network_remote_addr(net, (struct sockaddr*)&stun_addr, &stun_addrlen))
+	if (maki_network_remote_addr(net, &(stun_addr.sa), &stun_addrlen))
 	{
-		dcc->address = ntohl(((struct sockaddr_in*)&stun_addr)->sin_addr.s_addr);
+		dcc->address = ntohl(stun_addr.sin.sin_addr.s_addr);
 	}
 	else
 	{
-		struct sockaddr_storage addr;
-		socklen_t addrlen = sizeof(addr);
+		makiNetworkAddress addr;
+		socklen_t addrlen = sizeof(addr.ss);
 
-		getsockname(g_io_channel_unix_get_fd(dcc->channel.connection), (struct sockaddr*)&addr, &addrlen);
-		dcc->address = ntohl(((struct sockaddr_in*)&addr)->sin_addr.s_addr);
+		getsockname(g_io_channel_unix_get_fd(dcc->channel.connection), &(addr.sa), &addrlen);
+		dcc->address = ntohl(addr.sin.sin_addr.s_addr);
 	}
 
 	if ((dcc->channel.file = g_io_channel_new_file(dcc->path, "r", NULL)) == NULL)
@@ -690,19 +691,19 @@ gboolean maki_dcc_send_accept (makiDCCSend* dcc)
 	if (dcc->status & s_incoming)
 	{
 		gchar address[INET_ADDRSTRLEN];
-		struct sockaddr_in addr;
-		socklen_t addrlen = sizeof(addr);
+		makiNetworkAddress addr;
+		socklen_t addrlen = sizeof(addr.sin);
 
 		if (dcc->d.in.accept)
 		{
 			return FALSE;
 		}
 
-		addr.sin_family = AF_INET;
-		addr.sin_port = htons(dcc->port);
-		addr.sin_addr.s_addr = htonl(dcc->address);
+		addr.sin.sin_family = AF_INET;
+		addr.sin.sin_port = htons(dcc->port);
+		addr.sin.sin_addr.s_addr = htonl(dcc->address);
 
-		if (getnameinfo((struct sockaddr*)&addr, addrlen, address, INET_ADDRSTRLEN, NULL, 0, NI_NUMERICHOST) != 0)
+		if (getnameinfo(&(addr.sa), addrlen, address, INET_ADDRSTRLEN, NULL, 0, NI_NUMERICHOST) != 0)
 		{
 			return FALSE;
 		}
