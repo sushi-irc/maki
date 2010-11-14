@@ -28,7 +28,7 @@ def build (ctx):
 		ctx.shlib(
 			source = ['nm.c'],
 			target = 'nm',
-			uselib = ['GLIB-2.0', 'GMODULE-2.0', 'LIBNM_GLIB'],
+			use = ['GLIB-2.0', 'GMODULE-2.0', 'LIBNM_GLIB'],
 			includes = ['.', '..'],
 			install_path = '${LIBDIR}/sushi/maki/plugins'
 		)
