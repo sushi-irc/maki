@@ -1,27 +1,24 @@
 #!/usr/bin/env python
 
-def configure (conf):
-	conf.check_tool('gcc')
-	conf.check_tool('misc')
+def configure (ctx):
+	ctx.find_program('gzip', var = 'GZIP')
 
-	conf.find_program('gzip', var = 'GZIP')
-
-	conf.check_cfg(
+	ctx.check_cfg(
 		package = 'dbus-1',
 		uselib_store = 'DBUS',
 		variables = ['session_bus_services_dir']
 	)
 
-	if not conf.env.VERSION:
-		conf.env.VERSION = ''
+	if not ctx.env.VERSION:
+		ctx.env.VERSION = ''
 
-def build (bld):
-	bld.install_files('${DATAROOTDIR}/sushi/maki', 'dbus.xml')
+def build (ctx):
+	ctx.install_files('${DATAROOTDIR}/sushi/maki', 'dbus.xml')
 
-	dbus_dir = bld.env['DBUS_session_bus_services_dir']
+	dbus_dir = ctx.env.DBUS_session_bus_services_dir
 
-	if dbus_dir and dbus_dir.startswith(bld.env.PREFIX):
-		bld.new_task_gen(
+	if dbus_dir and dbus_dir.startswith(ctx.env.PREFIX):
+		ctx(
 			features = 'subst',
 			source = 'de.ikkoku.sushi.service.in',
 			target = 'de.ikkoku.sushi.service',
@@ -29,18 +26,18 @@ def build (bld):
 		)
 
 	for man in ('maki.1', 'sushi-remote.1'):
-		bld.new_task_gen(
+		ctx(
 			features = 'subst',
 			source = '%s.in' % (man),
 			target = man,
 			install_path = None,
-			dict = {'SUSHI_VERSION': bld.env.VERSION}
+			SUSHI_VERSION = ctx.env.VERSION
 		)
 
-	bld.add_group()
+	ctx.add_group()
 
 	for man in ('maki.1', 'sushi-remote.1'):
-		bld.new_task_gen(
+		ctx(
 			source = man,
 			target = '%s.gz' % (man),
 			rule = '${GZIP} -c ${SRC} > ${TGT}',

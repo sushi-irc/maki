@@ -1,36 +1,31 @@
 #!/usr/bin/env python
 
-def configure (conf):
-	conf.check_tool('gcc')
-	conf.check_tool('glib2')
-	conf.check_tool('gnu_dirs')
-
-	conf.check_cfg(
+def configure (ctx):
+	ctx.check_cfg(
 		package = 'glib-2.0',
-		args = '--cflags --libs',
+		args = ['--cflags', '--libs'],
 		mandatory = True
 	)
 
-	conf.check_cfg(
+	ctx.check_cfg(
 		package = 'gmodule-2.0',
-		args = '--cflags --libs',
+		args = ['--cflags', '--libs'],
 		mandatory = True
 	)
 
-	conf.check_cfg(
+	ctx.check_cfg(
 		package = 'libnm_glib',
-		args = '--cflags --libs',
+		args = ['--cflags', '--libs'],
 		atleast_version = '0.7.0'
 	)
 
-	conf.find_program('grep', var = 'GREP')
-	conf.find_program('sed', var = 'SED')
-	conf.find_program('sort', var = 'SORT')
+	ctx.find_program('grep', var = 'GREP')
+	ctx.find_program('sed', var = 'SED')
+	ctx.find_program('sort', var = 'SORT')
 
-def build (bld):
-	if bld.env.HAVE_LIBNM_GLIB:
-		bld.new_task_gen(
-			features = 'cc cshlib',
+def build (ctx):
+	if ctx.env.HAVE_LIBNM_GLIB:
+		ctx.shlib(
 			source = ['nm.c'],
 			target = 'nm',
 			uselib = ['GLIB-2.0', 'GMODULE-2.0', 'LIBNM_GLIB'],

@@ -1,20 +1,10 @@
 #!/usr/bin/env python
 
-def configure (conf):
-	conf.check_tool('intltool')
+def configure (ctx):
+	ctx.load('intltool')
 
-def build (bld):
-	bld.new_task_gen(
+def build (ctx):
+	ctx(
 		features = 'intltool_po',
 		appname = 'maki'
 	)
-
-# maki.pot: $(C) $(H)
-# 	$(QUIET_GEN) xgettext --from-code=UTF-8 --keyword=_ --keyword=N_ --output=$@.tmp $+; \
-# 		if $(DIFF) -u $@ $@.tmp | $(GREP) '^[+-]msg' > /dev/null 2>&1; \
-# 		then \
-# 			$(MV) $@.tmp $@; \
-# 		else \
-# 			$(RM) -f $@.tmp; \
-# 			$(TOUCH) $@; \
-# 		fi

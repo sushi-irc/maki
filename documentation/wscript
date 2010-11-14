@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-def configure (conf):
+def configure (ctx):
 	pass
 
-def build (bld):
-	bld.install_files('${DOCDIR}', bld.glob('*.txt'))
-	bld.install_files('${DOCDIR}/clients', bld.glob('clients/*.txt'))
-	bld.install_files('${DOCDIR}/irc', bld.glob('irc/*.txt'))
-	bld.install_files('${DOCDIR}/os', bld.glob('os/*.txt'))
+def build (ctx):
+	ctx.install_files('${DOCDIR}', ctx.path.ant_glob('*.txt'))
+	ctx.install_files('${DOCDIR}/clients', ctx.path.ant_glob('clients/*.txt'))
+	ctx.install_files('${DOCDIR}/irc', ctx.path.ant_glob('irc/*.txt'))
+	ctx.install_files('${DOCDIR}/os', ctx.path.ant_glob('os/*.txt'))
