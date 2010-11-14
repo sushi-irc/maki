@@ -1,5 +1,5 @@
-# French translation for maki
-# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# English (Australia) translation for maki
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the maki package.
 #
 msgid ""
@@ -7,9 +7,9 @@ msgstr ""
 "Project-Id-Version: maki\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-08-27 17:57+0200\n"
-"PO-Revision-Date: 2010-05-31 06:46+0000\n"
-"Last-Translator: Michael Kuhn <Unknown>\n"
-"Language-Team: French\n"
+"PO-Revision-Date: 2010-07-21 20:47+0000\n"
+"Last-Translator: Robert Readman <Unknown>\n"
+"Language-Team: English (Australia)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -18,71 +18,71 @@ msgstr ""
 
 #: ../source/in.c:403
 msgid "» You join."
-msgstr "» Vous joignez le canal."
+msgstr "» You join."
 
 #: ../source/in.c:407
 #, c-format
 msgid "» %s joins."
-msgstr "» %s joint le canal."
+msgstr "» %s joins."
 
 #: ../source/in.c:467
 #, c-format
 msgid "« You part (%s)."
-msgstr "« Vous quittez le canal (%s)."
+msgstr "« You part (%s)."
 
 #: ../source/in.c:471
 msgid "« You part."
-msgstr "Vous quittez le canal."
+msgstr "« You part."
 
 #: ../source/in.c:478
 #, c-format
 msgid "« %s parts (%s)."
-msgstr "« %s quitte le canal (%s)."
+msgstr "« %s parts (%s)."
 
 #: ../source/in.c:482
 #, c-format
 msgid "« %s parts."
-msgstr "« %s quitte le canal."
+msgstr "« %s parts."
 
 #: ../source/in.c:519
 #, c-format
 msgid "« %s quits (%s)."
-msgstr "« %s quitte IRC (%s)."
+msgstr "« %s quits (%s)."
 
 #: ../source/in.c:523
 #, c-format
 msgid "« %s quits."
-msgstr "« %s quitte IRC."
+msgstr "« %s quits."
 
 #: ../source/in.c:590
 #, c-format
 msgid "« %s kicks you (%s)."
-msgstr "« %s vous a kické (%s)."
+msgstr "« %s kicks you (%s)."
 
 #: ../source/in.c:594
 #, c-format
 msgid "« %s kicks you."
-msgstr "« %s vous a kické."
+msgstr "« %s kicks you."
 
 #: ../source/in.c:601
 #, c-format
 msgid "« %s kicks %s (%s)."
-msgstr "« %s a éjecté %s (%s)."
+msgstr "« %s kicks %s (%s)."
 
 #: ../source/in.c:605
 #, c-format
 msgid "« %s kicks %s."
-msgstr "« %s a éjecté %s."
+msgstr "« %s kicks %s."
 
 #: ../source/in.c:655
 #, c-format
 msgid "• You are now known as %s."
-msgstr "• Vous vous appellez maintenant %s."
+msgstr "• You are now known as %s."
 
 #: ../source/in.c:659
 #, c-format
 msgid "• %s is now known as %s."
-msgstr "• %s s'appelle maintenant %s."
+msgstr "• %s is now known as %s."
 
 #: ../source/in.c:791
 #, c-format
@@ -92,12 +92,12 @@ msgstr "• Mode: %s %s"
 #: ../source/in.c:799
 #, c-format
 msgid "• You set mode: %s %s"
-msgstr "• Vous avez activé les modes : %s %s"
+msgstr "• You set mode: %s %s"
 
 #: ../source/in.c:803
 #, c-format
 msgid "• %s sets mode: %s %s"
-msgstr "• %s a activé les modes: %s %s"
+msgstr "• %s sets mode: %s %s"
 
 #: ../source/in.c:815
 #, c-format
@@ -107,77 +107,77 @@ msgstr "• Mode: %s"
 #: ../source/in.c:823
 #, c-format
 msgid "• You set mode: %s"
-msgstr "• Vous avez activé les modes: %s"
+msgstr "• You set mode: %s"
 
 #: ../source/in.c:827
 #, c-format
 msgid "• %s sets mode: %s"
-msgstr "• %s a activé mode: %s"
+msgstr "• %s sets mode: %s"
 
 #: ../source/in.c:864
 #, c-format
 msgid "• You successfully invite %s."
-msgstr "• Vous avez invité %s."
+msgstr "• You successfully invite %s."
 
 #: ../source/in.c:870
 #, c-format
 msgid "• %s invites %s."
-msgstr "• %s a invité %s."
+msgstr "• %s invites %s."
 
 #: ../source/in.c:908
 #, c-format
 msgid "• Topic: %s"
-msgstr "• Sujet : %s"
+msgstr "• Topic: %s"
 
 #: ../source/in.c:916
 #, c-format
 msgid "• You change the topic: %s"
-msgstr "Vous avez changé le sujet en: %s"
+msgstr "• You change the topic: %s"
 
 #: ../source/in.c:920
 #, c-format
 msgid "• %s changes the topic: %s"
-msgstr "• %s a changé le sujet en: %s"
+msgstr "• %s changes the topic: %s"
 
 #: ../source/maki.c:92
 msgid "Run as daemon"
-msgstr "Démarrer comme démon"
+msgstr "Run as daemon"
 
 #: ../source/maki.c:93
 msgid "Start DBus server"
-msgstr "Demarrer le DBus server"
+msgstr "Start DBus server"
 
 #: ../source/maki.c:94
 msgid "Output debug messages"
-msgstr "Messages de sortie de debuggage."
+msgstr "Output debug messages"
 
 #: ../source/maki.c:138
 msgid "Could not switch to daemon mode."
-msgstr "Ne peut passe en mode démon."
+msgstr "Could not switch to daemon mode."
 
 #: ../source/maki.c:146
 msgid "Could not create maki instance."
-msgstr "Ne peut créer une instance de maki."
+msgstr "Could not create maki instance."
 
 #. Use g_warning() here to not overwrite the debug log of the already running maki.
 #: ../source/maki.c:157
 msgid "Could not connect to DBus. maki may already be running."
-msgstr "Ne peut se connecter à DBus. maki est peut-être déjà lancé."
+msgstr "Could not connect to DBus. maki may already be running."
 
 #: ../source/maki.c:179
 #, c-format
 msgid "“%s” is locked. maki may already be running."
-msgstr "“%s” est bloqué. Il se peut que maki soit déjà en cours d'exécution."
+msgstr "“%s” is locked. maki may already be running."
 
 #: ../source/misc.c:92
 msgid "Could not open debug log file."
-msgstr "Ne peut ouvrir le fichier journal de debuggage."
+msgstr "Could not open debug log file."
 
 #: ../source/out.c:199
 #, c-format
 msgid "« You quit (%s)."
-msgstr "« Vous quittez IRC (%s)"
+msgstr "« You quit (%s)."
 
 #: ../source/out.c:203
 msgid "« You quit."
-msgstr "« Vous quittez IRC"
+msgstr "« You quit."

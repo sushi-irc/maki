@@ -4,16 +4,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: maki 1.2\n"
+"Project-Id-Version: maki\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-13 19:44+0100\n"
-"PO-Revision-Date: 2010-01-23 11:50+0000\n"
+"POT-Creation-Date: 2010-08-27 17:57+0200\n"
+"PO-Revision-Date: 2010-05-31 06:00+0000\n"
 "Last-Translator: nanker <Unknown>\n"
 "Language-Team: Danish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-04-29 18:20+0000\n"
+"X-Launchpad-Export-Date: 2010-11-14 01:08+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../source/in.c:403
@@ -139,35 +139,35 @@ msgstr "• Du ændrer emnet: %s"
 msgid "• %s changes the topic: %s"
 msgstr "• %s ændre emnet: %s"
 
-#: ../source/maki.c:91
+#: ../source/maki.c:92
 msgid "Run as daemon"
 msgstr "Kør som dæmon"
 
-#: ../source/maki.c:92
+#: ../source/maki.c:93
 msgid "Start DBus server"
 msgstr "Start DBus server"
 
-#: ../source/maki.c:93
+#: ../source/maki.c:94
 msgid "Output debug messages"
 msgstr "Output fejlsøgningsmeddelelse"
 
-#: ../source/maki.c:137
+#: ../source/maki.c:138
 msgid "Could not switch to daemon mode."
 msgstr "Kunne ikke skifte til dæmon modus."
 
-#: ../source/maki.c:145
+#: ../source/maki.c:146
 msgid "Could not create maki instance."
 msgstr "Kunne ikke skabe maki instance."
 
 #. Use g_warning() here to not overwrite the debug log of the already running maki.
-#: ../source/maki.c:156
+#: ../source/maki.c:157
 msgid "Could not connect to DBus. maki may already be running."
 msgstr "Kunne ikke forbinde til DBus. maki kører måske allerede."
 
-#: ../source/maki.c:178
+#: ../source/maki.c:179
 #, c-format
 msgid "“%s” is locked. maki may already be running."
-msgstr ""
+msgstr "“%s” er låst. maki kører muligvis allerede."
 
 #: ../source/misc.c:92
 msgid "Could not open debug log file."

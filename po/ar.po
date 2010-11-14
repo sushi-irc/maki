@@ -4,16 +4,16 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: maki 1.2\n"
+"Project-Id-Version: maki\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-13 19:44+0100\n"
-"PO-Revision-Date: 2010-04-21 04:45+0000\n"
-"Last-Translator: Ahmed Mohammed <Unknown>\n"
+"POT-Creation-Date: 2010-08-27 17:57+0200\n"
+"PO-Revision-Date: 2010-05-31 06:37+0000\n"
+"Last-Translator: Michael Kuhn <Unknown>\n"
 "Language-Team: Arabic\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-04-29 18:20+0000\n"
+"X-Launchpad-Export-Date: 2010-11-14 01:08+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../source/in.c:403
@@ -139,32 +139,32 @@ msgstr "لقد قمت بتغيير الموضوع: %s."
 msgid "• %s changes the topic: %s"
 msgstr "لقد قام:%s بتغيير المقال:%s"
 
-#: ../source/maki.c:91
+#: ../source/maki.c:92
 msgid "Run as daemon"
 msgstr ""
 
-#: ../source/maki.c:92
+#: ../source/maki.c:93
 msgid "Start DBus server"
 msgstr ""
 
-#: ../source/maki.c:93
+#: ../source/maki.c:94
 msgid "Output debug messages"
 msgstr ""
 
-#: ../source/maki.c:137
+#: ../source/maki.c:138
 msgid "Could not switch to daemon mode."
 msgstr ""
 
-#: ../source/maki.c:145
+#: ../source/maki.c:146
 msgid "Could not create maki instance."
 msgstr ""
 
 #. Use g_warning() here to not overwrite the debug log of the already running maki.
-#: ../source/maki.c:156
+#: ../source/maki.c:157
 msgid "Could not connect to DBus. maki may already be running."
 msgstr "تعذر الاتصال ب DBus.maki قد يكون فاعلا الآن."
 
-#: ../source/maki.c:178
+#: ../source/maki.c:179
 #, c-format
 msgid "“%s” is locked. maki may already be running."
 msgstr ""
