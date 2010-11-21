@@ -44,6 +44,7 @@ gint maki_instance_config_get_integer (makiInstance*, const gchar*, const gchar*
 void maki_instance_config_set_integer (makiInstance*, const gchar*, const gchar*, gint);
 gchar* maki_instance_config_get_string (makiInstance*, const gchar*, const gchar*);
 void maki_instance_config_set_string (makiInstance*, const gchar*, const gchar*, const gchar*);
+gchar** maki_instance_config_get_keys (makiInstance*, const gchar*);
 gboolean maki_instance_config_exists (makiInstance*, const gchar*, const gchar*);
 GMainContext* maki_instance_main_context (makiInstance*);
 const gchar* maki_instance_directory (makiInstance*, const gchar*);
@@ -63,6 +64,7 @@ guint maki_instance_dcc_sends_count (makiInstance*);
 gchar* maki_instance_dcc_send_get (makiInstance*, guint64, const gchar*);
 gboolean maki_instance_dcc_send_set (makiInstance*, guint64, const gchar*, const gchar*);
 void maki_instance_dcc_sends_xxx (makiInstance*, GArray**, gchar***, gchar***, gchar***, GArray**, GArray**, GArray**, GArray**);
+void maki_instance_load_plugins (makiInstance*);
 makiNetwork* maki_instance_network (makiInstance*);
 void maki_instance_free (makiInstance*);
 

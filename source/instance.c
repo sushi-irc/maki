@@ -42,7 +42,7 @@ struct maki_instance
 
 	GHashTable* directories;
 
-	GModule* plugins[1];
+	GHashTable* plugins;
 
 	struct
 	{
@@ -194,6 +194,7 @@ makiInstance* maki_instance_new (void)
 	inst->key_file = g_key_file_new();
 	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_server_unref);
+	inst->plugins = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_plugin_unload);
 
 	g_hash_table_insert(inst->directories, g_strdup("config"), config_dir);
 	g_hash_table_insert(inst->directories, g_strdup("servers"), servers_dir);
@@ -203,9 +204,6 @@ makiInstance* maki_instance_new (void)
 	g_free(config_file);
 
 	maki_instance_config_set_defaults(inst);
-
-	/* FIXME load after instance */
-	inst->plugins[0] = maki_plugin_load("nm");
 
 	inst->dcc.id = 0;
 	inst->dcc.list = NULL;
@@ -264,6 +262,11 @@ void maki_instance_config_set_string (makiInstance* inst, const gchar* group, co
 	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
 	i_key_file_to_file(inst->key_file, path, NULL, NULL);
 	g_free(path);
+}
+
+gchar** maki_instance_config_get_keys (makiInstance* inst, const gchar* group)
+{
+	return g_key_file_get_keys(inst->key_file, group, NULL, NULL);
 }
 
 gboolean maki_instance_config_exists (makiInstance* inst, const gchar* group, const gchar* key)
@@ -536,6 +539,39 @@ void maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** ser
 	g_mutex_unlock(inst->dcc.mutex);
 }
 
+void maki_instance_load_plugins (makiInstance* inst)
+{
+	gchar** plugins;
+	guint plugins_len;
+	guint i;
+
+	plugins = maki_instance_config_get_keys(inst, "plugins");
+
+	if (plugins == NULL)
+	{
+		return;
+	}
+
+	plugins_len = g_strv_length(plugins);
+
+	for (i = 0; i < plugins_len; i++)
+	{
+		GModule* module;
+
+		if (!maki_instance_config_get_boolean(inst, "plugins", plugins[i]))
+		{
+			continue;
+		}
+
+		if ((module = maki_plugin_load(plugins[i])) != NULL)
+		{
+			g_hash_table_insert(inst->plugins, g_strdup(plugins[i]), module);
+		}
+	}
+
+	g_free(plugins);
+}
+
 makiNetwork* maki_instance_network (makiInstance* inst)
 {
 	return inst->network;
@@ -566,10 +602,7 @@ void maki_instance_free (makiInstance* inst)
 	g_slist_free(inst->dcc.list);
 	g_mutex_free(inst->dcc.mutex);
 
-	if (inst->plugins[0] != NULL)
-	{
-		maki_plugin_unload(inst->plugins[0]);
-	}
+	g_hash_table_destroy(inst->plugins);
 
 	maki_network_free(inst->network);
 

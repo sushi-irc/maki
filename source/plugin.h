@@ -34,6 +34,6 @@ typedef gboolean (*makiPluginInitFunc) (void);
 typedef void (*makiPluginDeinitFunc) (void);
 
 GModule* maki_plugin_load (const gchar*);
-void maki_plugin_unload (GModule*);
+void maki_plugin_unload (gpointer);
 
 #endif

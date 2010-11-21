@@ -54,8 +54,9 @@ GModule* maki_plugin_load (const gchar* name)
 	return module;
 }
 
-void maki_plugin_unload (GModule* module)
+void maki_plugin_unload (gpointer data)
 {
+	GModule* module = data;
 	makiPluginDeinitFunc deinit;
 
 	if (g_module_symbol(module, "deinit", (gpointer)&deinit))
