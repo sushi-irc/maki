@@ -69,8 +69,10 @@ static void maki_signal (int signo)
 	g_get_current_time(&timeval);
 	maki_dbus_emit_shutdown(timeval.tv_sec);
 
-	/* FIXME can be executed twice */
-	g_main_loop_quit(main_loop);
+	if (g_main_loop_is_running(main_loop))
+	{
+		g_main_loop_quit(main_loop);
+	}
 }
 
 int main (int argc, char* argv[])
@@ -216,7 +218,6 @@ int main (int argc, char* argv[])
 
 	main_loop = g_main_loop_new(NULL, FALSE);
 	g_main_loop_run(main_loop);
-	g_main_loop_unref(main_loop);
 
 	if (dbus != NULL)
 	{
@@ -244,6 +245,8 @@ int main (int argc, char* argv[])
 		i_lock_unlock(lock);
 		i_lock_free(lock);
 	}
+
+	g_main_loop_unref(main_loop);
 
 	return 0;
 
