@@ -455,6 +455,16 @@ guint i_ascii_str_case_hash (gconstpointer key)
 
 gchar* i_get_current_time_string (const gchar* format)
 {
+#if GLIB_CHECK_VERSION(2,26,0)
+	GDateTime* dt;
+	gchar* t;
+
+	dt = g_date_time_new_now_local();
+	t = g_date_time_format(dt, format);
+	g_date_time_unref(dt);
+
+	return t;
+#else
 	gchar buf[1024];
 	time_t t;
 	struct tm tm;
@@ -479,6 +489,7 @@ gchar* i_get_current_time_string (const gchar* format)
 	{
 		return NULL;
 	}
+#endif
 }
 
 gchar** i_strv_new (IStrvNewFunc func, ...)
