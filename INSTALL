@@ -34,7 +34,6 @@ On Debian-based systems these are available in the following packages:
 * libnice0
 * libnm-glib0
 * libgupnp-igd-1.0
-* libgnutls26
 
                           OPTIONAL BUILD DEPENDENCIES
 
@@ -43,6 +42,5 @@ On Debian-based systems these are available in the following packages:
 * libnice-dev
 * libnm-glib-dev
 * libgupnp-igd-1.0-dev
-* libgnutls-dev
 
 # vi:textwidth=80:expandtab

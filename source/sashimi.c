@@ -26,7 +26,6 @@
  */
 
 #define G_DISABLE_DEPRECATED
-#define _XOPEN_SOURCE
 
 #include <gio/gio.h>
 
