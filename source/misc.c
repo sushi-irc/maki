@@ -37,10 +37,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef HAVE_NICE
-#include <interfaces.h>
-#endif
-
 gboolean maki_config_is_empty (const gchar* value)
 {
 	gboolean ret = TRUE;

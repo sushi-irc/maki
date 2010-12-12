@@ -36,10 +36,6 @@
 #include <stun/usages/bind.h>
 #endif
 
-#ifdef HAVE_GUPNP_IGD_1_0
-#include <libgupnp-igd/gupnp-simple-igd.h>
-#endif
-
 struct maki_network
 {
 	makiInstance* instance;
@@ -58,10 +54,6 @@ struct maki_network
 	remote;
 
 	GMutex* lock;
-
-#ifdef HAVE_GUPNP_IGD_1_0
-	GUPnPSimpleIgd* upnp_igd;
-#endif
 };
 
 static gboolean maki_network_update_local (gpointer data)
@@ -177,19 +169,11 @@ makiNetwork* maki_network_new (makiInstance* inst)
 
 	net->lock = g_mutex_new();
 
-#ifdef HAVE_GUPNP_IGD_1_0
-	net->upnp_igd = gupnp_simple_igd_new(NULL);
-#endif
-
 	return net;
 }
 
 void maki_network_free (makiNetwork* net)
 {
-#ifdef HAVE_GUPNP_IGD_1_0
-	g_object_unref(net->upnp_igd);
-#endif
-
 	g_mutex_free(net->lock);
 
 	g_free(net->local.ip);
@@ -233,42 +217,28 @@ error:
 
 gboolean maki_network_upnp_add_port (makiNetwork* net, guint port, const gchar* description)
 {
-	gboolean ret = FALSE;
+	gboolean (*add_port) (const gchar*, guint, const gchar*);
 
-	g_return_val_if_fail(net != NULL, FALSE);
-	g_return_val_if_fail(port != 0, FALSE);
-	g_return_val_if_fail(description != NULL, FALSE);
+	add_port = maki_instance_plugin_method(net->instance, "upnp", "add_port");
 
-#ifdef HAVE_GUPNP_IGD_1_0
-	g_mutex_lock(net->lock);
-
-	if (net->local.ip != NULL)
+	if (add_port != NULL)
 	{
-		gupnp_simple_igd_add_port(net->upnp_igd, "TCP", port, net->local.ip, port, 600, description);
+		return (*add_port)(net->local.ip, port, description);
 	}
 
-	g_mutex_unlock(net->lock);
-
-	ret = TRUE;
-#endif
-
-	return ret;
+	return FALSE;
 }
 
 gboolean maki_network_upnp_remove_port (makiNetwork* net, guint port)
 {
-	gboolean ret = FALSE;
+	gboolean (*remove_port) (guint);
 
-	g_return_val_if_fail(net != NULL, FALSE);
-	g_return_val_if_fail(port != 0, FALSE);
+	remove_port = maki_instance_plugin_method(net->instance, "upnp", "remove_port");
 
-#ifdef HAVE_GUPNP_IGD_1_0
-	g_mutex_lock(net->lock);
-	gupnp_simple_igd_remove_port(net->upnp_igd, "TCP", port);
-	g_mutex_unlock(net->lock);
+	if (remove_port != NULL)
+	{
+		return (*remove_port)(port);
+	}
 
-	ret = TRUE;
-#endif
-
-	return ret;
+	return FALSE;
 }

@@ -4,19 +4,27 @@ def configure (ctx):
 	ctx.check_cfg(
 		package = 'glib-2.0',
 		args = ['--cflags', '--libs'],
-		mandatory = True
+		uselib_store = 'GLIB'
 	)
 
 	ctx.check_cfg(
 		package = 'gmodule-2.0',
 		args = ['--cflags', '--libs'],
-		mandatory = True
+		uselib_store = 'GMODULE'
 	)
 
 	ctx.check_cfg(
 		package = 'libnm_glib',
 		args = ['--cflags', '--libs'],
-		atleast_version = '0.7.0'
+		atleast_version = '0.7.0',
+		mandatory = False
+	)
+
+	ctx.check_cfg(
+		package = 'gupnp-igd-1.0',
+		args = ['--cflags', '--libs'],
+		uselib_store = 'GUPNP_IGD',
+		mandatory = False
 	)
 
 	ctx.find_program('grep', var = 'GREP')
@@ -28,7 +36,16 @@ def build (ctx):
 		ctx.shlib(
 			source = ['nm.c'],
 			target = 'nm',
-			use = ['GLIB-2.0', 'GMODULE-2.0', 'LIBNM_GLIB'],
+			use = ['GLIB', 'GMODULE', 'LIBNM_GLIB'],
+			includes = ['.', '..'],
+			install_path = '${LIBDIR}/sushi/maki/plugins'
+		)
+
+	if ctx.env.HAVE_GUPNP_IGD:
+		ctx.shlib(
+			source = ['upnp.c'],
+			target = 'upnp',
+			use = ['GLIB', 'GMODULE', 'GUPNP_IGD'],
 			includes = ['.', '..'],
 			install_path = '${LIBDIR}/sushi/maki/plugins'
 		)
