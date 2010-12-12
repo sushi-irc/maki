@@ -569,6 +569,7 @@ void maki_server_connect_callback (gpointer data)
 	maki_dbus_emit_nick(timeval.tv_sec, serv->name, "", maki_user_nick(serv->user));
 
 	g_free(initial_nick);
+	g_free(user);
 	g_free(name);
 
 	if (serv->sources.away != 0)

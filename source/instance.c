@@ -569,7 +569,7 @@ void maki_instance_load_plugins (makiInstance* inst)
 		}
 	}
 
-	g_free(plugins);
+	g_strfreev(plugins);
 }
 
 makiNetwork* maki_instance_network (makiInstance* inst)
