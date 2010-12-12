@@ -18,7 +18,13 @@ def configure (ctx):
 	ctx.check_cfg(
 		package = 'glib-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.16'
+		atleast_version = '2.20'
+	)
+
+	ctx.check_cfg(
+		package = 'gio-2.0',
+		args = ['--cflags', '--libs'],
+		atleast_version = '2.22'
 	)
 
 	ctx.check_cfg(
@@ -48,20 +54,6 @@ def configure (ctx):
 		mandatory = False
 	)
 
-	ctx.check_cfg(
-		package = 'gnutls',
-		args = ['--cflags', '--libs'],
-		mandatory = False
-	)
-
-	ctx.check_cfg(
-		path = 'libgcrypt-config',
-		package = '',
-		args = ['--cflags', '--libs'],
-		uselib_store = 'GCRYPT',
-		mandatory = False
-	)
-
 	ctx.find_program('grep', var = 'GREP')
 	ctx.find_program('sed', var = 'SED')
 	ctx.find_program('sort', var = 'SORT')
@@ -76,7 +68,7 @@ def configure (ctx):
 	ctx.recurse('plugins')
 
 def build (ctx):
-	components = ('ilib', 'sashimi', 'channel', 'channel_user', 'dcc_send', 'dbus', 'dbus_server', 'in', 'instance', 'log', 'maki', 'misc', 'network', 'out', 'plugin', 'server', 'ssl', 'user')
+	components = ('ilib', 'sashimi', 'channel', 'channel_user', 'dcc_send', 'dbus', 'dbus_server', 'in', 'instance', 'log', 'maki', 'misc', 'network', 'out', 'plugin', 'server', 'user')
 
 	ctx(
 		source = '../data/dbus.xml',
@@ -103,7 +95,7 @@ def build (ctx):
 	o = ctx.program(
 		source = ['%s.c' % (c) for c in components],
 		target = 'maki',
-		use = ['DBUS-1', 'DBUS-GLIB-1', 'GLIB-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE', 'GUPNP-IGD-1.0', 'GNUTLS', 'GCRYPT'],
+		use = ['DBUS-1', 'DBUS-GLIB-1', 'GLIB-2.0', 'GIO-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE', 'GUPNP-IGD-1.0'],
 		includes = ['.'],
 		defines = ['MAKI_PLUGIN_DIRECTORY="%s"' % (Utils.subst_vars('${LIBDIR}/sushi/maki/plugins', ctx.env)),
 			'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATAROOTDIR}/sushi/maki', ctx.env))],

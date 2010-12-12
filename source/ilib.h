@@ -37,7 +37,6 @@ typedef gchar* (*IStrvNewFunc) (const gchar*);
 
 gboolean i_daemon (gboolean, gboolean);
 
-guint i_io_add_watch (GIOChannel*, GIOCondition, GIOFunc, gpointer, GMainContext*);
 guint i_idle_add (GSourceFunc, gpointer, GMainContext*);
 guint i_timeout_add_seconds (guint, GSourceFunc, gpointer, GMainContext*);
 gboolean i_source_remove (guint, GMainContext*);
@@ -46,7 +45,6 @@ GIOChannel* i_io_channel_unix_new_address (const gchar*, guint, gboolean);
 GIOChannel* i_io_channel_unix_new_listen (const gchar*, guint, gboolean);
 GIOStatus i_io_channel_write_chars (GIOChannel*, const gchar*, gssize, gsize*, GError**);
 GIOStatus i_io_channel_read_chars (GIOChannel*, gchar*, gsize, gsize*, GError**);
-GIOStatus i_io_channel_flush (GIOChannel*, GError**);
 
 gboolean i_key_file_to_file (GKeyFile*, const gchar*, gsize*, GError**);
 

@@ -102,22 +102,6 @@ gboolean i_daemon (gboolean nochdir, gboolean noclose)
 	return TRUE;
 }
 
-guint i_io_add_watch (GIOChannel* channel, GIOCondition condition, GIOFunc func, gpointer data, GMainContext* context)
-{
-	GSource* source;
-	guint id;
-
-	g_return_val_if_fail(channel != NULL, 0);
-	g_return_val_if_fail(func != NULL, 0);
-
-	source = g_io_create_watch(channel, condition);
-	g_source_set_callback(source, (GSourceFunc)func, data, NULL);
-	id = g_source_attach(source, context);
-	g_source_unref(source);
-
-	return id;
-}
-
 guint i_idle_add (GSourceFunc function, gpointer data, GMainContext* context)
 {
 	GSource* source;
@@ -380,25 +364,6 @@ GIOStatus i_io_channel_read_chars (GIOChannel* channel, gchar* buf, gsize count,
 	if (bytes_read != NULL)
 	{
 		*bytes_read = nread;
-	}
-
-	return ret;
-}
-
-GIOStatus i_io_channel_flush (GIOChannel* channel, GError** error)
-{
-	GIOStatus ret;
-
-	g_return_val_if_fail(channel != NULL, G_IO_STATUS_ERROR);
-
-	while (TRUE)
-	{
-		ret = g_io_channel_flush(channel, error);
-
-		if (ret != G_IO_STATUS_AGAIN)
-		{
-			break;
-		}
 	}
 
 	return ret;

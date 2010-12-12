@@ -28,29 +28,25 @@
 #define G_DISABLE_DEPRECATED
 #define _XOPEN_SOURCE
 
+#include <gio/gio.h>
+
 #include "config.h"
 
 #include "sashimi.h"
 
 #include "ilib.h"
 
-#include "ssl.h"
-
-#include <arpa/inet.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <poll.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
 
 enum
 {
-	s_write,
-	s_read,
+	c_connect,
+	c_read,
+	c_last
+};
+
+enum
+{
 	s_ping,
 	s_queue,
 	s_last
@@ -58,8 +54,14 @@ enum
 
 struct sashimi_connection
 {
-	GIOChannel* channel;
-	gint fd;
+	GSocketConnection* connection;
+
+	struct
+	{
+		GDataInputStream* input;
+		GDataOutputStream* output;
+	}
+	stream;
 
 	glong last_activity;
 	guint timeout;
@@ -69,6 +71,7 @@ struct sashimi_connection
 	GMutex* queue_mutex;
 	GQueue* queue;
 
+	GCancellable* cancellables[c_last];
 	guint sources[s_last];
 
 	struct
@@ -91,36 +94,26 @@ struct sashimi_connection
 		gpointer data;
 	}
 	reconnect;
-
-#ifdef HAVE_GNUTLS
-	SoupSSLCredentials* ssl_credentials;
-#endif
 };
 
-static void sashimi_remove_sources (sashimiConnection* conn, gint id)
+static void sashimi_cancel (sashimiConnection* conn)
 {
 	gint i;
 
+	for (i = 0; i < c_last; i++)
+	{
+		g_cancellable_cancel(conn->cancellables[i]);
+		g_cancellable_reset(conn->cancellables[i]);
+	}
+
 	for (i = 0; i < s_last; i++)
 	{
-		if (i != id && conn->sources[i] != 0)
+		if (conn->sources[i] != 0)
 		{
 			i_source_remove(conn->sources[i], conn->main_context);
 			conn->sources[i] = 0;
 		}
 	}
-
-	if (id >= 0)
-	{
-		conn->sources[id] = 0;
-	}
-}
-
-static guint sashimi_io_add_watch (sashimiConnection* conn, GIOCondition condition, GIOFunc func)
-{
-	g_return_val_if_fail(conn != NULL, 0);
-
-	return i_io_add_watch(conn->channel, condition, func, conn, conn->main_context);
 }
 
 static guint sashimi_timeout_add_seconds (sashimiConnection* conn, guint32 interval, GSourceFunc func)
@@ -130,21 +123,16 @@ static guint sashimi_timeout_add_seconds (sashimiConnection* conn, guint32 inter
 	return i_timeout_add_seconds(interval, func, conn, conn->main_context);
 }
 
-static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpointer data)
+static void sashimi_read_cb (GObject* object, GAsyncResult* result, gpointer data)
 {
-	GIOStatus status;
-	GTimeVal timeval;
-	gchar* buffer;
 	sashimiConnection* conn = data;
-
-	if (condition & (G_IO_HUP | G_IO_ERR))
-	{
-		goto reconnect;
-	}
+	GTimeVal timeval;
+	GError* error = NULL;
+	gchar* buffer;
 
 	g_get_current_time(&timeval);
 
-	while ((status = g_io_channel_read_line(conn->channel, &buffer, NULL, NULL, NULL)) == G_IO_STATUS_NORMAL)
+	if ((buffer = g_data_input_stream_read_line_finish(conn->stream.input, result, NULL, &error)) != NULL)
 	{
 		conn->last_activity = timeval.tv_sec;
 
@@ -159,12 +147,8 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 			tmp = g_strconcat("PONG ", buffer + 5, NULL);
 			sashimi_send(conn, tmp);
 			g_free(tmp);
-			g_free(buffer);
-
-			continue;
 		}
-
-		if (conn->read.callback != NULL)
+		else if (conn->read.callback != NULL)
 		{
 			conn->read.callback(buffer, conn->read.data);
 		}
@@ -172,22 +156,23 @@ static gboolean sashimi_read (GIOChannel* source, GIOCondition condition, gpoint
 		g_free(buffer);
 	}
 
-	if (status == G_IO_STATUS_EOF)
+	if (error != NULL)
 	{
+		g_error_free(error);
 		goto reconnect;
 	}
 
-	return TRUE;
+	g_data_input_stream_read_line_async(conn->stream.input, G_PRIORITY_DEFAULT, conn->cancellables[c_read], sashimi_read_cb, conn);
+
+	return;
 
 reconnect:
-	sashimi_remove_sources(conn, s_read);
+	sashimi_cancel(conn);
 
 	if (conn->reconnect.callback)
 	{
 		conn->reconnect.callback(conn->reconnect.data);
 	}
-
-	return FALSE;
 }
 
 static gboolean sashimi_ping (gpointer data)
@@ -236,49 +221,42 @@ static gboolean sashimi_queue_runner (gpointer data)
 	return TRUE;
 }
 
-static gboolean sashimi_write (GIOChannel* source, GIOCondition condition, gpointer data)
+static void sashimi_connect_cb (GObject* object, GAsyncResult* result, gpointer data)
 {
-	GTimeVal timeval;
-	int val;
-	socklen_t len = sizeof(val);
+	GSocketClient* client = (GSocketClient*)object;
 	sashimiConnection* conn = data;
+	GTimeVal timeval;
 
-	if (condition & (G_IO_HUP | G_IO_ERR))
+	if ((conn->connection = g_socket_client_connect_to_host_finish(client, result, NULL)) == NULL)
 	{
 		goto reconnect;
 	}
 
-	if (getsockopt(conn->fd, SOL_SOCKET, SO_ERROR, &val, &len) == -1
-	    || val != 0)
-	{
-		goto reconnect;
-	}
+	conn->stream.input = g_data_input_stream_new(g_io_stream_get_input_stream((GIOStream*)conn->connection));
+	conn->stream.output = g_data_output_stream_new(g_io_stream_get_output_stream((GIOStream*)conn->connection));
 
 	g_get_current_time(&timeval);
 	conn->last_activity = timeval.tv_sec;
 
-	conn->sources[s_read] = sashimi_io_add_watch(conn, G_IO_IN | G_IO_HUP | G_IO_ERR, sashimi_read);
+	g_data_input_stream_read_line_async(conn->stream.input, G_PRIORITY_DEFAULT, conn->cancellables[c_read], sashimi_read_cb, conn);
+
 	conn->sources[s_ping] = sashimi_timeout_add_seconds(conn, 1, sashimi_ping);
 	conn->sources[s_queue] = sashimi_timeout_add_seconds(conn, 1, sashimi_queue_runner);
-
-	conn->sources[s_write] = 0;
 
 	if (conn->connect.callback)
 	{
 		conn->connect.callback(conn->connect.data);
 	}
 
-	return FALSE;
+	return;
 
 reconnect:
-	sashimi_remove_sources(conn, s_write);
+	sashimi_cancel(conn);
 
 	if (conn->reconnect.callback)
 	{
 		conn->reconnect.callback(conn->reconnect.data);
 	}
-
-	return FALSE;
 }
 
 sashimiConnection* sashimi_new (GMainContext* main_context)
@@ -298,10 +276,17 @@ sashimiConnection* sashimi_new (GMainContext* main_context)
 	conn->queue_mutex = g_mutex_new();
 	conn->queue = g_queue_new();
 
-	conn->channel = NULL;
-	conn->fd = -1;
+	conn->connection = NULL;
+	conn->stream.input = NULL;
+	conn->stream.output = NULL;
+
 	conn->last_activity = 0;
 	conn->timeout = 0;
+
+	for (i = 0; i < c_last; i++)
+	{
+		conn->cancellables[i] = g_cancellable_new();
+	}
 
 	for (i = 0; i < s_last; ++i)
 	{
@@ -316,10 +301,6 @@ sashimiConnection* sashimi_new (GMainContext* main_context)
 
 	conn->reconnect.callback = NULL;
 	conn->reconnect.data = NULL;
-
-#ifdef HAVE_GNUTLS
-	conn->ssl_credentials = soup_ssl_get_client_credentials(NULL);
-#endif
 
 	return conn;
 }
@@ -357,44 +338,29 @@ void sashimi_timeout (sashimiConnection* conn, guint timeout)
 
 gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint port, gboolean ssl)
 {
+	GSocketClient* client;
+
 	g_return_val_if_fail(conn != NULL, FALSE);
 	g_return_val_if_fail(address != NULL, FALSE);
 	g_return_val_if_fail(port != 0, FALSE);
 
 	sashimi_disconnect(conn);
 
-	if ((conn->channel = i_io_channel_unix_new_address(address, port, TRUE)) == NULL)
-	{
-		return FALSE;
-	}
-
-	conn->fd = g_io_channel_unix_get_fd(conn->channel);
+	client = g_socket_client_new();
 
 	if (ssl)
 	{
-#ifdef HAVE_GNUTLS
-		GIOChannel* channel;
-
-		if ((channel = soup_ssl_wrap_iochannel(conn->channel, TRUE, address, conn->ssl_credentials)) == NULL)
-		{
-			sashimi_disconnect(conn);
-
-			return FALSE;
-		}
-
-		g_io_channel_unref(conn->channel);
-		conn->channel = channel;
+#if GLIB_CHECK_VERSION(2,28,0)
+		g_socket_client_set_tls(client, TRUE);
 #else
-		sashimi_disconnect(conn);
+		g_object_unref(client);
 
 		return FALSE;
 #endif
 	}
 
-	g_io_channel_set_close_on_unref(conn->channel, TRUE);
-	g_io_channel_set_encoding(conn->channel, NULL, NULL);
-
-	conn->sources[s_write] = sashimi_io_add_watch(conn, G_IO_OUT | G_IO_HUP | G_IO_ERR, sashimi_write);
+	g_socket_client_connect_to_host_async(client, address, port, conn->cancellables[c_connect], sashimi_connect_cb, conn);
+	g_object_unref(client);
 
 	return TRUE;
 }
@@ -417,15 +383,25 @@ gboolean sashimi_disconnect (sashimiConnection* conn)
 
 	g_mutex_unlock(conn->queue_mutex);
 
-	sashimi_remove_sources(conn, -1);
+	sashimi_cancel(conn);
 
-	if (conn->channel != NULL)
+	if (conn->connection != NULL)
 	{
-		g_io_channel_unref(conn->channel);
-		conn->channel = NULL;
+		g_object_unref(conn->connection);
+		conn->connection = NULL;
 	}
 
-	conn->fd = -1;
+	if (conn->stream.input != NULL)
+	{
+		g_object_unref(conn->stream.input);
+		conn->stream.input = NULL;
+	}
+
+	if (conn->stream.output != NULL)
+	{
+		g_object_unref(conn->stream.output);
+		conn->stream.output = NULL;
+	}
 
 	return TRUE;
 }
@@ -435,10 +411,6 @@ void sashimi_free (sashimiConnection* conn)
 	g_return_if_fail(conn != NULL);
 
 	sashimi_disconnect(conn);
-
-#ifdef HAVE_GNUTLS
-	soup_ssl_free_client_credentials(conn->ssl_credentials);
-#endif
 
 	/* Clean up the queue. */
 	while (!g_queue_is_empty(conn->queue))
@@ -459,34 +431,36 @@ void sashimi_free (sashimiConnection* conn)
 
 gboolean sashimi_send (sashimiConnection* conn, const gchar* message)
 {
-	GIOStatus status;
-	gint ret = TRUE;
+	GError* error = NULL;
 	gchar* tmp;
 
 	g_return_val_if_fail(conn != NULL, FALSE);
 	g_return_val_if_fail(message != NULL, FALSE);
 
-	if (conn->channel == NULL)
+	if (conn->connection == NULL)
 	{
 		return FALSE;
 	}
 
 	tmp = g_strconcat(message, "\r\n", NULL);
 
-	if ((status = i_io_channel_write_chars(conn->channel, tmp, -1, NULL, NULL)) == G_IO_STATUS_NORMAL)
+	if (g_data_output_stream_put_string(conn->stream.output, tmp, NULL, &error))
 	{
-		i_io_channel_flush(conn->channel, NULL);
+		g_output_stream_flush((GOutputStream*)conn->stream.output, NULL, NULL);
 		g_printerr("OUT: %s", tmp);
-	}
-	else
-	{
-		g_printerr("WRITE_STATUS %d\n", status);
-		ret = FALSE;
 	}
 
 	g_free(tmp);
 
-	return ret;
+	if (error != NULL)
+	{
+		g_printerr("WRITE_ERROR %s\n", error->message);
+		g_error_free(error);
+
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 gboolean sashimi_queue (sashimiConnection* conn, const gchar* message)
