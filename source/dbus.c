@@ -35,6 +35,8 @@
 
 #include "ilib.h"
 
+#include <gio/gio.h>
+
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus.h>
 
@@ -1025,7 +1027,8 @@ gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target
 		gchar* filename;
 		gchar* path;
 		gchar* logs_dir;
-		GIOChannel* io_channel;
+		GFile* log_file;
+		GFileInputStream* file_input;
 
 		file_format = maki_instance_config_get_string(inst, "logging", "format");
 		file_tmp = i_strreplace(file_format, "$n", target, 0);
@@ -1042,24 +1045,28 @@ gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target
 		g_free(filename);
 		g_free(logs_dir);
 
-		if ((io_channel = g_io_channel_new_file(path, "r", NULL)) != NULL)
+		log_file = g_file_new_for_path(path);
+
+		if ((file_input = g_file_read(log_file, NULL, NULL)) != NULL)
 		{
+			GDataInputStream* data_input;
 			guint length = 0;
 			gchar* line;
 			gchar** tmp;
 
-			g_io_channel_set_close_on_unref(io_channel, TRUE);
-			g_io_channel_set_encoding(io_channel, NULL, NULL);
-			g_io_channel_seek_position(io_channel, -10 * 1024, G_SEEK_END, NULL);
+			g_seekable_seek(G_SEEKABLE(file_input), -10 * 1024, G_SEEK_END, NULL, NULL);
+
+			data_input = g_data_input_stream_new(G_INPUT_STREAM(file_input));
+			g_object_unref(file_input);
 
 			/* Discard the first line. */
-			g_io_channel_read_line(io_channel, &line, NULL, NULL, NULL);
+			line = g_data_input_stream_read_line(data_input, NULL, NULL, NULL);
 			g_free(line);
 
 			tmp = g_new(gchar*, length + 1);
 			tmp[length] = NULL;
 
-			while (g_io_channel_read_line(io_channel, &line, NULL, NULL, NULL) == G_IO_STATUS_NORMAL)
+			while ((line = g_data_input_stream_read_line(data_input, NULL, NULL, NULL)) != NULL)
 			{
 				g_strchomp(line);
 
@@ -1102,8 +1109,10 @@ gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target
 
 			*log = tmp;
 
-			g_io_channel_unref(io_channel);
+			g_object_unref(data_input);
 		}
+
+		g_object_unref(log_file);
 
 		g_free(path);
 	}

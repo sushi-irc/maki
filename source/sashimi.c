@@ -222,7 +222,7 @@ static gboolean sashimi_queue_runner (gpointer data)
 
 static void sashimi_connect_cb (GObject* object, GAsyncResult* result, gpointer data)
 {
-	GSocketClient* client = (GSocketClient*)object;
+	GSocketClient* client = G_SOCKET_CLIENT(object);
 	sashimiConnection* conn = data;
 	GTimeVal timeval;
 
@@ -231,8 +231,8 @@ static void sashimi_connect_cb (GObject* object, GAsyncResult* result, gpointer 
 		goto reconnect;
 	}
 
-	conn->stream.input = g_data_input_stream_new(g_io_stream_get_input_stream((GIOStream*)conn->connection));
-	conn->stream.output = g_data_output_stream_new(g_io_stream_get_output_stream((GIOStream*)conn->connection));
+	conn->stream.input = g_data_input_stream_new(g_io_stream_get_input_stream(G_IO_STREAM(conn->connection)));
+	conn->stream.output = g_data_output_stream_new(g_io_stream_get_output_stream(G_IO_STREAM(conn->connection)));
 
 	g_get_current_time(&timeval);
 	conn->last_activity = timeval.tv_sec;
@@ -445,7 +445,7 @@ gboolean sashimi_send (sashimiConnection* conn, const gchar* message)
 
 	if (g_data_output_stream_put_string(conn->stream.output, tmp, NULL, &error))
 	{
-		g_output_stream_flush((GOutputStream*)conn->stream.output, NULL, NULL);
+		g_output_stream_flush(G_OUTPUT_STREAM(conn->stream.output), NULL, NULL);
 		g_printerr("OUT: %s", tmp);
 	}
 
