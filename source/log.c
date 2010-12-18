@@ -43,9 +43,9 @@ struct maki_log
 makiLog* maki_log_new (makiInstance* inst, const gchar* server, const gchar* name)
 {
 	makiLog* log = NULL;
+	GFile* dir;
 	GFile* file;
 	GFileOutputStream* file_output;
-	gchar* dirname;
 	gchar* filename;
 	gchar* path;
 	gchar* logs_dir;
@@ -53,15 +53,16 @@ makiLog* maki_log_new (makiInstance* inst, const gchar* server, const gchar* nam
 	logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
 	filename = g_strconcat(name, ".txt", NULL);
 	path = g_build_filename(logs_dir, server, filename, NULL);
-	dirname = g_path_get_dirname(path);
 
-	g_mkdir_with_parents(dirname, 0777);
 	file = g_file_new_for_path(path);
+
+	dir = g_file_get_parent(file);
+	g_file_make_directory_with_parents(dir, NULL, NULL);
+	g_object_unref(dir);
 
 	g_free(logs_dir);
 	g_free(filename);
 	g_free(path);
-	g_free(dirname);
 
 	if ((file_output = g_file_append_to(file, G_FILE_CREATE_PRIVATE, NULL, NULL)) != NULL)
 	{

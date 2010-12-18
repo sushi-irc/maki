@@ -1787,7 +1787,7 @@ maki_dbus_server_new (void)
 	if (!g_file_get_contents(path, &(dserv->introspection), NULL, NULL))
 	{
 		dserv->introspection = NULL;
-		maki_debug("Introspection disabled");
+		maki_debug("Introspection disabled\n");
 	}
 
 	g_free(path);

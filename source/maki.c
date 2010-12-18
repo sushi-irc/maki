@@ -222,6 +222,7 @@ int main (int argc, char* argv[])
 	if (dbus != NULL)
 	{
 		g_object_unref(dbus);
+		dbus = NULL;
 	}
 
 	if (bus_address_file != NULL)
@@ -232,6 +233,7 @@ int main (int argc, char* argv[])
 	if (dbus_server != NULL)
 	{
 		maki_dbus_server_free(dbus_server);
+		dbus_server = NULL;
 	}
 
 	if (inst != NULL)
