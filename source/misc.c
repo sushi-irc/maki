@@ -33,9 +33,7 @@
 
 #include "ilib.h"
 
-#include <fcntl.h>
-#include <string.h>
-#include <unistd.h>
+#include <gio/gio.h>
 
 gboolean maki_config_is_empty (const gchar* value)
 {
@@ -64,7 +62,7 @@ gboolean maki_config_is_empty_list (gchar** list)
 void maki_debug (const gchar* format, ...)
 {
 	/* FIXME leak */
-	static GIOChannel* channel = NULL;
+	static GDataOutputStream* stream = NULL;
 	gchar* message;
 	va_list args;
 
@@ -73,22 +71,35 @@ void maki_debug (const gchar* format, ...)
 		return;
 	}
 
-	if (G_UNLIKELY(channel == NULL))
+	if (G_UNLIKELY(stream == NULL))
 	{
-		gchar* cache_dir;
+		GFile* dir;
+		GFile* file;
+		GFileOutputStream* file_output;
 		gchar* path;
 
-		cache_dir = g_build_filename(g_get_user_cache_dir(), "sushi", NULL);
-		path = g_build_filename(cache_dir, "maki.txt", NULL);
+		path = g_build_filename(g_get_user_cache_dir(), "sushi", "maki.txt", NULL);
 
-		g_mkdir_with_parents(cache_dir, 0777);
+		file = g_file_new_for_path(path);
 
-		if ((channel = g_io_channel_new_file(path, "w", NULL)) == NULL)
+		dir = g_file_get_parent(file);
+		g_file_make_directory_with_parents(dir, NULL, NULL);
+		g_object_unref(dir);
+
+		g_file_delete(file, NULL, NULL);
+
+		if ((file_output = g_file_create(file, G_FILE_CREATE_PRIVATE, NULL, NULL)) != NULL)
+		{
+			stream = g_data_output_stream_new(G_OUTPUT_STREAM(file_output));
+			g_object_unref(file_output);
+		}
+		else
 		{
 			g_printerr("%s\n", _("Could not open debug log file."));
 		}
 
-		g_free(cache_dir);
+		g_object_unref(file);
+
 		g_free(path);
 	}
 
@@ -98,10 +109,10 @@ void maki_debug (const gchar* format, ...)
 
 	g_printerr("%s", message);
 
-	if (G_LIKELY(channel != NULL))
+	if (G_LIKELY(stream != NULL))
 	{
-		i_io_channel_write_chars(channel, message, -1, NULL, NULL);
-		g_io_channel_flush(channel, NULL);
+		g_data_output_stream_put_string(stream, message, NULL, NULL);
+		g_output_stream_flush(G_OUTPUT_STREAM(stream), NULL, NULL);
 	}
 
 	g_free(message);
