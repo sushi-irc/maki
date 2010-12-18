@@ -31,8 +31,8 @@ usage ()
 	exit 1
 }
 
-export G_SLICE=all
-export G_DEBUG=all
+#export G_DEBUG=gc-friendly
+export G_SLICE=always-malloc
 
 dirname="${0%/*}"
 program="${1##*/}"

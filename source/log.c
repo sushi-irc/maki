@@ -33,26 +33,22 @@
 
 #include "ilib.h"
 
-#include <fcntl.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <gio/gio.h>
 
 struct maki_log
 {
-	GIOChannel* channel;
+	GDataOutputStream* stream;
 };
 
 makiLog* maki_log_new (makiInstance* inst, const gchar* server, const gchar* name)
 {
+	makiLog* log = NULL;
+	GFile* file;
+	GFileOutputStream* file_output;
 	gchar* dirname;
 	gchar* filename;
 	gchar* path;
 	gchar* logs_dir;
-	makiLog* log;
-
-	log = g_new(makiLog, 1);
 
 	logs_dir = maki_instance_config_get_string(inst, "directories", "logs");
 	filename = g_strconcat(name, ".txt", NULL);
@@ -60,26 +56,22 @@ makiLog* maki_log_new (makiInstance* inst, const gchar* server, const gchar* nam
 	dirname = g_path_get_dirname(path);
 
 	g_mkdir_with_parents(dirname, 0777);
+	file = g_file_new_for_path(path);
 
-	g_free(dirname);
-	g_free(filename);
 	g_free(logs_dir);
+	g_free(filename);
+	g_free(path);
+	g_free(dirname);
 
-	if ((log->channel = g_io_channel_new_file(path, "a", NULL)) == NULL)
+	if ((file_output = g_file_append_to(file, G_FILE_CREATE_PRIVATE, NULL, NULL)) != NULL)
 	{
-		maki_log_free(log);
-		g_free(path);
+		log = g_new(makiLog, 1);
+		log->stream = g_data_output_stream_new(G_OUTPUT_STREAM(file_output));
 
-		return NULL;
+		g_object_unref(file_output);
 	}
 
-	g_free(path);
-
-	g_io_channel_set_close_on_unref(log->channel, TRUE);
-	/*
-	g_io_channel_set_encoding(log->channel, NULL, NULL);
-	g_io_channel_set_buffered(log->channel, FALSE);
-	*/
+	g_object_unref(file);
 
 	return log;
 }
@@ -88,9 +80,9 @@ void maki_log_free (gpointer data)
 {
 	makiLog* log = data;
 
-	if (log->channel != NULL)
+	if (log->stream != NULL)
 	{
-		g_io_channel_unref(log->channel);
+		g_object_unref(log->stream);
 	}
 
 	g_free(log);
@@ -102,13 +94,13 @@ void maki_log_write (makiLog* log, const gchar* message)
 
 	if ((time_str = i_get_current_time_string("%Y-%m-%d %H:%M:%S")) != NULL)
 	{
-		i_io_channel_write_chars(log->channel, time_str, -1, NULL, NULL);
-		i_io_channel_write_chars(log->channel, " ", -1, NULL, NULL);
+		g_data_output_stream_put_string(log->stream, time_str, NULL, NULL);
+		g_data_output_stream_put_string(log->stream, " ", NULL, NULL);
 		g_free(time_str);
 	}
 
-	i_io_channel_write_chars(log->channel, message, -1, NULL, NULL);
-	i_io_channel_write_chars(log->channel, "\n", -1, NULL, NULL);
+	g_data_output_stream_put_string(log->stream, message, NULL, NULL);
+	g_data_output_stream_put_string(log->stream, "\n", NULL, NULL);
 
-	g_io_channel_flush(log->channel, NULL);
+	g_output_stream_flush(G_OUTPUT_STREAM(log->stream), NULL, NULL);
 }
