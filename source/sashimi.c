@@ -407,6 +407,8 @@ gboolean sashimi_disconnect (sashimiConnection* conn)
 
 void sashimi_free (sashimiConnection* conn)
 {
+	guint i;
+
 	g_return_if_fail(conn != NULL);
 
 	sashimi_disconnect(conn);
@@ -423,6 +425,11 @@ void sashimi_free (sashimiConnection* conn)
 	if (conn->main_context != NULL)
 	{
 		g_main_context_unref(conn->main_context);
+	}
+
+	for (i = 0; i < c_last; i++)
+	{
+		g_object_unref(conn->cancellables[i]);
 	}
 
 	g_free(conn);
