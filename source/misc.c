@@ -182,3 +182,56 @@ void maki_ensure_string_array (gchar*** string_array)
 		(*string_array)[0] = NULL;
 	}
 }
+
+GVariantBuilder*
+maki_variant_builder_array_string (gchar** str)
+{
+	GVariantBuilder* builder;
+	guint i;
+
+	builder = g_variant_builder_new(G_VARIANT_TYPE("as"));
+
+	for (i = 0; str[i] != NULL; i++)
+	{
+		g_variant_builder_add(builder, "s", str[i]);
+	}
+
+	return builder;
+}
+
+GVariantBuilder*
+maki_variant_builder_array_uint64 (GArray* array)
+{
+	GVariantBuilder* builder;
+	guint i;
+
+	builder = g_variant_builder_new(G_VARIANT_TYPE("at"));
+
+	for (i = 0; i < array->len; i++)
+	{
+		g_variant_builder_add(builder, "t", g_array_index(array, guint64, i));
+	}
+
+	return builder;
+}
+
+gchar**
+maki_variant_iter_array_string (GVariantIter* iter)
+{
+	gchar** str;
+	gchar* t;
+	guint i;
+
+	str = g_new(gchar*, g_variant_iter_n_children(iter) + 1);
+	i = 0;
+
+	while (g_variant_iter_next(iter, "s", &t))
+	{
+		str[i] = t;
+		i++;
+	}
+
+	str[i] = NULL;
+
+	return str;
+}

@@ -30,475 +30,182 @@
 #include "dbus_server.h"
 #include "misc.h"
 
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
-#include <dbus/dbus.h>
+#include <gio/gio.h>
 
 struct maki_dbus_server
 {
-	DBusServer* server;
-
-	gchar* address;
-
-	GMainContext* main_context;
-	GMainLoop* main_loop;
-	GThread* thread;
+	GDBusServer* server;
+	GDBusNodeInfo* introspection;
 
 	GSList* connections;
-
-	gchar* introspection;
 };
 
-static gpointer
-maki_dbus_server_thread (gpointer data)
+static void
+maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* sender, const gchar* path, const gchar* interface, const gchar* method, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer data)
 {
 	makiDBusServer* dserv = data;
 
-	g_main_loop_run(dserv->main_loop);
-
-	return NULL;
-}
-
-static gboolean
-maki_dbus_server_reply (DBusConnection* connection, DBusMessage* message, gint type, ...)
-{
-	va_list ap;
-	DBusMessage* reply;
-
-	va_start(ap, type);
-
-	if ((reply = dbus_message_new_method_return(message)) == NULL)
-	{
-		goto error;
-	}
-
-	if (type != DBUS_TYPE_INVALID)
-	{
-		if (!dbus_message_append_args_valist(reply, type, ap))
-		{
-			goto error;
-		}
-	}
-
-	if (!dbus_connection_send(connection, reply, NULL))
-	{
-		goto error;
-	}
-
-	dbus_message_unref(reply);
-
-	va_end(ap);
-
-	return TRUE;
-
-error:
-	if (reply != NULL)
-	{
-		dbus_message_unref(reply);
-	}
-
-	va_end(ap);
-
-	return FALSE;
-}
-
-static DBusHandlerResult
-maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, void* data)
-{
-	gboolean got_args;
-	gboolean sent_reply;
-	DBusHandlerResult ret = DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-	makiDBusServer* dserv = data;
-
-	maki_debug("METHOD %s: %s %s\n", dbus_message_get_path(msg), dbus_message_get_interface(msg), dbus_message_get_member(msg));
-
-	if (strcmp(dbus_message_get_path(msg), DBUS_PATH_LOCAL) == 0)
-	{
-		if (dbus_message_is_signal(msg, DBUS_INTERFACE_LOCAL, "Disconnected"))
-		{
-			dserv->connections = g_slist_remove(dserv->connections, connection);
-
-			dbus_connection_unref(connection);
-
-			return DBUS_HANDLER_RESULT_HANDLED;
-		}
-
-		return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
-	}
+	maki_debug("METHOD %s: %s %s\n", path, interface, method);
 
 #if 0
-	if (strcmp(dbus_message_get_path(msg), DBUS_PATH_DBUS) == 0)
+	if (g_strcmp0(path, "/org/freedesktop/DBus") == 0
+	    && g_strcmp0(interface, "org.freedesktop.DBus") == 0)
 	{
-		if (dbus_message_is_method_call(msg, DBUS_INTERFACE_DBUS, "AddMatch"))
+		if (g_strcmp0(method, "AddMatch"))
 		{
 			const gchar* rule;
 
-			got_args = dbus_message_get_args(msg, NULL,
-					DBUS_TYPE_STRING, &rule,
-					DBUS_TYPE_INVALID);
-
-			if (!got_args)
-			{
-				goto error;
-			}
-
-			sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-			if (!sent_reply)
-			{
-				goto error;
-			}
-
-			return DBUS_HANDLER_RESULT_HANDLED;
+			g_variant_get(parameters, "(&s)", &rule);
+			g_dbus_method_invocation_return_value(invocation, NULL);
 		}
-		else if (dbus_message_is_method_call(msg, DBUS_INTERFACE_DBUS, "Hello"))
+		else if (g_strcmp0(method, "Hello"))
 		{
 			const gchar* id = "dummy";
 
-			sent_reply = maki_dbus_server_reply(connection, msg,
-				DBUS_TYPE_STRING, &id,
-				DBUS_TYPE_INVALID);
-
-			if (!sent_reply)
-			{
-				goto error;
-			}
-
-			return DBUS_HANDLER_RESULT_HANDLED;
+			g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", id));
 		}
+
+		return;
+	}
+
+	if (g_strcmp0(interface, SUSHI_DBUS_INTERFACE) != 0)
+	{
+		return;
 	}
 #endif
 
-	if (dbus_message_is_method_call(msg, DBUS_INTERFACE_INTROSPECTABLE, "Introspect")
-	    && dserv->introspection != NULL)
-	{
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_STRING, &(dserv->introspection),
-			DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		return DBUS_HANDLER_RESULT_HANDLED;
-	}
-
-	if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "action"))
+	if (g_strcmp0(method, "action") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
 		const gchar* message;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_STRING, &message,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &channel, &message);
 		maki_dbus_action(dbus, server, channel, message, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "away"))
+	else if (g_strcmp0(method, "away") == 0)
 	{
 		const gchar* server;
 		const gchar* message;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &message,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &message);
 		maki_dbus_away(dbus, server, message, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "back"))
+	else if (g_strcmp0(method, "back") == 0)
 	{
 		const gchar* server;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_back(dbus, server, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "channel_nicks"))
+	else if (g_strcmp0(method, "channel_nicks") == 0)
 	{
+		GVariantBuilder* builder[2];
+
 		const gchar* server;
 		const gchar* channel;
 
 		gchar** nicks;
 		gchar** prefixes;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &channel);
 		maki_dbus_channel_nicks(dbus, server, channel, &nicks, &prefixes, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &nicks, g_strv_length(nicks),
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &prefixes, g_strv_length(prefixes),
-			DBUS_TYPE_INVALID);
+		builder[0] = maki_variant_builder_array_string(nicks);
+		builder[1] = maki_variant_builder_array_string(prefixes);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(asas)", builder[0], builder[1]));
+		g_variant_builder_unref(builder[0]);
+		g_variant_builder_unref(builder[1]);
 
 		g_strfreev(nicks);
 		g_strfreev(prefixes);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "channel_topic"))
+	else if (g_strcmp0(method, "channel_topic") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
 
 		gchar* topic;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &channel);
 		maki_dbus_channel_topic(dbus, server, channel, &topic, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_STRING, &topic,
-			DBUS_TYPE_INVALID);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", topic));
 
 		g_free(topic);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "channels"))
+	else if (g_strcmp0(method, "channels") == 0)
 	{
+		GVariantBuilder* builder;
+
 		const gchar* server;
 
 		gchar** channels;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_channels(dbus, server, &channels, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &channels, g_strv_length(channels),
-			DBUS_TYPE_INVALID);
+		builder = maki_variant_builder_array_string(channels);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
+		g_variant_builder_unref(builder);
 
 		g_strfreev(channels);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "config_get"))
+	else if (g_strcmp0(method, "config_get") == 0)
 	{
 		const gchar* group;
 		const gchar* key;
 
 		gchar* value;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &group,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &group, &key);
 		maki_dbus_config_get(dbus, group, key, &value, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_STRING, &value,
-			DBUS_TYPE_INVALID);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", value));
 
 		g_free(value);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "config_set"))
+	else if (g_strcmp0(method, "config_set") == 0)
 	{
 		const gchar* group;
 		const gchar* key;
 		const gchar* value;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &group,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_STRING, &value,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &group, &key, &value);
 		maki_dbus_config_set(dbus, group, key, value, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "connect"))
+	else if (g_strcmp0(method, "connect") == 0)
 	{
 		const gchar* server;
 
-		got_args = dbus_message_get_args(msg, NULL, DBUS_TYPE_STRING, &server, DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_connect(dbus, server, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "ctcp"))
+	else if (g_strcmp0(method, "ctcp") == 0)
 	{
 		const gchar* server;
 		const gchar* target;
 		const gchar* message;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &target,
-			DBUS_TYPE_STRING, &message,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &target, &message);
 		maki_dbus_ctcp(dbus, server, target, message, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "dcc_send"))
+	else if (g_strcmp0(method, "dcc_send") == 0)
 	{
 		const gchar* server;
 		const gchar* target;
-		const gchar* path;
+		const gchar* path_;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &target,
-			DBUS_TYPE_STRING, &path,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
-		maki_dbus_dcc_send(dbus, server, target, path, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_variant_get(parameters, "(&s&s&s)", &server, &target, &path_);
+		maki_dbus_dcc_send(dbus, server, target, path_, NULL);
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "dcc_sends"))
+	else if (g_strcmp0(method, "dcc_sends") == 0)
 	{
+		GVariantBuilder* builder[8];
+
 		GArray* ids;
 		gchar** servers;
 		gchar** froms;
@@ -509,17 +216,23 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 		GArray* statuses;
 
 		maki_dbus_dcc_sends(dbus, &ids, &servers, &froms, &filenames, &sizes, &progresses, &speeds, &statuses, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(ids->data), ids->len,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &servers, g_strv_length(servers),
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &froms, g_strv_length(froms),
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &filenames, g_strv_length(filenames),
-			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(sizes->data), sizes->len,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(progresses->data), progresses->len,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(speeds->data), speeds->len,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(statuses->data), statuses->len,
-			DBUS_TYPE_INVALID);
+		builder[0] = maki_variant_builder_array_uint64(ids);
+		builder[1] = maki_variant_builder_array_string(servers);
+		builder[2] = maki_variant_builder_array_string(froms);
+		builder[3] = maki_variant_builder_array_string(filenames);
+		builder[4] = maki_variant_builder_array_uint64(sizes);
+		builder[5] = maki_variant_builder_array_uint64(progresses);
+		builder[6] = maki_variant_builder_array_uint64(speeds);
+		builder[7] = maki_variant_builder_array_uint64(statuses);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(atasasasatatatat)", builder[0], builder[1], builder[2], builder[3], builder[4], builder[5], builder[6], builder[7]));
+		g_variant_builder_unref(builder[0]);
+		g_variant_builder_unref(builder[1]);
+		g_variant_builder_unref(builder[2]);
+		g_variant_builder_unref(builder[3]);
+		g_variant_builder_unref(builder[4]);
+		g_variant_builder_unref(builder[5]);
+		g_variant_builder_unref(builder[6]);
+		g_variant_builder_unref(builder[7]);
 
 		g_array_free(ids, TRUE);
 		g_strfreev(servers);
@@ -529,617 +242,232 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 		g_array_free(progresses, TRUE);
 		g_array_free(speeds, TRUE);
 		g_array_free(statuses, TRUE);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "dcc_send_accept"))
+	else if (g_strcmp0(method, "dcc_send_accept") == 0)
 	{
 		guint64 id;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_UINT64, &id,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(t)", &id);
 		maki_dbus_dcc_send_accept(dbus, id, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "dcc_send_get"))
+	else if (g_strcmp0(method, "dcc_send_get") == 0)
 	{
 		guint64 id;
 		const gchar* key;
 
 		gchar* value;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_UINT64, &id,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(t&s)", &id, &key);
 		maki_dbus_dcc_send_get(dbus, id, key, &value, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_STRING, &value,
-			DBUS_TYPE_INVALID);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", value));
 
 		g_free(value);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "dcc_send_remove"))
+	else if (g_strcmp0(method, "dcc_send_remove") == 0)
 	{
 		guint64 id;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_UINT64, &id,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(t)", &id);
 		maki_dbus_dcc_send_remove(dbus, id, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "dcc_send_resume"))
+	else if (g_strcmp0(method, "dcc_send_resume") == 0)
 	{
 		guint64 id;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_UINT64, &id,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(t)", &id);
 		maki_dbus_dcc_send_resume(dbus, id, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "dcc_send_set"))
+	else if (g_strcmp0(method, "dcc_send_set") == 0)
 	{
 		guint64 id;
 		const gchar* key;
 		const gchar* value;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_UINT64, &id,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_STRING, &value,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(t&s&s)", &id, &key, &value);
 		maki_dbus_dcc_send_set(dbus, id, key, value, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "ignore"))
+	else if (g_strcmp0(method, "ignore") == 0)
 	{
 		const gchar* server;
 		const gchar* pattern;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &pattern,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &pattern);
 		maki_dbus_ignore(dbus, server, pattern, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "ignores"))
+	else if (g_strcmp0(method, "ignores") == 0)
 	{
+		GVariantBuilder* builder;
+
 		const gchar* server;
 
 		gchar** ignores;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_ignores(dbus, server, &ignores, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &ignores, g_strv_length(ignores),
-			DBUS_TYPE_INVALID);
+		builder = maki_variant_builder_array_string(ignores);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
+		g_variant_builder_unref(builder);
 
 		g_strfreev(ignores);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "invite"))
+	else if (g_strcmp0(method, "invite") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
 		const gchar* who;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_STRING, &who,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &channel, &who);
 		maki_dbus_invite(dbus, server, channel, who, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "join"))
+	else if (g_strcmp0(method, "join") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
 		const gchar* key;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &channel, &key);
 		maki_dbus_join(dbus, server, channel, key, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "kick"))
+	else if (g_strcmp0(method, "kick") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
 		const gchar* who;
 		const gchar* message;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_STRING, &who,
-			DBUS_TYPE_STRING, &message,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s&s)", &server, &channel, &who, &message);
 		maki_dbus_kick(dbus, server, channel, who, message, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "list"))
+	else if (g_strcmp0(method, "list") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &channel);
 		maki_dbus_list(dbus, server, channel, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "log"))
+	else if (g_strcmp0(method, "log") == 0)
 	{
+		GVariantBuilder* builder;
+
 		const gchar* server;
 		const gchar* target;
 		guint64 lines;
 
 		gchar** log;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &target,
-			DBUS_TYPE_UINT64, &lines,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&st)", &server, &target, &lines);
 		maki_dbus_log(dbus, server, target, lines, &log, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &log, g_strv_length(log),
-			DBUS_TYPE_INVALID);
+		builder = maki_variant_builder_array_string(log);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
+		g_variant_builder_unref(builder);
 
 		g_strfreev(log);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "message"))
+	else if (g_strcmp0(method, "message") == 0)
 	{
 		const gchar* server;
 		const gchar* target;
 		const gchar* message;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &target,
-			DBUS_TYPE_STRING, &message,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &target, &message);
 		maki_dbus_message(dbus, server, target, message, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "mode"))
+	else if (g_strcmp0(method, "mode") == 0)
 	{
 		const gchar* server;
 		const gchar* target;
 		const gchar* mode;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &target,
-			DBUS_TYPE_STRING, &mode,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &target, &mode);
 		maki_dbus_mode(dbus, server, target, mode, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "names"))
+	else if (g_strcmp0(method, "names") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &channel);
 		maki_dbus_names(dbus, server, channel, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "nick"))
+	else if (g_strcmp0(method, "nick") == 0)
 	{
 		const gchar* server;
 		const gchar* nick;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &nick,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &nick);
 		maki_dbus_nick(dbus, server, nick, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "nickserv"))
+	else if (g_strcmp0(method, "nickserv") == 0)
 	{
 		const gchar* server;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_nickserv(dbus, server, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "notice"))
+	else if (g_strcmp0(method, "notice") == 0)
 	{
 		const gchar* server;
 		const gchar* target;
 		const gchar* message;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &target,
-			DBUS_TYPE_STRING, &message,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &target, &message);
 		maki_dbus_notice(dbus, server, target, message, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "oper"))
+	else if (g_strcmp0(method, "oper") == 0)
 	{
 		const gchar* server;
 		const gchar* name;
 		const gchar* password;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &name,
-			DBUS_TYPE_STRING, &password,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &name, &password);
 		maki_dbus_oper(dbus, server, name, password, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "part"))
+	else if (g_strcmp0(method, "part") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
 		const gchar* message;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_STRING, &message,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &channel, &message);
 		maki_dbus_part(dbus, server, channel, message, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "quit"))
+	else if (g_strcmp0(method, "quit") == 0)
 	{
 		const gchar* server;
 		const gchar* message;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &message,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &message);
 		maki_dbus_quit(dbus, server, message, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "raw"))
+	else if (g_strcmp0(method, "raw") == 0)
 	{
 		const gchar* server;
 		const gchar* command;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &command,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &command);
 		maki_dbus_raw(dbus, server, command, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_get"))
+	else if (g_strcmp0(method, "server_get") == 0)
 	{
 		const gchar* server;
 		const gchar* group;
@@ -1147,405 +475,174 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		gchar* value;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &group,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &group, &key);
 		maki_dbus_server_get(dbus, server, group, key, &value, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_STRING, &value,
-			DBUS_TYPE_INVALID);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", value));
 
 		g_free(value);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_get_list"))
+	else if (g_strcmp0(method, "server_get_list") == 0)
 	{
+		GVariantBuilder* builder;
+
 		const gchar* server;
 		const gchar* group;
 		const gchar* key;
 
 		gchar** list;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &group,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &group, &key);
 		maki_dbus_server_get_list(dbus, server, group, key, &list, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &list, g_strv_length(list),
-			DBUS_TYPE_INVALID);
+		builder = maki_variant_builder_array_string(list);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
+		g_variant_builder_unref(builder);
 
 		g_strfreev(list);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_list"))
+	else if (g_strcmp0(method, "server_list") == 0)
 	{
+		GVariantBuilder* builder;
+
 		const gchar* server;
 		const gchar* group;
 
 		gchar** result;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &group,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &group);
 		maki_dbus_server_list(dbus, server, group, &result, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &result, g_strv_length(result),
-			DBUS_TYPE_INVALID);
+		builder = maki_variant_builder_array_string(result);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
+		g_variant_builder_unref(builder);
 
 		g_strfreev(result);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_remove"))
+	else if (g_strcmp0(method, "server_remove") == 0)
 	{
 		const gchar* server;
 		const gchar* group;
 		const gchar* key;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &group,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &group, &key);
 		maki_dbus_server_remove(dbus, server, group, key, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_rename"))
+	else if (g_strcmp0(method, "server_rename") == 0)
 	{
 		const gchar* old;
 		const gchar* new;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &old,
-			DBUS_TYPE_STRING, &new,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &old, &new);
 		maki_dbus_server_rename(dbus, old, new, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_set"))
+	else if (g_strcmp0(method, "server_set") == 0)
 	{
 		const gchar* server;
 		const gchar* group;
 		const gchar* key;
 		const gchar* value;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &group,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_STRING, &value,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s&s)", &server, &group, &key, &value);
 		maki_dbus_server_set(dbus, server, group, key, value, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "server_set_list"))
+	else if (g_strcmp0(method, "server_set_list") == 0)
 	{
+		GVariantIter* iter;
+
 		const gchar* server;
 		const gchar* group;
 		const gchar* key;
-		gchar** list = NULL;
-		gint list_len;
+		gchar** list;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &group,
-			DBUS_TYPE_STRING, &key,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &list, &list_len,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			dbus_free_string_array(list);
-
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&sas)", &server, &group, &key, &iter);
+		list = maki_variant_iter_array_string(iter);
+		g_variant_iter_free(iter);
 		maki_dbus_server_set_list(dbus, server, group, key, list, NULL);
+		g_dbus_method_invocation_return_value(invocation, NULL);
 
-		dbus_free_string_array(list);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_strfreev(list);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "servers"))
+	else if (g_strcmp0(method, "servers") == 0)
 	{
+		GVariantBuilder* builder;
+
 		gchar** servers;
 
 		maki_dbus_servers(dbus, &servers, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &servers, g_strv_length(servers),
-			DBUS_TYPE_INVALID);
+		builder = maki_variant_builder_array_string(servers);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
+		g_variant_builder_unref(builder);
 
 		g_strfreev(servers);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "shutdown"))
+	else if (g_strcmp0(method, "shutdown") == 0)
 	{
 		const gchar* message;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &message,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s)", &message);
 		maki_dbus_shutdown(dbus, message, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "support_chantypes"))
+	else if (g_strcmp0(method, "support_chantypes") == 0)
 	{
 		const gchar* server;
 
 		gchar* chantypes;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_support_chantypes(dbus, server, &chantypes, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_STRING, &chantypes,
-			DBUS_TYPE_INVALID);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", chantypes));
 
 		g_free(chantypes);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "support_prefix"))
+	else if (g_strcmp0(method, "support_prefix") == 0)
 	{
+		GVariantBuilder* builder;
+
 		const gchar* server;
 
 		gchar** prefix;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_support_prefix(dbus, server, &prefix, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_STRING, &prefix, g_strv_length(prefix),
-			DBUS_TYPE_INVALID);
+		builder = maki_variant_builder_array_string(prefix);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
+		g_variant_builder_unref(builder);
 
 		g_strfreev(prefix);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "topic"))
+	else if (g_strcmp0(method, "topic") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
 		const gchar* topic;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_STRING, &topic,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &channel, &topic);
 		maki_dbus_topic(dbus, server, channel, topic, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "unignore"))
+	else if (g_strcmp0(method, "unignore") == 0)
 	{
 		const gchar* server;
 		const gchar* pattern;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &pattern,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &pattern);
 		maki_dbus_unignore(dbus, server, pattern, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "user_away"))
+	else if (g_strcmp0(method, "user_away") == 0)
 	{
 		const gchar* server;
 		const gchar* nick;
 
 		gboolean away;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &nick,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &nick);
 		maki_dbus_user_away(dbus, server, nick, &away, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_BOOLEAN, &away,
-			DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(b)", away));
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "user_channel_mode"))
+	else if (g_strcmp0(method, "user_channel_mode") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
@@ -1553,33 +650,13 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		gchar* mode;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_STRING, &nick,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &channel, &nick);
 		maki_dbus_user_channel_mode(dbus, server, channel, nick, &mode, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_STRING, &mode,
-			DBUS_TYPE_INVALID);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", mode));
 
 		g_free(mode);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "user_channel_prefix"))
+	else if (g_strcmp0(method, "user_channel_prefix") == 0)
 	{
 		const gchar* server;
 		const gchar* channel;
@@ -1587,215 +664,132 @@ maki_dbus_server_message_handler (DBusConnection* connection, DBusMessage* msg, 
 
 		gchar* prefix;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &channel,
-			DBUS_TYPE_STRING, &nick,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s&s)", &server, &channel, &nick);
 		maki_dbus_user_channel_prefix(dbus, server, channel, nick, &prefix, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_STRING, &prefix,
-			DBUS_TYPE_INVALID);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", prefix));
 
 		g_free(prefix);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "user_from"))
+	else if (g_strcmp0(method, "user_from") == 0)
 	{
 		const gchar* server;
 		const gchar* nick;
 
 		gchar* from;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &nick,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &nick);
 		maki_dbus_user_from(dbus, server, nick, &from, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_STRING, &from,
-			DBUS_TYPE_INVALID);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(s)", from));
 
 		g_free(from);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "version"))
+	else if (g_strcmp0(method, "version") == 0)
 	{
+		GVariantBuilder* builder;
+
 		GArray* version;
 
 		maki_dbus_version(dbus, &version, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg,
-			DBUS_TYPE_ARRAY, DBUS_TYPE_UINT64, &(version->data), version->len,
-			DBUS_TYPE_INVALID);
+		builder = maki_variant_builder_array_uint64(version);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(at)", builder));
+		g_variant_builder_unref(builder);
 
 		g_array_free(version, TRUE);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "who"))
+	else if (g_strcmp0(method, "who") == 0)
 	{
 		const gchar* server;
 		const gchar* mask;
 		gboolean operators_only;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &mask,
-			DBUS_TYPE_BOOLEAN, &operators_only,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&sb)", &server, &mask, &operators_only);
 		maki_dbus_who(dbus, server, mask, operators_only, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-	else if (dbus_message_is_method_call(msg, SUSHI_DBUS_INTERFACE, "whois"))
+	else if (g_strcmp0(method, "whois") == 0)
 	{
 		const gchar* server;
 		const gchar* mask;
 
-		got_args = dbus_message_get_args(msg, NULL,
-			DBUS_TYPE_STRING, &server,
-			DBUS_TYPE_STRING, &mask,
-			DBUS_TYPE_INVALID);
-
-		if (!got_args)
-		{
-			goto error;
-		}
-
+		g_variant_get(parameters, "(&s&s)", &server, &mask);
 		maki_dbus_whois(dbus, server, mask, NULL);
-
-		sent_reply = maki_dbus_server_reply(connection, msg, DBUS_TYPE_INVALID);
-
-		if (!sent_reply)
-		{
-			goto error;
-		}
-
-		ret = DBUS_HANDLER_RESULT_HANDLED;
+		g_dbus_method_invocation_return_value(invocation, NULL);
 	}
-
-	return ret;
-
-error:
-	return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
+	else
+	{
+		g_dbus_method_invocation_return_dbus_error(invocation, "de.sushi.ikkoku.error", "No such method.");
+	}
 }
 
 static void
-maki_dbus_server_new_connection_cb (DBusServer* server, DBusConnection* connection, void* data)
+maki_dbus_server_connection_closed_cb (GDBusConnection* connection, gboolean peer_vanished, GError* error, gpointer data)
 {
-	DBusObjectPathVTable vtable = {
-		NULL,
+	makiDBusServer* dserv = data;
+
+	maki_debug("disconnected %p\n", (gpointer)connection);
+
+	dserv->connections = g_slist_remove(dserv->connections, connection);
+	g_object_unref(connection);
+}
+
+static gboolean
+maki_dbus_server_new_connection_cb (GDBusServer* server, GDBusConnection* connection, gpointer data)
+{
+	GDBusInterfaceVTable vtable = {
 		maki_dbus_server_message_handler,
-		NULL, NULL, NULL, NULL
+		NULL,
+		NULL
 	};
 
 	makiDBusServer* dserv = data;
 
 	maki_debug("new connection %p\n", (gpointer)connection);
 
-	dbus_connection_set_allow_anonymous(connection, TRUE);
+	g_object_ref(connection);
 
-	dbus_connection_register_object_path(connection, SUSHI_DBUS_PATH, &vtable, dserv);
-	dbus_connection_register_fallback(connection, DBUS_PATH_LOCAL, &vtable, dserv);
+	g_dbus_connection_register_object(connection, SUSHI_DBUS_PATH, g_dbus_node_info_lookup_interface(dserv->introspection, SUSHI_DBUS_INTERFACE), &vtable, dserv, NULL, NULL);
 #if 0
-	dbus_connection_register_fallback(connection, DBUS_PATH_DBUS, &vtable, dserv);
+	g_dbus_connection_register_object(connection, "/org/freedesktop/DBus", dserv->introspection->interfaces[0], &vtable, dserv, NULL, NULL);
 #endif
 
-	dbus_connection_ref(connection);
-	dbus_connection_setup_with_g_main(connection, dserv->main_context);
-
 	dserv->connections = g_slist_prepend(dserv->connections, connection);
+
+	g_signal_connect(connection, "closed", G_CALLBACK(maki_dbus_server_connection_closed_cb), dserv);
+
+	return TRUE;
 }
 
 makiDBusServer*
 maki_dbus_server_new (void)
 {
-	gchar* address;
 	gchar* path;
-	DBusError error;
-	DBusServer* server;
-	makiDBusServer* dserv;
-
-	dserv = g_new(makiDBusServer, 1);
-
-	dbus_error_init(&error);
-
-	if ((server = dbus_server_listen("tcp:host=localhost,port=0", &error)) == NULL)
-	{
-		return NULL;
-	}
-
-	dserv->server = server;
-
-	address = dbus_server_get_address(server);
-	dserv->address = g_strdup(address);
-	dbus_free(address);
-
-	dserv->main_context = g_main_context_new();
-	dserv->main_loop = g_main_loop_new(dserv->main_context, FALSE);
-	dserv->thread = g_thread_create(maki_dbus_server_thread, dserv, TRUE, NULL);
-
-	dserv->connections = NULL;
+	gchar* guid;
+	gchar* introspection_xml;
+	GDBusServer* server;
+	makiDBusServer* dserv = NULL;
 
 	path = g_build_filename(MAKI_SHARE_DIRECTORY, "dbus.xml", NULL);
+	guid = g_dbus_generate_guid();
 
-	if (!g_file_get_contents(path, &(dserv->introspection), NULL, NULL))
+	/* FIXME https://bugzilla.gnome.org/show_bug.cgi?id=637561 */
+	if ((server = g_dbus_server_new_sync("tcp:host=0.0.0.0", /*G_DBUS_SERVER_FLAGS_RUN_IN_THREAD |*/ G_DBUS_SERVER_FLAGS_AUTHENTICATION_ALLOW_ANONYMOUS, guid, NULL, NULL, NULL)) != NULL
+	    && g_file_get_contents(path, &introspection_xml, NULL, NULL))
 	{
-		dserv->introspection = NULL;
-		maki_debug("Introspection disabled\n");
+		dserv = g_new(makiDBusServer, 1);
+		dserv->server = server;
+		dserv->introspection = g_dbus_node_info_new_for_xml(introspection_xml, NULL);
+		dserv->connections = NULL;
+
+		g_free(introspection_xml);
+
+		maki_debug("server at %s\n", g_dbus_server_get_client_address(dserv->server));
+
+		g_signal_connect(dserv->server, "new-connection", G_CALLBACK(maki_dbus_server_new_connection_cb), dserv);
+		g_dbus_server_start(dserv->server);
 	}
 
 	g_free(path);
-
-	maki_debug("server at %s\n", dserv->address);
-
-	dbus_server_setup_with_g_main(server, dserv->main_context);
-	dbus_server_set_new_connection_function(server, maki_dbus_server_new_connection_cb, dserv, NULL);
+	g_free(guid);
 
 	return dserv;
 }
@@ -1805,63 +799,55 @@ maki_dbus_server_free (makiDBusServer* dserv)
 {
 	GSList* list;
 
-	g_main_loop_quit(dserv->main_loop);
-	g_thread_join(dserv->thread);
-
-	g_main_loop_unref(dserv->main_loop);
-	g_main_context_unref(dserv->main_context);
-
 	for (list = dserv->connections; list != NULL; list = list->next)
 	{
-		DBusConnection* connection = list->data;
+		GDBusConnection* connection = list->data;
 
-		dbus_connection_close(connection);
-		dbus_connection_unref(connection);
+		g_dbus_connection_close_sync(connection, NULL, NULL);
 	}
 
 	g_slist_free(dserv->connections);
 
-	dbus_server_disconnect(dserv->server);
-	dbus_server_unref(dserv->server);
+	g_dbus_server_stop(dserv->server);
+	g_object_unref(dserv->server);
 
-	g_free(dserv->introspection);
-	g_free(dserv->address);
+	g_dbus_node_info_unref(dserv->introspection);
+
 	g_free(dserv);
 }
 
 const gchar*
 maki_dbus_server_address (makiDBusServer* dserv)
 {
-	return dserv->address;
+	return g_dbus_server_get_client_address(dserv->server);
 }
 
 void
-maki_dbus_server_emit (makiDBusServer* dserv, const gchar* name, gint type, ...)
+maki_dbus_server_emit (makiDBusServer* dserv, const gchar* name, const gchar* format, ...)
 {
 	if (dserv != NULL)
 	{
-		va_list ap;
-		DBusMessage* message;
+		GDBusMessage* message;
 		GSList* list;
+		va_list ap;
 
 		maki_debug("SIGNAL /de/ikkoku/sushi: de.ikkoku.sushi %s\n", name);
 
-		va_start(ap, type);
+		va_start(ap, format);
 
-		message = dbus_message_new_signal(SUSHI_DBUS_PATH, SUSHI_DBUS_INTERFACE, name);
-		dbus_message_set_sender(message, SUSHI_DBUS_SERVICE);
-		dbus_message_append_args_valist(message, type, ap);
+		message = g_dbus_message_new_signal(SUSHI_DBUS_PATH, SUSHI_DBUS_INTERFACE, name);
+		g_dbus_message_set_sender(message, SUSHI_DBUS_SERVICE);
+		g_dbus_message_set_body(message, g_variant_new_va(format, NULL, &ap));
 
 		for (list = dserv->connections; list != NULL; list = list->next)
 		{
-			DBusConnection* connection = list->data;
+			GDBusConnection* connection = list->data;
 
-			dbus_connection_send(connection, message, NULL);
+			g_dbus_connection_send_message(connection, message, G_DBUS_SEND_MESSAGE_FLAGS_NONE, NULL, NULL);
 		}
 
-		dbus_message_unref(message);
+		g_object_unref(message);
 
 		va_end(ap);
 	}
 }
-
