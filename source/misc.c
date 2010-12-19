@@ -61,8 +61,6 @@ gboolean maki_config_is_empty_list (gchar** list)
 
 void maki_debug (const gchar* format, ...)
 {
-	/* FIXME leak */
-	static GDataOutputStream* stream = NULL;
 	gchar* message;
 	va_list args;
 
@@ -71,50 +69,11 @@ void maki_debug (const gchar* format, ...)
 		return;
 	}
 
-	if (G_UNLIKELY(stream == NULL))
-	{
-		GFile* dir;
-		GFile* file;
-		GFileOutputStream* file_output;
-		gchar* path;
-
-		path = g_build_filename(g_get_user_cache_dir(), "sushi", "maki.txt", NULL);
-
-		file = g_file_new_for_path(path);
-
-		dir = g_file_get_parent(file);
-		g_file_make_directory_with_parents(dir, NULL, NULL);
-		g_object_unref(dir);
-
-		g_file_delete(file, NULL, NULL);
-
-		if ((file_output = g_file_create(file, G_FILE_CREATE_PRIVATE, NULL, NULL)) != NULL)
-		{
-			stream = g_data_output_stream_new(G_OUTPUT_STREAM(file_output));
-			g_object_unref(file_output);
-		}
-		else
-		{
-			g_printerr("%s\n", _("Could not open debug log file."));
-		}
-
-		g_object_unref(file);
-
-		g_free(path);
-	}
-
 	va_start(args, format);
 	message = g_strdup_vprintf(format, args);
 	va_end(args);
 
 	g_printerr("%s", message);
-
-	if (G_LIKELY(stream != NULL))
-	{
-		g_data_output_stream_put_string(stream, message, NULL, NULL);
-		g_output_stream_flush(G_OUTPUT_STREAM(stream), NULL, NULL);
-	}
-
 	g_free(message);
 }
 
