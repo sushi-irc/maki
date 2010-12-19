@@ -582,17 +582,16 @@ void maki_instance_load_plugins (makiInstance* inst)
 	g_strfreev(plugins);
 }
 
-gpointer maki_instance_plugin_method (makiInstance* inst, const gchar* plugin, const gchar* method)
+gboolean maki_instance_plugin_method (makiInstance* inst, const gchar* plugin, const gchar* method, gpointer symbol)
 {
 	GModule* module;
-	gpointer symbol = NULL;
 
-	if ((module = g_hash_table_lookup(inst->plugins, plugin)) != NULL)
+	if ((module = g_hash_table_lookup(inst->plugins, plugin)) == NULL)
 	{
-		g_module_symbol(module, method, &symbol);
+		return FALSE;
 	}
 
-	return symbol;
+	return g_module_symbol(module, method, symbol);
 }
 
 makiNetwork* maki_instance_network (makiInstance* inst)

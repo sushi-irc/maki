@@ -219,9 +219,7 @@ gboolean maki_network_upnp_add_port (makiNetwork* net, guint port, const gchar* 
 {
 	gboolean (*add_port) (const gchar*, guint, const gchar*);
 
-	add_port = maki_instance_plugin_method(net->instance, "upnp", "add_port");
-
-	if (add_port != NULL)
+	if (maki_instance_plugin_method(net->instance, "upnp", "add_port", &add_port))
 	{
 		return (*add_port)(net->local.ip, port, description);
 	}
@@ -233,9 +231,7 @@ gboolean maki_network_upnp_remove_port (makiNetwork* net, guint port)
 {
 	gboolean (*remove_port) (guint);
 
-	remove_port = maki_instance_plugin_method(net->instance, "upnp", "remove_port");
-
-	if (remove_port != NULL)
+	if (maki_instance_plugin_method(net->instance, "upnp", "remove_port", &remove_port))
 	{
 		return (*remove_port)(port);
 	}

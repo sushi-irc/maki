@@ -65,7 +65,7 @@ gchar* maki_instance_dcc_send_get (makiInstance*, guint64, const gchar*);
 gboolean maki_instance_dcc_send_set (makiInstance*, guint64, const gchar*, const gchar*);
 void maki_instance_dcc_sends_xxx (makiInstance*, GArray**, gchar***, gchar***, gchar***, GArray**, GArray**, GArray**, GArray**);
 void maki_instance_load_plugins (makiInstance*);
-gpointer maki_instance_plugin_method (makiInstance*, const gchar*, const gchar*);
+gboolean maki_instance_plugin_method (makiInstance*, const gchar*, const gchar*, gpointer);
 makiNetwork* maki_instance_network (makiInstance*);
 void maki_instance_free (makiInstance*);
 
