@@ -100,11 +100,11 @@ void maki_dbus_emit_action (gint64 timestamp, const gchar* server, const gchar* 
 	}
 
 	maki_dbus_server_emit(dbus_server, "action", "(xssss)",
-		&timestamp,
-		&server,
-		&nick,
-		&target,
-		&message);
+		timestamp,
+		server,
+		nick,
+		target,
+		message);
 }
 
 void maki_dbus_emit_away (gint64 timestamp, const gchar* server)
