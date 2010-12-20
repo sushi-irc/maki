@@ -37,69 +37,118 @@
 
 #include <gio/gio.h>
 
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus.h>
-
 #include <fcntl.h>
 #include <string.h>
 
-#include "marshal.h"
-
 struct maki_dbus
 {
-	GObject parent;
-	DBusGConnection* bus;
+	guint id;
+	GDBusConnection* connection;
+	GDBusNodeInfo* introspection;
 };
 
-struct maki_dbus_class
+static void
+maki_dbus_on_bus_acquired (GDBusConnection* connection, const gchar* name, gpointer data)
 {
-	GObjectClass parent;
-};
+	GDBusInterfaceVTable vtable = {
+		maki_dbus_server_message_handler,
+		NULL,
+		NULL
+	};
 
-enum
+	makiDBus* d = data;
+
+	g_dbus_connection_register_object(connection, SUSHI_DBUS_PATH, g_dbus_node_info_lookup_interface(d->introspection, SUSHI_DBUS_INTERFACE), &vtable, d, NULL, NULL);
+}
+
+static void
+maki_dbus_on_name_acquired (GDBusConnection* connection, const gchar* name, gpointer data)
 {
-	s_action,
-	s_away,
-	s_away_message,
-	s_back,
-	s_banlist,
-	s_cannot_join,
-	s_connect,
-	s_connected,
-	s_ctcp,
-	s_dcc_send,
-	s_error,
-	s_invite,
-	s_join,
-	s_kick,
-	s_list,
-	s_message,
-	s_mode,
-	s_motd,
-	s_names,
-	s_nick,
-	s_no_such,
-	s_notice,
-	s_oper,
-	s_part,
-	s_quit,
-	s_shutdown,
-	s_topic,
-	s_user_away,
-	s_whois,
-	s_last
-};
+	makiDBus* d = data;
 
-static guint signals[s_last];
+	d->connection = connection;
+}
+
+static void
+maki_dbus_on_name_lost (GDBusConnection* connection, const gchar* name, gpointer data)
+{
+	makiDBus* d = data;
+
+	d->connection = NULL;
+}
+
+makiDBus*
+maki_dbus_new (void)
+{
+	makiDBus* d = NULL;
+	gchar* path;
+	gchar* introspection_xml;
+
+	path = g_build_filename(MAKI_SHARE_DIRECTORY, "dbus.xml", NULL);
+
+	if (g_file_get_contents(path, &introspection_xml, NULL, NULL))
+	{
+		d = g_new(makiDBus, 1);
+		d->id = g_bus_own_name(G_BUS_TYPE_SESSION, SUSHI_DBUS_SERVICE, G_BUS_NAME_OWNER_FLAGS_NONE,
+				maki_dbus_on_bus_acquired, maki_dbus_on_name_acquired, maki_dbus_on_name_lost,
+				d, NULL);
+		d->connection = NULL;
+		d->introspection = g_dbus_node_info_new_for_xml(introspection_xml, NULL);
+
+		g_free(introspection_xml);
+	}
+
+	g_free(path);
+
+	return d;
+}
+
+void
+maki_dbus_free (makiDBus* d)
+{
+	g_bus_unown_name(d->id);
+
+	g_free(d);
+}
+
+void
+maki_dbus_emit (makiDBus* d, const gchar* name, const gchar* format, va_list ap)
+{
+	g_return_if_fail(d != NULL);
+
+	if (d->connection != NULL)
+	{
+		va_list aq;
+
+		va_copy(aq, ap);
+		g_dbus_connection_emit_signal(d->connection, NULL, SUSHI_DBUS_PATH, SUSHI_DBUS_INTERFACE, name, g_variant_new_va(format, NULL, &aq), NULL);
+		va_end(aq);
+	}
+}
+
+static void
+maki_dbus_emit_helper (const gchar* name, const gchar* format, ...)
+{
+	va_list ap;
+
+	va_start(ap, format);
+
+	if (dbus != NULL)
+	{
+		maki_dbus_emit(dbus, name, format, ap);
+	}
+
+	if (dbus_server != NULL)
+	{
+		maki_dbus_server_emit(dbus_server, name, format, ap);
+	}
+
+	va_end(ap);
+}
 
 void maki_dbus_emit_action (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_action], 0, timestamp, server, nick, target, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "action", "(xssss)",
+	maki_dbus_emit_helper("action", "(xssss)",
 		timestamp,
 		server,
 		nick,
@@ -109,24 +158,14 @@ void maki_dbus_emit_action (gint64 timestamp, const gchar* server, const gchar* 
 
 void maki_dbus_emit_away (gint64 timestamp, const gchar* server)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_away], 0, timestamp, server);
-	}
-
-	maki_dbus_server_emit(dbus_server, "away", "(xs)",
+	maki_dbus_emit_helper("away", "(xs)",
 		timestamp,
 		server);
 }
 
 void maki_dbus_emit_away_message (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_away_message], 0, timestamp, server, nick, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "away_message", "(xsss)",
+	maki_dbus_emit_helper("away_message", "(xsss)",
 		timestamp,
 		server,
 		nick,
@@ -135,24 +174,14 @@ void maki_dbus_emit_away_message (gint64 timestamp, const gchar* server, const g
 
 void maki_dbus_emit_back (gint64 timestamp, const gchar* server)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_back], 0, timestamp, server);
-	}
-
-	maki_dbus_server_emit(dbus_server, "back", "(xs)",
+	maki_dbus_emit_helper("back", "(xs)",
 		timestamp,
 		server);
 }
 
 void maki_dbus_emit_banlist (gint64 timestamp, const gchar* server, const gchar* channel, const gchar* mask, const gchar* who, gint64 when)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_banlist], 0, timestamp, server, channel, mask, who, when);
-	}
-
-	maki_dbus_server_emit(dbus_server, "banlist", "(xssssx)",
+	maki_dbus_emit_helper("banlist", "(xssssx)",
 		timestamp,
 		server,
 		channel,
@@ -163,12 +192,7 @@ void maki_dbus_emit_banlist (gint64 timestamp, const gchar* server, const gchar*
 
 void maki_dbus_emit_cannot_join (gint64 timestamp, const gchar* server, const gchar* channel, const gchar* reason)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_cannot_join], 0, timestamp, server, channel, reason);
-	}
-
-	maki_dbus_server_emit(dbus_server, "cannot_join", "(xsss)",
+	maki_dbus_emit_helper("cannot_join", "(xsss)",
 		timestamp,
 		server,
 		channel,
@@ -177,36 +201,21 @@ void maki_dbus_emit_cannot_join (gint64 timestamp, const gchar* server, const gc
 
 void maki_dbus_emit_connect (gint64 timestamp, const gchar* server)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_connect], 0, timestamp, server);
-	}
-
-	maki_dbus_server_emit(dbus_server, "connect", "(xs)",
+	maki_dbus_emit_helper("connect", "(xs)",
 		timestamp,
 		server);
 }
 
 void maki_dbus_emit_connected (gint64 timestamp, const gchar* server)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_connected], 0, timestamp, server);
-	}
-
-	maki_dbus_server_emit(dbus_server, "connected", "(xs)",
+	maki_dbus_emit_helper("connected", "(xs)",
 		timestamp,
 		server);
 }
 
 void maki_dbus_emit_ctcp (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_ctcp], 0, timestamp, server, nick, target, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "ctcp", "(xssss)",
+	maki_dbus_emit_helper("ctcp", "(xssss)",
 		timestamp,
 		server,
 		nick,
@@ -216,12 +225,7 @@ void maki_dbus_emit_ctcp (gint64 timestamp, const gchar* server, const gchar* ni
 
 void maki_dbus_emit_dcc_send (gint64 timestamp, guint64 id, const gchar* server, const gchar* from, const gchar* filename, guint64 size, guint64 progress, guint64 speed, guint64 status)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_dcc_send], 0, timestamp, id, server, from, filename, size, progress, speed, status);
-	}
-
-	maki_dbus_server_emit(dbus_server, "dcc_send", "(xtssstttt)",
+	maki_dbus_emit_helper("dcc_send", "(xtssstttt)",
 		timestamp,
 		id,
 		server,
@@ -237,14 +241,9 @@ void maki_dbus_emit_error (gint64 timestamp, const gchar* server, const gchar* d
 {
 	GVariantBuilder* builder;
 
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_error], 0, timestamp, server, domain, reason, arguments);
-	}
-
 	builder = maki_variant_builder_array_string(arguments);
 
-	maki_dbus_server_emit(dbus_server, "error", "(xsssas)",
+	maki_dbus_emit_helper("error", "(xsssas)",
 		timestamp,
 		server,
 		domain,
@@ -256,12 +255,7 @@ void maki_dbus_emit_error (gint64 timestamp, const gchar* server, const gchar* d
 
 void maki_dbus_emit_invite (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_invite], 0, timestamp, server, nick, channel, who);
-	}
-
-	maki_dbus_server_emit(dbus_server, "invite", "(xssss)",
+	maki_dbus_emit_helper("invite", "(xssss)",
 		timestamp,
 		server,
 		nick,
@@ -271,12 +265,7 @@ void maki_dbus_emit_invite (gint64 timestamp, const gchar* server, const gchar* 
 
 void maki_dbus_emit_join (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_join], 0, timestamp, server, nick, channel);
-	}
-
-	maki_dbus_server_emit(dbus_server, "join", "(xsss)",
+	maki_dbus_emit_helper("join", "(xsss)",
 		timestamp,
 		server,
 		nick,
@@ -285,12 +274,7 @@ void maki_dbus_emit_join (gint64 timestamp, const gchar* server, const gchar* ni
 
 void maki_dbus_emit_kick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_kick], 0, timestamp, server, nick, channel, who, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "kick", "(xsssss)",
+	maki_dbus_emit_helper("kick", "(xsssss)",
 		timestamp,
 		server,
 		nick,
@@ -301,12 +285,7 @@ void maki_dbus_emit_kick (gint64 timestamp, const gchar* server, const gchar* ni
 
 void maki_dbus_emit_list (gint64 timestamp, const gchar* server, const gchar* channel, gint64 users, const gchar* topic)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_list], 0, timestamp, server, channel, users, topic);
-	}
-
-	maki_dbus_server_emit(dbus_server, "list", "(xssxs)",
+	maki_dbus_emit_helper("list", "(xssxs)",
 		timestamp,
 		server,
 		channel,
@@ -316,12 +295,7 @@ void maki_dbus_emit_list (gint64 timestamp, const gchar* server, const gchar* ch
 
 void maki_dbus_emit_message (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_message], 0, timestamp, server, nick, target, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "message", "(xssss)",
+	maki_dbus_emit_helper("message", "(xssss)",
 		timestamp,
 		server,
 		nick,
@@ -331,12 +305,7 @@ void maki_dbus_emit_message (gint64 timestamp, const gchar* server, const gchar*
 
 void maki_dbus_emit_mode (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* mode, const gchar* parameter)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_mode], 0, timestamp, server, nick, target, mode, parameter);
-	}
-
-	maki_dbus_server_emit(dbus_server, "mode", "(xsssss)",
+	maki_dbus_emit_helper("mode", "(xsssss)",
 		timestamp,
 		server,
 		nick,
@@ -347,12 +316,7 @@ void maki_dbus_emit_mode (gint64 timestamp, const gchar* server, const gchar* ni
 
 void maki_dbus_emit_motd (gint64 timestamp, const gchar* server, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_motd], 0, timestamp, server, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "motd", "(xss)",
+	maki_dbus_emit_helper("motd", "(xss)",
 		timestamp,
 		server,
 		message);
@@ -362,15 +326,10 @@ void maki_dbus_emit_names (gint64 timestamp, const gchar* server, const gchar* c
 {
 	GVariantBuilder* builder[2];
 
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_names], 0, timestamp, server, channel, nicks, prefixes);
-	}
-
 	builder[0] = maki_variant_builder_array_string(nicks);
 	builder[1] = maki_variant_builder_array_string(prefixes);
 
-	maki_dbus_server_emit(dbus_server, "names", "(xssasas)",
+	maki_dbus_emit_helper("names", "(xssasas)",
 		timestamp,
 		server,
 		channel,
@@ -383,12 +342,7 @@ void maki_dbus_emit_names (gint64 timestamp, const gchar* server, const gchar* c
 
 void maki_dbus_emit_nick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* new_nick)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_nick], 0, timestamp, server, nick, new_nick);
-	}
-
-	maki_dbus_server_emit(dbus_server, "nick", "(xsss)",
+	maki_dbus_emit_helper("nick", "(xsss)",
 		timestamp,
 		server,
 		nick,
@@ -397,12 +351,7 @@ void maki_dbus_emit_nick (gint64 timestamp, const gchar* server, const gchar* ni
 
 void maki_dbus_emit_no_such (gint64 timestamp, const gchar* server, const gchar* target, const gchar* type)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_no_such], 0, timestamp, server, target, type);
-	}
-
-	maki_dbus_server_emit(dbus_server, "no_such", "(xsss)",
+	maki_dbus_emit_helper("no_such", "(xsss)",
 		timestamp,
 		server,
 		target,
@@ -411,12 +360,7 @@ void maki_dbus_emit_no_such (gint64 timestamp, const gchar* server, const gchar*
 
 void maki_dbus_emit_notice (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_notice], 0, timestamp, server, nick, target, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "notice", "(xssss)",
+	maki_dbus_emit_helper("notice", "(xssss)",
 		timestamp,
 		server,
 		nick,
@@ -426,24 +370,14 @@ void maki_dbus_emit_notice (gint64 timestamp, const gchar* server, const gchar* 
 
 void maki_dbus_emit_oper (gint64 timestamp, const gchar* server)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_oper], 0, timestamp, server);
-	}
-
-	maki_dbus_server_emit(dbus_server, "oper", "(xs)",
+	maki_dbus_emit_helper("oper", "(xs)",
 		timestamp,
 		server);
 }
 
 void maki_dbus_emit_part (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_part], 0, timestamp, server, nick, channel, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "part", "(xssss)",
+	maki_dbus_emit_helper("part", "(xssss)",
 		timestamp,
 		server,
 		nick,
@@ -453,12 +387,7 @@ void maki_dbus_emit_part (gint64 timestamp, const gchar* server, const gchar* ni
 
 void maki_dbus_emit_quit (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_quit], 0, timestamp, server, nick, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "quit", "(xsss)",
+	maki_dbus_emit_helper("quit", "(xsss)",
 		timestamp,
 		server,
 		nick,
@@ -467,23 +396,13 @@ void maki_dbus_emit_quit (gint64 timestamp, const gchar* server, const gchar* ni
 
 void maki_dbus_emit_shutdown (gint64 timestamp)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_shutdown], 0, timestamp);
-	}
-
-	maki_dbus_server_emit(dbus_server, "shutdown", "(x)",
+	maki_dbus_emit_helper("shutdown", "(x)",
 		timestamp);
 }
 
 void maki_dbus_emit_topic (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* topic)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_topic], 0, timestamp, server, nick, channel, topic);
-	}
-
-	maki_dbus_server_emit(dbus_server, "topic", "(xssss)",
+	maki_dbus_emit_helper("topic", "(xssss)",
 		timestamp,
 		server,
 		nick,
@@ -493,12 +412,7 @@ void maki_dbus_emit_topic (gint64 timestamp, const gchar* server, const gchar* n
 
 void maki_dbus_emit_user_away (gint64 timestamp, const gchar* server, const gchar* from, gboolean away)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_user_away], 0, timestamp, server, from, away);
-	}
-
-	maki_dbus_server_emit(dbus_server, "user_away", "(xssb)",
+	maki_dbus_emit_helper("user_away", "(xssb)",
 		timestamp,
 		server,
 		from,
@@ -507,19 +421,14 @@ void maki_dbus_emit_user_away (gint64 timestamp, const gchar* server, const gcha
 
 void maki_dbus_emit_whois (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
 {
-	if (dbus != NULL)
-	{
-		g_signal_emit(dbus, signals[s_whois], 0, timestamp, server, nick, message);
-	}
-
-	maki_dbus_server_emit(dbus_server, "whois", "(xsss)",
+	maki_dbus_emit_helper("whois", "(xsss)",
 		timestamp,
 		server,
 		nick,
 		message);
 }
 
-gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gchar* channel, const gchar* message, GError** error)
+gboolean maki_dbus_action (const gchar* server, const gchar* channel, const gchar* message, GError** error)
 {
 	GTimeVal timeval;
 	makiServer* serv;
@@ -546,7 +455,7 @@ gboolean maki_dbus_action (makiDBus* self, const gchar* server, const gchar* cha
 	return TRUE;
 }
 
-gboolean maki_dbus_away (makiDBus* self, const gchar* server, const gchar* message, GError** error)
+gboolean maki_dbus_away (const gchar* server, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -560,7 +469,7 @@ gboolean maki_dbus_away (makiDBus* self, const gchar* server, const gchar* messa
 	return TRUE;
 }
 
-gboolean maki_dbus_back (makiDBus* self, const gchar* server, GError** error)
+gboolean maki_dbus_back (const gchar* server, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -573,7 +482,7 @@ gboolean maki_dbus_back (makiDBus* self, const gchar* server, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_channel_nicks (makiDBus* self, const gchar* server, const gchar* channel, gchar*** nicks, gchar*** prefixes, GError** error)
+gboolean maki_dbus_channel_nicks (const gchar* server, const gchar* channel, gchar*** nicks, gchar*** prefixes, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -635,7 +544,7 @@ gboolean maki_dbus_channel_nicks (makiDBus* self, const gchar* server, const gch
 	return TRUE;
 }
 
-gboolean maki_dbus_channel_topic (makiDBus* self, const gchar* server, const gchar* channel, gchar** topic, GError** error)
+gboolean maki_dbus_channel_topic (const gchar* server, const gchar* channel, gchar** topic, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -657,7 +566,7 @@ gboolean maki_dbus_channel_topic (makiDBus* self, const gchar* server, const gch
 	return TRUE;
 }
 
-gboolean maki_dbus_channels (makiDBus* self, const gchar* server, gchar*** channels, GError** error)
+gboolean maki_dbus_channels (const gchar* server, gchar*** channels, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -693,7 +602,7 @@ gboolean maki_dbus_channels (makiDBus* self, const gchar* server, gchar*** chann
 	return TRUE;
 }
 
-gboolean maki_dbus_config_get (makiDBus* self, const gchar* group, const gchar* key, gchar** value, GError** error)
+gboolean maki_dbus_config_get (const gchar* group, const gchar* key, gchar** value, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -704,7 +613,7 @@ gboolean maki_dbus_config_get (makiDBus* self, const gchar* group, const gchar* 
 	return TRUE;
 }
 
-gboolean maki_dbus_config_set (makiDBus* self, const gchar* group, const gchar* key, const gchar* value, GError** error)
+gboolean maki_dbus_config_set (const gchar* group, const gchar* key, const gchar* value, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -713,7 +622,7 @@ gboolean maki_dbus_config_set (makiDBus* self, const gchar* group, const gchar* 
 	return TRUE;
 }
 
-gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError** error)
+gboolean maki_dbus_connect (const gchar* server, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -741,7 +650,7 @@ gboolean maki_dbus_connect (makiDBus* self, const gchar* server, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar* target, const gchar* message, GError** error)
+gboolean maki_dbus_ctcp (const gchar* server, const gchar* target, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -760,7 +669,7 @@ gboolean maki_dbus_ctcp (makiDBus* self, const gchar* server, const gchar* targe
 	return TRUE;
 }
 
-gboolean maki_dbus_dcc_send (makiDBus* self, const gchar* server, const gchar* target, const gchar* path, GError** error)
+gboolean maki_dbus_dcc_send (const gchar* server, const gchar* target, const gchar* path, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -783,7 +692,7 @@ gboolean maki_dbus_dcc_send (makiDBus* self, const gchar* server, const gchar* t
 	return TRUE;
 }
 
-gboolean maki_dbus_dcc_sends (makiDBus* self, GArray** ids, gchar*** servers, gchar*** froms, gchar*** filenames, GArray** sizes, GArray** progresses, GArray** speeds, GArray** statuses, GError** error)
+gboolean maki_dbus_dcc_sends (GArray** ids, gchar*** servers, gchar*** froms, gchar*** filenames, GArray** sizes, GArray** progresses, GArray** speeds, GArray** statuses, GError** error)
 {
 	guint len;
 	makiInstance* inst = maki_instance_get_default();
@@ -808,7 +717,7 @@ gboolean maki_dbus_dcc_sends (makiDBus* self, GArray** ids, gchar*** servers, gc
 	return TRUE;
 }
 
-gboolean maki_dbus_dcc_send_accept (makiDBus* self, guint64 id, GError** error)
+gboolean maki_dbus_dcc_send_accept (guint64 id, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -817,7 +726,7 @@ gboolean maki_dbus_dcc_send_accept (makiDBus* self, guint64 id, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_dcc_send_get (makiDBus* self, guint64 id, const gchar* key, gchar** value, GError** error)
+gboolean maki_dbus_dcc_send_get (guint64 id, const gchar* key, gchar** value, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -828,7 +737,7 @@ gboolean maki_dbus_dcc_send_get (makiDBus* self, guint64 id, const gchar* key, g
 	return TRUE;
 }
 
-gboolean maki_dbus_dcc_send_remove (makiDBus* self, guint64 id, GError** error)
+gboolean maki_dbus_dcc_send_remove (guint64 id, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -837,7 +746,7 @@ gboolean maki_dbus_dcc_send_remove (makiDBus* self, guint64 id, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_dcc_send_resume (makiDBus* self, guint64 id, GError** error)
+gboolean maki_dbus_dcc_send_resume (guint64 id, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -846,7 +755,7 @@ gboolean maki_dbus_dcc_send_resume (makiDBus* self, guint64 id, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_dcc_send_set (makiDBus* self, guint64 id, const gchar* key, const gchar* value, GError** error)
+gboolean maki_dbus_dcc_send_set (guint64 id, const gchar* key, const gchar* value, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -855,7 +764,7 @@ gboolean maki_dbus_dcc_send_set (makiDBus* self, guint64 id, const gchar* key, c
 	return TRUE;
 }
 
-gboolean maki_dbus_ignore (makiDBus* self, const gchar* server, const gchar* pattern, GError** error)
+gboolean maki_dbus_ignore (const gchar* server, const gchar* pattern, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -890,7 +799,7 @@ gboolean maki_dbus_ignore (makiDBus* self, const gchar* server, const gchar* pat
 	return TRUE;
 }
 
-gboolean maki_dbus_ignores (makiDBus* self, const gchar* server, gchar*** ignores, GError** error)
+gboolean maki_dbus_ignores (const gchar* server, gchar*** ignores, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -907,7 +816,7 @@ gboolean maki_dbus_ignores (makiDBus* self, const gchar* server, gchar*** ignore
 	return TRUE;
 }
 
-gboolean maki_dbus_invite (makiDBus* self, const gchar* server, const gchar* channel, const gchar* who, GError** error)
+gboolean maki_dbus_invite (const gchar* server, const gchar* channel, const gchar* who, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -920,7 +829,7 @@ gboolean maki_dbus_invite (makiDBus* self, const gchar* server, const gchar* cha
 	return TRUE;
 }
 
-gboolean maki_dbus_join (makiDBus* self, const gchar* server, const gchar* channel, const gchar* key, GError** error)
+gboolean maki_dbus_join (const gchar* server, const gchar* channel, const gchar* key, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -957,7 +866,7 @@ gboolean maki_dbus_join (makiDBus* self, const gchar* server, const gchar* chann
 	return TRUE;
 }
 
-gboolean maki_dbus_kick (makiDBus* self, const gchar* server, const gchar* channel, const gchar* who, const gchar* message, GError** error)
+gboolean maki_dbus_kick (const gchar* server, const gchar* channel, const gchar* who, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -977,7 +886,7 @@ gboolean maki_dbus_kick (makiDBus* self, const gchar* server, const gchar* chann
 	return TRUE;
 }
 
-gboolean maki_dbus_list (makiDBus* self, const gchar* server, const gchar* channel, GError** error)
+gboolean maki_dbus_list (const gchar* server, const gchar* channel, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -997,7 +906,7 @@ gboolean maki_dbus_list (makiDBus* self, const gchar* server, const gchar* chann
 	return TRUE;
 }
 
-gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target, guint64 lines, gchar*** log, GError** error)
+gboolean maki_dbus_log (const gchar* server, const gchar* target, guint64 lines, gchar*** log, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1107,7 +1016,7 @@ gboolean maki_dbus_log (makiDBus* self, const gchar* server, const gchar* target
 	return TRUE;
 }
 
-gboolean maki_dbus_message (makiDBus* self, const gchar* server, const gchar* target, const gchar* message, GError** error)
+gboolean maki_dbus_message (const gchar* server, const gchar* target, const gchar* message, GError** error)
 {
 	GTimeVal timeval;
 	makiServer* serv;
@@ -1154,7 +1063,7 @@ gboolean maki_dbus_message (makiDBus* self, const gchar* server, const gchar* ta
 	return TRUE;
 }
 
-gboolean maki_dbus_mode (makiDBus* self, const gchar* server, const gchar* target, const gchar* mode, GError** error)
+gboolean maki_dbus_mode (const gchar* server, const gchar* target, const gchar* mode, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1174,7 +1083,7 @@ gboolean maki_dbus_mode (makiDBus* self, const gchar* server, const gchar* targe
 	return TRUE;
 }
 
-gboolean maki_dbus_names (makiDBus* self, const gchar* server, const gchar* channel, GError** error)
+gboolean maki_dbus_names (const gchar* server, const gchar* channel, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1194,7 +1103,7 @@ gboolean maki_dbus_names (makiDBus* self, const gchar* server, const gchar* chan
 	return TRUE;
 }
 
-gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar* nick, GError** error)
+gboolean maki_dbus_nick (const gchar* server, const gchar* nick, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1219,7 +1128,7 @@ gboolean maki_dbus_nick (makiDBus* self, const gchar* server, const gchar* nick,
 }
 
 
-gboolean maki_dbus_nickserv (makiDBus* self, const gchar* server, GError** error)
+gboolean maki_dbus_nickserv (const gchar* server, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1232,7 +1141,7 @@ gboolean maki_dbus_nickserv (makiDBus* self, const gchar* server, GError** error
 	return TRUE;
 }
 
-gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gchar* target, const gchar* message, GError** error)
+gboolean maki_dbus_notice (const gchar* server, const gchar* target, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1251,7 +1160,7 @@ gboolean maki_dbus_notice (makiDBus* self, const gchar* server, const gchar* tar
 	return TRUE;
 }
 
-gboolean maki_dbus_oper (makiDBus* self, const gchar* server, const gchar* name, const gchar* password, GError** error)
+gboolean maki_dbus_oper (const gchar* server, const gchar* name, const gchar* password, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1264,7 +1173,7 @@ gboolean maki_dbus_oper (makiDBus* self, const gchar* server, const gchar* name,
 	return TRUE;
 }
 
-gboolean maki_dbus_part (makiDBus* self, const gchar* server, const gchar* channel, const gchar* message, GError** error)
+gboolean maki_dbus_part (const gchar* server, const gchar* channel, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1284,7 +1193,7 @@ gboolean maki_dbus_part (makiDBus* self, const gchar* server, const gchar* chann
 	return TRUE;
 }
 
-gboolean maki_dbus_quit (makiDBus* self, const gchar* server, const gchar* message, GError** error)
+gboolean maki_dbus_quit (const gchar* server, const gchar* message, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1297,7 +1206,7 @@ gboolean maki_dbus_quit (makiDBus* self, const gchar* server, const gchar* messa
 	return TRUE;
 }
 
-gboolean maki_dbus_raw (makiDBus* self, const gchar* server, const gchar* command, GError** error)
+gboolean maki_dbus_raw (const gchar* server, const gchar* command, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1310,7 +1219,7 @@ gboolean maki_dbus_raw (makiDBus* self, const gchar* server, const gchar* comman
 	return TRUE;
 }
 
-gboolean maki_dbus_server_get (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, gchar** value, GError** error)
+gboolean maki_dbus_server_get (const gchar* server, const gchar* group, const gchar* key, gchar** value, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1327,7 +1236,7 @@ gboolean maki_dbus_server_get (makiDBus* self, const gchar* server, const gchar*
 	return TRUE;
 }
 
-gboolean maki_dbus_server_get_list (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, gchar*** list, GError** error)
+gboolean maki_dbus_server_get_list (const gchar* server, const gchar* group, const gchar* key, gchar*** list, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1344,7 +1253,7 @@ gboolean maki_dbus_server_get_list (makiDBus* self, const gchar* server, const g
 	return TRUE;
 }
 
-gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, const gchar* group, gchar*** result, GError** error)
+gboolean maki_dbus_server_list (const gchar* server, const gchar* group, gchar*** result, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1394,7 +1303,7 @@ gboolean maki_dbus_server_list (makiDBus* self, const gchar* server, const gchar
 	return TRUE;
 }
 
-gboolean maki_dbus_server_remove (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, GError** error)
+gboolean maki_dbus_server_remove (const gchar* server, const gchar* group, const gchar* key, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1427,7 +1336,7 @@ gboolean maki_dbus_server_remove (makiDBus* self, const gchar* server, const gch
 	return TRUE;
 }
 
-gboolean maki_dbus_server_rename (makiDBus* self, const gchar* old, const gchar* new, GError** error)
+gboolean maki_dbus_server_rename (const gchar* old, const gchar* new, GError** error)
 {
 	makiInstance* inst = maki_instance_get_default();
 
@@ -1448,7 +1357,7 @@ gboolean maki_dbus_server_rename (makiDBus* self, const gchar* old, const gchar*
 	return TRUE;
 }
 
-gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, const gchar* value, GError** error)
+gboolean maki_dbus_server_set (const gchar* server, const gchar* group, const gchar* key, const gchar* value, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1469,7 +1378,7 @@ gboolean maki_dbus_server_set (makiDBus* self, const gchar* server, const gchar*
 	return TRUE;
 }
 
-gboolean maki_dbus_server_set_list (makiDBus* self, const gchar* server, const gchar* group, const gchar* key, gchar** list, GError** error)
+gboolean maki_dbus_server_set_list (const gchar* server, const gchar* group, const gchar* key, gchar** list, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1490,7 +1399,7 @@ gboolean maki_dbus_server_set_list (makiDBus* self, const gchar* server, const g
 	return TRUE;
 }
 
-gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
+gboolean maki_dbus_servers (gchar*** servers, GError** error)
 {
 	gchar** server;
 	GHashTableIter iter;
@@ -1516,7 +1425,7 @@ gboolean maki_dbus_servers (makiDBus* self, gchar*** servers, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_shutdown (makiDBus* self, const gchar* message, GError** error)
+gboolean maki_dbus_shutdown (const gchar* message, GError** error)
 {
 	GTimeVal timeval;
 	GHashTableIter iter;
@@ -1535,12 +1444,13 @@ gboolean maki_dbus_shutdown (makiDBus* self, const gchar* message, GError** erro
 	g_get_current_time(&timeval);
 	maki_dbus_emit_shutdown(timeval.tv_sec);
 
+	/* FIXME quits too soon */
 	g_main_loop_quit(main_loop);
 
 	return TRUE;
 }
 
-gboolean maki_dbus_support_chantypes (makiDBus* self, const gchar* server, gchar** chantypes, GError** error)
+gboolean maki_dbus_support_chantypes (const gchar* server, gchar** chantypes, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1557,7 +1467,7 @@ gboolean maki_dbus_support_chantypes (makiDBus* self, const gchar* server, gchar
 	return TRUE;
 }
 
-gboolean maki_dbus_support_prefix (makiDBus* self, const gchar* server, gchar*** prefix, GError** error)
+gboolean maki_dbus_support_prefix (const gchar* server, gchar*** prefix, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1577,7 +1487,7 @@ gboolean maki_dbus_support_prefix (makiDBus* self, const gchar* server, gchar***
 	return TRUE;
 }
 
-gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gchar* channel, const gchar* topic, GError** error)
+gboolean maki_dbus_topic (const gchar* server, const gchar* channel, const gchar* topic, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1611,7 +1521,7 @@ gboolean maki_dbus_topic (makiDBus* self, const gchar* server, const gchar* chan
 	return TRUE;
 }
 
-gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const gchar* pattern, GError** error)
+gboolean maki_dbus_unignore (const gchar* server, const gchar* pattern, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1674,7 +1584,7 @@ gboolean maki_dbus_unignore (makiDBus* self, const gchar* server, const gchar* p
 	return TRUE;
 }
 
-gboolean maki_dbus_user_away (makiDBus* self, const gchar* server, const gchar* nick, gboolean* away, GError** error)
+gboolean maki_dbus_user_away (const gchar* server, const gchar* nick, gboolean* away, GError** error)
 {
 
 	makiServer* serv;
@@ -1695,7 +1605,7 @@ gboolean maki_dbus_user_away (makiDBus* self, const gchar* server, const gchar* 
 	return TRUE;
 }
 
-gboolean maki_dbus_user_channel_mode (makiDBus* self, const gchar* server, const gchar* channel, const gchar* nick, gchar** mode, GError** error)
+gboolean maki_dbus_user_channel_mode (const gchar* server, const gchar* channel, const gchar* nick, gchar** mode, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1747,7 +1657,7 @@ gboolean maki_dbus_user_channel_mode (makiDBus* self, const gchar* server, const
 	return TRUE;
 }
 
-gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* server, const gchar* channel, const gchar* nick, gchar** prefix, GError** error)
+gboolean maki_dbus_user_channel_prefix (const gchar* server, const gchar* channel, const gchar* nick, gchar** prefix, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1799,7 +1709,7 @@ gboolean maki_dbus_user_channel_prefix (makiDBus* self, const gchar* server, con
 	return TRUE;
 }
 
-gboolean maki_dbus_user_from (makiDBus* self, const gchar* server, const gchar* nick, gchar** from, GError** error)
+gboolean maki_dbus_user_from (const gchar* server, const gchar* nick, gchar** from, GError** error)
 {
 
 	makiServer* serv;
@@ -1829,7 +1739,7 @@ gboolean maki_dbus_user_from (makiDBus* self, const gchar* server, const gchar* 
 	return TRUE;
 }
 
-gboolean maki_dbus_version (makiDBus* self, GArray** version, GError** error)
+gboolean maki_dbus_version (GArray** version, GError** error)
 {
 	gchar** p;
 	guint p_len;
@@ -1853,7 +1763,7 @@ gboolean maki_dbus_version (makiDBus* self, GArray** version, GError** error)
 	return TRUE;
 }
 
-gboolean maki_dbus_who (makiDBus* self, const gchar* server, const gchar* mask, gboolean operators_only, GError** error)
+gboolean maki_dbus_who (const gchar* server, const gchar* mask, gboolean operators_only, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1873,7 +1783,7 @@ gboolean maki_dbus_who (makiDBus* self, const gchar* server, const gchar* mask, 
 	return TRUE;
 }
 
-gboolean maki_dbus_whois (makiDBus* self, const gchar* server, const gchar* mask, GError** error)
+gboolean maki_dbus_whois (const gchar* server, const gchar* mask, GError** error)
 {
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
@@ -1884,310 +1794,4 @@ gboolean maki_dbus_whois (makiDBus* self, const gchar* server, const gchar* mask
 	}
 
 	return TRUE;
-}
-
-#include "dbus_glue.h"
-
-G_DEFINE_TYPE(makiDBus, maki_dbus, G_TYPE_OBJECT)
-
-static void maki_dbus_init (makiDBus* self)
-{
-	DBusGProxy* proxy;
-	GError* error = NULL;
-	guint request_name_result;
-
-	if ((self->bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error)) != NULL)
-	{
-		dbus_g_connection_register_g_object(self->bus, SUSHI_DBUS_PATH, G_OBJECT(self));
-
-		if ((proxy = dbus_g_proxy_new_for_name(self->bus, DBUS_SERVICE_DBUS, DBUS_PATH_DBUS, DBUS_INTERFACE_DBUS)) != NULL)
-		{
-			if (dbus_g_proxy_call(proxy, "RequestName", &error, G_TYPE_STRING, SUSHI_DBUS_SERVICE, G_TYPE_UINT, 0, G_TYPE_INVALID, G_TYPE_UINT, &request_name_result, G_TYPE_INVALID))
-			{
-				if (request_name_result != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
-				{
-					dbus_g_connection_unref(self->bus);
-					self->bus = NULL;
-				}
-			}
-			else
-			{
-				g_error_free(error);
-				dbus_g_connection_unref(self->bus);
-				self->bus = NULL;
-			}
-
-			g_object_unref(proxy);
-		}
-		else
-		{
-			dbus_g_connection_unref(self->bus);
-			self->bus = NULL;
-		}
-	}
-	else
-	{
-		g_error_free(error);
-	}
-}
-
-static void maki_dbus_finalize (GObject* object)
-{
-	makiDBus* self = MAKI_DBUS(object);
-
-	/* FIXME ReleaseName? */
-
-	if (self->bus != NULL)
-	{
-		dbus_g_connection_unref(self->bus);
-		self->bus = NULL;
-	}
-}
-
-gboolean maki_dbus_connected (makiDBus* self)
-{
-	return (self->bus != NULL);
-}
-
-static void maki_dbus_class_init (makiDBusClass* klass)
-{
-	GObjectClass* object_class;
-
-	object_class = G_OBJECT_CLASS(klass);
-	object_class->finalize = maki_dbus_finalize;
-
-	dbus_g_object_type_install_info(MAKI_DBUS_TYPE, &dbus_glib_maki_dbus_object_info);
-
-	signals[s_action] =
-		g_signal_new("action",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_away] =
-		g_signal_new("away",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING,
-		             G_TYPE_NONE, 2,
-		             G_TYPE_INT64, G_TYPE_STRING);
-	signals[s_away_message] =
-		g_signal_new("away_message",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_back] =
-		g_signal_new("back",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING,
-		             G_TYPE_NONE, 2,
-		             G_TYPE_INT64, G_TYPE_STRING);
-	signals[s_banlist] =
-		g_signal_new("banlist",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_INT64,
-		             G_TYPE_NONE, 6,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT64);
-	signals[s_cannot_join] =
-		g_signal_new("cannot_join",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_connect] =
-		g_signal_new("connect",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING,
-		             G_TYPE_NONE, 2,
-		             G_TYPE_INT64, G_TYPE_STRING);
-	signals[s_connected] =
-		g_signal_new("connected",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING,
-		             G_TYPE_NONE, 2,
-		             G_TYPE_INT64, G_TYPE_STRING);
-	signals[s_ctcp] =
-		g_signal_new("ctcp",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_dcc_send] =
-		g_signal_new("dcc_send",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_UINT64_UINT64_UINT64_UINT64,
-		             G_TYPE_NONE, 9,
-		             G_TYPE_INT64, G_TYPE_UINT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT64, G_TYPE_UINT64, G_TYPE_UINT64, G_TYPE_UINT64);
-	signals[s_error] =
-		g_signal_new("error",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_POINTER,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRV);
-	signals[s_invite] =
-		g_signal_new("invite",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_join] =
-		g_signal_new("join",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_kick] =
-		g_signal_new("kick",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 6,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_list] =
-		g_signal_new("list",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_INT64_STRING,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT64, G_TYPE_STRING);
-	signals[s_message] =
-		g_signal_new("message",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_mode] =
-		g_signal_new("mode",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 6,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_motd] =
-		g_signal_new("motd",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING,
-		             G_TYPE_NONE, 3,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_names] =
-		g_signal_new("names",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_POINTER_POINTER,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRV, G_TYPE_STRV);
-	signals[s_nick] =
-		g_signal_new("nick",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_no_such] =
-		g_signal_new("no_such",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_notice] =
-		g_signal_new("notice",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_oper] =
-		g_signal_new("oper",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING,
-		             G_TYPE_NONE, 2,
-		             G_TYPE_INT64, G_TYPE_STRING);
-	signals[s_part] =
-		g_signal_new("part",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_quit] =
-		g_signal_new("quit",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_shutdown] =
-		g_signal_new("shutdown",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64,
-		             G_TYPE_NONE, 1,
-		             G_TYPE_INT64);
-	signals[s_topic] =
-		g_signal_new("topic",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING_STRING,
-		             G_TYPE_NONE, 5,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
-	signals[s_user_away] =
-		g_signal_new("user_away",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_BOOLEAN,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
-	signals[s_whois] =
-		g_signal_new("whois",
-		             G_OBJECT_CLASS_TYPE(klass),
-		             G_SIGNAL_RUN_LAST | G_SIGNAL_DETAILED,
-		             0, NULL, NULL,
-		             maki_marshal_VOID__INT64_STRING_STRING_STRING,
-		             G_TYPE_NONE, 4,
-		             G_TYPE_INT64, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 }

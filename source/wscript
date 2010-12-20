@@ -3,18 +3,6 @@
 from waflib import Utils
 
 def configure (ctx):
-	ctx.load('dbus')
-
-	ctx.check_cfg(
-		package = 'dbus-1',
-		args = ['--cflags', '--libs']
-	)
-
-	ctx.check_cfg(
-		package = 'dbus-glib-1',
-		args = ['--cflags', '--libs']
-	)
-
 	ctx.check_cfg(
 		package = 'glib-2.0',
 		args = ['--cflags', '--libs'],
@@ -64,39 +52,14 @@ def configure (ctx):
 def build (ctx):
 	components = ('ilib', 'sashimi', 'channel', 'channel_user', 'dcc_send', 'dbus', 'dbus_server', 'in', 'instance', 'log', 'maki', 'misc', 'network', 'out', 'plugin', 'server', 'user')
 
-	ctx(
-		source = '../data/dbus.xml',
-		target = 'dbus_glue.h',
-		rule = '${DBUS_BINDING_TOOL} --mode=glib-server --prefix=maki_dbus ${SRC} > ${TGT}'
-	)
-
-	ctx(
-		source = 'dbus.c',
-		target = 'marshal.list',
-		rule = '${GREP} -E -h -o \'maki_marshal_[0-9A-Z]+__([0-9A-Z]+_)*[0-9A-Z]+\' ${SRC} \
-		| ${SED} -e \'s/^maki_marshal_//\' -e \'s/__/:/\' -e \'s/_/,/g\' \
-		| ${SORT} -u \
-		> ${TGT}'
-	)
-
-	ctx.add_group()
-
-	# FIXME To quiet warnings from generated code.
-	e = ctx.env.derive()
-	e.CFLAGS = ctx.env.CFLAGS[:]
-	e.CFLAGS.remove('-pedantic')
-
-	o = ctx.program(
+	ctx.program(
 		source = ['%s.c' % (c) for c in components],
 		target = 'maki',
-		use = ['DBUS-1', 'DBUS-GLIB-1', 'GLIB-2.0', 'GIO-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE'],
+		use = ['GLIB-2.0', 'GIO-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE'],
 		includes = ['.'],
 		defines = ['MAKI_PLUGIN_DIRECTORY="%s"' % (Utils.subst_vars('${LIBDIR}/sushi/maki/plugins', ctx.env)),
-			'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATAROOTDIR}/sushi/maki', ctx.env))],
-		env = e
+			'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATAROOTDIR}/sushi/maki', ctx.env))]
 	)
-
-	o.add_marshal_file('marshal.list', 'maki_marshal')
 
 	ctx.program(
 		source = 'sushi-remote.c',

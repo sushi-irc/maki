@@ -32,11 +32,15 @@ struct maki_dbus_server;
 
 typedef struct maki_dbus_server makiDBusServer;
 
+#include <gio/gio.h>
+
 makiDBusServer* maki_dbus_server_new (void);
 void maki_dbus_server_free (makiDBusServer*);
 
 const gchar* maki_dbus_server_address (makiDBusServer*);
 
-void maki_dbus_server_emit (makiDBusServer*, const gchar*, const gchar*, ...);
+void maki_dbus_server_emit (makiDBusServer*, const gchar*, const gchar*, va_list);
+
+void maki_dbus_server_message_handler (GDBusConnection*, const gchar*, const gchar*, const gchar*, const gchar*, GVariant*, GDBusMethodInvocation*, gpointer);
 
 #endif

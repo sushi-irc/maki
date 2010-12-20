@@ -33,7 +33,7 @@
 
 #include "ilib.h"
 
-#include <dbus/dbus-glib.h>
+#include <glib-object.h>
 
 #include <fcntl.h>
 #include <locale.h>
@@ -103,7 +103,6 @@ int main (int argc, char* argv[])
 		g_thread_init(NULL);
 	}
 
-	dbus_g_thread_init();
 	g_type_init();
 
 	setlocale(LC_ALL, "");
@@ -151,12 +150,9 @@ int main (int argc, char* argv[])
 
 	if (!opt_dbus_server)
 	{
-		dbus = g_object_new(MAKI_DBUS_TYPE, NULL);
-
-		if (!maki_dbus_connected(dbus))
+		/* FIXME does not check whether we really got a connection */
+		if ((dbus = maki_dbus_new()) == NULL)
 		{
-			/* Use g_warning() here to not overwrite the debug log of the already running maki. */
-			g_warning("%s\n", _("Could not connect to DBus. maki may already be running."));
 			goto error;
 		}
 	}
@@ -207,11 +203,11 @@ int main (int argc, char* argv[])
 	{
 		makiServer* serv;
 
+		/* FIXME this emits signals */
 		if ((serv = maki_server_new(file)) != NULL)
 		{
 			maki_instance_add_server(inst, maki_server_name(serv), serv);
 		}
-
 	}
 
 	g_dir_close(servers);
@@ -221,7 +217,7 @@ int main (int argc, char* argv[])
 
 	if (dbus != NULL)
 	{
-		g_object_unref(dbus);
+		maki_dbus_free(dbus);
 		dbus = NULL;
 	}
 
@@ -255,7 +251,7 @@ int main (int argc, char* argv[])
 error:
 	if (dbus != NULL)
 	{
-		g_object_unref(dbus);
+		maki_dbus_free(dbus);
 	}
 
 	if (bus_address_file != NULL)

@@ -28,24 +28,14 @@
 #ifndef H_DBUS
 #define H_DBUS
 
-#include <glib-object.h>
-
 struct maki_dbus;
-struct maki_dbus_class;
 
 typedef struct maki_dbus makiDBus;
-typedef struct maki_dbus_class makiDBusClass;
 
-GType maki_dbus_get_type (void);
+makiDBus* maki_dbus_new (void);
+void maki_dbus_free (makiDBus*);
 
-#define MAKI_DBUS_TYPE              (maki_dbus_get_type())
-#define MAKI_DBUS(object)           (G_TYPE_CHECK_INSTANCE_CAST((object), MAKI_DBUS_TYPE, makiDBus))
-#define MAKI_DBUS_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST((klass), MAKI_DBUS_TYPE, makiDBusClass))
-#define IS_MAKI_DBUS(object)        (G_TYPE_CHECK_INSTANCE_TYPE((object), MAKI_DBUS_TYPE))
-#define IS_MAKI_DBUS_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE((klass), MAKI_DBUS_TYPE))
-#define MAKI_DBUS_GET_CLASS(object) (G_TYPE_INSTANCE_GET_CLASS((object), MAKI_DBUS_TYPE, makiDBus))
-
-gboolean maki_dbus_connected (makiDBus*);
+void maki_dbus_emit (makiDBus*, const gchar*, const gchar*, va_list);
 
 void maki_dbus_emit_action (gint64, const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_away (gint64, const gchar*);
@@ -77,59 +67,59 @@ void maki_dbus_emit_topic (gint64, const gchar*, const gchar*, const gchar*, con
 void maki_dbus_emit_user_away (gint64, const gchar*, const gchar*, gboolean);
 void maki_dbus_emit_whois (gint64, const gchar*, const gchar*, const gchar*);
 
-gboolean maki_dbus_action (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_away (makiDBus*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_back (makiDBus*, const gchar*, GError**);
-gboolean maki_dbus_channel_nicks (makiDBus*, const gchar*, const gchar*, gchar***, gchar***, GError**);
-gboolean maki_dbus_channel_topic (makiDBus*, const gchar*, const gchar*, gchar**, GError**);
-gboolean maki_dbus_channels (makiDBus*, const gchar*, gchar***, GError**);
-gboolean maki_dbus_config_get (makiDBus*, const gchar*, const gchar*, gchar**, GError**);
-gboolean maki_dbus_config_set (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_connect (makiDBus*, const gchar*, GError**);
-gboolean maki_dbus_ctcp (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_dcc_send (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_dcc_sends (makiDBus*, GArray**, gchar***, gchar***, gchar***, GArray**, GArray**, GArray**, GArray**, GError**);
-gboolean maki_dbus_dcc_send_accept (makiDBus*, guint64, GError**);
-gboolean maki_dbus_dcc_send_get (makiDBus*, guint64, const gchar*, gchar**, GError**);
-gboolean maki_dbus_dcc_send_remove (makiDBus*, guint64, GError**);
-gboolean maki_dbus_dcc_send_resume (makiDBus*, guint64, GError**);
-gboolean maki_dbus_dcc_send_set (makiDBus*, guint64, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_ignore (makiDBus*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_ignores (makiDBus*, const gchar*, gchar***, GError**);
-gboolean maki_dbus_invite (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_join (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_kick (makiDBus*, const gchar*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_list (makiDBus*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_log (makiDBus*, const gchar*, const gchar*, guint64, gchar***, GError**);
-gboolean maki_dbus_message (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_mode (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_names (makiDBus*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_nick (makiDBus*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_nickserv (makiDBus*, const gchar*, GError**);
-gboolean maki_dbus_notice (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_oper (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_part (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_quit (makiDBus*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_raw (makiDBus*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_server_get (makiDBus*, const gchar*, const gchar*, const gchar*, gchar**, GError**);
-gboolean maki_dbus_server_get_list (makiDBus*, const gchar*, const gchar*, const gchar*, gchar***, GError**);
-gboolean maki_dbus_server_list (makiDBus*, const gchar*, const gchar*, gchar***, GError**);
-gboolean maki_dbus_server_remove (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_server_rename (makiDBus*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_server_set (makiDBus*, const gchar*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_server_set_list (makiDBus*, const gchar*, const gchar*, const gchar*, gchar**, GError**);
-gboolean maki_dbus_servers (makiDBus*, gchar***, GError**);
-gboolean maki_dbus_shutdown (makiDBus*, const gchar*, GError**);
-gboolean maki_dbus_support_chantypes (makiDBus*, const gchar*, gchar**, GError**);
-gboolean maki_dbus_support_prefix (makiDBus*, const gchar*, gchar***, GError**);
-gboolean maki_dbus_topic (makiDBus*, const gchar*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_unignore (makiDBus*, const gchar*, const gchar*, GError**);
-gboolean maki_dbus_user_away (makiDBus*, const gchar*, const gchar*, gboolean*, GError**);
-gboolean maki_dbus_user_channel_mode (makiDBus*, const gchar*, const gchar*, const gchar*, gchar**, GError**);
-gboolean maki_dbus_user_channel_prefix (makiDBus*, const gchar*, const gchar*, const gchar*, gchar**, GError**);
-gboolean maki_dbus_user_from (makiDBus*, const gchar*, const gchar*, gchar**, GError**);
-gboolean maki_dbus_version (makiDBus*, GArray**, GError**);
-gboolean maki_dbus_who (makiDBus*, const gchar*, const gchar*, gboolean, GError**);
-gboolean maki_dbus_whois (makiDBus*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_action (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_away (const gchar*, const gchar*, GError**);
+gboolean maki_dbus_back (const gchar*, GError**);
+gboolean maki_dbus_channel_nicks (const gchar*, const gchar*, gchar***, gchar***, GError**);
+gboolean maki_dbus_channel_topic (const gchar*, const gchar*, gchar**, GError**);
+gboolean maki_dbus_channels (const gchar*, gchar***, GError**);
+gboolean maki_dbus_config_get (const gchar*, const gchar*, gchar**, GError**);
+gboolean maki_dbus_config_set (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_connect (const gchar*, GError**);
+gboolean maki_dbus_ctcp (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_dcc_send (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_dcc_sends (GArray**, gchar***, gchar***, gchar***, GArray**, GArray**, GArray**, GArray**, GError**);
+gboolean maki_dbus_dcc_send_accept (guint64, GError**);
+gboolean maki_dbus_dcc_send_get (guint64, const gchar*, gchar**, GError**);
+gboolean maki_dbus_dcc_send_remove (guint64, GError**);
+gboolean maki_dbus_dcc_send_resume (guint64, GError**);
+gboolean maki_dbus_dcc_send_set (guint64, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_ignore (const gchar*, const gchar*, GError**);
+gboolean maki_dbus_ignores (const gchar*, gchar***, GError**);
+gboolean maki_dbus_invite (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_join (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_kick (const gchar*, const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_list (const gchar*, const gchar*, GError**);
+gboolean maki_dbus_log (const gchar*, const gchar*, guint64, gchar***, GError**);
+gboolean maki_dbus_message (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_mode (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_names (const gchar*, const gchar*, GError**);
+gboolean maki_dbus_nick (const gchar*, const gchar*, GError**);
+gboolean maki_dbus_nickserv (const gchar*, GError**);
+gboolean maki_dbus_notice (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_oper (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_part (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_quit (const gchar*, const gchar*, GError**);
+gboolean maki_dbus_raw (const gchar*, const gchar*, GError**);
+gboolean maki_dbus_server_get (const gchar*, const gchar*, const gchar*, gchar**, GError**);
+gboolean maki_dbus_server_get_list (const gchar*, const gchar*, const gchar*, gchar***, GError**);
+gboolean maki_dbus_server_list (const gchar*, const gchar*, gchar***, GError**);
+gboolean maki_dbus_server_remove (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_server_rename (const gchar*, const gchar*, GError**);
+gboolean maki_dbus_server_set (const gchar*, const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_server_set_list (const gchar*, const gchar*, const gchar*, gchar**, GError**);
+gboolean maki_dbus_servers (gchar***, GError**);
+gboolean maki_dbus_shutdown (const gchar*, GError**);
+gboolean maki_dbus_support_chantypes (const gchar*, gchar**, GError**);
+gboolean maki_dbus_support_prefix (const gchar*, gchar***, GError**);
+gboolean maki_dbus_topic (const gchar*, const gchar*, const gchar*, GError**);
+gboolean maki_dbus_unignore (const gchar*, const gchar*, GError**);
+gboolean maki_dbus_user_away (const gchar*, const gchar*, gboolean*, GError**);
+gboolean maki_dbus_user_channel_mode (const gchar*, const gchar*, const gchar*, gchar**, GError**);
+gboolean maki_dbus_user_channel_prefix (const gchar*, const gchar*, const gchar*, gchar**, GError**);
+gboolean maki_dbus_user_from (const gchar*, const gchar*, gchar**, GError**);
+gboolean maki_dbus_version (GArray**, GError**);
+gboolean maki_dbus_who (const gchar*, const gchar*, gboolean, GError**);
+gboolean maki_dbus_whois (const gchar*, const gchar*, GError**);
 
 #endif
