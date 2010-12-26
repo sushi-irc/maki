@@ -8,6 +8,13 @@ def configure (ctx):
 	)
 
 	ctx.check_cfg(
+		package = 'gio-2.0',
+		args = ['--cflags', '--libs'],
+		atleast_version = '2.26',
+		uselib_store = 'GIO'
+	)
+
+	ctx.check_cfg(
 		package = 'gmodule-2.0',
 		args = ['--cflags', '--libs'],
 		uselib_store = 'GMODULE'
@@ -27,19 +34,14 @@ def configure (ctx):
 		mandatory = False
 	)
 
-	ctx.find_program('grep', var = 'GREP')
-	ctx.find_program('sed', var = 'SED')
-	ctx.find_program('sort', var = 'SORT')
-
 def build (ctx):
-	if ctx.env.HAVE_LIBNM_GLIB:
-		ctx.shlib(
-			source = ['sleep.c'],
-			target = 'sleep',
-			use = ['GLIB', 'GMODULE', 'LIBNM_GLIB'],
-			includes = ['.', '..'],
-			install_path = '${LIBDIR}/sushi/maki/plugins'
-		)
+	ctx.shlib(
+		source = ['sleep.c'],
+		target = 'sleep',
+		use = ['GLIB', 'GIO', 'GMODULE', 'LIBNM_GLIB'],
+		includes = ['.', '..'],
+		install_path = '${LIBDIR}/sushi/maki/plugins'
+	)
 
 	if ctx.env.HAVE_GUPNP_IGD:
 		ctx.shlib(

@@ -36,10 +36,6 @@ def configure (ctx):
 		mandatory = False
 	)
 
-	ctx.find_program('grep', var = 'GREP')
-	ctx.find_program('sed', var = 'SED')
-	ctx.find_program('sort', var = 'SORT')
-
 	if not ctx.env.VERSION:
 		ctx.env.VERSION = ''
 

@@ -29,25 +29,30 @@
 
 #include "instance.h"
 
+#include <gio/gio.h>
 #include <glib-object.h>
 #include <gmodule.h>
 
+#ifdef HAVE_LIBNM_GLIB
 #include <nm-client.h>
+#endif
 
 gboolean init (void);
 void deinit (void);
 
-static NMClient* nm_client;
-static NMState nm_state;
+static GDBusProxy* dbus_proxy;
+static gboolean sleeping;
 
-static void notify_state_cb (NMClient* client, GParamSpec* pspec, gpointer data)
+#ifdef HAVE_LIBNM_GLIB
+static NMClient* nm_client;
+#endif
+
+static void
+servers_connect (void)
 {
 	GHashTableIter iter;
 	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
-	NMState state;
-
-	state = nm_client_get_state(client);
 
 	maki_instance_servers_iter(inst, &iter);
 
@@ -56,39 +61,122 @@ static void notify_state_cb (NMClient* client, GParamSpec* pspec, gpointer data)
 		makiServer* serv = value;
 
 		/* FIXME thread safety */
-		/* Connected */
-		if (state == NM_STATE_UNKNOWN || state == NM_STATE_CONNECTED)
+		if (maki_server_autoconnect(serv))
 		{
-			if (maki_server_autoconnect(serv))
-			{
-				maki_server_connect(serv);
-			}
-		}
-		/* Asleep or Disconnected */
-		else if (state == NM_STATE_ASLEEP || state == NM_STATE_CONNECTING || state == NM_STATE_DISCONNECTED)
-		{
-			maki_server_disconnect(serv, "NetworkManager disconnected.");
+			maki_server_connect(serv);
 		}
 	}
-
-	nm_state = state;
 }
 
-G_MODULE_EXPORT
-gboolean init (void)
+static void
+servers_disconnect (const gchar* message)
 {
+	GHashTableIter iter;
+	gpointer key, value;
+	makiInstance* inst = maki_instance_get_default();
+
+	maki_instance_servers_iter(inst, &iter);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		makiServer* serv = value;
+
+		/* FIXME thread safety */
+		maki_server_disconnect(serv, message);
+	}
+}
+
+static void
+on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
+{
+	if (g_strcmp0(signal_name, "Sleeping") == 0)
+	{
+		sleeping = TRUE;
+
+		servers_disconnect("Computer is going to sleep.");
+	}
+	else if (g_strcmp0(signal_name, "Resuming") == 0)
+	{
+		sleeping = FALSE;
+
+#ifndef HAVE_LIBNM_GLIB
+		servers_connect();
+#endif
+	}
+}
+
+#ifdef HAVE_LIBNM_GLIB
+static void
+on_notify_state (NMClient* client, GParamSpec* pspec, gpointer data)
+{
+	NMState state;
+
+	state = nm_client_get_state(client);
+
+	/* Connected */
+	if (state == NM_STATE_UNKNOWN || state == NM_STATE_CONNECTED)
+	{
+		if (!sleeping)
+		{
+			servers_connect();
+		}
+	}
+	/* Asleep or Disconnected */
+	else if (state == NM_STATE_ASLEEP || state == NM_STATE_CONNECTING || state == NM_STATE_DISCONNECTED)
+	{
+		if (!sleeping)
+		{
+			servers_disconnect("Network configuration changed.");
+		}
+	}
+}
+#endif
+
+G_MODULE_EXPORT
+gboolean
+init (void)
+{
+	sleeping = FALSE;
+
+	dbus_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES, NULL,
+		"org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower",
+		NULL, NULL);
+
+	if (dbus_proxy != NULL)
+	{
+		g_signal_connect(dbus_proxy, "g-signal", G_CALLBACK(on_signal), NULL);
+	}
+
+#ifdef HAVE_LIBNM_GLIB
+	/* NMState state; */
+
 	nm_client = nm_client_new();
-	nm_state = nm_client_get_state(nm_client);
 
 	/* FIXME do something with state */
+	/* state = nm_client_get_state(nm_client); */
 
-	g_signal_connect(nm_client, "notify::state", G_CALLBACK(notify_state_cb), NULL);
+	if (nm_client != NULL)
+	{
+		g_signal_connect(nm_client, "notify::state", G_CALLBACK(on_notify_state), NULL);
+	}
+#endif
 
 	return TRUE;
 }
 
 G_MODULE_EXPORT
-void deinit (void)
+void
+deinit (void)
 {
-	g_object_unref(nm_client);
+#ifdef HAVE_LIBNM_GLIB
+	if (nm_client != NULL)
+	{
+		g_object_unref(nm_client);
+	}
+#endif
+
+	if (dbus_proxy != NULL)
+	{
+		g_object_unref(dbus_proxy);
+	}
 }
