@@ -34,8 +34,8 @@ def configure (ctx):
 def build (ctx):
 	if ctx.env.HAVE_LIBNM_GLIB:
 		ctx.shlib(
-			source = ['nm.c'],
-			target = 'nm',
+			source = ['sleep.c'],
+			target = 'sleep',
 			use = ['GLIB', 'GMODULE', 'LIBNM_GLIB'],
 			includes = ['.', '..'],
 			install_path = '${LIBDIR}/sushi/maki/plugins'
