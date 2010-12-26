@@ -114,6 +114,8 @@ maki_dbus_free (makiDBus* d)
 {
 	g_bus_unown_name(d->id);
 
+	g_dbus_node_info_unref(d->introspection);
+
 	g_free(d);
 }
 

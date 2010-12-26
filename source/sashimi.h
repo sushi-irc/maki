@@ -28,11 +28,11 @@
 #ifndef H_SASHIMI
 #define H_SASHIMI
 
-#include <glib.h>
-
 struct sashimi_connection;
 
 typedef struct sashimi_connection sashimiConnection;
+
+#include <glib.h>
 
 sashimiConnection* sashimi_new (GMainContext*);
 void sashimi_connect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
