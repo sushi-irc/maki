@@ -25,11 +25,12 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
+
+#include <glib.h>
+#include <gmodule.h>
 
 #include "plugin.h"
-
-#include <gmodule.h>
 
 GModule* maki_plugin_load (const gchar* name)
 {

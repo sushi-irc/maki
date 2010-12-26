@@ -25,12 +25,17 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
 
-#include "misc.h"
-#include "out.h"
+#include <glib.h>
+#include <glib/gi18n.h>
 
 #include <string.h>
+
+#include "out.h"
+
+#include "dbus.h"
+#include "misc.h"
 
 void maki_out_away (makiServer* serv, const gchar* message)
 {

@@ -25,20 +25,26 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
+
+#include <glib.h>
+#include <glib/gstdio.h>
+#include <gio/gio.h>
+
+#include <string.h>
+
+#include <ilib.h>
 
 #include "dbus.h"
+
+#include "dbus_server.h"
 #include "instance.h"
+#include "maki.h"
 #include "misc.h"
 #include "out.h"
 #include "server.h"
 
-#include "ilib.h"
-
-#include <gio/gio.h>
-
-#include <fcntl.h>
-#include <string.h>
+makiDBus* dbus = NULL;
 
 struct maki_dbus
 {

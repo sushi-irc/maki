@@ -25,20 +25,26 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
 
-#include "dcc_send.h"
-#include "in.h"
-#include "instance.h"
-#include "misc.h"
-#include "out.h"
-#include "server.h"
-
-#include "ilib.h"
+#include <glib.h>
+#include <glib/gi18n.h>
 
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include <ilib.h>
+
+#include "in.h"
+
+#include "dbus.h"
+#include "dcc_send.h"
+#include "instance.h"
+#include "maki.h"
+#include "misc.h"
+#include "out.h"
+#include "server.h"
 
 /* A convenience function to remove a colon before an argument.
  * It also checks for NULL. */

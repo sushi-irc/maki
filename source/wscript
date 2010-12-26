@@ -39,6 +39,7 @@ def configure (ctx):
 	if not ctx.env.VERSION:
 		ctx.env.VERSION = ''
 
+	ctx.define('G_DISABLE_DEPRECATED', 1)
 	ctx.define('SUSHI_VERSION', ctx.env.VERSION)
 
 	ctx.write_config_header('config.h')

@@ -28,6 +28,8 @@
 #ifndef H_PLUGIN
 #define H_PLUGIN
 
+#include <glib.h>
+
 #include <gmodule.h>
 
 typedef gboolean (*makiPluginInitFunc) (void);

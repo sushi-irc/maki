@@ -25,14 +25,20 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
+
+#include <glib.h>
+#include <glib/gstdio.h>
+#include <gmodule.h>
+
+#include <string.h>
+
+#include <ilib.h>
 
 #include "instance.h"
+
+#include "dbus.h"
 #include "plugin.h"
-
-#include "ilib.h"
-
-#include <gmodule.h>
 
 struct maki_instance
 {

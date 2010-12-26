@@ -32,6 +32,8 @@ struct maki_user;
 
 typedef struct maki_user makiUser;
 
+#include <glib.h>
+
 #include "server.h"
 
 makiUser* maki_user_new (makiServer*, const gchar*);

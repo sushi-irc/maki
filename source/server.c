@@ -25,18 +25,23 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
 
+#include <glib.h>
+
+#include <string.h>
+
+#include <ilib.h>
+
+#include "server.h"
+
+#include "dbus.h"
 #include "in.h"
 #include "instance.h"
 #include "log.h"
+#include "maki.h"
 #include "misc.h"
 #include "out.h"
-#include "server.h"
-
-#include "ilib.h"
-
-#include <string.h>
 
 static gboolean maki_server_away (gpointer data)
 {

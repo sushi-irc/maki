@@ -25,14 +25,12 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#define _XOPEN_SOURCE
 
-#include "dbus.h"
-#include "dbus_server.h"
-#include "instance.h"
+#include "config.h"
 
-#include "ilib.h"
-
+#include <glib.h>
+#include <glib/gi18n.h>
 #include <glib-object.h>
 
 #include <fcntl.h>
@@ -44,10 +42,16 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <ilib.h>
+
+#include "maki.h"
+
+#include "dbus.h"
+#include "dbus_server.h"
+#include "instance.h"
+
 gboolean opt_verbose = FALSE;
 
-makiDBus* dbus = NULL;
-makiDBusServer* dbus_server = NULL;
 GMainLoop* main_loop = NULL;
 
 static void maki_signal (int signo)

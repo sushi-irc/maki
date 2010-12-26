@@ -25,8 +25,9 @@
  * SUCH DAMAGE.
  */
 
-#define G_DISABLE_DEPRECATED
 #define _XOPEN_SOURCE 500
+
+#include "config.h"
 
 #include <glib.h>
 #include <glib/gstdio.h>

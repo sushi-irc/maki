@@ -25,15 +25,17 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
+
+#include <glib.h>
+#include <gio/gio.h>
+
+#include <ilib.h>
+
+#include "log.h"
 
 #include "instance.h"
-#include "log.h"
 #include "server.h"
-
-#include "ilib.h"
-
-#include <gio/gio.h>
 
 struct maki_log
 {

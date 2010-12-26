@@ -32,6 +32,8 @@ struct maki_instance;
 
 typedef struct maki_instance makiInstance;
 
+#include <glib.h>
+
 #include "dcc_send.h"
 #include "network.h"
 #include "server.h"

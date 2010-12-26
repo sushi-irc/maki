@@ -28,6 +28,8 @@
 #ifndef H_MISC
 #define H_MISC
 
+#include <glib.h>
+
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>

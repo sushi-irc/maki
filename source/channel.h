@@ -32,6 +32,8 @@ struct maki_channel;
 
 typedef struct maki_channel makiChannel;
 
+#include <glib.h>
+
 #include "channel_user.h"
 #include "server.h"
 

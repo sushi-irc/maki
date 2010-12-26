@@ -45,6 +45,8 @@ struct maki_network;
 
 typedef struct maki_network makiNetwork;
 
+#include <glib.h>
+
 #include "instance.h"
 
 makiNetwork* maki_network_new (makiInstance*);

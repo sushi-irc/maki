@@ -25,16 +25,22 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#define _XOPEN_SOURCE
 
-#include "network.h"
+#include "config.h"
 
-#include "ilib.h"
+#include <glib.h>
+
+#include <string.h>
 
 #ifdef HAVE_NICE
 #include <interfaces.h>
 #include <stun/usages/bind.h>
 #endif
+
+#include <ilib.h>
+
+#include "network.h"
 
 struct maki_network
 {

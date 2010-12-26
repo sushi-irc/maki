@@ -25,10 +25,13 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
+
+#include <glib.h>
+
+#include "user.h"
 
 #include "instance.h"
-#include "user.h"
 
 struct maki_user
 {

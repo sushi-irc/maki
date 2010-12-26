@@ -25,15 +25,18 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
+
+#include <glib.h>
+#include <gio/gio.h>
+
+#include <ilib.h>
+
+#include "misc.h"
 
 #include "instance.h"
 #include "log.h"
-#include "misc.h"
-
-#include "ilib.h"
-
-#include <gio/gio.h>
+#include "maki.h"
 
 gboolean maki_config_is_empty (const gchar* value)
 {

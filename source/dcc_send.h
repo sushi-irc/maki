@@ -32,6 +32,8 @@ struct maki_dcc_send;
 
 typedef struct maki_dcc_send makiDCCSend;
 
+#include <glib.h>
+
 #include "server.h"
 #include "user.h"
 

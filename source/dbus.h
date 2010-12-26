@@ -28,9 +28,15 @@
 #ifndef H_DBUS
 #define H_DBUS
 
+#define SUSHI_DBUS_SERVICE "de.ikkoku.sushi"
+#define SUSHI_DBUS_PATH "/de/ikkoku/sushi"
+#define SUSHI_DBUS_INTERFACE "de.ikkoku.sushi"
+
 struct maki_dbus;
 
 typedef struct maki_dbus makiDBus;
+
+#include <glib.h>
 
 makiDBus* maki_dbus_new (void);
 void maki_dbus_free (makiDBus*);
@@ -121,5 +127,7 @@ gboolean maki_dbus_user_from (const gchar*, const gchar*, gchar**, GError**);
 gboolean maki_dbus_version (GArray**, GError**);
 gboolean maki_dbus_who (const gchar*, const gchar*, gboolean, GError**);
 gboolean maki_dbus_whois (const gchar*, const gchar*, GError**);
+
+extern makiDBus* dbus;
 
 #endif

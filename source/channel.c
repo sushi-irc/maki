@@ -25,11 +25,13 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
+
+#include <glib.h>
+
+#include <ilib.h>
 
 #include "channel.h"
-
-#include "ilib.h"
 
 struct maki_channel
 {

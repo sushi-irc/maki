@@ -28,6 +28,8 @@
 #ifndef H_IN
 #define H_IN
 
+#include <glib.h>
+
 void maki_in_callback (const gchar*, gpointer);
 
 #endif

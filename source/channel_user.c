@@ -25,7 +25,9 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#include "config.h"
+
+#include <glib.h>
 
 #include "channel_user.h"
 

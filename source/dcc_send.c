@@ -25,23 +25,31 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
+#define _XOPEN_SOURCE
 
-#include "dcc_send.h"
-#include "instance.h"
-#include "network.h"
-#include "server.h"
+#include "config.h"
 
-#include "ilib.h"
+#include <glib.h>
+#include <glib/gstdio.h>
 
 #include <arpa/inet.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <netinet/in.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+#include <ilib.h>
+
+#include "dcc_send.h"
+
+#include "dbus.h"
+#include "instance.h"
+#include "network.h"
+#include "server.h"
 
 enum
 {

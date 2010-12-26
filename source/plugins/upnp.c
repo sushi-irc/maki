@@ -25,8 +25,7 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
-
+#include <glib.h>
 #include <glib-object.h>
 #include <gmodule.h>
 

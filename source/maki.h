@@ -28,26 +28,10 @@
 #ifndef H_MAKI
 #define H_MAKI
 
-#define G_DISABLE_DEPRECATED
-#define _XOPEN_SOURCE
-
 #include <glib.h>
-#include <glib/gi18n.h>
-#include <glib/gstdio.h>
-
-#define SUSHI_DBUS_SERVICE "de.ikkoku.sushi"
-#define SUSHI_DBUS_PATH "/de/ikkoku/sushi"
-#define SUSHI_DBUS_INTERFACE "de.ikkoku.sushi"
-
-#include "config.h"
-
-#include "dbus.h"
-#include "dbus_server.h"
 
 extern gboolean opt_verbose;
 
-extern makiDBus* dbus;
-extern makiDBusServer* dbus_server;
 extern GMainLoop* main_loop;
 
 #endif

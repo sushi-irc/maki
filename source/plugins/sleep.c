@@ -25,17 +25,16 @@
  * SUCH DAMAGE.
  */
 
-#include "maki.h"
-
-#include "instance.h"
-
-#include <gio/gio.h>
+#include <glib.h>
 #include <glib-object.h>
 #include <gmodule.h>
+#include <gio/gio.h>
 
 #ifdef HAVE_LIBNM_GLIB
 #include <nm-client.h>
 #endif
+
+#include "instance.h"
 
 gboolean init (void);
 void deinit (void);

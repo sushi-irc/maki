@@ -25,17 +25,16 @@
  * SUCH DAMAGE.
  */
 
-#define G_DISABLE_DEPRECATED
-
-#include <gio/gio.h>
-
 #include "config.h"
 
-#include "sashimi.h"
-
-#include "ilib.h"
+#include <glib.h>
+#include <gio/gio.h>
 
 #include <string.h>
+
+#include <ilib.h>
+
+#include "sashimi.h"
 
 enum
 {
