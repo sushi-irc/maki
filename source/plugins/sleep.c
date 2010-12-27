@@ -96,11 +96,19 @@ on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* param
 	}
 	else if (g_strcmp0(signal_name, "Resuming") == 0)
 	{
+		gboolean handle_connect;
+
+		handle_connect = TRUE;
 		sleeping = FALSE;
 
-#ifndef HAVE_LIBNM_GLIB
-		servers_connect();
+#ifdef HAVE_LIBNM_GLIB
+		handle_connect = !nm_client_get_manager_running(nm_client);
 #endif
+
+		if (handle_connect)
+		{
+			servers_connect();
+		}
 	}
 }
 
@@ -110,23 +118,17 @@ on_notify_state (NMClient* client, GParamSpec* pspec, gpointer data)
 {
 	NMState state;
 
+	if (sleeping || !nm_client_get_manager_running(client))
+	{
+		return;
+	}
+
 	state = nm_client_get_state(client);
 
 	/* Connected */
 	if (state == NM_STATE_UNKNOWN || state == NM_STATE_CONNECTED)
 	{
-		if (!sleeping)
-		{
-			servers_connect();
-		}
-	}
-	/* Asleep or Disconnected */
-	else if (state == NM_STATE_ASLEEP || state == NM_STATE_CONNECTING || state == NM_STATE_DISCONNECTED)
-	{
-		if (!sleeping)
-		{
-			servers_disconnect("Network configuration changed.");
-		}
+		servers_connect();
 	}
 }
 #endif
