@@ -36,6 +36,14 @@ def build (ctx):
 		install_path = '${LIBDIR}/sushi/maki/plugins'
 	)
 
+	ctx.shlib(
+		source = ['network.c'],
+		target = 'network',
+		use = ['GLIB', 'GIO', 'GMODULE'],
+		includes = ['.', '..'],
+		install_path = '${LIBDIR}/sushi/maki/plugins'
+	)
+
 	if ctx.env.HAVE_GUPNP_IGD:
 		ctx.shlib(
 			source = ['upnp.c'],

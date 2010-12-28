@@ -34,11 +34,9 @@
 
 gboolean init (void);
 void deinit (void);
-gboolean sleeping (void);
 
-static GDBusProxy* upower_proxy;
 static GDBusProxy* nm_proxy;
-static gboolean is_sleeping;
+static gboolean is_connected;
 
 static void
 servers_connect (void)
@@ -80,39 +78,23 @@ servers_disconnect (const gchar* message)
 }
 
 static void
-upower_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
-{
-	if (g_strcmp0(signal_name, "Sleeping") == 0)
-	{
-		is_sleeping = TRUE;
-
-		servers_disconnect("Computer is going to sleep.");
-	}
-	else if (g_strcmp0(signal_name, "Resuming") == 0)
-	{
-		gchar* owner;
-		gboolean handle_connect;
-
-		handle_connect = TRUE;
-		is_sleeping = FALSE;
-
-		owner = g_dbus_proxy_get_name_owner(nm_proxy);
-		handle_connect = (owner == NULL);
-		g_free(owner);
-
-		if (handle_connect)
-		{
-			servers_connect();
-		}
-	}
-}
-
-static void
 nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
 {
+	/* FIXME causes double connect, which causes other issues */
+	return;
+
 	if (g_strcmp0(signal_name, "StateChanged") == 0)
 	{
+		makiInstance* inst = maki_instance_get_default();
 		guint32 state;
+		gboolean is_sleeping = FALSE;
+
+		gboolean (*sleeping) (void);
+
+		if (maki_instance_plugin_method(inst, "sleep", "sleeping", &sleeping))
+		{
+			is_sleeping = sleeping();
+		}
 
 		if (is_sleeping)
 		{
@@ -123,7 +105,19 @@ nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* pa
 
 		if (state == 0 || state == 3)
 		{
-			servers_connect();
+			if (!is_connected)
+			{
+				is_connected = TRUE;
+				servers_connect();
+			}
+		}
+		else if (state == 1 || state == 2 || state == 4)
+		{
+			if (is_connected)
+			{
+				is_connected = FALSE;
+				servers_disconnect("Network configuration changed.");
+			}
 		}
 	}
 }
@@ -132,20 +126,17 @@ G_MODULE_EXPORT
 gboolean
 init (void)
 {
-	is_sleeping = FALSE;
+	GVariant* variant;
+	guint32 state;
 
-	upower_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES, NULL,
-		"org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower",
-		NULL, NULL);
-
-	if (upower_proxy != NULL)
-	{
-		g_signal_connect(upower_proxy, "g-signal", G_CALLBACK(upower_on_signal), NULL);
-	}
-
-	nm_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES, NULL,
+	nm_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
 		"org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager", "org.freedesktop.NetworkManager",
 		NULL, NULL);
+
+	variant = g_dbus_proxy_get_cached_property(nm_proxy, "State");
+	g_variant_get(variant, "u", &state);
+	g_variant_unref(variant);
+	is_connected = (state == 0 || state == 3);
 
 	if (nm_proxy != NULL)
 	{
@@ -163,16 +154,4 @@ deinit (void)
 	{
 		g_object_unref(nm_proxy);
 	}
-
-	if (upower_proxy != NULL)
-	{
-		g_object_unref(upower_proxy);
-	}
-}
-
-G_MODULE_EXPORT
-gboolean
-sleeping (void)
-{
-	return is_sleeping;
 }

@@ -173,6 +173,11 @@ static void maki_instance_config_set_defaults (makiInstance* inst)
 		maki_instance_config_set_integer(inst, "reconnect", "timeout", 10);
 	}
 
+	if (!maki_instance_config_exists(inst, "plugins", "network"))
+	{
+		maki_instance_config_set_boolean(inst, "plugins", "network", TRUE);
+	}
+
 	if (!maki_instance_config_exists(inst, "plugins", "sleep"))
 	{
 		maki_instance_config_set_boolean(inst, "plugins", "sleep", TRUE);
