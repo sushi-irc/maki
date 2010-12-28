@@ -191,6 +191,7 @@ void maki_network_update (makiNetwork* net)
 {
 	g_return_if_fail(net != NULL);
 
+	/* FIXME sources */
 	i_idle_add(maki_network_update_local, net, maki_instance_main_context(net->instance));
 	i_idle_add(maki_network_update_remote, net, maki_instance_main_context(net->instance));
 }

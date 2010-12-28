@@ -609,11 +609,8 @@ void maki_instance_free (makiInstance* inst)
 {
 	GSList* list;
 
-	g_main_loop_quit(inst->main_loop);
-	g_thread_join(inst->thread);
-
-	g_main_loop_unref(inst->main_loop);
-	g_main_context_unref(inst->main_context);
+	g_hash_table_destroy(inst->plugins);
+	g_hash_table_destroy(inst->servers);
 
 	for (list = inst->dcc.list; list != NULL; list = list->next)
 	{
@@ -630,13 +627,16 @@ void maki_instance_free (makiInstance* inst)
 	g_slist_free(inst->dcc.list);
 	g_mutex_free(inst->dcc.mutex);
 
-	g_hash_table_destroy(inst->plugins);
-
 	maki_network_free(inst->network);
+
+	g_main_loop_quit(inst->main_loop);
+	g_thread_join(inst->thread);
+
+	g_main_loop_unref(inst->main_loop);
+	g_main_context_unref(inst->main_context);
 
 	g_key_file_free(inst->key_file);
 
-	g_hash_table_destroy(inst->servers);
 	g_hash_table_destroy(inst->directories);
 
 	g_free(inst);
