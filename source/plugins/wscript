@@ -21,13 +21,6 @@ def configure (ctx):
 	)
 
 	ctx.check_cfg(
-		package = 'libnm_glib',
-		args = ['--cflags', '--libs'],
-		atleast_version = '0.7.0',
-		mandatory = False
-	)
-
-	ctx.check_cfg(
 		package = 'gupnp-igd-1.0',
 		args = ['--cflags', '--libs'],
 		uselib_store = 'GUPNP_IGD',
@@ -38,7 +31,7 @@ def build (ctx):
 	ctx.shlib(
 		source = ['sleep.c'],
 		target = 'sleep',
-		use = ['GLIB', 'GIO', 'GMODULE', 'LIBNM_GLIB'],
+		use = ['GLIB', 'GIO', 'GMODULE'],
 		includes = ['.', '..'],
 		install_path = '${LIBDIR}/sushi/maki/plugins'
 	)

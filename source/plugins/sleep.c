@@ -30,21 +30,14 @@
 #include <gmodule.h>
 #include <gio/gio.h>
 
-#ifdef HAVE_LIBNM_GLIB
-#include <nm-client.h>
-#endif
-
 #include "instance.h"
 
 gboolean init (void);
 void deinit (void);
 
-static GDBusProxy* dbus_proxy;
+static GDBusProxy* upower_proxy;
+static GDBusProxy* nm_proxy;
 static gboolean sleeping;
-
-#ifdef HAVE_LIBNM_GLIB
-static NMClient* nm_client;
-#endif
 
 static void
 servers_connect (void)
@@ -86,7 +79,7 @@ servers_disconnect (const gchar* message)
 }
 
 static void
-on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
+upower_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
 {
 	if (g_strcmp0(signal_name, "Sleeping") == 0)
 	{
@@ -96,14 +89,15 @@ on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* param
 	}
 	else if (g_strcmp0(signal_name, "Resuming") == 0)
 	{
+		gchar* owner;
 		gboolean handle_connect;
 
 		handle_connect = TRUE;
 		sleeping = FALSE;
 
-#ifdef HAVE_LIBNM_GLIB
-		handle_connect = !nm_client_get_manager_running(nm_client);
-#endif
+		owner = g_dbus_proxy_get_name_owner(nm_proxy);
+		handle_connect = (owner == NULL);
+		g_free(owner);
 
 		if (handle_connect)
 		{
@@ -112,26 +106,26 @@ on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* param
 	}
 }
 
-#ifdef HAVE_LIBNM_GLIB
 static void
-on_notify_state (NMClient* client, GParamSpec* pspec, gpointer data)
+nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
 {
-	NMState state;
-
-	if (sleeping || !nm_client_get_manager_running(client))
+	if (g_strcmp0(signal_name, "StateChanged") == 0)
 	{
-		return;
-	}
+		guint32 state;
 
-	state = nm_client_get_state(client);
+		if (sleeping)
+		{
+			return;
+		}
 
-	/* Connected */
-	if (state == NM_STATE_UNKNOWN || state == NM_STATE_CONNECTED)
-	{
-		servers_connect();
+		g_variant_get(parameters, "(u)", &state);
+
+		if (state == 0 || state == 3)
+		{
+			servers_connect();
+		}
 	}
 }
-#endif
 
 G_MODULE_EXPORT
 gboolean
@@ -139,28 +133,23 @@ init (void)
 {
 	sleeping = FALSE;
 
-	dbus_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES, NULL,
+	upower_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES, NULL,
 		"org.freedesktop.UPower", "/org/freedesktop/UPower", "org.freedesktop.UPower",
 		NULL, NULL);
 
-	if (dbus_proxy != NULL)
+	if (upower_proxy != NULL)
 	{
-		g_signal_connect(dbus_proxy, "g-signal", G_CALLBACK(on_signal), NULL);
+		g_signal_connect(upower_proxy, "g-signal", G_CALLBACK(upower_on_signal), NULL);
 	}
 
-#ifdef HAVE_LIBNM_GLIB
-	/* NMState state; */
+	nm_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES, NULL,
+		"org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager", "org.freedesktop.NetworkManager",
+		NULL, NULL);
 
-	nm_client = nm_client_new();
-
-	/* FIXME do something with state */
-	/* state = nm_client_get_state(nm_client); */
-
-	if (nm_client != NULL)
+	if (nm_proxy != NULL)
 	{
-		g_signal_connect(nm_client, "notify::state", G_CALLBACK(on_notify_state), NULL);
+		g_signal_connect(nm_proxy, "g-signal", G_CALLBACK(nm_on_signal), NULL);
 	}
-#endif
 
 	return TRUE;
 }
@@ -169,15 +158,13 @@ G_MODULE_EXPORT
 void
 deinit (void)
 {
-#ifdef HAVE_LIBNM_GLIB
-	if (nm_client != NULL)
+	if (nm_proxy != NULL)
 	{
-		g_object_unref(nm_client);
+		g_object_unref(nm_proxy);
 	}
-#endif
 
-	if (dbus_proxy != NULL)
+	if (upower_proxy != NULL)
 	{
-		g_object_unref(dbus_proxy);
+		g_object_unref(upower_proxy);
 	}
 }
