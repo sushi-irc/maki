@@ -80,9 +80,6 @@ servers_disconnect (const gchar* message)
 static void
 nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
 {
-	/* FIXME causes double connect, which causes other issues */
-	return;
-
 	if (g_strcmp0(signal_name, "StateChanged") == 0)
 	{
 		makiInstance* inst = maki_instance_get_default();

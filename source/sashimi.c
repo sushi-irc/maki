@@ -61,6 +61,7 @@ struct sashimi_connection
 	}
 	stream;
 
+	gboolean connected;
 	glong last_activity;
 	guint timeout;
 
@@ -307,6 +308,7 @@ sashimiConnection* sashimi_new (GMainContext* main_context)
 	conn->stream.input = NULL;
 	conn->stream.output = NULL;
 
+	conn->connected = FALSE;
 	conn->last_activity = 0;
 	conn->timeout = 0;
 
@@ -371,7 +373,10 @@ gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint p
 	g_return_val_if_fail(address != NULL, FALSE);
 	g_return_val_if_fail(port != 0, FALSE);
 
-	sashimi_disconnect(conn);
+	if (conn->connected)
+	{
+		return FALSE;
+	}
 
 	client = g_socket_client_new();
 
@@ -389,12 +394,19 @@ gboolean sashimi_connect (sashimiConnection* conn, const gchar* address, guint p
 	g_socket_client_connect_to_host_async(client, address, port, conn->cancellables[c_connect], sashimi_connect_cb, conn);
 	g_object_unref(client);
 
+	conn->connected = TRUE;
+
 	return TRUE;
 }
 
 gboolean sashimi_disconnect (sashimiConnection* conn)
 {
 	g_return_val_if_fail(conn != NULL, FALSE);
+
+	if (!conn->connected)
+	{
+		return FALSE;
+	}
 
 	g_mutex_lock(conn->queue_mutex);
 
@@ -429,6 +441,8 @@ gboolean sashimi_disconnect (sashimiConnection* conn)
 		g_object_unref(conn->stream.output);
 		conn->stream.output = NULL;
 	}
+
+	conn->connected = FALSE;
 
 	return TRUE;
 }
