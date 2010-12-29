@@ -101,7 +101,8 @@ static void sashimi_cancel (sashimiConnection* conn)
 	for (i = 0; i < c_last; i++)
 	{
 		g_cancellable_cancel(conn->cancellables[i]);
-		g_cancellable_reset(conn->cancellables[i]);
+		g_object_unref(conn->cancellables[i]);
+		conn->cancellables[i] = g_cancellable_new();
 	}
 
 	for (i = 0; i < s_last; i++)
@@ -123,15 +124,16 @@ static guint sashimi_timeout_add_seconds (sashimiConnection* conn, guint32 inter
 
 static void sashimi_read_cb (GObject* object, GAsyncResult* result, gpointer data)
 {
+	GDataInputStream* stream = G_DATA_INPUT_STREAM(object);
 	sashimiConnection* conn = data;
-	GTimeVal timeval;
 	GError* error = NULL;
 	gchar* buffer;
 
-	g_get_current_time(&timeval);
-
-	if ((buffer = g_data_input_stream_read_line_finish(conn->stream.input, result, NULL, &error)) != NULL)
+	if ((buffer = g_data_input_stream_read_line_finish(stream, result, NULL, &error)) != NULL)
 	{
+		GTimeVal timeval;
+
+		g_get_current_time(&timeval);
 		conn->last_activity = timeval.tv_sec;
 
 		/* Remove whitespace at the end of the string. */
@@ -156,16 +158,27 @@ static void sashimi_read_cb (GObject* object, GAsyncResult* result, gpointer dat
 
 	if (error != NULL)
 	{
+		gboolean canceled;
+
+		canceled = (error->domain == G_IO_ERROR && error->code == G_IO_ERROR_CANCELLED);
+
+		g_printerr("READ_ERROR: %s\n", error->message);
 		g_error_free(error);
+
+		if (canceled)
+		{
+			return;
+		}
+
 		goto reconnect;
 	}
 
-	g_data_input_stream_read_line_async(conn->stream.input, G_PRIORITY_DEFAULT, conn->cancellables[c_read], sashimi_read_cb, conn);
+	g_data_input_stream_read_line_async(stream, G_PRIORITY_DEFAULT, conn->cancellables[c_read], sashimi_read_cb, conn);
 
 	return;
 
 reconnect:
-	sashimi_cancel(conn);
+	sashimi_disconnect(conn);
 
 	if (conn->reconnect.callback)
 	{
@@ -224,9 +237,25 @@ static void sashimi_connect_cb (GObject* object, GAsyncResult* result, gpointer 
 	GSocketClient* client = G_SOCKET_CLIENT(object);
 	sashimiConnection* conn = data;
 	GTimeVal timeval;
+	GError* error = NULL;
 
-	if ((conn->connection = g_socket_client_connect_to_host_finish(client, result, NULL)) == NULL)
+	if ((conn->connection = g_socket_client_connect_to_host_finish(client, result, &error)) == NULL)
 	{
+		if (error != NULL)
+		{
+			gboolean canceled;
+
+			canceled = (error->domain == G_IO_ERROR && error->code == G_IO_ERROR_CANCELLED);
+
+			g_printerr("CONNECT_ERROR: %s\n", error->message);
+			g_error_free(error);
+
+			if (canceled)
+			{
+				return;
+			}
+		}
+
 		goto reconnect;
 	}
 
@@ -249,7 +278,7 @@ static void sashimi_connect_cb (GObject* object, GAsyncResult* result, gpointer 
 	return;
 
 reconnect:
-	sashimi_cancel(conn);
+	sashimi_disconnect(conn);
 
 	if (conn->reconnect.callback)
 	{
