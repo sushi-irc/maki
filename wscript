@@ -10,9 +10,7 @@ def options (ctx):
 	ctx.load('compiler_c')
 
 def configure (ctx):
-	ctx.load('c_config')
 	ctx.load('compiler_c')
-	ctx.load('glib2')
 	ctx.load('gnu_dirs')
 
 	ctx.env.CFLAGS += ['-std=c99', '-pedantic', '-Wall', '-Wextra']
@@ -23,7 +21,6 @@ def configure (ctx):
 	ctx.env.VERSION = VERSION
 
 	ctx.recurse('data')
-	ctx.recurse('documentation')
 	ctx.recurse('po')
 	ctx.recurse('source')
 

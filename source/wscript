@@ -36,9 +36,6 @@ def configure (ctx):
 		mandatory = False
 	)
 
-	if not ctx.env.VERSION:
-		ctx.env.VERSION = ''
-
 	ctx.define('G_DISABLE_DEPRECATED', 1)
 	ctx.define('SUSHI_VERSION', ctx.env.VERSION)
 
@@ -50,7 +47,7 @@ def build (ctx):
 	components = ('ilib', 'sashimi', 'channel', 'channel_user', 'dcc_send', 'dbus', 'dbus_server', 'in', 'instance', 'log', 'maki', 'misc', 'network', 'out', 'plugin', 'server', 'user')
 
 	ctx.program(
-		source = ['%s.c' % (c) for c in components],
+		source = ['%s.c' % (c,) for c in components],
 		target = 'maki',
 		use = ['GLIB-2.0', 'GIO-2.0', 'GOBJECT-2.0', 'GTHREAD-2.0', 'GMODULE-2.0', 'NICE'],
 		includes = ['.'],
