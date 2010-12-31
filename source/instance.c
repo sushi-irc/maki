@@ -593,7 +593,7 @@ void maki_instance_load_plugins (makiInstance* inst)
 	g_strfreev(plugins);
 }
 
-gboolean maki_instance_plugin_method (makiInstance* inst, const gchar* plugin, const gchar* method, gpointer symbol)
+gboolean maki_instance_plugin_method (makiInstance* inst, const gchar* plugin, const gchar* method, gpointer* symbol)
 {
 	GModule* module;
 

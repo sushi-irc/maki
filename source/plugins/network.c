@@ -88,7 +88,7 @@ nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* pa
 
 		gboolean (*sleeping) (void);
 
-		if (maki_instance_plugin_method(inst, "sleep", "sleeping", &sleeping))
+		if (maki_instance_plugin_method(inst, "sleep", "sleeping", (gpointer*)&sleeping))
 		{
 			is_sleeping = sleeping();
 		}

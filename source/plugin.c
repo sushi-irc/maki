@@ -32,7 +32,8 @@
 
 #include "plugin.h"
 
-GModule* maki_plugin_load (const gchar* name)
+GModule*
+maki_plugin_load (const gchar* name)
 {
 	gchar* path;
 	GModule* module = NULL;
@@ -43,7 +44,7 @@ GModule* maki_plugin_load (const gchar* name)
 		{
 			makiPluginInitFunc init;
 
-			if (g_module_symbol(module, "init", (gpointer)&init))
+			if (g_module_symbol(module, "init", (gpointer*)&init))
 			{
 				(*init)();
 			}
@@ -55,12 +56,13 @@ GModule* maki_plugin_load (const gchar* name)
 	return module;
 }
 
-void maki_plugin_unload (gpointer data)
+void
+maki_plugin_unload (gpointer data)
 {
 	GModule* module = data;
 	makiPluginDeinitFunc deinit;
 
-	if (g_module_symbol(module, "deinit", (gpointer)&deinit))
+	if (g_module_symbol(module, "deinit", (gpointer*)&deinit))
 	{
 		(*deinit)();
 	}
