@@ -506,6 +506,7 @@ gboolean maki_dbus_channel_nicks (const gchar* server, const gchar* channel, gch
 		{
 			gchar** nick;
 			gchar** prefix;
+			const gchar* prefix_prefixes;
 			gchar prefix_str[2];
 			gsize length;
 			GHashTableIter iter;
@@ -515,7 +516,8 @@ gboolean maki_dbus_channel_nicks (const gchar* server, const gchar* channel, gch
 			prefix = *prefixes = g_new(gchar*, maki_channel_users_count(chan) + 1);
 			maki_channel_users_iter(chan, &iter);
 
-			length = strlen(serv->support.prefix.prefixes);
+			prefix_prefixes = maki_server_support(serv, MAKI_SERVER_SUPPORT_PREFIX_PREFIXES);
+			length = strlen(prefix_prefixes);
 			prefix_str[1] = '\0';
 
 			while (g_hash_table_iter_next(&iter, &key, &value))
@@ -532,7 +534,7 @@ gboolean maki_dbus_channel_nicks (const gchar* server, const gchar* channel, gch
 				{
 					if (cuser->prefix & (1 << pos))
 					{
-						prefix_str[0] = serv->support.prefix.prefixes[pos];
+						prefix_str[0] = prefix_prefixes[pos];
 						break;
 					}
 				}
@@ -1467,7 +1469,7 @@ gboolean maki_dbus_support_chantypes (const gchar* server, gchar** chantypes, GE
 
 	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
-		*chantypes = g_strdup(serv->support.chantypes);
+		*chantypes = g_strdup(maki_server_support(serv, MAKI_SERVER_SUPPORT_CHANTYPES));
 	}
 
 	maki_ensure_string(chantypes);
@@ -1485,8 +1487,8 @@ gboolean maki_dbus_support_prefix (const gchar* server, gchar*** prefix, GError*
 	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		*prefix = g_new(gchar*, 3);
-		(*prefix)[0] = g_strdup(serv->support.prefix.modes);
-		(*prefix)[1] = g_strdup(serv->support.prefix.prefixes);
+		(*prefix)[0] = g_strdup(maki_server_support(serv, MAKI_SERVER_SUPPORT_PREFIX_MODES));
+		(*prefix)[1] = g_strdup(maki_server_support(serv, MAKI_SERVER_SUPPORT_PREFIX_PREFIXES));
 		(*prefix)[2] = NULL;
 	}
 
@@ -1630,17 +1632,19 @@ gboolean maki_dbus_user_channel_mode (const gchar* server, const gchar* channel,
 
 			if ((cuser = maki_channel_get_user(chan, nick)) != NULL)
 			{
+				const gchar* prefix_modes;
 				gint pos;
 				gint length;
 				gchar tmp = '\0';
 
-				length = strlen(serv->support.prefix.modes);
+				prefix_modes = maki_server_support(serv, MAKI_SERVER_SUPPORT_PREFIX_MODES);
+				length = strlen(prefix_modes);
 
 				for (pos = 0; pos < length; pos++)
 				{
 					if (cuser->prefix & (1 << pos))
 					{
-						tmp = serv->support.prefix.modes[pos];
+						tmp = prefix_modes[pos];
 						break;
 					}
 				}
@@ -1682,17 +1686,19 @@ gboolean maki_dbus_user_channel_prefix (const gchar* server, const gchar* channe
 
 			if ((cuser = maki_channel_get_user(chan, nick)) != NULL)
 			{
+				const gchar* prefix_prefixes;
 				gint pos;
 				gint length;
 				gchar tmp = '\0';
 
-				length = strlen(serv->support.prefix.prefixes);
+				prefix_prefixes = maki_server_support(serv, MAKI_SERVER_SUPPORT_PREFIX_PREFIXES);
+				length = strlen(prefix_prefixes);
 
 				for (pos = 0; pos < length; pos++)
 				{
 					if (cuser->prefix & (1 << pos))
 					{
-						tmp = serv->support.prefix.prefixes[pos];
+						tmp = prefix_prefixes[pos];
 						break;
 					}
 				}
