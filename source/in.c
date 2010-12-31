@@ -784,14 +784,7 @@ static void maki_in_mode (makiServer* serv, glong timestamp, makiUser* user, gch
 					if ((chan = maki_server_get_channel(serv, target)) != NULL
 					    && (cuser = maki_channel_get_user(chan, modes[i])) != NULL)
 					{
-						if (sign == '+')
-						{
-							cuser->prefix |= (1 << pos);
-						}
-						else
-						{
-							cuser->prefix &= ~(1 << pos);
-						}
+						maki_channel_user_prefix_set(cuser, pos, (sign == '+'));
 					}
 				}
 
@@ -1012,7 +1005,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 
 				cuser = maki_channel_user_new(user);
 				maki_channel_add_user(chan, nick, cuser);
-				cuser->prefix = prefix;
+				maki_channel_user_set_prefix(cuser, prefix);
 
 				nicks[j] = nick;
 				prefixes[j] = g_strdup(prefix_str);

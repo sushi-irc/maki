@@ -36,16 +36,14 @@ typedef struct maki_channel_user makiChannelUser;
 
 #include "user.h"
 
-struct maki_channel_user
-{
-	makiUser* user;
-	guint prefix;
-
-	guint ref_count;
-};
-
 makiChannelUser* maki_channel_user_new (makiUser*);
 makiChannelUser* maki_channel_user_ref (makiChannelUser*);
 void maki_channel_user_unref (gpointer);
+
+makiUser* maki_channel_user_user (makiChannelUser*);
+
+gboolean maki_channel_user_prefix_get (makiChannelUser*, guint);
+void maki_channel_user_prefix_set (makiChannelUser*, guint, gboolean);
+void maki_channel_user_set_prefix (makiChannelUser*, guint);
 
 #endif

@@ -31,7 +31,18 @@
 
 #include "channel_user.h"
 
-makiChannelUser* maki_channel_user_new (makiUser* user)
+#include "user.h"
+
+struct maki_channel_user
+{
+	makiUser* user;
+	guint prefix;
+
+	guint ref_count;
+};
+
+makiChannelUser*
+maki_channel_user_new (makiUser* user)
 {
 	makiChannelUser* cuser;
 
@@ -44,14 +55,16 @@ makiChannelUser* maki_channel_user_new (makiUser* user)
 	return cuser;
 }
 
-makiChannelUser* maki_channel_user_ref (makiChannelUser* cuser)
+makiChannelUser*
+maki_channel_user_ref (makiChannelUser* cuser)
 {
 	cuser->ref_count++;
 
 	return cuser;
 }
 
-void maki_channel_user_unref (gpointer data)
+void
+maki_channel_user_unref (gpointer data)
 {
 	makiChannelUser* cuser = data;
 
@@ -63,4 +76,35 @@ void maki_channel_user_unref (gpointer data)
 
 		g_free(cuser);
 	}
+}
+
+makiUser*
+maki_channel_user_user (makiChannelUser* cuser)
+{
+	return cuser->user;
+}
+
+gboolean
+maki_channel_user_prefix_get (makiChannelUser* cuser, guint pos)
+{
+	return (cuser->prefix & (1 << pos));
+}
+
+void
+maki_channel_user_prefix_set (makiChannelUser* cuser, guint pos, gboolean set)
+{
+	if (set)
+	{
+		cuser->prefix |= (1 << pos);
+	}
+	else
+	{
+		cuser->prefix &= ~(1 << pos);
+	}
+}
+
+void
+maki_channel_user_set_prefix (makiChannelUser* cuser, guint prefix)
+{
+	cuser->prefix = prefix;
 }

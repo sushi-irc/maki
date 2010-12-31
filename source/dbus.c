@@ -525,14 +525,14 @@ gboolean maki_dbus_channel_nicks (const gchar* server, const gchar* channel, gch
 				guint pos;
 				makiChannelUser* cuser = value;
 
-				*nick = g_strdup(maki_user_nick(cuser->user));
+				*nick = g_strdup(maki_user_nick(maki_channel_user_user(cuser)));
 				nick++;
 
 				prefix_str[0] = '\0';
 
 				for (pos = 0; pos < length; pos++)
 				{
-					if (cuser->prefix & (1 << pos))
+					if (maki_channel_user_prefix_get(cuser, pos))
 					{
 						prefix_str[0] = prefix_prefixes[pos];
 						break;
@@ -1643,7 +1643,7 @@ gboolean maki_dbus_user_channel_mode (const gchar* server, const gchar* channel,
 
 				for (pos = 0; pos < length; pos++)
 				{
-					if (cuser->prefix & (1 << pos))
+					if (maki_channel_user_prefix_get(cuser, pos))
 					{
 						tmp = prefix_modes[pos];
 						break;
@@ -1697,7 +1697,7 @@ gboolean maki_dbus_user_channel_prefix (const gchar* server, const gchar* channe
 
 				for (pos = 0; pos < length; pos++)
 				{
-					if (cuser->prefix & (1 << pos))
+					if (maki_channel_user_prefix_get(cuser, pos))
 					{
 						tmp = prefix_prefixes[pos];
 						break;
