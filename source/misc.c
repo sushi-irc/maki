@@ -107,14 +107,15 @@ void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 		return;
 	}
 
-	if ((log = g_hash_table_lookup(serv->logs, file)) == NULL)
+	if ((log = maki_server_get_log(serv, file)) == NULL)
 	{
 		if ((log = maki_log_new(inst, maki_server_name(serv), file)) == NULL)
 		{
+			g_free(file);
 			return;
 		}
 
-		g_hash_table_insert(serv->logs, g_strdup(file), log);
+		maki_server_add_log(serv, file, log);
 	}
 
 	g_free(file);

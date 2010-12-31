@@ -79,9 +79,9 @@ makiInstance* maki_instance_get_default (void)
 
 static gpointer maki_instance_thread (gpointer data)
 {
-	makiInstance* serv = data;
+	makiInstance* inst = data;
 
-	g_main_loop_run(serv->main_loop);
+	g_main_loop_run(inst->main_loop);
 
 	return NULL;
 }

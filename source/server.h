@@ -39,6 +39,7 @@ typedef struct maki_server makiServer;
 #include <glib.h>
 
 #include "channel.h"
+#include "log.h"
 #include "sashimi.h"
 #include "user.h"
 
@@ -110,11 +111,13 @@ makiUser* maki_server_get_user (makiServer*, const gchar*);
 gboolean maki_server_remove_user (makiServer*, const gchar*);
 const gchar* maki_server_name (makiServer*);
 gboolean maki_server_autoconnect (makiServer*);
-makiChannel* maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
+void maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
 makiChannel* maki_server_get_channel (makiServer*, const gchar*);
 gboolean maki_server_remove_channel (makiServer*, const gchar*);
 guint maki_server_channels_count (makiServer*);
 void maki_server_channels_iter (makiServer*, GHashTableIter*);
+void maki_server_add_log (makiServer*, const gchar*, makiLog*);
+makiLog* maki_server_get_log (makiServer*, const gchar*);
 gboolean maki_server_queue (makiServer*, const gchar*, gboolean);
 gboolean maki_server_send (makiServer*, const gchar*);
 gboolean maki_server_send_printf (makiServer*, const gchar*, ...) G_GNUC_PRINTF(2, 3);

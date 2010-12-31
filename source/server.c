@@ -322,11 +322,9 @@ gboolean maki_server_autoconnect (makiServer* serv)
 	return maki_server_config_get_boolean(serv, "server", "autoconnect");
 }
 
-makiChannel* maki_server_add_channel (makiServer* serv, const gchar* name, makiChannel* chan)
+void maki_server_add_channel (makiServer* serv, const gchar* name, makiChannel* chan)
 {
 	g_hash_table_insert(serv->channels, g_strdup(name), chan);
-
-	return chan;
 }
 
 makiChannel* maki_server_get_channel (makiServer* serv, const gchar* name)
@@ -347,6 +345,16 @@ guint maki_server_channels_count (makiServer* serv)
 void maki_server_channels_iter (makiServer* serv, GHashTableIter* iter)
 {
 	g_hash_table_iter_init(iter, serv->channels);
+}
+
+void maki_server_add_log (makiServer* serv, const gchar* name, makiLog* log)
+{
+	g_hash_table_insert(serv->logs, g_strdup(name), log);
+}
+
+makiLog* maki_server_get_log (makiServer* serv, const gchar* name)
+{
+	return g_hash_table_lookup(serv->logs, name);
 }
 
 gboolean maki_server_queue (makiServer* serv, const gchar* message, gboolean force)
