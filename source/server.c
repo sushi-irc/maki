@@ -43,6 +43,54 @@
 #include "misc.h"
 #include "out.h"
 
+struct maki_server
+{
+	gchar* name;
+	gboolean connected;
+	gboolean logged_in;
+	sashimiConnection* connection;
+	GHashTable* channels;
+	GHashTable* users;
+	GHashTable* logs;
+
+	makiUser* user;
+
+	GKeyFile* key_file;
+
+	struct
+	{
+		gint retries;
+		guint source;
+	}
+	reconnect;
+
+	struct
+	{
+		guint away;
+	}
+	sources;
+
+	struct
+	{
+		gchar* chanmodes;
+		gchar* chantypes;
+
+		struct
+		{
+			gchar* modes;
+			gchar* prefixes;
+		}
+		prefix;
+	}
+	support;
+
+	GMainContext* main_context;
+	GMainLoop* main_loop;
+	GThread* thread;
+
+	guint ref_count;
+};
+
 static gboolean maki_server_away (gpointer data)
 {
 	makiServer* serv = data;

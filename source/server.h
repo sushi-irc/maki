@@ -53,54 +53,6 @@ typedef enum makiServerSupport makiServerSupport;
 #include "sashimi.h"
 #include "user.h"
 
-struct maki_server
-{
-	gchar* name;
-	gboolean connected;
-	gboolean logged_in;
-	sashimiConnection* connection;
-	GHashTable* channels;
-	GHashTable* users;
-	GHashTable* logs;
-
-	makiUser* user;
-
-	GKeyFile* key_file;
-
-	struct
-	{
-		gint retries;
-		guint source;
-	}
-	reconnect;
-
-	struct
-	{
-		guint away;
-	}
-	sources;
-
-	struct
-	{
-		gchar* chanmodes;
-		gchar* chantypes;
-
-		struct
-		{
-			gchar* modes;
-			gchar* prefixes;
-		}
-		prefix;
-	}
-	support;
-
-	GMainContext* main_context;
-	GMainLoop* main_loop;
-	GThread* thread;
-
-	guint ref_count;
-};
-
 makiServer* maki_server_new (const gchar*);
 gboolean maki_server_config_get_boolean (makiServer*, const gchar*, const gchar*);
 void maki_server_config_set_boolean (makiServer*, const gchar*, const gchar*, gboolean);
