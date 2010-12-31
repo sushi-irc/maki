@@ -292,6 +292,22 @@ gboolean maki_server_config_exists (makiServer* serv, const gchar* group, const 
 	return g_key_file_has_key(serv->key_file, group, key, NULL);
 }
 
+gboolean
+maki_server_connected (makiServer* serv)
+{
+	return serv->connected;
+}
+
+gboolean maki_server_logged_in (makiServer* serv)
+{
+	return serv->logged_in;
+}
+
+void maki_server_set_logged_in (makiServer* serv, gboolean logged_in)
+{
+	serv->logged_in = logged_in;
+}
+
 makiUser* maki_server_user (makiServer* serv)
 {
 	return serv->user;

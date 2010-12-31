@@ -1556,7 +1556,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 				case 376:
 				/* ERR_NOMOTD */
 				case 422:
-					serv->logged_in = TRUE;
+					maki_server_set_logged_in(serv, TRUE);
 					maki_out_nickserv(serv);
 					g_timeout_add_seconds(3, maki_join, serv);
 					maki_commands(serv);
@@ -1570,7 +1570,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 					break;
 				/* ERR_NICKNAMEINUSE */
 				case 433:
-					if (!serv->logged_in)
+					if (!maki_server_logged_in(serv))
 					{
 						gchar* nick;
 

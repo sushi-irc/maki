@@ -1416,6 +1416,7 @@ gboolean maki_dbus_servers (gchar*** servers, GError** error)
 	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
 
+	/* FIXME wastes memory */
 	server = *servers = g_new(gchar*, maki_instance_servers_count(inst) + 1);
 	maki_instance_servers_iter(inst, &iter);
 
@@ -1423,10 +1424,10 @@ gboolean maki_dbus_servers (gchar*** servers, GError** error)
 	{
 		makiServer* serv = value;
 
-		if (serv->connected)
+		if (maki_server_connected(serv))
 		{
 			*server = g_strdup(maki_server_name(serv));
-			++server;
+			server++;
 		}
 	}
 
