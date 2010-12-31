@@ -36,6 +36,16 @@ struct maki_server;
 
 typedef struct maki_server makiServer;
 
+enum makiServerSupport
+{
+	MAKI_SERVER_SUPPORT_CHANMODES,
+	MAKI_SERVER_SUPPORT_CHANTYPES,
+	MAKI_SERVER_SUPPORT_PREFIX_MODES,
+	MAKI_SERVER_SUPPORT_PREFIX_PREFIXES
+};
+
+typedef enum makiServerSupport makiServerSupport;
+
 #include <glib.h>
 
 #include "channel.h"
@@ -106,6 +116,8 @@ gchar** maki_server_config_get_keys (makiServer*, const gchar*);
 gchar** maki_server_config_get_groups (makiServer*);
 gboolean maki_server_config_exists (makiServer*, const gchar*, const gchar*);
 makiUser* maki_server_user (makiServer*);
+const gchar* maki_server_support (makiServer*, makiServerSupport);
+void maki_server_set_support (makiServer*, makiServerSupport, const gchar*);
 void maki_server_add_user (makiServer*, const gchar*, makiUser*);
 makiUser* maki_server_get_user (makiServer*, const gchar*);
 gboolean maki_server_remove_user (makiServer*, const gchar*);

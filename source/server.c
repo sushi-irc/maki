@@ -297,6 +297,50 @@ makiUser* maki_server_user (makiServer* serv)
 	return serv->user;
 }
 
+const gchar*
+maki_server_support (makiServer* serv, makiServerSupport support)
+{
+	switch (support)
+	{
+		case MAKI_SERVER_SUPPORT_CHANMODES:
+			return serv->support.chanmodes;
+		case MAKI_SERVER_SUPPORT_CHANTYPES:
+			return serv->support.chantypes;
+		case MAKI_SERVER_SUPPORT_PREFIX_MODES:
+			return serv->support.prefix.modes;
+		case MAKI_SERVER_SUPPORT_PREFIX_PREFIXES:
+			return serv->support.prefix.prefixes;
+		default:
+			g_return_val_if_reached(NULL);
+	}
+}
+
+void
+maki_server_set_support (makiServer* serv, makiServerSupport support, const gchar* value)
+{
+	switch (support)
+	{
+		case MAKI_SERVER_SUPPORT_CHANMODES:
+			g_free(serv->support.chanmodes);
+			serv->support.chanmodes = g_strdup(value);
+			break;
+		case MAKI_SERVER_SUPPORT_CHANTYPES:
+			g_free(serv->support.chantypes);
+			serv->support.chantypes = g_strdup(value);
+			break;
+		case MAKI_SERVER_SUPPORT_PREFIX_MODES:
+			g_free(serv->support.prefix.modes);
+			serv->support.prefix.modes = g_strdup(value);
+			break;
+		case MAKI_SERVER_SUPPORT_PREFIX_PREFIXES:
+			g_free(serv->support.prefix.prefixes);
+			serv->support.prefix.prefixes = g_strdup(value);
+			break;
+		default:
+			g_return_if_reached();
+	}
+}
+
 void maki_server_add_user (makiServer* serv, const gchar* nick, makiUser* user)
 {
 	g_hash_table_insert(serv->users, g_strdup(nick), user);

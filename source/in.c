@@ -58,30 +58,31 @@ static gchar* maki_remove_colon (gchar* string)
 	return string;
 }
 
-static gboolean maki_mode_has_parameter (makiServer* serv, gchar sign, gchar mode)
+static gboolean
+maki_mode_has_parameter (makiServer* serv, gchar sign, gchar mode)
 {
-	gint type;
-	gchar* chanmode;
+	guint type;
+	const gchar* chanmodes;
 
-	if (serv->support.chanmodes == NULL)
-	{
-		return FALSE;
-	}
-
-	if (strchr(serv->support.prefix.modes, mode) != NULL)
+	if (strchr(maki_server_support(serv, MAKI_SERVER_SUPPORT_PREFIX_MODES), mode) != NULL)
 	{
 		return TRUE;
 	}
 
-	for (chanmode = serv->support.chanmodes, type = 0; *chanmode != '\0'; ++chanmode)
+	if ((chanmodes = maki_server_support(serv, MAKI_SERVER_SUPPORT_CHANMODES)) == NULL)
 	{
-		if (*chanmode == ',')
+		return FALSE;
+	}
+
+	for (type = 0; *chanmodes != '\0'; chanmodes++)
+	{
+		if (*chanmodes == ',')
 		{
-			++type;
+			type++;
 			continue;
 		}
 
-		if (*chanmode == mode)
+		if (*chanmodes == mode)
 		{
 			if (type == 0 || type == 1)
 			{
@@ -101,15 +102,17 @@ static gboolean maki_mode_has_parameter (makiServer* serv, gchar sign, gchar mod
 	return FALSE;
 }
 
-static gboolean maki_is_channel(makiServer* serv, const gchar* target)
+static gboolean
+maki_is_channel(makiServer* serv, const gchar* target)
 {
-	return (strchr(serv->support.chantypes, target[0]) != NULL);
+	return (strchr(maki_server_support(serv, MAKI_SERVER_SUPPORT_CHANTYPES), target[0]) != NULL);
 }
 
-static gint maki_prefix_position (makiServer* serv, gboolean is_prefix, gchar prefix)
+static gint
+maki_prefix_position (makiServer* serv, gboolean is_prefix, gchar prefix)
 {
 	guint pos = 0;
-	gchar* str = (is_prefix) ? serv->support.prefix.prefixes : serv->support.prefix.modes;
+	const gchar* str = (is_prefix) ? maki_server_support(serv, MAKI_SERVER_SUPPORT_PREFIX_PREFIXES) : maki_server_support(serv, MAKI_SERVER_SUPPORT_PREFIX_MODES);
 
 	while (str[pos] != '\0')
 	{
@@ -998,7 +1001,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 				{
 					if (prefix_str[0] == '\0')
 					{
-						prefix_str[0] = serv->support.prefix.prefixes[pos];
+						prefix_str[0] = maki_server_support(serv, MAKI_SERVER_SUPPORT_PREFIX_PREFIXES)[pos];
 					}
 
 					prefix |= (1 << pos);
@@ -1124,13 +1127,11 @@ static void maki_in_rpl_isupport (makiServer* serv, glong timestamp, gchar* rema
 
 		if (strncmp(support[0], "CHANMODES", 9) == 0)
 		{
-			g_free(serv->support.chanmodes);
-			serv->support.chanmodes = g_strdup(support[1]);
+			maki_server_set_support(serv, MAKI_SERVER_SUPPORT_CHANMODES, support[1]);
 		}
 		else if (strncmp(support[0], "CHANTYPES", 9) == 0)
 		{
-			g_free(serv->support.chantypes);
-			serv->support.chantypes = g_strdup(support[1]);
+			maki_server_set_support(serv, MAKI_SERVER_SUPPORT_CHANTYPES, support[1]);
 		}
 		else if (strncmp(support[0], "PREFIX", 6) == 0)
 		{
@@ -1141,10 +1142,8 @@ static void maki_in_rpl_isupport (makiServer* serv, glong timestamp, gchar* rema
 			if (support[1][0] == '(' && paren != NULL)
 			{
 				*paren = '\0';
-				g_free(serv->support.prefix.modes);
-				g_free(serv->support.prefix.prefixes);
-				serv->support.prefix.modes = g_strdup(support[1] + 1);
-				serv->support.prefix.prefixes = g_strdup(paren + 1);
+				maki_server_set_support(serv, MAKI_SERVER_SUPPORT_PREFIX_MODES, support[1] + 1);
+				maki_server_set_support(serv, MAKI_SERVER_SUPPORT_PREFIX_PREFIXES, paren + 1);
 			}
 		}
 
