@@ -247,18 +247,12 @@ void maki_dbus_emit_dcc_send (gint64 timestamp, guint64 id, const gchar* server,
 
 void maki_dbus_emit_error (gint64 timestamp, const gchar* server, const gchar* domain, const gchar* reason, gchar** arguments)
 {
-	GVariantBuilder* builder;
-
-	builder = maki_variant_builder_array_string(arguments);
-
-	maki_dbus_emit_helper("error", "(xsssas)",
+	maki_dbus_emit_helper("error", "(xsss^as)",
 		timestamp,
 		server,
 		domain,
 		reason,
-		builder);
-
-	g_variant_builder_unref(builder);
+		arguments);
 }
 
 void maki_dbus_emit_invite (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
@@ -332,20 +326,12 @@ void maki_dbus_emit_motd (gint64 timestamp, const gchar* server, const gchar* me
 
 void maki_dbus_emit_names (gint64 timestamp, const gchar* server, const gchar* channel, gchar** nicks, gchar** prefixes)
 {
-	GVariantBuilder* builder[2];
-
-	builder[0] = maki_variant_builder_array_string(nicks);
-	builder[1] = maki_variant_builder_array_string(prefixes);
-
-	maki_dbus_emit_helper("names", "(xssasas)",
+	maki_dbus_emit_helper("names", "(xss^as^as)",
 		timestamp,
 		server,
 		channel,
-		builder[0],
-		builder[1]);
-
-	g_variant_builder_unref(builder[0]);
-	g_variant_builder_unref(builder[1]);
+		nicks,
+		prefixes);
 }
 
 void maki_dbus_emit_nick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* new_nick)

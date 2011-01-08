@@ -45,9 +45,6 @@ void maki_log (makiServer*, const gchar*, const gchar*, ...) G_GNUC_PRINTF(3, 4)
 void maki_ensure_string (gchar**);
 void maki_ensure_string_array (gchar***);
 
-GVariantBuilder* maki_variant_builder_array_string (gchar**);
 GVariantBuilder* maki_variant_builder_array_uint64 (GArray*);
-
-gchar** maki_variant_iter_array_string (GVariantIter*);
 
 #endif

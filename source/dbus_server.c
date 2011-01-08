@@ -106,8 +106,6 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 	}
 	else if (g_strcmp0(method, "channel_nicks") == 0)
 	{
-		GVariantBuilder* builder[2];
-
 		const gchar* server;
 		const gchar* channel;
 
@@ -116,11 +114,7 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 
 		g_variant_get(parameters, "(&s&s)", &server, &channel);
 		maki_dbus_channel_nicks(server, channel, &nicks, &prefixes, NULL);
-		builder[0] = maki_variant_builder_array_string(nicks);
-		builder[1] = maki_variant_builder_array_string(prefixes);
-		g_dbus_method_invocation_return_value(invocation, g_variant_new("(asas)", builder[0], builder[1]));
-		g_variant_builder_unref(builder[0]);
-		g_variant_builder_unref(builder[1]);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(^as^as)", nicks, prefixes));
 
 		g_strfreev(nicks);
 		g_strfreev(prefixes);
@@ -140,17 +134,13 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 	}
 	else if (g_strcmp0(method, "channels") == 0)
 	{
-		GVariantBuilder* builder;
-
 		const gchar* server;
 
 		gchar** channels;
 
 		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_channels(server, &channels, NULL);
-		builder = maki_variant_builder_array_string(channels);
-		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
-		g_variant_builder_unref(builder);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(^as)", channels));
 
 		g_strfreev(channels);
 	}
@@ -207,7 +197,7 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 	}
 	else if (g_strcmp0(method, "dcc_sends") == 0)
 	{
-		GVariantBuilder* builder[8];
+		GVariantBuilder* builder[5];
 
 		GArray* ids;
 		gchar** servers;
@@ -220,22 +210,16 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 
 		maki_dbus_dcc_sends(&ids, &servers, &froms, &filenames, &sizes, &progresses, &speeds, &statuses, NULL);
 		builder[0] = maki_variant_builder_array_uint64(ids);
-		builder[1] = maki_variant_builder_array_string(servers);
-		builder[2] = maki_variant_builder_array_string(froms);
-		builder[3] = maki_variant_builder_array_string(filenames);
-		builder[4] = maki_variant_builder_array_uint64(sizes);
-		builder[5] = maki_variant_builder_array_uint64(progresses);
-		builder[6] = maki_variant_builder_array_uint64(speeds);
-		builder[7] = maki_variant_builder_array_uint64(statuses);
-		g_dbus_method_invocation_return_value(invocation, g_variant_new("(atasasasatatatat)", builder[0], builder[1], builder[2], builder[3], builder[4], builder[5], builder[6], builder[7]));
+		builder[1] = maki_variant_builder_array_uint64(sizes);
+		builder[2] = maki_variant_builder_array_uint64(progresses);
+		builder[3] = maki_variant_builder_array_uint64(speeds);
+		builder[4] = maki_variant_builder_array_uint64(statuses);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(at^as^as^asatatatat)", builder[0], servers, froms, filenames, builder[1], builder[2], builder[3], builder[4]));
 		g_variant_builder_unref(builder[0]);
 		g_variant_builder_unref(builder[1]);
 		g_variant_builder_unref(builder[2]);
 		g_variant_builder_unref(builder[3]);
 		g_variant_builder_unref(builder[4]);
-		g_variant_builder_unref(builder[5]);
-		g_variant_builder_unref(builder[6]);
-		g_variant_builder_unref(builder[7]);
 
 		g_array_free(ids, TRUE);
 		g_strfreev(servers);
@@ -304,17 +288,13 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 	}
 	else if (g_strcmp0(method, "ignores") == 0)
 	{
-		GVariantBuilder* builder;
-
 		const gchar* server;
 
 		gchar** ignores;
 
 		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_ignores(server, &ignores, NULL);
-		builder = maki_variant_builder_array_string(ignores);
-		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
-		g_variant_builder_unref(builder);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(^as)", ignores));
 
 		g_strfreev(ignores);
 	}
@@ -360,8 +340,6 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 	}
 	else if (g_strcmp0(method, "log") == 0)
 	{
-		GVariantBuilder* builder;
-
 		const gchar* server;
 		const gchar* target;
 		guint64 lines;
@@ -370,9 +348,7 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 
 		g_variant_get(parameters, "(&s&st)", &server, &target, &lines);
 		maki_dbus_log(server, target, lines, &log, NULL);
-		builder = maki_variant_builder_array_string(log);
-		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
-		g_variant_builder_unref(builder);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(^as)", log));
 
 		g_strfreev(log);
 	}
@@ -486,8 +462,6 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 	}
 	else if (g_strcmp0(method, "server_get_list") == 0)
 	{
-		GVariantBuilder* builder;
-
 		const gchar* server;
 		const gchar* group;
 		const gchar* key;
@@ -496,16 +470,12 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 
 		g_variant_get(parameters, "(&s&s&s)", &server, &group, &key);
 		maki_dbus_server_get_list(server, group, key, &list, NULL);
-		builder = maki_variant_builder_array_string(list);
-		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
-		g_variant_builder_unref(builder);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(^as)", list));
 
 		g_strfreev(list);
 	}
 	else if (g_strcmp0(method, "server_list") == 0)
 	{
-		GVariantBuilder* builder;
-
 		const gchar* server;
 		const gchar* group;
 
@@ -513,9 +483,7 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 
 		g_variant_get(parameters, "(&s&s)", &server, &group);
 		maki_dbus_server_list(server, group, &result, NULL);
-		builder = maki_variant_builder_array_string(result);
-		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
-		g_variant_builder_unref(builder);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(^as)", result));
 
 		g_strfreev(result);
 	}
@@ -551,31 +519,23 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 	}
 	else if (g_strcmp0(method, "server_set_list") == 0)
 	{
-		GVariantIter* iter;
-
 		const gchar* server;
 		const gchar* group;
 		const gchar* key;
 		gchar** list;
 
-		g_variant_get(parameters, "(&s&s&sas)", &server, &group, &key, &iter);
-		list = maki_variant_iter_array_string(iter);
-		g_variant_iter_free(iter);
+		g_variant_get(parameters, "(&s&s&s^a&s)", &server, &group, &key, &list);
 		maki_dbus_server_set_list(server, group, key, list, NULL);
 		g_dbus_method_invocation_return_value(invocation, NULL);
 
-		g_strfreev(list);
+		g_free(list);
 	}
 	else if (g_strcmp0(method, "servers") == 0)
 	{
-		GVariantBuilder* builder;
-
 		gchar** servers;
 
 		maki_dbus_servers(&servers, NULL);
-		builder = maki_variant_builder_array_string(servers);
-		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
-		g_variant_builder_unref(builder);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(^as)", servers));
 
 		g_strfreev(servers);
 	}
@@ -601,17 +561,13 @@ maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* send
 	}
 	else if (g_strcmp0(method, "support_prefix") == 0)
 	{
-		GVariantBuilder* builder;
-
 		const gchar* server;
 
 		gchar** prefix;
 
 		g_variant_get(parameters, "(&s)", &server);
 		maki_dbus_support_prefix(server, &prefix, NULL);
-		builder = maki_variant_builder_array_string(prefix);
-		g_dbus_method_invocation_return_value(invocation, g_variant_new("(as)", builder));
-		g_variant_builder_unref(builder);
+		g_dbus_method_invocation_return_value(invocation, g_variant_new("(^as)", prefix));
 
 		g_strfreev(prefix);
 	}
