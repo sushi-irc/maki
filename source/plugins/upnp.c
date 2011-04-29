@@ -29,48 +29,133 @@
 #include <glib-object.h>
 #include <gmodule.h>
 
+#ifdef HAVE_GUPNP
+#include <libgupnp/gupnp-control-point.h>
+#endif
+
+#ifdef HAVE_GUPNP_IGD
 #include <libgupnp-igd/gupnp-simple-igd.h>
+#endif
 
 gboolean init (void);
 void deinit (void);
 
+gchar* get_external_ip (void);
 gboolean add_port (const gchar*, guint, const gchar*);
 gboolean remove_port (guint);
 
+#ifdef HAVE_GUPNP
+GUPnPContext* upnp_context;
+GUPnPControlPoint* upnp_control_point;
+GUPnPServiceProxy* upnp_service_proxy;
+#endif
+
+#ifdef HAVE_GUPNP_IGD
 GUPnPSimpleIgd* upnp_igd;
+#endif
+
+#ifdef HAVE_GUPNP
+static
+void
+on_service_proxy_available (GUPnPControlPoint* cp, GUPnPServiceProxy* proxy)
+{
+	upnp_service_proxy = g_object_ref(proxy);
+}
+#endif
 
 G_MODULE_EXPORT
-gboolean add_port (const gchar* ip, guint port, const gchar* description)
+gchar*
+get_external_ip (void)
+{
+#ifdef HAVE_GUPNP
+	if (upnp_service_proxy != NULL)
+	{
+		GError* error = NULL;
+		gchar* ip;
+
+		gupnp_service_proxy_send_action(upnp_service_proxy,
+			"GetExternalIPAddress",
+			&error,
+			NULL,
+			"NewExternalIPAddress", G_TYPE_STRING, &ip,
+			NULL
+		);
+
+		if (error == NULL)
+		{
+			return ip;
+		}
+
+		g_error_free(error);
+	}
+#endif
+
+	return NULL;
+}
+
+G_MODULE_EXPORT
+gboolean
+add_port (const gchar* ip, guint port, const gchar* description)
 {
 	g_return_val_if_fail(ip != NULL, FALSE);
 	g_return_val_if_fail(port != 0, FALSE);
 	g_return_val_if_fail(description != NULL, FALSE);
 
+#ifdef HAVE_GUPNP_IGD
 	gupnp_simple_igd_add_port(upnp_igd, "TCP", port, ip, port, 600, description);
+#endif
 
 	return TRUE;
 }
 
 G_MODULE_EXPORT
-gboolean remove_port (guint port)
+gboolean
+remove_port (guint port)
 {
 	g_return_val_if_fail(port != 0, FALSE);
 
+#ifdef HAVE_GUPNP_IGD
 	gupnp_simple_igd_remove_port(upnp_igd, "TCP", port);
+#endif
 
 	return TRUE;
 }
 
 G_MODULE_EXPORT
-gboolean init (void)
+gboolean
+init (void)
 {
+#ifdef HAVE_GUPNP
+	upnp_context = gupnp_context_new(NULL, NULL, 0, NULL);
+	upnp_control_point = gupnp_control_point_new(upnp_context, "urn:schemas-upnp-org:service:WANIPConnection:1");
+
+	g_signal_connect(upnp_control_point, "service-proxy-available", G_CALLBACK(on_service_proxy_available), NULL);
+
+	gssdp_resource_browser_set_active(GSSDP_RESOURCE_BROWSER(upnp_control_point), TRUE);
+#endif
+
+#ifdef HAVE_GUPNP_IGD
 	upnp_igd = gupnp_simple_igd_new(NULL);
+#endif
 
 	return TRUE;
 }
 
 G_MODULE_EXPORT
-void deinit (void)
+void
+deinit (void)
 {
+#ifdef HAVE_GUPNP
+	if (upnp_service_proxy != NULL)
+	{
+		g_object_unref(upnp_service_proxy);
+	}
+
+	g_object_unref(upnp_context);
+	g_object_unref(upnp_control_point);
+#endif
+
+#ifdef HAVE_GUPNP_IGD
 	g_object_unref(upnp_igd);
+#endif
 }

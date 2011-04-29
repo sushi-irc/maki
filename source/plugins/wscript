@@ -21,6 +21,13 @@ def configure (ctx):
 	)
 
 	ctx.check_cfg(
+		package = 'gupnp-1.0',
+		args = ['--cflags', '--libs'],
+		uselib_store = 'GUPNP',
+		mandatory = False
+	)
+
+	ctx.check_cfg(
 		package = 'gupnp-igd-1.0',
 		args = ['--cflags', '--libs'],
 		uselib_store = 'GUPNP_IGD',
@@ -44,11 +51,11 @@ def build (ctx):
 		install_path = '${LIBDIR}/sushi/maki/plugins'
 	)
 
-	if ctx.env.HAVE_GUPNP_IGD:
+	if ctx.env.HAVE_GUPNP or ctx.env.HAVE_GUPNP_IGD:
 		ctx.shlib(
 			source = ['upnp.c'],
 			target = 'upnp',
-			use = ['GLIB', 'GMODULE', 'GUPNP_IGD'],
+			use = ['GLIB', 'GMODULE', 'GUPNP', 'GUPNP_IGD'],
 			includes = ['.', '..'],
 			install_path = '${LIBDIR}/sushi/maki/plugins'
 		)
