@@ -12,7 +12,13 @@ Group “server”
   Key “port”
     Integer
     Default “6667”
+  Key “ssl”
+    Boolean
+    Default “false”
   Key “nick”
+    String
+    Default “$USER”
+  Key “user”
     String
     Default “$USER”
   Key “name”
@@ -34,5 +40,20 @@ Group “#channel”
     Default “false”
   Key “key”
     String
+
+The following example server configuration for Freenode is provided for clarity.
+It has to be saved in “$XDG_CONFIG_HOME/sushi/servers/Freenode”.
+
+[server]
+autoconnect=true
+address=chat.freenode.net
+port=6667
+ssl=false
+nick=myNick
+user=myuser
+name=First Last
+
+[#sushi-irc]
+autojoin=true
 
 # vi:textwidth=80:expandtab

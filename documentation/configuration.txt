@@ -7,9 +7,18 @@ Group “dcc”
   Key “accept_chat”
     Boolean
     Default “false”
+  Key “accept_resume”
+    Boolean
+    Default “false”
   Key “accept_send”
     Boolean
     Default “false”
+  Key “port_first”
+    Integer
+    Default “1024”
+  Key “port_last”
+    Integer
+    Default “65535”
 
 Group “directories”
   Key “downloads”
@@ -20,9 +29,16 @@ Group “directories”
     Default “$XDG_DATA_HOME/sushi/logs”
 
 Group “logging”
-  Key “logs”
+  Key “enabled”
     Boolean
     Default “true”
+  Key “format”
+    String
+    Default “$n/%Y-%m”
+
+Group “network”
+  Key “stun”
+    String
 
 Group “reconnect”
   Key “retries”
@@ -31,5 +47,46 @@ Group “reconnect”
   Key “timeout”
     Integer
     Default “10”
+
+Group “plugins”
+  Key “network”
+    Boolean
+    Default “true”
+  Key “sleep”
+    Boolean
+    Default “true”
+  Key “upnp”
+    Boolean
+    Default “true”
+
+The following example configuration is provided for clarity. It has to be saved
+in “$XDG_CONFIG_HOME/sushi/maki”.
+
+[dcc]
+accept_chat=false
+accept_resume=false
+accept_send=false
+port_first=1024
+port_last=65535
+
+[directories]
+logs=/home/myuser/Documents
+downloads=/home/myuser/Downloads
+
+[logging]
+enabled=true
+format=$n/%Y-%m
+
+[reconnect]
+retries=3
+timeout=10
+
+[network]
+stun=stunserver.org
+
+[plugins]
+network=true
+sleep=true
+upnp=true
 
 # vi:textwidth=80:expandtab
