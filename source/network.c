@@ -30,6 +30,7 @@
 #include "config.h"
 
 #include <glib.h>
+#include <gio/gio.h>
 
 #include <string.h>
 
@@ -54,22 +55,23 @@ struct maki_network
 
 	struct
 	{
-		struct sockaddr_storage addr;
-		socklen_t addrlen;
+		GInetAddress* inet_address;
 	}
-	remote;
+	external;
 
 	GMutex* lock;
 };
 
-static gboolean maki_network_update_local (gpointer data)
+static
+gboolean
+maki_network_update_local (gpointer data)
 {
 	makiNetwork* net = data;
 
 	g_mutex_lock(net->lock);
+
 	g_free(net->local.ip);
 	net->local.ip = NULL;
-	g_mutex_unlock(net->lock);
 
 #ifdef HAVE_NICE
 	{
@@ -79,9 +81,7 @@ static gboolean maki_network_update_local (gpointer data)
 		{
 			GList* l;
 
-			g_mutex_lock(net->lock);
 			net->local.ip = g_strdup(ips->data);
-			g_mutex_unlock(net->lock);
 
 			for (l = ips; l != NULL; l = g_list_next(l))
 			{
@@ -93,17 +93,43 @@ static gboolean maki_network_update_local (gpointer data)
 	}
 #endif
 
+	g_mutex_unlock(net->lock);
+
 	return FALSE;
 }
 
-static gboolean maki_network_update_remote (gpointer data)
+static
+gboolean
+maki_network_update_external (gpointer data)
 {
 	makiNetwork* net = data;
 
 	g_mutex_lock(net->lock);
-	memset(&net->remote.addr, 0, sizeof(net->remote.addr));
-	net->remote.addrlen = 0;
-	g_mutex_unlock(net->lock);
+
+	if (net->external.inet_address != NULL)
+	{
+		g_object_unref(net->external.inet_address);
+	}
+
+	net->external.inet_address = NULL;
+
+	{
+		gchar* (*get_external_ip) (void);
+
+		if (maki_instance_plugin_method(net->instance, "upnp", "get_external_ip", (gpointer*)&get_external_ip))
+		{
+			gchar* ip;
+
+			if ((ip = (*get_external_ip)()) != NULL)
+			{
+				net->external.inet_address = g_inet_address_new_from_string(ip);
+
+				g_free(ip);
+
+				goto end;
+			}
+		}
+	}
 
 #ifdef HAVE_NICE
 	{
@@ -126,7 +152,7 @@ static gboolean maki_network_update_remote (gpointer data)
 		hints.ai_protocol = 0;
 		hints.ai_flags = AI_V4MAPPED | AI_ADDRCONFIG;
 
-		if (getaddrinfo(stun, "3478", NULL, &ai) != 0)
+		if (getaddrinfo(stun, "3478", &hints, &ai) != 0)
 		{
 			g_free(stun);
 			goto end;
@@ -137,17 +163,24 @@ static gboolean maki_network_update_remote (gpointer data)
 		for (p = ai; p != NULL; p = p->ai_next)
 		{
 			makiNetworkAddress me;
-			socklen_t me_len = sizeof(me.ss);
+			GInetAddress* inet_address = NULL;
+			socklen_t me_len = sizeof(me);
 
 			if (stun_usage_bind_run(p->ai_addr, p->ai_addrlen, &(me.sa), &me_len) != STUN_USAGE_BIND_RETURN_SUCCESS)
 			{
 				continue;
 			}
 
-			g_mutex_lock(net->lock);
-			net->remote.addr = me.ss;
-			net->remote.addrlen = me_len;
-			g_mutex_unlock(net->lock);
+			if (me.sa.sa_family == AF_INET)
+			{
+				inet_address = g_inet_address_new_from_bytes((gconstpointer)&(me.sin.sin_addr.s_addr), G_SOCKET_FAMILY_IPV4);
+			}
+			else if (me.sa.sa_family == AF_INET6)
+			{
+				inet_address = g_inet_address_new_from_bytes((gconstpointer)&(me.sin6.sin6_addr.s6_addr), G_SOCKET_FAMILY_IPV6);
+			}
+
+			net->external.inet_address = inet_address;
 
 			break;
 		}
@@ -157,10 +190,13 @@ static gboolean maki_network_update_remote (gpointer data)
 #endif
 
 end:
+	g_mutex_unlock(net->lock);
+
 	return FALSE;
 }
 
-makiNetwork* maki_network_new (makiInstance* inst)
+makiNetwork*
+maki_network_new (makiInstance* inst)
 {
 	makiNetwork* net;
 
@@ -169,79 +205,85 @@ makiNetwork* maki_network_new (makiInstance* inst)
 	net->instance = inst;
 
 	net->local.ip = NULL;
-
-	memset(&net->remote.addr, 0, sizeof(net->remote.addr));
-	net->remote.addrlen = 0;
+	net->external.inet_address = NULL;
 
 	net->lock = g_mutex_new();
 
 	return net;
 }
 
-void maki_network_free (makiNetwork* net)
+void
+maki_network_free (makiNetwork* net)
 {
 	g_mutex_free(net->lock);
 
-	g_free(net->local.ip);
+	if (net->external.inet_address != NULL)
+	{
+		g_object_unref(net->external.inet_address);
+	}
 
+	g_free(net->local.ip);
 	g_free(net);
 }
 
-void maki_network_update (makiNetwork* net)
+void
+maki_network_update (makiNetwork* net)
 {
 	g_return_if_fail(net != NULL);
 
+	g_mutex_lock(net->lock);
 	/* FIXME sources */
 	i_idle_add(maki_network_update_local, net, maki_instance_main_context(net->instance));
-	i_idle_add(maki_network_update_remote, net, maki_instance_main_context(net->instance));
+	i_idle_add(maki_network_update_external, net, maki_instance_main_context(net->instance));
+	g_mutex_unlock(net->lock);
 }
 
-gboolean maki_network_remote_addr (makiNetwork* net, struct sockaddr* addr, socklen_t* addrlen)
+GInetAddress*
+maki_network_external_address (makiNetwork* net)
 {
-	g_return_val_if_fail(net != NULL, FALSE);
-	g_return_val_if_fail(addr != NULL, FALSE);
-	g_return_val_if_fail(addrlen != NULL, FALSE);
+	GInetAddress* inet_address;
+
+	g_return_val_if_fail(net != NULL, NULL);
+
+	g_mutex_lock(net->lock);
+	inet_address = g_object_ref(net->external.inet_address);
+	g_mutex_unlock(net->lock);
+
+	return inet_address;
+}
+
+gboolean
+maki_network_upnp_add_port (makiNetwork* net, guint port, gchar const* description)
+{
+	gboolean (*add_port) (gchar const*, guint, gchar const*);
+	gboolean ret = FALSE;
 
 	g_mutex_lock(net->lock);
 
-	if (*addrlen < net->remote.addrlen || net->remote.addrlen == 0)
-	{
-		goto error;
-	}
-
-	memcpy(addr, &net->remote.addr, net->remote.addrlen);
-	*addrlen = net->remote.addrlen;
-
-	g_mutex_unlock(net->lock);
-
-	return TRUE;
-
-error:
-	g_mutex_unlock(net->lock);
-
-	return FALSE;
-}
-
-gboolean maki_network_upnp_add_port (makiNetwork* net, guint port, const gchar* description)
-{
-	gboolean (*add_port) (const gchar*, guint, const gchar*);
-
 	if (maki_instance_plugin_method(net->instance, "upnp", "add_port", (gpointer*)&add_port))
 	{
-		return (*add_port)(net->local.ip, port, description);
+		ret = (*add_port)(net->local.ip, port, description);
 	}
 
-	return FALSE;
+	g_mutex_unlock(net->lock);
+
+	return ret;
 }
 
-gboolean maki_network_upnp_remove_port (makiNetwork* net, guint port)
+gboolean
+maki_network_upnp_remove_port (makiNetwork* net, guint port)
 {
 	gboolean (*remove_port) (guint);
+	gboolean ret = FALSE;
+
+	g_mutex_lock(net->lock);
 
 	if (maki_instance_plugin_method(net->instance, "upnp", "remove_port", (gpointer*)&remove_port))
 	{
-		return (*remove_port)(port);
+		ret = (*remove_port)(port);
 	}
 
-	return FALSE;
+	g_mutex_unlock(net->lock);
+
+	return ret;
 }

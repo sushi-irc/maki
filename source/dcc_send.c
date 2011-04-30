@@ -31,6 +31,7 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
+#include <gio/gio.h>
 
 #include <arpa/inet.h>
 #include <errno.h>
@@ -544,9 +545,8 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 {
 	guint i;
 	gchar* basename;
+	GInetAddress* inet_address;
 	struct stat stbuf;
-	makiNetworkAddress stun_addr;
-	socklen_t stun_addrlen = sizeof(stun_addr.ss);
 	makiInstance* inst = maki_instance_get_default();
 	makiNetwork* net = maki_instance_network(inst);
 	makiDCCSend* dcc;
@@ -608,14 +608,19 @@ makiDCCSend* maki_dcc_send_new_out (makiServer* serv, makiUser* user, const gcha
 	g_io_channel_set_close_on_unref(dcc->channel.connection, TRUE);
 	g_io_channel_set_encoding(dcc->channel.connection, NULL, NULL);
 
-	if (maki_network_remote_addr(net, &(stun_addr.sa), &stun_addrlen))
+	if ((inet_address = maki_network_external_address(net)) != NULL)
 	{
-		dcc->address = ntohl(stun_addr.sin.sin_addr.s_addr);
+		if (g_inet_address_get_family(inet_address) == G_SOCKET_FAMILY_IPV4)
+		{
+			dcc->address = ntohl(*((guint32 const*)g_inet_address_to_bytes(inet_address)));
+		}
+
+		g_object_unref(inet_address);
 	}
 	else
 	{
 		makiNetworkAddress addr;
-		socklen_t addrlen = sizeof(addr.ss);
+		socklen_t addrlen = sizeof(addr);
 
 		getsockname(g_io_channel_unix_get_fd(dcc->channel.connection), &(addr.sa), &addrlen);
 		dcc->address = ntohl(addr.sin.sin_addr.s_addr);

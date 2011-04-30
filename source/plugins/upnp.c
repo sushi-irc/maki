@@ -37,6 +37,8 @@
 #include <libgupnp-igd/gupnp-simple-igd.h>
 #endif
 
+#include "instance.h"
+
 gboolean init (void);
 void deinit (void);
 
@@ -57,7 +59,7 @@ GUPnPSimpleIgd* upnp_igd;
 #ifdef HAVE_GUPNP
 static
 void
-on_service_proxy_available (GUPnPControlPoint* cp, GUPnPServiceProxy* proxy)
+on_service_proxy_available (GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpointer user_data)
 {
 	upnp_service_proxy = g_object_ref(proxy);
 }
@@ -125,8 +127,10 @@ G_MODULE_EXPORT
 gboolean
 init (void)
 {
+	makiInstance* inst = maki_instance_get_default();
+
 #ifdef HAVE_GUPNP
-	upnp_context = gupnp_context_new(NULL, NULL, 0, NULL);
+	upnp_context = gupnp_context_new(maki_instance_main_context(inst), NULL, 0, NULL);
 	upnp_control_point = gupnp_control_point_new(upnp_context, "urn:schemas-upnp-org:service:WANIPConnection:1");
 
 	g_signal_connect(upnp_control_point, "service-proxy-available", G_CALLBACK(on_service_proxy_available), NULL);
@@ -135,7 +139,7 @@ init (void)
 #endif
 
 #ifdef HAVE_GUPNP_IGD
-	upnp_igd = gupnp_simple_igd_new(NULL);
+	upnp_igd = gupnp_simple_igd_new(maki_instance_main_context(inst));
 #endif
 
 	return TRUE;

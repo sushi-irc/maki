@@ -34,7 +34,6 @@
 union maki_network_address
 {
 	struct sockaddr sa;
-	struct sockaddr_storage ss;
 	struct sockaddr_in sin;
 	struct sockaddr_in6 sin6;
 };
@@ -46,6 +45,7 @@ struct maki_network;
 typedef struct maki_network makiNetwork;
 
 #include <glib.h>
+#include <gio/gio.h>
 
 #include "instance.h"
 
@@ -54,9 +54,9 @@ void maki_network_free (makiNetwork*);
 
 void maki_network_update (makiNetwork*);
 
-gboolean maki_network_remote_addr (makiNetwork*, struct sockaddr*, socklen_t*);
+GInetAddress* maki_network_external_address (makiNetwork*);
 
-gboolean maki_network_upnp_add_port (makiNetwork*, guint, const gchar*);
+gboolean maki_network_upnp_add_port (makiNetwork*, guint, gchar const*);
 gboolean maki_network_upnp_remove_port (makiNetwork*, guint);
 
 #endif
