@@ -40,7 +40,8 @@ static GDBusProxy* upower_proxy;
 static GDBusProxy* nm_proxy;
 static gboolean is_sleeping;
 
-static void
+static
+void
 servers_connect (void)
 {
 	GHashTableIter iter;
@@ -61,7 +62,8 @@ servers_connect (void)
 	}
 }
 
-static void
+static
+void
 servers_disconnect (const gchar* message)
 {
 	GHashTableIter iter;
@@ -79,7 +81,8 @@ servers_disconnect (const gchar* message)
 	}
 }
 
-static void
+static
+void
 upower_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
 {
 	if (g_strcmp0(signal_name, "Sleeping") == 0)
@@ -93,7 +96,6 @@ upower_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant
 		gchar* owner;
 		gboolean handle_connect;
 
-		handle_connect = TRUE;
 		is_sleeping = FALSE;
 
 		owner = g_dbus_proxy_get_name_owner(nm_proxy);
@@ -107,7 +109,8 @@ upower_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant
 	}
 }
 
-static void
+static
+void
 nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
 {
 	if (g_strcmp0(signal_name, "StateChanged") == 0)

@@ -38,7 +38,8 @@ void deinit (void);
 static GDBusProxy* nm_proxy;
 static gboolean is_connected;
 
-static void
+static
+void
 servers_connect (void)
 {
 	GHashTableIter iter;
@@ -59,7 +60,8 @@ servers_connect (void)
 	}
 }
 
-static void
+static
+void
 servers_disconnect (const gchar* message)
 {
 	GHashTableIter iter;
@@ -77,7 +79,8 @@ servers_disconnect (const gchar* message)
 	}
 }
 
-static void
+static
+void
 nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
 {
 	if (g_strcmp0(signal_name, "StateChanged") == 0)
@@ -124,19 +127,22 @@ gboolean
 init (void)
 {
 	GVariant* variant;
-	guint32 state;
+
+	is_connected = TRUE;
 
 	nm_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_NONE, NULL,
 		"org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager", "org.freedesktop.NetworkManager",
 		NULL, NULL);
 
-	variant = g_dbus_proxy_get_cached_property(nm_proxy, "State");
-	g_variant_get(variant, "u", &state);
-	g_variant_unref(variant);
-	is_connected = (state == 0 || state == 3);
-
 	if (nm_proxy != NULL)
 	{
+		guint32 state;
+
+		variant = g_dbus_proxy_get_cached_property(nm_proxy, "State");
+		g_variant_get(variant, "u", &state);
+		g_variant_unref(variant);
+		is_connected = (state == 0 || state == 3);
+
 		g_signal_connect(nm_proxy, "g-signal", G_CALLBACK(nm_on_signal), NULL);
 	}
 
