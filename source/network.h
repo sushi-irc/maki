@@ -54,6 +54,7 @@ void maki_network_free (makiNetwork*);
 
 void maki_network_update (makiNetwork*);
 
+GInetAddress* maki_network_internal_address (makiNetwork*);
 GInetAddress* maki_network_external_address (makiNetwork*);
 
 gboolean maki_network_upnp_add_port (makiNetwork*, guint, gchar const*);

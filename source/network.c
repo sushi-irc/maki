@@ -49,9 +49,9 @@ struct maki_network
 
 	struct
 	{
-		gchar* ip;
+		GInetAddress* inet_address;
 	}
-	local;
+	internal;
 
 	struct
 	{
@@ -64,14 +64,18 @@ struct maki_network
 
 static
 gboolean
-maki_network_update_local (gpointer data)
+maki_network_update_internal (gpointer data)
 {
 	makiNetwork* net = data;
 
 	g_mutex_lock(net->lock);
 
-	g_free(net->local.ip);
-	net->local.ip = NULL;
+	if (net->internal.inet_address != NULL)
+	{
+		g_object_unref(net->internal.inet_address);
+	}
+
+	net->internal.inet_address = NULL;
 
 #ifdef HAVE_NICE
 	{
@@ -81,7 +85,7 @@ maki_network_update_local (gpointer data)
 		{
 			GList* l;
 
-			net->local.ip = g_strdup(ips->data);
+			net->internal.inet_address = g_inet_address_new_from_string(ips->data);
 
 			for (l = ips; l != NULL; l = g_list_next(l))
 			{
@@ -204,7 +208,7 @@ maki_network_new (makiInstance* inst)
 
 	net->instance = inst;
 
-	net->local.ip = NULL;
+	net->internal.inet_address = NULL;
 	net->external.inet_address = NULL;
 
 	net->lock = g_mutex_new();
@@ -217,12 +221,16 @@ maki_network_free (makiNetwork* net)
 {
 	g_mutex_free(net->lock);
 
+	if (net->internal.inet_address != NULL)
+	{
+		g_object_unref(net->internal.inet_address);
+	}
+
 	if (net->external.inet_address != NULL)
 	{
 		g_object_unref(net->external.inet_address);
 	}
 
-	g_free(net->local.ip);
 	g_free(net);
 }
 
@@ -233,9 +241,23 @@ maki_network_update (makiNetwork* net)
 
 	g_mutex_lock(net->lock);
 	/* FIXME sources */
-	i_idle_add(maki_network_update_local, net, maki_instance_main_context(net->instance));
+	i_idle_add(maki_network_update_internal, net, maki_instance_main_context(net->instance));
 	i_idle_add(maki_network_update_external, net, maki_instance_main_context(net->instance));
 	g_mutex_unlock(net->lock);
+}
+
+GInetAddress*
+maki_network_internal_address (makiNetwork* net)
+{
+	GInetAddress* inet_address;
+
+	g_return_val_if_fail(net != NULL, NULL);
+
+	g_mutex_lock(net->lock);
+	inet_address = g_object_ref(net->internal.inet_address);
+	g_mutex_unlock(net->lock);
+
+	return inet_address;
 }
 
 GInetAddress*
@@ -262,7 +284,11 @@ maki_network_upnp_add_port (makiNetwork* net, guint port, gchar const* descripti
 
 	if (maki_instance_plugin_method(net->instance, "upnp", "add_port", (gpointer*)&add_port))
 	{
-		ret = (*add_port)(net->local.ip, port, description);
+		gchar* ip;
+
+		ip = g_inet_address_to_string(net->internal.inet_address);
+		ret = (*add_port)(ip, port, description);
+		g_free(ip);
 	}
 
 	g_mutex_unlock(net->lock);
