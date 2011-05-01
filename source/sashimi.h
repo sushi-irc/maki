@@ -35,15 +35,19 @@ typedef struct sashimi_connection sashimiConnection;
 #include <glib.h>
 
 sashimiConnection* sashimi_new (GMainContext*);
+void sashimi_free (sashimiConnection*);
+
+void sashimi_timeout (sashimiConnection*, guint);
+
 void sashimi_connect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
 void sashimi_read_callback (sashimiConnection* conn, void (*) (const gchar*, gpointer), gpointer);
-void sashimi_reconnect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
-void sashimi_timeout (sashimiConnection*, guint);
+void sashimi_disconnect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
+
 gboolean sashimi_connect (sashimiConnection*, const gchar*, guint, gboolean);
+gboolean sashimi_disconnect (sashimiConnection*);
+
 gboolean sashimi_send (sashimiConnection*, const gchar*);
 gboolean sashimi_queue (sashimiConnection*, const gchar*);
 gboolean sashimi_send_or_queue (sashimiConnection*, const gchar*);
-gboolean sashimi_disconnect (sashimiConnection*);
-void sashimi_free (sashimiConnection*);
 
 #endif

@@ -67,7 +67,6 @@ struct sashimi_connection
 
 	GMainContext* main_context;
 
-	GMutex* queue_mutex;
 	GQueue* queue;
 
 	GCancellable* cancellables[c_last];
@@ -82,20 +81,23 @@ struct sashimi_connection
 
 	struct
 	{
-		void (*callback) (const gchar*, gpointer);
+		void (*callback) (gpointer);
+		gpointer data;
+	}
+	disconnect;
+
+	struct
+	{
+		void (*callback) (gchar const*, gpointer);
 		gpointer data;
 	}
 	read;
 
-	struct
-	{
-		void (*callback) (gpointer);
-		gpointer data;
-	}
-	reconnect;
+	GMutex* mutex;
 };
 
-static void
+static
+void
 sashimi_close (sashimiConnection* conn)
 {
 	if (conn->connection != NULL)
@@ -117,10 +119,11 @@ sashimi_close (sashimiConnection* conn)
 	}
 }
 
-static void
+static
+void
 sashimi_cancel (sashimiConnection* conn, gboolean destroy)
 {
-	gint i;
+	guint i;
 
 	for (i = 0; i < c_last; i++)
 	{
@@ -144,365 +147,12 @@ sashimi_cancel (sashimiConnection* conn, gboolean destroy)
 	}
 }
 
-static guint
-sashimi_timeout_add_seconds (sashimiConnection* conn, guint32 interval, GSourceFunc func)
-{
-	g_return_val_if_fail(conn != NULL, 0);
-
-	return i_timeout_add_seconds(interval, func, conn, conn->main_context);
-}
-
-static void
-sashimi_on_read (GObject* object, GAsyncResult* result, gpointer data)
-{
-	GDataInputStream* stream = G_DATA_INPUT_STREAM(object);
-	sashimiConnection* conn = data;
-	GError* error = NULL;
-	gchar* buffer;
-
-	if ((buffer = g_data_input_stream_read_line_finish(stream, result, NULL, &error)) != NULL)
-	{
-		GTimeVal timeval;
-
-		g_get_current_time(&timeval);
-		conn->last_activity = timeval.tv_sec;
-
-		/* Remove whitespace at the end of the string. */
-		g_strchomp(buffer);
-
-		/* Handle PING internally. */
-		if (strncmp(buffer, "PING ", 5) == 0)
-		{
-			gchar* tmp;
-
-			tmp = g_strconcat("PONG ", buffer + 5, NULL);
-			sashimi_send(conn, tmp);
-			g_free(tmp);
-		}
-		else if (conn->read.callback != NULL)
-		{
-			conn->read.callback(buffer, conn->read.data);
-		}
-
-		g_free(buffer);
-	}
-
-	if (error != NULL)
-	{
-		gboolean canceled;
-
-		canceled = (error->domain == G_IO_ERROR && error->code == G_IO_ERROR_CANCELLED);
-
-		g_printerr("READ_ERROR: %s\n", error->message);
-		g_error_free(error);
-
-		if (canceled)
-		{
-			return;
-		}
-
-		goto reconnect;
-	}
-
-	g_data_input_stream_read_line_async(stream, G_PRIORITY_DEFAULT, conn->cancellables[c_read], sashimi_on_read, conn);
-
-	return;
-
-reconnect:
-	sashimi_disconnect(conn);
-
-	if (conn->reconnect.callback)
-	{
-		conn->reconnect.callback(conn->reconnect.data);
-	}
-}
-
-static gboolean
-sashimi_ping (gpointer data)
-{
-	GTimeVal timeval;
-	sashimiConnection* conn = data;
-
-	g_get_current_time(&timeval);
-
-	/* If we did not hear anything from the server, send a PING. */
-	if (conn->timeout > 0 && (gulong)(timeval.tv_sec - conn->last_activity) > conn->timeout)
-	{
-		gchar* ping;
-
-		ping = g_strdup_printf("PING :%ld", timeval.tv_sec);
-		sashimi_send(conn, ping);
-		g_free(ping);
-
-		conn->last_activity = timeval.tv_sec;
-	}
-
-	return TRUE;
-}
-
-static gboolean
-sashimi_queue_runner (gpointer data)
-{
-	sashimiConnection* conn = data;
-
-	g_mutex_lock(conn->queue_mutex);
-
-	if (!g_queue_is_empty(conn->queue))
-	{
-		gchar* message;
-
-		message = g_queue_peek_head(conn->queue);
-
-		if (sashimi_send(conn, message))
-		{
-			g_queue_pop_head(conn->queue);
-			g_free(message);
-		}
-	}
-
-	g_mutex_unlock(conn->queue_mutex);
-
-	return TRUE;
-}
-
-static void
-sashimi_on_connect (GObject* object, GAsyncResult* result, gpointer data)
-{
-	GSocketClient* client = G_SOCKET_CLIENT(object);
-	sashimiConnection* conn = data;
-	GTimeVal timeval;
-	GError* error = NULL;
-
-	if ((conn->connection = g_socket_client_connect_to_host_finish(client, result, &error)) == NULL)
-	{
-		if (error != NULL)
-		{
-			gboolean canceled;
-
-			canceled = (error->domain == G_IO_ERROR && error->code == G_IO_ERROR_CANCELLED);
-
-			g_printerr("CONNECT_ERROR: %s\n", error->message);
-			g_error_free(error);
-
-			if (canceled)
-			{
-				return;
-			}
-		}
-
-		goto reconnect;
-	}
-
-	conn->stream.input = g_data_input_stream_new(g_io_stream_get_input_stream(G_IO_STREAM(conn->connection)));
-	conn->stream.output = g_data_output_stream_new(g_io_stream_get_output_stream(G_IO_STREAM(conn->connection)));
-
-	g_get_current_time(&timeval);
-	conn->last_activity = timeval.tv_sec;
-
-	g_data_input_stream_read_line_async(conn->stream.input, G_PRIORITY_DEFAULT, conn->cancellables[c_read], sashimi_on_read, conn);
-
-	conn->sources[s_ping] = sashimi_timeout_add_seconds(conn, 1, sashimi_ping);
-	conn->sources[s_queue] = sashimi_timeout_add_seconds(conn, 1, sashimi_queue_runner);
-
-	if (conn->connect.callback)
-	{
-		conn->connect.callback(conn->connect.data);
-	}
-
-	return;
-
-reconnect:
-	sashimi_disconnect(conn);
-
-	if (conn->reconnect.callback)
-	{
-		conn->reconnect.callback(conn->reconnect.data);
-	}
-}
-
-sashimiConnection*
-sashimi_new (GMainContext* main_context)
-{
-	gint i;
-	sashimiConnection* conn;
-
-	conn = g_new(sashimiConnection, 1);
-
-	if (main_context != NULL)
-	{
-		g_main_context_ref(main_context);
-	}
-
-	conn->main_context = main_context;
-
-	conn->queue_mutex = g_mutex_new();
-	conn->queue = g_queue_new();
-
-	conn->connection = NULL;
-	conn->stream.input = NULL;
-	conn->stream.output = NULL;
-
-	conn->connected = FALSE;
-	conn->last_activity = 0;
-	conn->timeout = 0;
-
-	for (i = 0; i < c_last; i++)
-	{
-		conn->cancellables[i] = g_cancellable_new();
-	}
-
-	for (i = 0; i < s_last; ++i)
-	{
-		conn->sources[i] = 0;
-	}
-
-	conn->connect.callback = NULL;
-	conn->connect.data = NULL;
-
-	conn->read.callback = NULL;
-	conn->read.data = NULL;
-
-	conn->reconnect.callback = NULL;
-	conn->reconnect.data = NULL;
-
-	return conn;
-}
-
-void
-sashimi_connect_callback (sashimiConnection* conn, void (*callback) (gpointer), gpointer data)
-{
-	g_return_if_fail(conn != NULL);
-
-	conn->connect.callback = callback;
-	conn->connect.data = data;
-}
-
-void
-sashimi_read_callback (sashimiConnection* conn, void (*callback) (const gchar*, gpointer), gpointer data)
-{
-	g_return_if_fail(conn != NULL);
-
-	conn->read.callback = callback;
-	conn->read.data = data;
-}
-
-void
-sashimi_reconnect_callback (sashimiConnection* conn, void (*callback) (gpointer), gpointer data)
-{
-	g_return_if_fail(conn != NULL);
-
-	conn->reconnect.callback = callback;
-	conn->reconnect.data = data;
-}
-
-void
-sashimi_timeout (sashimiConnection* conn, guint timeout)
-{
-	g_return_if_fail(conn != NULL);
-
-	conn->timeout = timeout;
-}
-
+static
 gboolean
-sashimi_connect (sashimiConnection* conn, const gchar* address, guint port, gboolean ssl)
-{
-	GSocketClient* client;
-
-	g_return_val_if_fail(conn != NULL, FALSE);
-	g_return_val_if_fail(address != NULL, FALSE);
-	g_return_val_if_fail(port != 0, FALSE);
-
-	if (conn->connected)
-	{
-		return FALSE;
-	}
-
-	client = g_socket_client_new();
-
-	if (ssl)
-	{
-#if GLIB_CHECK_VERSION(2,28,0)
-		g_socket_client_set_tls(client, TRUE);
-#else
-		g_object_unref(client);
-
-		return FALSE;
-#endif
-	}
-
-	g_socket_client_connect_to_host_async(client, address, port, conn->cancellables[c_connect], sashimi_on_connect, conn);
-	g_object_unref(client);
-
-	conn->connected = TRUE;
-
-	return TRUE;
-}
-
-gboolean
-sashimi_disconnect (sashimiConnection* conn)
-{
-	g_return_val_if_fail(conn != NULL, FALSE);
-
-	if (!conn->connected)
-	{
-		return FALSE;
-	}
-
-	g_mutex_lock(conn->queue_mutex);
-
-	/* Try to flush queue. */
-	while (!g_queue_is_empty(conn->queue))
-	{
-		gchar* message;
-
-		message = g_queue_pop_head(conn->queue);
-		sashimi_send(conn, message);
-		g_free(message);
-	}
-
-	g_mutex_unlock(conn->queue_mutex);
-
-	sashimi_cancel(conn, FALSE);
-	sashimi_close(conn);
-
-	conn->connected = FALSE;
-
-	return TRUE;
-}
-
-void
-sashimi_free (sashimiConnection* conn)
-{
-	g_return_if_fail(conn != NULL);
-
-	sashimi_cancel(conn, TRUE);
-	sashimi_close(conn);
-
-	/* Clean up the queue. */
-	while (!g_queue_is_empty(conn->queue))
-	{
-		g_free(g_queue_pop_head(conn->queue));
-	}
-
-	g_queue_free(conn->queue);
-	g_mutex_free(conn->queue_mutex);
-
-	if (conn->main_context != NULL)
-	{
-		g_main_context_unref(conn->main_context);
-	}
-
-	g_free(conn);
-}
-
-gboolean
-sashimi_send (sashimiConnection* conn, const gchar* message)
+sashimi_real_send (sashimiConnection* conn, gchar const* message)
 {
 	GError* error = NULL;
 	gchar* tmp;
-
-	g_return_val_if_fail(conn != NULL, FALSE);
-	g_return_val_if_fail(message != NULL, FALSE);
 
 	if (conn->connection == NULL)
 	{
@@ -530,38 +180,456 @@ sashimi_send (sashimiConnection* conn, const gchar* message)
 	return TRUE;
 }
 
+static
+guint
+sashimi_timeout_add_seconds (sashimiConnection* conn, guint32 interval, GSourceFunc func)
+{
+	return i_timeout_add_seconds(interval, func, conn, conn->main_context);
+}
+
+static
+void
+sashimi_on_read (GObject* object, GAsyncResult* result, gpointer data)
+{
+	GDataInputStream* stream = G_DATA_INPUT_STREAM(object);
+	sashimiConnection* conn = data;
+	GError* error = NULL;
+	gchar* buffer;
+
+	g_mutex_lock(conn->mutex);
+
+	if ((buffer = g_data_input_stream_read_line_finish(stream, result, NULL, &error)) != NULL)
+	{
+		GTimeVal timeval;
+
+		g_get_current_time(&timeval);
+		conn->last_activity = timeval.tv_sec;
+
+		/* Remove whitespace at the end of the string. */
+		g_strchomp(buffer);
+
+		/* Handle PING internally. */
+		if (strncmp(buffer, "PING ", 5) == 0)
+		{
+			gchar* tmp;
+
+			tmp = g_strconcat("PONG ", buffer + 5, NULL);
+			sashimi_real_send(conn, tmp);
+			g_free(tmp);
+		}
+		else if (conn->read.callback != NULL)
+		{
+			g_mutex_unlock(conn->mutex);
+			/* FIXME */
+			conn->read.callback(buffer, conn->read.data);
+			g_mutex_lock(conn->mutex);
+		}
+
+		g_free(buffer);
+	}
+
+	if (error != NULL)
+	{
+		gboolean canceled;
+
+		canceled = (error->domain == G_IO_ERROR && error->code == G_IO_ERROR_CANCELLED);
+
+		g_printerr("READ_ERROR: %s\n", error->message);
+		g_error_free(error);
+
+		if (canceled)
+		{
+			g_mutex_unlock(conn->mutex);
+			return;
+		}
+
+		goto disconnect;
+	}
+
+	g_data_input_stream_read_line_async(stream, G_PRIORITY_DEFAULT, conn->cancellables[c_read], sashimi_on_read, conn);
+
+	g_mutex_unlock(conn->mutex);
+
+	return;
+
+disconnect:
+	g_mutex_unlock(conn->mutex);
+
+	sashimi_disconnect(conn);
+
+	/* FIXME */
+	if (conn->disconnect.callback)
+	{
+		conn->disconnect.callback(conn->disconnect.data);
+	}
+}
+
+static
 gboolean
-sashimi_queue (sashimiConnection* conn, const gchar* message)
+sashimi_ping (gpointer data)
+{
+	GTimeVal timeval;
+	sashimiConnection* conn = data;
+
+	g_mutex_lock(conn->mutex);
+
+	g_get_current_time(&timeval);
+
+	/* If we did not hear anything from the server, send a PING. */
+	if (conn->timeout > 0 && (gulong)(timeval.tv_sec - conn->last_activity) > conn->timeout)
+	{
+		gchar* ping;
+
+		ping = g_strdup_printf("PING :%ld", timeval.tv_sec);
+		sashimi_real_send(conn, ping);
+		g_free(ping);
+
+		conn->last_activity = timeval.tv_sec;
+	}
+
+	g_mutex_unlock(conn->mutex);
+
+	return TRUE;
+}
+
+static
+gboolean
+sashimi_queue_runner (gpointer data)
+{
+	sashimiConnection* conn = data;
+
+	g_mutex_lock(conn->mutex);
+
+	if (!g_queue_is_empty(conn->queue))
+	{
+		gchar* message;
+
+		message = g_queue_peek_head(conn->queue);
+
+		if (sashimi_real_send(conn, message))
+		{
+			g_queue_pop_head(conn->queue);
+			g_free(message);
+		}
+	}
+
+	g_mutex_unlock(conn->mutex);
+
+	return TRUE;
+}
+
+static
+void
+sashimi_on_connect (GObject* object, GAsyncResult* result, gpointer data)
+{
+	GSocketClient* client = G_SOCKET_CLIENT(object);
+	sashimiConnection* conn = data;
+	GTimeVal timeval;
+	GError* error = NULL;
+
+	g_mutex_lock(conn->mutex);
+
+	if ((conn->connection = g_socket_client_connect_to_host_finish(client, result, &error)) == NULL)
+	{
+		if (error != NULL)
+		{
+			gboolean canceled;
+
+			canceled = (error->domain == G_IO_ERROR && error->code == G_IO_ERROR_CANCELLED);
+
+			g_printerr("CONNECT_ERROR: %s\n", error->message);
+			g_error_free(error);
+
+			if (canceled)
+			{
+				g_mutex_unlock(conn->mutex);
+				return;
+			}
+		}
+
+		goto disconnect;
+	}
+
+	conn->stream.input = g_data_input_stream_new(g_io_stream_get_input_stream(G_IO_STREAM(conn->connection)));
+	conn->stream.output = g_data_output_stream_new(g_io_stream_get_output_stream(G_IO_STREAM(conn->connection)));
+
+	g_get_current_time(&timeval);
+	conn->last_activity = timeval.tv_sec;
+
+	g_data_input_stream_read_line_async(conn->stream.input, G_PRIORITY_DEFAULT, conn->cancellables[c_read], sashimi_on_read, conn);
+
+	conn->sources[s_ping] = sashimi_timeout_add_seconds(conn, 1, sashimi_ping);
+	conn->sources[s_queue] = sashimi_timeout_add_seconds(conn, 1, sashimi_queue_runner);
+
+	g_mutex_unlock(conn->mutex);
+
+	/* FIXME */
+	if (conn->connect.callback)
+	{
+		conn->connect.callback(conn->connect.data);
+	}
+
+	return;
+
+disconnect:
+	g_mutex_unlock(conn->mutex);
+
+	sashimi_disconnect(conn);
+
+	/* FIXME */
+	if (conn->disconnect.callback)
+	{
+		conn->disconnect.callback(conn->disconnect.data);
+	}
+}
+
+sashimiConnection*
+sashimi_new (GMainContext* main_context)
+{
+	gint i;
+	sashimiConnection* conn;
+
+	conn = g_new(sashimiConnection, 1);
+
+	if (main_context != NULL)
+	{
+		g_main_context_ref(main_context);
+	}
+
+	conn->main_context = main_context;
+
+	conn->queue = g_queue_new();
+
+	conn->connection = NULL;
+	conn->stream.input = NULL;
+	conn->stream.output = NULL;
+
+	conn->connected = FALSE;
+	conn->last_activity = 0;
+	conn->timeout = 0;
+
+	for (i = 0; i < c_last; i++)
+	{
+		conn->cancellables[i] = g_cancellable_new();
+	}
+
+	for (i = 0; i < s_last; ++i)
+	{
+		conn->sources[i] = 0;
+	}
+
+	conn->connect.callback = NULL;
+	conn->connect.data = NULL;
+
+	conn->read.callback = NULL;
+	conn->read.data = NULL;
+
+	conn->disconnect.callback = NULL;
+	conn->disconnect.data = NULL;
+
+	conn->mutex = g_mutex_new();
+
+	return conn;
+}
+
+void
+sashimi_free (sashimiConnection* conn)
+{
+	g_return_if_fail(conn != NULL);
+
+	sashimi_cancel(conn, TRUE);
+	sashimi_close(conn);
+
+	g_mutex_free(conn->mutex);
+
+	/* Clean up the queue. */
+	while (!g_queue_is_empty(conn->queue))
+	{
+		g_free(g_queue_pop_head(conn->queue));
+	}
+
+	g_queue_free(conn->queue);
+
+	if (conn->main_context != NULL)
+	{
+		g_main_context_unref(conn->main_context);
+	}
+
+	g_free(conn);
+}
+
+void
+sashimi_timeout (sashimiConnection* conn, guint timeout)
+{
+	g_return_if_fail(conn != NULL);
+
+	g_mutex_lock(conn->mutex);
+	conn->timeout = timeout;
+	g_mutex_unlock(conn->mutex);
+}
+
+void
+sashimi_connect_callback (sashimiConnection* conn, void (*callback) (gpointer), gpointer data)
+{
+	g_return_if_fail(conn != NULL);
+
+	g_mutex_lock(conn->mutex);
+	conn->connect.callback = callback;
+	conn->connect.data = data;
+	g_mutex_unlock(conn->mutex);
+}
+
+void
+sashimi_read_callback (sashimiConnection* conn, void (*callback) (gchar const*, gpointer), gpointer data)
+{
+	g_return_if_fail(conn != NULL);
+
+	g_mutex_lock(conn->mutex);
+	conn->read.callback = callback;
+	conn->read.data = data;
+	g_mutex_unlock(conn->mutex);
+}
+
+void
+sashimi_disconnect_callback (sashimiConnection* conn, void (*callback) (gpointer), gpointer data)
+{
+	g_return_if_fail(conn != NULL);
+
+	g_mutex_lock(conn->mutex);
+	conn->disconnect.callback = callback;
+	conn->disconnect.data = data;
+	g_mutex_unlock(conn->mutex);
+}
+
+gboolean
+sashimi_connect (sashimiConnection* conn, gchar const* address, guint port, gboolean ssl)
+{
+	GSocketClient* client = NULL;
+	gboolean ret = TRUE;
+
+	g_return_val_if_fail(conn != NULL, FALSE);
+	g_return_val_if_fail(address != NULL, FALSE);
+	g_return_val_if_fail(port != 0, FALSE);
+
+	g_mutex_lock(conn->mutex);
+
+	if (conn->connected)
+	{
+		ret = FALSE;
+		goto end;
+	}
+
+	client = g_socket_client_new();
+
+	if (ssl)
+	{
+#if GLIB_CHECK_VERSION(2,28,0)
+		g_socket_client_set_tls(client, TRUE);
+#else
+		ret = FALSE;
+		goto end;
+#endif
+	}
+
+	g_socket_client_connect_to_host_async(client, address, port, conn->cancellables[c_connect], sashimi_on_connect, conn);
+
+	conn->connected = TRUE;
+
+end:
+	if (client != NULL)
+	{
+		g_object_unref(client);
+	}
+
+	g_mutex_unlock(conn->mutex);
+
+	return ret;
+}
+
+gboolean
+sashimi_disconnect (sashimiConnection* conn)
+{
+	gboolean ret = TRUE;
+
+	g_return_val_if_fail(conn != NULL, FALSE);
+
+	g_mutex_lock(conn->mutex);
+
+	if (!conn->connected)
+	{
+		ret = FALSE;
+		goto end;
+	}
+
+	/* Try to flush queue. */
+	while (!g_queue_is_empty(conn->queue))
+	{
+		gchar* message;
+
+		message = g_queue_pop_head(conn->queue);
+		sashimi_real_send(conn, message);
+		g_free(message);
+	}
+
+	sashimi_cancel(conn, FALSE);
+	sashimi_close(conn);
+
+	conn->connected = FALSE;
+
+end:
+	g_mutex_unlock(conn->mutex);
+
+	return ret;
+}
+
+gboolean
+sashimi_send (sashimiConnection* conn, gchar const* message)
+{
+	gboolean ret;
+
+	g_return_val_if_fail(conn != NULL, FALSE);
+	g_return_val_if_fail(message != NULL, FALSE);
+
+	g_mutex_lock(conn->mutex);
+	ret = sashimi_real_send(conn, message);
+	g_mutex_unlock(conn->mutex);
+
+	return ret;
+}
+
+gboolean
+sashimi_queue (sashimiConnection* conn, gchar const* message)
 {
 	g_return_val_if_fail(conn != NULL, FALSE);
 	g_return_val_if_fail(message != NULL, FALSE);
 
-	g_mutex_lock(conn->queue_mutex);
+	g_mutex_lock(conn->mutex);
 	g_queue_push_tail(conn->queue, g_strdup(message));
-	g_mutex_unlock(conn->queue_mutex);
+	g_mutex_unlock(conn->mutex);
 
 	return TRUE;
 }
 
 gboolean
-sashimi_send_or_queue (sashimiConnection* conn, const gchar* message)
+sashimi_send_or_queue (sashimiConnection* conn, gchar const* message)
 {
+	gboolean ret = TRUE;
+
 	g_return_val_if_fail(conn != NULL, FALSE);
 	g_return_val_if_fail(message != NULL, FALSE);
 
-	g_mutex_lock(conn->queue_mutex);
+	g_mutex_lock(conn->mutex);
 
 	if (g_queue_is_empty(conn->queue))
 	{
-		g_mutex_unlock(conn->queue_mutex);
-
-		return sashimi_send(conn, message);
+		ret = sashimi_real_send(conn, message);
 	}
 	else
 	{
 		g_queue_push_tail(conn->queue, g_strdup(message));
-		g_mutex_unlock(conn->queue_mutex);
-
-		return TRUE;
 	}
+
+	g_mutex_unlock(conn->mutex);
+
+	return ret;
 }

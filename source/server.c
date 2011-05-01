@@ -564,8 +564,8 @@ gboolean maki_server_connect (makiServer* serv)
 		maki_network_update(net);
 
 		sashimi_connect_callback(serv->connection, maki_server_connect_callback, serv);
+		sashimi_disconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
 		sashimi_read_callback(serv->connection, maki_in_callback, serv);
-		sashimi_reconnect_callback(serv->connection, maki_server_reconnect_callback, serv);
 
 		g_get_current_time(&timeval);
 		maki_dbus_emit_connect(timeval.tv_sec, serv->name);
@@ -588,8 +588,8 @@ gboolean maki_server_disconnect (makiServer* serv, const gchar* message)
 	if (serv->connected)
 	{
 		sashimi_connect_callback(serv->connection, NULL, NULL);
+		sashimi_disconnect_callback(serv->connection, NULL, NULL);
 		sashimi_read_callback(serv->connection, NULL, NULL);
-		sashimi_reconnect_callback(serv->connection, NULL, NULL);
 
 		if (serv->sources.away != 0)
 		{
