@@ -42,27 +42,26 @@
 
 struct maki_instance
 {
+	makiNetwork* network;
+
 	GKeyFile* key_file;
 
 	GHashTable* servers;
-
 	GHashTable* directories;
-
 	GHashTable* plugins;
 
 	struct
 	{
 		guint64 id;
 		GSList* list;
-		GMutex* mutex;
 	}
 	dcc;
-
-	makiNetwork* network;
 
 	GMainContext* main_context;
 	GMainLoop* main_loop;
 	GThread* thread;
+
+	GMutex* mutex;
 };
 
 static
@@ -73,7 +72,7 @@ maki_instance_load_plugins (makiInstance* inst)
 	guint plugins_len;
 	guint i;
 
-	plugins = maki_instance_config_get_keys(inst, "plugins");
+	plugins = g_key_file_get_keys(inst->key_file, "plugins", NULL, NULL);
 
 	if (plugins == NULL)
 	{
@@ -86,7 +85,7 @@ maki_instance_load_plugins (makiInstance* inst)
 	{
 		GModule* module;
 
-		if (!maki_instance_config_get_boolean(inst, "plugins", plugins[i]))
+		if (!g_key_file_get_boolean(inst->key_file, "plugins", plugins[i], NULL))
 		{
 			continue;
 		}
@@ -136,90 +135,103 @@ maki_instance_get_dcc_send (makiInstance* inst, guint64 id)
 
 static
 void
+maki_instance_config_save (makiInstance* inst)
+{
+	gchar* path;
+
+	path = g_build_filename(g_hash_table_lookup(inst->directories, "config"), "maki", NULL);
+	i_key_file_to_file(inst->key_file, path, NULL, NULL);
+	g_free(path);
+}
+
+static
+void
 maki_instance_config_set_defaults (makiInstance* inst)
 {
-	if (!maki_instance_config_exists(inst, "dcc", "accept_chat"))
+	if (!g_key_file_has_key(inst->key_file, "dcc", "accept_chat", NULL))
 	{
-		maki_instance_config_set_boolean(inst, "dcc", "accept_chat", FALSE);
+		g_key_file_set_boolean(inst->key_file, "dcc", "accept_chat", FALSE);
 	}
 
-	if (!maki_instance_config_exists(inst, "dcc", "accept_resume"))
+	if (!g_key_file_has_key(inst->key_file, "dcc", "accept_resume", NULL))
 	{
-		maki_instance_config_set_boolean(inst, "dcc", "accept_resume", FALSE);
+		g_key_file_set_boolean(inst->key_file, "dcc", "accept_resume", FALSE);
 	}
 
-	if (!maki_instance_config_exists(inst, "dcc", "accept_send"))
+	if (!g_key_file_has_key(inst->key_file, "dcc", "accept_send", NULL))
 	{
-		maki_instance_config_set_boolean(inst, "dcc", "accept_send", FALSE);
+		g_key_file_set_boolean(inst->key_file, "dcc", "accept_send", FALSE);
 	}
 
-	if (!maki_instance_config_exists(inst, "dcc", "port_first"))
+	if (!g_key_file_has_key(inst->key_file, "dcc", "port_first", NULL))
 	{
-		maki_instance_config_set_integer(inst, "dcc", "port_first", 1024);
+		g_key_file_set_integer(inst->key_file, "dcc", "port_first", 1024);
 	}
 
-	if (!maki_instance_config_exists(inst, "dcc", "port_last"))
+	if (!g_key_file_has_key(inst->key_file, "dcc", "port_last", NULL))
 	{
-		maki_instance_config_set_integer(inst, "dcc", "port_last", 65535);
+		g_key_file_set_integer(inst->key_file, "dcc", "port_last", 65535);
 	}
 
-	if (!maki_instance_config_exists(inst, "directories", "downloads"))
+	if (!g_key_file_has_key(inst->key_file, "directories", "downloads", NULL))
 	{
 		gchar* value;
 
 		value = g_build_filename(g_get_user_data_dir(), "sushi", "downloads", NULL);
-		maki_instance_config_set_string(inst, "directories", "downloads", value);
+		g_key_file_set_string(inst->key_file, "directories", "downloads", value);
 		g_free(value);
 	}
 
-	if (!maki_instance_config_exists(inst, "directories", "logs"))
+	if (!g_key_file_has_key(inst->key_file, "directories", "logs", NULL))
 	{
 		gchar* value;
 
 		value = g_build_filename(g_get_user_data_dir(), "sushi", "logs", NULL);
-		maki_instance_config_set_string(inst, "directories", "logs", value);
+		g_key_file_set_string(inst->key_file, "directories", "logs", value);
 		g_free(value);
 	}
 
-	if (!maki_instance_config_exists(inst, "logging", "enabled"))
+	if (!g_key_file_has_key(inst->key_file, "logging", "enabled", NULL))
 	{
-		maki_instance_config_set_boolean(inst, "logging", "enabled", TRUE);
+		g_key_file_set_boolean(inst->key_file, "logging", "enabled", TRUE);
 	}
 
-	if (!maki_instance_config_exists(inst, "logging", "format"))
+	if (!g_key_file_has_key(inst->key_file, "logging", "format", NULL))
 	{
-		maki_instance_config_set_string(inst, "logging", "format", "$n/%Y-%m");
+		g_key_file_set_string(inst->key_file, "logging", "format", "$n/%Y-%m");
 	}
 
-	if (!maki_instance_config_exists(inst, "network", "stun"))
+	if (!g_key_file_has_key(inst->key_file, "network", "stun", NULL))
 	{
-		maki_instance_config_set_string(inst, "network", "stun", "");
+		g_key_file_set_string(inst->key_file, "network", "stun", "");
 	}
 
-	if (!maki_instance_config_exists(inst, "reconnect", "retries"))
+	if (!g_key_file_has_key(inst->key_file, "reconnect", "retries", NULL))
 	{
-		maki_instance_config_set_integer(inst, "reconnect", "retries", 3);
+		g_key_file_set_integer(inst->key_file, "reconnect", "retries", 3);
 	}
 
-	if (!maki_instance_config_exists(inst, "reconnect", "timeout"))
+	if (!g_key_file_has_key(inst->key_file, "reconnect", "timeout", NULL))
 	{
-		maki_instance_config_set_integer(inst, "reconnect", "timeout", 10);
+		g_key_file_set_integer(inst->key_file, "reconnect", "timeout", 10);
 	}
 
-	if (!maki_instance_config_exists(inst, "plugins", "network"))
+	if (!g_key_file_has_key(inst->key_file, "plugins", "network", NULL))
 	{
-		maki_instance_config_set_boolean(inst, "plugins", "network", TRUE);
+		g_key_file_set_boolean(inst->key_file, "plugins", "network", TRUE);
 	}
 
-	if (!maki_instance_config_exists(inst, "plugins", "sleep"))
+	if (!g_key_file_has_key(inst->key_file, "plugins", "sleep", NULL))
 	{
-		maki_instance_config_set_boolean(inst, "plugins", "sleep", TRUE);
+		g_key_file_set_boolean(inst->key_file, "plugins", "sleep", TRUE);
 	}
 
-	if (!maki_instance_config_exists(inst, "plugins", "upnp"))
+	if (!g_key_file_has_key(inst->key_file, "plugins", "upnp", NULL))
 	{
-		maki_instance_config_set_boolean(inst, "plugins", "upnp", TRUE);
+		g_key_file_set_boolean(inst->key_file, "plugins", "upnp", TRUE);
 	}
+
+	maki_instance_config_save(inst);
 }
 
 makiInstance*
@@ -260,6 +272,7 @@ maki_instance_new (void)
 	inst->main_loop = g_main_loop_new(inst->main_context, FALSE);
 
 	inst->key_file = g_key_file_new();
+
 	inst->directories = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 	inst->servers = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_server_unref);
 	inst->plugins = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, maki_plugin_unload);
@@ -275,7 +288,8 @@ maki_instance_new (void)
 
 	inst->dcc.id = 0;
 	inst->dcc.list = NULL;
-	inst->dcc.mutex = g_mutex_new();
+
+	inst->mutex = g_mutex_new();
 
 	inst->network = maki_network_new(inst);
 
@@ -284,135 +298,247 @@ maki_instance_new (void)
 	return inst;
 }
 
+void
+maki_instance_free (makiInstance* inst)
+{
+	GSList* list;
+
+	g_mutex_free(inst->mutex);
+
+	g_hash_table_destroy(inst->plugins);
+	g_hash_table_destroy(inst->servers);
+
+	for (list = inst->dcc.list; list != NULL; list = list->next)
+	{
+		GTimeVal timeval;
+		makiDCCSend* dcc = list->data;
+
+		g_get_current_time(&timeval);
+
+		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_dcc_send_id(dcc), "", "", "", 0, 0, 0, 0);
+
+		maki_dcc_send_free(dcc);
+	}
+
+	g_slist_free(inst->dcc.list);
+
+	maki_network_free(inst->network);
+
+	g_main_loop_quit(inst->main_loop);
+	g_thread_join(inst->thread);
+
+	g_main_loop_unref(inst->main_loop);
+	g_main_context_unref(inst->main_context);
+
+	g_key_file_free(inst->key_file);
+
+	g_hash_table_destroy(inst->directories);
+
+	g_free(inst);
+}
+
 gboolean
 maki_instance_config_get_boolean (makiInstance* inst, gchar const* group, gchar const* key)
 {
-	return g_key_file_get_boolean(inst->key_file, group, key, NULL);
+	gboolean ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = g_key_file_get_boolean(inst->key_file, group, key, NULL);
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 void
 maki_instance_config_set_boolean (makiInstance* inst, gchar const* group, gchar const* key, gboolean value)
 {
-	gchar* path;
-
+	g_mutex_lock(inst->mutex);
 	g_key_file_set_boolean(inst->key_file, group, key, value);
-
-	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
-	i_key_file_to_file(inst->key_file, path, NULL, NULL);
-	g_free(path);
+	maki_instance_config_save(inst);
+	g_mutex_unlock(inst->mutex);
 }
 
 gint
 maki_instance_config_get_integer (makiInstance* inst, gchar const* group, gchar const* key)
 {
-	return g_key_file_get_integer(inst->key_file, group, key, NULL);
+	gint ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = g_key_file_get_integer(inst->key_file, group, key, NULL);
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 void
 maki_instance_config_set_integer (makiInstance* inst, gchar const* group, gchar const* key, gint value)
 {
-	gchar* path;
-
+	g_mutex_lock(inst->mutex);
 	g_key_file_set_integer(inst->key_file, group, key, value);
-
-	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
-	i_key_file_to_file(inst->key_file, path, NULL, NULL);
-	g_free(path);
+	maki_instance_config_save(inst);
+	g_mutex_unlock(inst->mutex);
 }
 
 gchar*
 maki_instance_config_get_string (makiInstance* inst, gchar const* group, gchar const* key)
 {
-	return g_key_file_get_string(inst->key_file, group, key, NULL);
+	gchar* ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = g_key_file_get_string(inst->key_file, group, key, NULL);
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 void
 maki_instance_config_set_string (makiInstance* inst, gchar const* group, gchar const* key, gchar const* string)
 {
-	gchar* path;
-
+	g_mutex_lock(inst->mutex);
 	g_key_file_set_string(inst->key_file, group, key, string);
-
-	path = g_build_filename(maki_instance_directory(inst, "config"), "maki", NULL);
-	i_key_file_to_file(inst->key_file, path, NULL, NULL);
-	g_free(path);
+	maki_instance_config_save(inst);
+	g_mutex_unlock(inst->mutex);
 }
 
 gchar**
 maki_instance_config_get_keys (makiInstance* inst, gchar const* group)
 {
-	return g_key_file_get_keys(inst->key_file, group, NULL, NULL);
+	gchar** ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = g_key_file_get_keys(inst->key_file, group, NULL, NULL);
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 gboolean
 maki_instance_config_exists (makiInstance* inst, gchar const* group, gchar const* key)
 {
-	return g_key_file_has_key(inst->key_file, group, key, NULL);
+	gboolean ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = g_key_file_has_key(inst->key_file, group, key, NULL);
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 GMainContext*
 maki_instance_main_context (makiInstance* inst)
 {
-	return inst->main_context;
+	GMainContext* ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = inst->main_context;
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
+}
+
+makiNetwork*
+maki_instance_network (makiInstance* inst)
+{
+	makiNetwork* ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = inst->network;
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 gchar const*
 maki_instance_directory (makiInstance* inst, gchar const* directory)
 {
-	return g_hash_table_lookup(inst->directories, directory);
+	gchar const* ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = g_hash_table_lookup(inst->directories, directory);
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
-makiServer*
+void
 maki_instance_add_server (makiInstance* inst, gchar const* name, makiServer* serv)
 {
+	g_mutex_lock(inst->mutex);
 	g_hash_table_insert(inst->servers, g_strdup(name), serv);
-
-	return serv;
+	g_mutex_unlock(inst->mutex);
 }
 
 makiServer*
 maki_instance_get_server (makiInstance* inst, gchar const* name)
 {
-	return g_hash_table_lookup(inst->servers, name);
+	makiServer* ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = g_hash_table_lookup(inst->servers, name);
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 gboolean
 maki_instance_remove_server (makiInstance* inst, gchar const* name)
 {
-	return g_hash_table_remove(inst->servers, name);
+	gboolean ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = g_hash_table_remove(inst->servers, name);
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 gboolean
 maki_instance_rename_server (makiInstance* inst, gchar const* old_name, gchar const* new_name)
 {
 	makiServer* serv;
+	gboolean ret = TRUE;
+
+	g_mutex_lock(inst->mutex);
 
 	if ((serv = g_hash_table_lookup(inst->servers, new_name)) != NULL)
 	{
-		return FALSE;
+		ret = FALSE;
+		goto end;
 	}
 
 	if ((serv = g_hash_table_lookup(inst->servers, old_name)) == NULL)
 	{
-		return FALSE;
+		ret = FALSE;
+		goto end;
 	}
 
 	g_hash_table_insert(inst->servers, g_strdup(new_name), maki_server_ref(serv));
 	g_hash_table_remove(inst->servers, old_name);
 
-	return TRUE;
+end:
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 guint
 maki_instance_servers_count (makiInstance* inst)
 {
-	return g_hash_table_size(inst->servers);
+	guint ret;
+
+	g_mutex_lock(inst->mutex);
+	ret = g_hash_table_size(inst->servers);
+	g_mutex_unlock(inst->mutex);
+
+	return ret;
 }
 
 void
 maki_instance_servers_iter (makiInstance* inst, GHashTableIter* iter)
 {
+	g_mutex_lock(inst->mutex);
 	g_hash_table_iter_init(iter, inst->servers);
+	g_mutex_unlock(inst->mutex);
 }
 
 guint64
@@ -420,12 +546,10 @@ maki_instance_get_dcc_send_id (makiInstance* inst)
 {
 	guint64 id;
 
-	g_mutex_lock(inst->dcc.mutex);
-
+	g_mutex_lock(inst->mutex);
 	inst->dcc.id++;
 	id = inst->dcc.id;
-
-	g_mutex_unlock(inst->dcc.mutex);
+	g_mutex_unlock(inst->mutex);
 
 	return id;
 }
@@ -433,26 +557,41 @@ maki_instance_get_dcc_send_id (makiInstance* inst)
 void
 maki_instance_add_dcc_send (makiInstance* inst, makiDCCSend* dcc)
 {
-	g_mutex_lock(inst->dcc.mutex);
-
+	g_mutex_lock(inst->mutex);
 	inst->dcc.list = g_slist_prepend(inst->dcc.list, dcc);
-
-	g_mutex_unlock(inst->dcc.mutex);
+	g_mutex_unlock(inst->mutex);
 }
 
 gboolean
 maki_instance_accept_dcc_send (makiInstance* inst, guint64 id)
 {
-	makiDCCSend* dcc = NULL;
+	makiDCCSend* dcc;
 
-	g_mutex_lock(inst->dcc.mutex);
+	g_mutex_lock(inst->mutex);
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
 		maki_dcc_send_accept(dcc);
 	}
 
-	g_mutex_unlock(inst->dcc.mutex);
+	g_mutex_unlock(inst->mutex);
+
+	return (dcc != NULL);
+}
+
+gboolean
+maki_instance_resume_dcc_send (makiInstance* inst, guint64 id)
+{
+	makiDCCSend* dcc;
+
+	g_mutex_lock(inst->mutex);
+
+	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
+	{
+		maki_dcc_send_resume(dcc);
+	}
+
+	g_mutex_unlock(inst->mutex);
 
 	return (dcc != NULL);
 }
@@ -463,7 +602,7 @@ maki_instance_resume_accept_dcc_send (makiInstance* inst, gchar* file_name, guin
 	gboolean ret = FALSE;
 	GSList* list;
 
-	g_mutex_lock(inst->dcc.mutex);
+	g_mutex_lock(inst->mutex);
 
 	for (list = inst->dcc.list; list != NULL; list = list->next)
 	{
@@ -476,34 +615,17 @@ maki_instance_resume_accept_dcc_send (makiInstance* inst, gchar* file_name, guin
 		}
 	}
 
-	g_mutex_unlock(inst->dcc.mutex);
+	g_mutex_unlock(inst->mutex);
 
 	return ret;
 }
 
 gboolean
-maki_instance_resume_dcc_send (makiInstance* inst, guint64 id)
-{
-	makiDCCSend* dcc = NULL;
-
-	g_mutex_lock(inst->dcc.mutex);
-
-	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
-	{
-		maki_dcc_send_resume(dcc);
-	}
-
-	g_mutex_unlock(inst->dcc.mutex);
-
-	return (dcc != NULL);
-}
-
-gboolean
 maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
 {
-	makiDCCSend* dcc = NULL;
+	makiDCCSend* dcc;
 
-	g_mutex_lock(inst->dcc.mutex);
+	g_mutex_lock(inst->mutex);
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
@@ -517,7 +639,7 @@ maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
 		maki_dcc_send_free(dcc);
 	}
 
-	g_mutex_unlock(inst->dcc.mutex);
+	g_mutex_unlock(inst->mutex);
 
 	return (dcc != NULL);
 }
@@ -527,11 +649,9 @@ maki_instance_dcc_sends_count (makiInstance* inst)
 {
 	guint ret;
 
-	g_mutex_lock(inst->dcc.mutex);
-
+	g_mutex_lock(inst->mutex);
 	ret = g_slist_length(inst->dcc.list);
-
-	g_mutex_unlock(inst->dcc.mutex);
+	g_mutex_unlock(inst->mutex);
 
 	return ret;
 }
@@ -539,10 +659,10 @@ maki_instance_dcc_sends_count (makiInstance* inst)
 gchar*
 maki_instance_dcc_send_get (makiInstance* inst, guint64 id, gchar const* key)
 {
-	makiDCCSend* dcc = NULL;
+	makiDCCSend* dcc;
 	gchar* value = NULL;
 
-	g_mutex_lock(inst->dcc.mutex);
+	g_mutex_lock(inst->mutex);
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
@@ -556,7 +676,7 @@ maki_instance_dcc_send_get (makiInstance* inst, guint64 id, gchar const* key)
 		}
 	}
 
-	g_mutex_unlock(inst->dcc.mutex);
+	g_mutex_unlock(inst->mutex);
 
 	return value;
 }
@@ -564,10 +684,10 @@ maki_instance_dcc_send_get (makiInstance* inst, guint64 id, gchar const* key)
 gboolean
 maki_instance_dcc_send_set (makiInstance* inst, guint64 id, gchar const* key, gchar const* value)
 {
-	makiDCCSend* dcc = NULL;
+	makiDCCSend* dcc;
 	gboolean ret = FALSE;
 
-	g_mutex_lock(inst->dcc.mutex);
+	g_mutex_lock(inst->mutex);
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
@@ -592,7 +712,7 @@ maki_instance_dcc_send_set (makiInstance* inst, guint64 id, gchar const* key, gc
 		}
 	}
 
-	g_mutex_unlock(inst->dcc.mutex);
+	g_mutex_unlock(inst->mutex);
 
 	return ret;
 }
@@ -603,7 +723,7 @@ maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** servers,
 	guint i;
 	GSList* list;
 
-	g_mutex_lock(inst->dcc.mutex);
+	g_mutex_lock(inst->mutex);
 
 	for (list = inst->dcc.list, i = 0; list != NULL; list = list->next, i++)
 	{
@@ -630,62 +750,27 @@ maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** servers,
 		*statuses = g_array_append_val(*statuses, status);
 	}
 
-	g_mutex_unlock(inst->dcc.mutex);
+	g_mutex_unlock(inst->mutex);
 }
 
 gboolean
 maki_instance_plugin_method (makiInstance* inst, gchar const* plugin, gchar const* method, gpointer* symbol)
 {
 	GModule* module;
+	gboolean ret;
+
+	g_mutex_lock(inst->mutex);
 
 	if ((module = g_hash_table_lookup(inst->plugins, plugin)) == NULL)
 	{
-		return FALSE;
+		ret = FALSE;
+		goto end;
 	}
 
-	return g_module_symbol(module, method, symbol);
-}
+	ret = g_module_symbol(module, method, symbol);
 
-makiNetwork*
-maki_instance_network (makiInstance* inst)
-{
-	return inst->network;
-}
+end:
+	g_mutex_unlock(inst->mutex);
 
-void
-maki_instance_free (makiInstance* inst)
-{
-	GSList* list;
-
-	g_hash_table_destroy(inst->plugins);
-	g_hash_table_destroy(inst->servers);
-
-	for (list = inst->dcc.list; list != NULL; list = list->next)
-	{
-		GTimeVal timeval;
-		makiDCCSend* dcc = list->data;
-
-		g_get_current_time(&timeval);
-
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_dcc_send_id(dcc), "", "", "", 0, 0, 0, 0);
-
-		maki_dcc_send_free(dcc);
-	}
-
-	g_slist_free(inst->dcc.list);
-	g_mutex_free(inst->dcc.mutex);
-
-	maki_network_free(inst->network);
-
-	g_main_loop_quit(inst->main_loop);
-	g_thread_join(inst->thread);
-
-	g_main_loop_unref(inst->main_loop);
-	g_main_context_unref(inst->main_context);
-
-	g_key_file_free(inst->key_file);
-
-	g_hash_table_destroy(inst->directories);
-
-	g_free(inst);
+	return ret;
 }

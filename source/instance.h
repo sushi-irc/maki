@@ -39,7 +39,10 @@ typedef struct maki_instance makiInstance;
 #include "server.h"
 
 makiInstance* maki_instance_get_default (void);
+
 makiInstance* maki_instance_new (void);
+void maki_instance_free (makiInstance*);
+
 gboolean maki_instance_config_get_boolean (makiInstance*, gchar const*, gchar const*);
 void maki_instance_config_set_boolean (makiInstance*, gchar const*, gchar const*, gboolean);
 gint maki_instance_config_get_integer (makiInstance*, gchar const*, gchar const*);
@@ -48,26 +51,29 @@ gchar* maki_instance_config_get_string (makiInstance*, gchar const*, gchar const
 void maki_instance_config_set_string (makiInstance*, gchar const*, gchar const*, gchar const*);
 gchar** maki_instance_config_get_keys (makiInstance*, gchar const*);
 gboolean maki_instance_config_exists (makiInstance*, gchar const*, gchar const*);
+
 GMainContext* maki_instance_main_context (makiInstance*);
+makiNetwork* maki_instance_network (makiInstance*);
 gchar const* maki_instance_directory (makiInstance*, gchar const*);
-makiServer* maki_instance_add_server (makiInstance*, gchar const*, makiServer*);
+
+void maki_instance_add_server (makiInstance*, gchar const*, makiServer*);
 makiServer* maki_instance_get_server (makiInstance*, gchar const*);
 gboolean maki_instance_remove_server (makiInstance*, gchar const*);
+gboolean maki_instance_rename_server (makiInstance*, gchar const*, gchar const*);
 guint maki_instance_servers_count (makiInstance*);
 void maki_instance_servers_iter (makiInstance*, GHashTableIter*);
+
 guint64 maki_instance_get_dcc_send_id (makiInstance*);
 void maki_instance_add_dcc_send (makiInstance*, makiDCCSend*);
 gboolean maki_instance_accept_dcc_send (makiInstance*, guint64);
-gboolean maki_instance_resume_accept_dcc_send (makiInstance*, gchar*, guint16, goffset, guint32, gboolean);
 gboolean maki_instance_resume_dcc_send (makiInstance*, guint64);
+gboolean maki_instance_resume_accept_dcc_send (makiInstance*, gchar*, guint16, goffset, guint32, gboolean);
 gboolean maki_instance_remove_dcc_send (makiInstance*, guint64);
-gboolean maki_instance_rename_server (makiInstance*, gchar const*, gchar const*);
 guint maki_instance_dcc_sends_count (makiInstance*);
 gchar* maki_instance_dcc_send_get (makiInstance*, guint64, gchar const*);
 gboolean maki_instance_dcc_send_set (makiInstance*, guint64, gchar const*, gchar const*);
 void maki_instance_dcc_sends_xxx (makiInstance*, GArray**, gchar***, gchar***, gchar***, GArray**, GArray**, GArray**, GArray**);
+
 gboolean maki_instance_plugin_method (makiInstance*, gchar const*, gchar const*, gpointer*);
-makiNetwork* maki_instance_network (makiInstance*);
-void maki_instance_free (makiInstance*);
 
 #endif
