@@ -199,8 +199,6 @@ int main (int argc, char* argv[])
 
 	sigaction(SIGPIPE, &sig, NULL);
 
-	maki_instance_load_plugins(inst);
-
 	servers = g_dir_open(maki_instance_directory(inst, "servers"), 0, NULL);
 
 	while ((file = g_dir_read_name(servers)) != NULL)

@@ -131,7 +131,10 @@ init (void)
 
 #ifdef HAVE_GUPNP
 	upnp_context = gupnp_context_new(maki_instance_main_context(inst), NULL, 0, NULL);
+	g_assert(upnp_context != NULL);
 	upnp_control_point = gupnp_control_point_new(upnp_context, "urn:schemas-upnp-org:service:WANIPConnection:1");
+	g_assert(upnp_control_point != NULL);
+	upnp_service_proxy = NULL;
 
 	g_signal_connect(upnp_control_point, "service-proxy-available", G_CALLBACK(on_service_proxy_available), NULL);
 
@@ -140,6 +143,7 @@ init (void)
 
 #ifdef HAVE_GUPNP_IGD
 	upnp_igd = gupnp_simple_igd_new(maki_instance_main_context(inst));
+	g_assert(upnp_igd != NULL);
 #endif
 
 	return TRUE;

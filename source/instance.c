@@ -65,28 +65,59 @@ struct maki_instance
 	GThread* thread;
 };
 
-makiInstance* maki_instance_get_default (void)
+static
+void
+maki_instance_load_plugins (makiInstance* inst)
 {
-	static makiInstance* inst = NULL;
+	gchar** plugins;
+	guint plugins_len;
+	guint i;
 
-	if (G_UNLIKELY(inst == NULL))
+	plugins = maki_instance_config_get_keys(inst, "plugins");
+
+	if (plugins == NULL)
 	{
-		inst = maki_instance_new();
+		return;
 	}
 
-	return inst;
+	plugins_len = g_strv_length(plugins);
+
+	for (i = 0; i < plugins_len; i++)
+	{
+		GModule* module;
+
+		if (!maki_instance_config_get_boolean(inst, "plugins", plugins[i]))
+		{
+			continue;
+		}
+
+		if ((module = maki_plugin_load(plugins[i])) != NULL)
+		{
+			g_hash_table_insert(inst->plugins, g_strdup(plugins[i]), module);
+		}
+	}
+
+	g_strfreev(plugins);
 }
 
-static gpointer maki_instance_thread (gpointer data)
+static
+gpointer
+maki_instance_thread (gpointer data)
 {
 	makiInstance* inst = data;
+
+	g_main_context_push_thread_default(inst->main_context);
+
+	maki_instance_load_plugins(inst);
 
 	g_main_loop_run(inst->main_loop);
 
 	return NULL;
 }
 
-static makiDCCSend* maki_instance_get_dcc_send (makiInstance* inst, guint64 id)
+static
+makiDCCSend*
+maki_instance_get_dcc_send (makiInstance* inst, guint64 id)
 {
 	GSList* list;
 
@@ -103,7 +134,9 @@ static makiDCCSend* maki_instance_get_dcc_send (makiInstance* inst, guint64 id)
 	return NULL;
 }
 
-static void maki_instance_config_set_defaults (makiInstance* inst)
+static
+void
+maki_instance_config_set_defaults (makiInstance* inst)
 {
 	if (!maki_instance_config_exists(inst, "dcc", "accept_chat"))
 	{
@@ -189,7 +222,21 @@ static void maki_instance_config_set_defaults (makiInstance* inst)
 	}
 }
 
-makiInstance* maki_instance_new (void)
+makiInstance*
+maki_instance_get_default (void)
+{
+	static makiInstance* inst = NULL;
+
+	if (G_UNLIKELY(inst == NULL))
+	{
+		inst = maki_instance_new();
+	}
+
+	return inst;
+}
+
+makiInstance*
+maki_instance_new (void)
 {
 	gchar* config_dir;
 	gchar* config_file;
@@ -237,12 +284,14 @@ makiInstance* maki_instance_new (void)
 	return inst;
 }
 
-gboolean maki_instance_config_get_boolean (makiInstance* inst, const gchar* group, const gchar* key)
+gboolean
+maki_instance_config_get_boolean (makiInstance* inst, gchar const* group, gchar const* key)
 {
 	return g_key_file_get_boolean(inst->key_file, group, key, NULL);
 }
 
-void maki_instance_config_set_boolean (makiInstance* inst, const gchar* group, const gchar* key, gboolean value)
+void
+maki_instance_config_set_boolean (makiInstance* inst, gchar const* group, gchar const* key, gboolean value)
 {
 	gchar* path;
 
@@ -253,12 +302,14 @@ void maki_instance_config_set_boolean (makiInstance* inst, const gchar* group, c
 	g_free(path);
 }
 
-gint maki_instance_config_get_integer (makiInstance* inst, const gchar* group, const gchar* key)
+gint
+maki_instance_config_get_integer (makiInstance* inst, gchar const* group, gchar const* key)
 {
 	return g_key_file_get_integer(inst->key_file, group, key, NULL);
 }
 
-void maki_instance_config_set_integer (makiInstance* inst, const gchar* group, const gchar* key, gint value)
+void
+maki_instance_config_set_integer (makiInstance* inst, gchar const* group, gchar const* key, gint value)
 {
 	gchar* path;
 
@@ -269,12 +320,14 @@ void maki_instance_config_set_integer (makiInstance* inst, const gchar* group, c
 	g_free(path);
 }
 
-gchar* maki_instance_config_get_string (makiInstance* inst, const gchar* group, const gchar* key)
+gchar*
+maki_instance_config_get_string (makiInstance* inst, gchar const* group, gchar const* key)
 {
 	return g_key_file_get_string(inst->key_file, group, key, NULL);
 }
 
-void maki_instance_config_set_string (makiInstance* inst, const gchar* group, const gchar* key, const gchar* string)
+void
+maki_instance_config_set_string (makiInstance* inst, gchar const* group, gchar const* key, gchar const* string)
 {
 	gchar* path;
 
@@ -285,44 +338,52 @@ void maki_instance_config_set_string (makiInstance* inst, const gchar* group, co
 	g_free(path);
 }
 
-gchar** maki_instance_config_get_keys (makiInstance* inst, const gchar* group)
+gchar**
+maki_instance_config_get_keys (makiInstance* inst, gchar const* group)
 {
 	return g_key_file_get_keys(inst->key_file, group, NULL, NULL);
 }
 
-gboolean maki_instance_config_exists (makiInstance* inst, const gchar* group, const gchar* key)
+gboolean
+maki_instance_config_exists (makiInstance* inst, gchar const* group, gchar const* key)
 {
 	return g_key_file_has_key(inst->key_file, group, key, NULL);
 }
 
-GMainContext* maki_instance_main_context (makiInstance* inst)
+GMainContext*
+maki_instance_main_context (makiInstance* inst)
 {
 	return inst->main_context;
 }
 
-const gchar* maki_instance_directory (makiInstance* inst, const gchar* directory)
+gchar const*
+maki_instance_directory (makiInstance* inst, gchar const* directory)
 {
 	return g_hash_table_lookup(inst->directories, directory);
 }
 
-makiServer* maki_instance_add_server (makiInstance* inst, const gchar* name, makiServer* serv)
+makiServer*
+maki_instance_add_server (makiInstance* inst, gchar const* name, makiServer* serv)
 {
 	g_hash_table_insert(inst->servers, g_strdup(name), serv);
 
 	return serv;
 }
 
-makiServer* maki_instance_get_server (makiInstance* inst, const gchar* name)
+makiServer*
+maki_instance_get_server (makiInstance* inst, gchar const* name)
 {
 	return g_hash_table_lookup(inst->servers, name);
 }
 
-gboolean maki_instance_remove_server (makiInstance* inst, const gchar* name)
+gboolean
+maki_instance_remove_server (makiInstance* inst, gchar const* name)
 {
 	return g_hash_table_remove(inst->servers, name);
 }
 
-gboolean maki_instance_rename_server (makiInstance* inst, const gchar* old_name, const gchar* new_name)
+gboolean
+maki_instance_rename_server (makiInstance* inst, gchar const* old_name, gchar const* new_name)
 {
 	makiServer* serv;
 
@@ -342,17 +403,20 @@ gboolean maki_instance_rename_server (makiInstance* inst, const gchar* old_name,
 	return TRUE;
 }
 
-guint maki_instance_servers_count (makiInstance* inst)
+guint
+maki_instance_servers_count (makiInstance* inst)
 {
 	return g_hash_table_size(inst->servers);
 }
 
-void maki_instance_servers_iter (makiInstance* inst, GHashTableIter* iter)
+void
+maki_instance_servers_iter (makiInstance* inst, GHashTableIter* iter)
 {
 	g_hash_table_iter_init(iter, inst->servers);
 }
 
-guint64 maki_instance_get_dcc_send_id (makiInstance* inst)
+guint64
+maki_instance_get_dcc_send_id (makiInstance* inst)
 {
 	guint64 id;
 
@@ -366,7 +430,8 @@ guint64 maki_instance_get_dcc_send_id (makiInstance* inst)
 	return id;
 }
 
-void maki_instance_add_dcc_send (makiInstance* inst, makiDCCSend* dcc)
+void
+maki_instance_add_dcc_send (makiInstance* inst, makiDCCSend* dcc)
 {
 	g_mutex_lock(inst->dcc.mutex);
 
@@ -375,7 +440,8 @@ void maki_instance_add_dcc_send (makiInstance* inst, makiDCCSend* dcc)
 	g_mutex_unlock(inst->dcc.mutex);
 }
 
-gboolean maki_instance_accept_dcc_send (makiInstance* inst, guint64 id)
+gboolean
+maki_instance_accept_dcc_send (makiInstance* inst, guint64 id)
 {
 	makiDCCSend* dcc = NULL;
 
@@ -391,7 +457,8 @@ gboolean maki_instance_accept_dcc_send (makiInstance* inst, guint64 id)
 	return (dcc != NULL);
 }
 
-gboolean maki_instance_resume_accept_dcc_send (makiInstance* inst, gchar* file_name, guint16 port, goffset position, guint32 token, gboolean is_incoming)
+gboolean
+maki_instance_resume_accept_dcc_send (makiInstance* inst, gchar* file_name, guint16 port, goffset position, guint32 token, gboolean is_incoming)
 {
 	gboolean ret = FALSE;
 	GSList* list;
@@ -414,7 +481,8 @@ gboolean maki_instance_resume_accept_dcc_send (makiInstance* inst, gchar* file_n
 	return ret;
 }
 
-gboolean maki_instance_resume_dcc_send (makiInstance* inst, guint64 id)
+gboolean
+maki_instance_resume_dcc_send (makiInstance* inst, guint64 id)
 {
 	makiDCCSend* dcc = NULL;
 
@@ -430,7 +498,8 @@ gboolean maki_instance_resume_dcc_send (makiInstance* inst, guint64 id)
 	return (dcc != NULL);
 }
 
-gboolean maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
+gboolean
+maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
 {
 	makiDCCSend* dcc = NULL;
 
@@ -453,7 +522,8 @@ gboolean maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
 	return (dcc != NULL);
 }
 
-guint maki_instance_dcc_sends_count (makiInstance* inst)
+guint
+maki_instance_dcc_sends_count (makiInstance* inst)
 {
 	guint ret;
 
@@ -466,7 +536,8 @@ guint maki_instance_dcc_sends_count (makiInstance* inst)
 	return ret;
 }
 
-gchar* maki_instance_dcc_send_get (makiInstance* inst, guint64 id, const gchar* key)
+gchar*
+maki_instance_dcc_send_get (makiInstance* inst, guint64 id, gchar const* key)
 {
 	makiDCCSend* dcc = NULL;
 	gchar* value = NULL;
@@ -490,7 +561,8 @@ gchar* maki_instance_dcc_send_get (makiInstance* inst, guint64 id, const gchar* 
 	return value;
 }
 
-gboolean maki_instance_dcc_send_set (makiInstance* inst, guint64 id, const gchar* key, const gchar* value)
+gboolean
+maki_instance_dcc_send_set (makiInstance* inst, guint64 id, gchar const* key, gchar const* value)
 {
 	makiDCCSend* dcc = NULL;
 	gboolean ret = FALSE;
@@ -501,7 +573,7 @@ gboolean maki_instance_dcc_send_set (makiInstance* inst, guint64 id, const gchar
 	{
 		if (strcmp(key, "directory") == 0)
 		{
-			const gchar* path;
+			gchar const* path;
 			gchar* basename;
 			gchar* new_path;
 
@@ -525,7 +597,8 @@ gboolean maki_instance_dcc_send_set (makiInstance* inst, guint64 id, const gchar
 	return ret;
 }
 
-void maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** servers, gchar*** froms, gchar*** filenames, GArray** sizes, GArray** progresses, GArray** speeds, GArray** statuses)
+void
+maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** servers, gchar*** froms, gchar*** filenames, GArray** sizes, GArray** progresses, GArray** speeds, GArray** statuses)
 {
 	guint i;
 	GSList* list;
@@ -560,40 +633,8 @@ void maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** ser
 	g_mutex_unlock(inst->dcc.mutex);
 }
 
-void maki_instance_load_plugins (makiInstance* inst)
-{
-	gchar** plugins;
-	guint plugins_len;
-	guint i;
-
-	plugins = maki_instance_config_get_keys(inst, "plugins");
-
-	if (plugins == NULL)
-	{
-		return;
-	}
-
-	plugins_len = g_strv_length(plugins);
-
-	for (i = 0; i < plugins_len; i++)
-	{
-		GModule* module;
-
-		if (!maki_instance_config_get_boolean(inst, "plugins", plugins[i]))
-		{
-			continue;
-		}
-
-		if ((module = maki_plugin_load(plugins[i])) != NULL)
-		{
-			g_hash_table_insert(inst->plugins, g_strdup(plugins[i]), module);
-		}
-	}
-
-	g_strfreev(plugins);
-}
-
-gboolean maki_instance_plugin_method (makiInstance* inst, const gchar* plugin, const gchar* method, gpointer* symbol)
+gboolean
+maki_instance_plugin_method (makiInstance* inst, gchar const* plugin, gchar const* method, gpointer* symbol)
 {
 	GModule* module;
 
@@ -605,12 +646,14 @@ gboolean maki_instance_plugin_method (makiInstance* inst, const gchar* plugin, c
 	return g_module_symbol(module, method, symbol);
 }
 
-makiNetwork* maki_instance_network (makiInstance* inst)
+makiNetwork*
+maki_instance_network (makiInstance* inst)
 {
 	return inst->network;
 }
 
-void maki_instance_free (makiInstance* inst)
+void
+maki_instance_free (makiInstance* inst)
 {
 	GSList* list;
 
