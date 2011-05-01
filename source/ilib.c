@@ -50,7 +50,8 @@ struct i_lock
 	gint fd;
 };
 
-gboolean i_daemon (gboolean nochdir, gboolean noclose)
+gboolean
+i_daemon (gboolean nochdir, gboolean noclose)
 {
 	pid_t pid;
 
@@ -103,7 +104,8 @@ gboolean i_daemon (gboolean nochdir, gboolean noclose)
 	return TRUE;
 }
 
-guint i_idle_add (GSourceFunc function, gpointer data, GMainContext* context)
+guint
+i_idle_add (GSourceFunc function, gpointer data, GMainContext* context)
 {
 	GSource* source;
 	guint id;
@@ -118,7 +120,8 @@ guint i_idle_add (GSourceFunc function, gpointer data, GMainContext* context)
 	return id;
 }
 
-guint i_timeout_add_seconds (guint interval, GSourceFunc function, gpointer data, GMainContext* context)
+guint
+i_timeout_add_seconds (guint interval, GSourceFunc function, gpointer data, GMainContext* context)
 {
 	GSource* source;
 	guint id;
@@ -133,7 +136,8 @@ guint i_timeout_add_seconds (guint interval, GSourceFunc function, gpointer data
 	return id;
 }
 
-gboolean i_source_remove (guint tag, GMainContext* context)
+gboolean
+i_source_remove (guint tag, GMainContext* context)
 {
 	GSource* source;
 
@@ -149,7 +153,8 @@ gboolean i_source_remove (guint tag, GMainContext* context)
 	return (source != NULL);
 }
 
-GIOChannel* i_io_channel_unix_new_address (const gchar* address, guint port, gboolean nonblocking)
+GIOChannel*
+i_io_channel_unix_new_address (gchar const* address, guint port, gboolean nonblocking)
 {
 	GIOChannel* channel;
 	gint fd = -1;
@@ -219,7 +224,8 @@ GIOChannel* i_io_channel_unix_new_address (const gchar* address, guint port, gbo
 	return channel;
 }
 
-GIOChannel* i_io_channel_unix_new_listen (const gchar* address, guint port, gboolean nonblocking)
+GIOChannel*
+i_io_channel_unix_new_listen (gchar const* address, guint port, gboolean nonblocking)
 {
 	GIOChannel* channel;
 	gint fd = -1;
@@ -291,7 +297,8 @@ GIOChannel* i_io_channel_unix_new_listen (const gchar* address, guint port, gboo
 	return channel;
 }
 
-GIOStatus i_io_channel_write_chars (GIOChannel* channel, const gchar* buf, gssize count, gsize* bytes_written, GError** error)
+GIOStatus
+i_io_channel_write_chars (GIOChannel* channel, gchar const* buf, gssize count, gsize* bytes_written, GError** error)
 {
 	gsize nwritten = 0;
 	gsize ntmp;
@@ -333,7 +340,8 @@ GIOStatus i_io_channel_write_chars (GIOChannel* channel, const gchar* buf, gssiz
 	return ret;
 }
 
-GIOStatus i_io_channel_read_chars (GIOChannel* channel, gchar* buf, gsize count, gsize* bytes_read, GError** error)
+GIOStatus
+i_io_channel_read_chars (GIOChannel* channel, gchar* buf, gsize count, gsize* bytes_read, GError** error)
 {
 	gsize nread = 0;
 	gsize ntmp;
@@ -370,7 +378,8 @@ GIOStatus i_io_channel_read_chars (GIOChannel* channel, gchar* buf, gsize count,
 	return ret;
 }
 
-gboolean i_key_file_to_file (GKeyFile* key_file, const gchar* file, gsize* length, GError** error)
+gboolean
+i_key_file_to_file (GKeyFile* key_file, gchar const* file, gsize* length, GError** error)
 {
 	gboolean ret = FALSE;
 	gchar* contents;
@@ -390,7 +399,8 @@ gboolean i_key_file_to_file (GKeyFile* key_file, const gchar* file, gsize* lengt
 	return ret;
 }
 
-gchar* i_strreplace (const gchar* string, const gchar* search, const gchar* replace, guint max)
+gchar*
+i_strreplace (gchar const* string, gchar const* search, gchar const* replace, guint max)
 {
 	gchar** p;
 	gchar* result;
@@ -402,12 +412,14 @@ gchar* i_strreplace (const gchar* string, const gchar* search, const gchar* repl
 	return result;
 }
 
-gboolean i_ascii_str_case_equal (gconstpointer v1, gconstpointer v2)
+gboolean
+i_ascii_str_case_equal (gconstpointer v1, gconstpointer v2)
 {
 	return (g_ascii_strcasecmp(v1, v2) == 0);
 }
 
-guint i_ascii_str_case_hash (gconstpointer key)
+guint
+i_ascii_str_case_hash (gconstpointer key)
 {
 	guint ret;
 	gchar* tmp;
@@ -419,9 +431,9 @@ guint i_ascii_str_case_hash (gconstpointer key)
 	return ret;
 }
 
-gchar* i_get_current_time_string (const gchar* format)
+gchar*
+i_get_current_time_string (gchar const* format)
 {
-#if GLIB_CHECK_VERSION(2,26,0)
 	GDateTime* dt;
 	gchar* t;
 
@@ -430,35 +442,10 @@ gchar* i_get_current_time_string (const gchar* format)
 	g_date_time_unref(dt);
 
 	return t;
-#else
-	gchar buf[1024];
-	time_t t;
-	struct tm tm;
-
-	tzset();
-
-	if (time(&t) == -1)
-	{
-		return NULL;
-	}
-
-	if (localtime_r(&t, &tm) == NULL)
-	{
-		return NULL;
-	}
-
-	if (strftime(buf, 1024, format, &tm) > 0)
-	{
-		return g_strdup(buf);
-	}
-	else
-	{
-		return NULL;
-	}
-#endif
 }
 
-gchar** i_strv_new (IStrvNewFunc func, ...)
+gchar**
+i_strv_new (IStrvNewFunc func, ...)
 {
 	gsize n = 0;
 	gchar* p;
@@ -492,7 +479,7 @@ gchar** i_strv_new (IStrvNewFunc func, ...)
 	return v;
 }
 
-iLock* i_lock_new (const gchar* path)
+iLock* i_lock_new (gchar const* path)
 {
 	iLock* lock;
 
@@ -505,7 +492,8 @@ iLock* i_lock_new (const gchar* path)
 	return lock;
 }
 
-gboolean i_lock_lock (iLock* lock, const gchar* contents)
+gboolean
+i_lock_lock (iLock* lock, gchar const* contents)
 {
 	gint fd;
 
@@ -572,7 +560,8 @@ error:
 	return FALSE;
 }
 
-gboolean i_lock_unlock (iLock* lock)
+gboolean
+i_lock_unlock (iLock* lock)
 {
 	g_return_val_if_fail(lock != NULL, FALSE);
 
@@ -588,7 +577,8 @@ gboolean i_lock_unlock (iLock* lock)
 	return TRUE;
 }
 
-void i_lock_free (iLock* lock)
+void
+i_lock_free (iLock* lock)
 {
 	g_return_if_fail(lock != NULL);
 

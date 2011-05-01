@@ -6,7 +6,7 @@ def configure (ctx):
 	ctx.check_cfg(
 		package = 'glib-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.20'
+		atleast_version = '2.26'
 	)
 
 	ctx.check_cfg(
@@ -17,17 +17,20 @@ def configure (ctx):
 
 	ctx.check_cfg(
 		package = 'gobject-2.0',
-		args = ['--cflags', '--libs']
+		args = ['--cflags', '--libs'],
+		atleast_version = '2.26'
 	)
 
 	ctx.check_cfg(
 		package = 'gthread-2.0',
-		args = ['--cflags', '--libs']
+		args = ['--cflags', '--libs'],
+		atleast_version = '2.26'
 	)
 
 	ctx.check_cfg(
 		package = 'gmodule-2.0',
-		args = ['--cflags', '--libs']
+		args = ['--cflags', '--libs'],
+		atleast_version = '2.26'
 	)
 
 	ctx.check_cfg(

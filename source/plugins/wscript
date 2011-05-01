@@ -4,6 +4,7 @@ def configure (ctx):
 	ctx.check_cfg(
 		package = 'glib-2.0',
 		args = ['--cflags', '--libs'],
+		atleast_version = '2.26',
 		uselib_store = 'GLIB'
 	)
 
@@ -17,6 +18,7 @@ def configure (ctx):
 	ctx.check_cfg(
 		package = 'gmodule-2.0',
 		args = ['--cflags', '--libs'],
+		atleast_version = '2.26',
 		uselib_store = 'GMODULE'
 	)
 
