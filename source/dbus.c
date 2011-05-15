@@ -120,35 +120,38 @@ maki_dbus_free (makiDBus* d)
 }
 
 void
-maki_dbus_emit (makiDBus* d, const gchar* name, const gchar* format, va_list ap)
+maki_dbus_emit (makiDBus* d, const gchar* name, GVariant* variant)
 {
 	g_return_if_fail(d != NULL);
 
 	if (d->connection != NULL)
 	{
-		va_list aq;
-
-		va_copy(aq, ap);
-		g_dbus_connection_emit_signal(d->connection, NULL, SUSHI_DBUS_PATH, SUSHI_DBUS_INTERFACE, name, g_variant_new_va(format, NULL, &aq), NULL);
-		va_end(aq);
+		g_dbus_connection_emit_signal(d->connection, NULL, SUSHI_DBUS_PATH, SUSHI_DBUS_INTERFACE, name, variant, NULL);
 	}
 }
 
 static void
 maki_dbus_emit_helper (const gchar* name, const gchar* format, ...)
 {
+	GVariant* variant;
+	gchar* tmp;
 	va_list ap;
 
 	va_start(ap, format);
+	variant = g_variant_new_va(format, NULL, &ap);
+
+	tmp = g_variant_print(variant, TRUE);
+	maki_debug("SIGNAL %s: %s %s %s\n", SUSHI_DBUS_PATH, SUSHI_DBUS_INTERFACE, name, tmp);
+	g_free(tmp);
 
 	if (dbus != NULL)
 	{
-		maki_dbus_emit(dbus, name, format, ap);
+		maki_dbus_emit(dbus, name, variant);
 	}
 
 	if (dbus_server != NULL)
 	{
-		maki_dbus_server_emit(dbus_server, name, format, ap);
+		maki_dbus_server_emit(dbus_server, name, variant);
 	}
 
 	va_end(ap);

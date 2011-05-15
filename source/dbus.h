@@ -28,9 +28,9 @@
 #ifndef H_DBUS
 #define H_DBUS
 
-#define SUSHI_DBUS_SERVICE "de.ikkoku.sushi"
 #define SUSHI_DBUS_PATH "/de/ikkoku/sushi"
 #define SUSHI_DBUS_INTERFACE "de.ikkoku.sushi"
+#define SUSHI_DBUS_SERVICE "de.ikkoku.sushi"
 
 struct maki_dbus;
 
@@ -41,7 +41,7 @@ typedef struct maki_dbus makiDBus;
 makiDBus* maki_dbus_new (void);
 void maki_dbus_free (makiDBus*);
 
-void maki_dbus_emit (makiDBus*, const gchar*, const gchar*, va_list);
+void maki_dbus_emit (makiDBus*, const gchar*, GVariant*);
 
 void maki_dbus_emit_action (const gchar*, const gchar*, const gchar*, const gchar*);
 void maki_dbus_emit_away (const gchar*);

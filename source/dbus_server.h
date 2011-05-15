@@ -41,7 +41,7 @@ void maki_dbus_server_free (makiDBusServer*);
 
 const gchar* maki_dbus_server_address (makiDBusServer*);
 
-void maki_dbus_server_emit (makiDBusServer*, const gchar*, const gchar*, va_list);
+void maki_dbus_server_emit (makiDBusServer*, const gchar*, GVariant*);
 
 void maki_dbus_server_message_handler (GDBusConnection*, const gchar*, const gchar*, const gchar*, const gchar*, GVariant*, GDBusMethodInvocation*, gpointer);
 

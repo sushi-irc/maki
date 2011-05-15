@@ -48,7 +48,11 @@ struct maki_dbus_server
 void
 maki_dbus_server_message_handler (GDBusConnection* connection, const gchar* sender, const gchar* path, const gchar* interface, const gchar* method, GVariant* parameters, GDBusMethodInvocation* invocation, gpointer data)
 {
-	maki_debug("METHOD %s: %s %s\n", path, interface, method);
+	gchar* tmp;
+
+	tmp = g_variant_print(parameters, TRUE);
+	maki_debug("METHOD %s: %s %s %s\n", path, interface, method, tmp);
+	g_free(tmp);
 
 #if 0
 	if (g_strcmp0(path, "/org/freedesktop/DBus") == 0
@@ -787,19 +791,14 @@ maki_dbus_server_address (makiDBusServer* dserv)
 }
 
 void
-maki_dbus_server_emit (makiDBusServer* dserv, const gchar* name, const gchar* format, va_list ap)
+maki_dbus_server_emit (makiDBusServer* dserv, const gchar* name, GVariant* variant)
 {
 	GDBusMessage* message;
 	GSList* list;
-	va_list aq;
-
-	maki_debug("SIGNAL /de/ikkoku/sushi: de.ikkoku.sushi %s\n", name);
-
-	va_copy(aq, ap);
 
 	message = g_dbus_message_new_signal(SUSHI_DBUS_PATH, SUSHI_DBUS_INTERFACE, name);
 	g_dbus_message_set_sender(message, SUSHI_DBUS_SERVICE);
-	g_dbus_message_set_body(message, g_variant_new_va(format, NULL, &aq));
+	g_dbus_message_set_body(message, variant);
 
 	for (list = dserv->connections; list != NULL; list = list->next)
 	{
@@ -809,6 +808,4 @@ maki_dbus_server_emit (makiDBusServer* dserv, const gchar* name, const gchar* fo
 	}
 
 	g_object_unref(message);
-
-	va_end(aq);
 }
