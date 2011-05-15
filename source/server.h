@@ -53,47 +53,52 @@ typedef enum makiServerSupport makiServerSupport;
 #include "sashimi.h"
 #include "user.h"
 
-makiServer* maki_server_new (const gchar*);
-gboolean maki_server_config_get_boolean (makiServer*, const gchar*, const gchar*);
-void maki_server_config_set_boolean (makiServer*, const gchar*, const gchar*, gboolean);
-gint maki_server_config_get_integer (makiServer*, const gchar*, const gchar*);
-void maki_server_config_set_integer (makiServer*, const gchar*, const gchar*, gint);
-gchar* maki_server_config_get_string (makiServer*, const gchar*, const gchar*);
-void maki_server_config_set_string (makiServer*, const gchar*, const gchar*, const gchar*);
-gchar** maki_server_config_get_string_list (makiServer*, const gchar*, const gchar*);
-void maki_server_config_set_string_list (makiServer*, const gchar*, const gchar*, gchar**);
-gboolean maki_server_config_remove_key (makiServer*, const gchar*, const gchar*);
-gboolean maki_server_config_remove_group (makiServer*, const gchar*);
-gchar** maki_server_config_get_keys (makiServer*, const gchar*);
+makiServer* maki_server_new (gchar const*);
+makiServer* maki_server_ref (makiServer*);
+void maki_server_unref (gpointer);
+
+gboolean maki_server_config_get_boolean (makiServer*, gchar const*, gchar const*);
+void maki_server_config_set_boolean (makiServer*, gchar const*, gchar const*, gboolean);
+gint maki_server_config_get_integer (makiServer*, gchar const*, gchar const*);
+void maki_server_config_set_integer (makiServer*, gchar const*, gchar const*, gint);
+gchar* maki_server_config_get_string (makiServer*, gchar const*, gchar const*);
+void maki_server_config_set_string (makiServer*, gchar const*, gchar const*, gchar const*);
+gchar** maki_server_config_get_string_list (makiServer*, gchar const*, gchar const*);
+void maki_server_config_set_string_list (makiServer*, gchar const*, gchar const*, gchar**);
+gboolean maki_server_config_remove_key (makiServer*, gchar const*, gchar const*);
+gboolean maki_server_config_remove_group (makiServer*, gchar const*);
+gchar** maki_server_config_get_keys (makiServer*, gchar const*);
 gchar** maki_server_config_get_groups (makiServer*);
-gboolean maki_server_config_exists (makiServer*, const gchar*, const gchar*);
+gboolean maki_server_config_exists (makiServer*, gchar const*, gchar const*);
+
+gchar const* maki_server_name (makiServer*);
+gboolean maki_server_autoconnect (makiServer*);
 gboolean maki_server_connected (makiServer*);
 gboolean maki_server_logged_in (makiServer*);
 void maki_server_set_logged_in (makiServer*, gboolean);
 makiUser* maki_server_user (makiServer*);
-const gchar* maki_server_support (makiServer*, makiServerSupport);
-void maki_server_set_support (makiServer*, makiServerSupport, const gchar*);
-void maki_server_add_user (makiServer*, const gchar*, makiUser*);
-makiUser* maki_server_get_user (makiServer*, const gchar*);
-gboolean maki_server_remove_user (makiServer*, const gchar*);
-const gchar* maki_server_name (makiServer*);
-gboolean maki_server_autoconnect (makiServer*);
-void maki_server_add_channel (makiServer*, const gchar*, makiChannel*);
-makiChannel* maki_server_get_channel (makiServer*, const gchar*);
-gboolean maki_server_remove_channel (makiServer*, const gchar*);
+
+gchar const* maki_server_support (makiServer*, makiServerSupport);
+void maki_server_set_support (makiServer*, makiServerSupport, gchar const*);
+
+makiUser* maki_server_add_user (makiServer*, gchar const*);
+makiUser* maki_server_get_user (makiServer*, gchar const*);
+gboolean maki_server_remove_user (makiServer*, gchar const*);
+gboolean maki_server_rename_user (makiServer*, gchar const*, gchar const*);
+
+void maki_server_add_channel (makiServer*, gchar const*, makiChannel*);
+makiChannel* maki_server_get_channel (makiServer*, gchar const*);
+gboolean maki_server_remove_channel (makiServer*, gchar const*);
 guint maki_server_channels_count (makiServer*);
 void maki_server_channels_iter (makiServer*, GHashTableIter*);
-void maki_server_add_log (makiServer*, const gchar*, makiLog*);
-makiLog* maki_server_get_log (makiServer*, const gchar*);
-gboolean maki_server_queue (makiServer*, const gchar*, gboolean);
-gboolean maki_server_send (makiServer*, const gchar*);
-gboolean maki_server_send_printf (makiServer*, const gchar*, ...) G_GNUC_PRINTF(2, 3);
-makiServer* maki_server_ref (makiServer*);
-void maki_server_unref (gpointer);
-gboolean maki_server_connect (makiServer*);
-gboolean maki_server_disconnect (makiServer*, const gchar*);
-void maki_server_reset (makiServer*);
-void maki_server_connect_callback (gpointer);
-void maki_server_reconnect_callback (gpointer);
+
+void maki_server_log (makiServer*, const gchar*, const gchar*, ...) G_GNUC_PRINTF(3, 4);
+
+gboolean maki_server_queue (makiServer*, gchar const*, gboolean);
+gboolean maki_server_send (makiServer*, gchar const*);
+gboolean maki_server_send_printf (makiServer*, gchar const*, ...) G_GNUC_PRINTF(2, 3);
+
+void maki_server_connect (makiServer*);
+void maki_server_disconnect (makiServer*, gchar const*);
 
 #endif

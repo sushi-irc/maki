@@ -112,7 +112,7 @@ static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, co
 	maki_server_queue(serv, buffer, queue);
 	g_free(buffer);
 
-	maki_log(serv, target, "<%s> %s", maki_user_nick(maki_server_user(serv)), message);
+	maki_server_log(serv, target, "<%s> %s", maki_user_nick(maki_server_user(serv)), message);
 	maki_dbus_emit_message(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), target, message);
 }
 
@@ -167,48 +167,4 @@ void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* messa
 	}
 
 	maki_out_privmsg_internal(serv, target, message, queue);
-}
-
-void maki_out_quit (makiServer* serv, const gchar* message)
-{
-	GTimeVal timeval;
-
-	GHashTableIter iter;
-	gpointer key, value;
-
-	g_return_if_fail(serv != NULL);
-	g_return_if_fail(message != NULL);
-
-	g_get_current_time(&timeval);
-
-	if (message[0] != '\0')
-	{
-		maki_server_send_printf(serv, "QUIT :%s", message);
-	}
-	else
-	{
-		maki_server_send(serv, "QUIT");
-	}
-
-	maki_server_channels_iter(serv, &iter);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		const gchar* chan_name = key;
-		makiChannel* chan = value;
-
-		if (maki_channel_joined(chan))
-		{
-			if (message[0] != '\0')
-			{
-				maki_log(serv, chan_name, _("« You quit (%s)."), message);
-			}
-			else
-			{
-				maki_log(serv, chan_name, _("« You quit."));
-			}
-		}
-	}
-
-	maki_dbus_emit_quit(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), message);
 }

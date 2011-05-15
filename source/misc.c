@@ -80,55 +80,6 @@ void maki_debug (const gchar* format, ...)
 	g_free(message);
 }
 
-void maki_log (makiServer* serv, const gchar* name, const gchar* format, ...)
-{
-	gchar* file;
-	gchar* file_tmp;
-	gchar* file_format;
-	gchar* tmp;
-	makiLog* log;
-	va_list args;
-	makiInstance* inst = maki_instance_get_default();
-
-	if (!maki_instance_config_get_boolean(inst, "logging", "enabled"))
-	{
-		return;
-	}
-
-	file_format = maki_instance_config_get_string(inst, "logging", "format");
-	file_tmp = i_strreplace(file_format, "$n", name, 0);
-	file = i_get_current_time_string(file_tmp);
-
-	g_free(file_format);
-	g_free(file_tmp);
-
-	if (file == NULL)
-	{
-		return;
-	}
-
-	if ((log = maki_server_get_log(serv, file)) == NULL)
-	{
-		if ((log = maki_log_new(inst, maki_server_name(serv), file)) == NULL)
-		{
-			g_free(file);
-			return;
-		}
-
-		maki_server_add_log(serv, file, log);
-	}
-
-	g_free(file);
-
-	va_start(args, format);
-	tmp = g_strdup_vprintf(format, args);
-	va_end(args);
-
-	maki_log_write(log, tmp);
-
-	g_free(tmp);
-}
-
 void maki_ensure_string (gchar** string)
 {
 	if (*string == NULL)

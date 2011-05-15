@@ -21,6 +21,9 @@ def configure (ctx):
 
 	ctx.env.CFLAGS += ['-D_FILE_OFFSET_BITS=64']
 
+	# FIXME
+	ctx.env.CFLAGS.remove('-Wmissing-include-dirs')
+
 	ctx.find_program('gzip', var = 'GZIP')
 
 	ctx.check_cfg(

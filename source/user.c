@@ -47,7 +47,9 @@ struct maki_user
 	guint ref_count;
 };
 
-static void maki_user_set_from (makiUser* user)
+static
+void
+maki_user_set_from (makiUser* user)
 {
 	g_free(user->from);
 
@@ -61,17 +63,12 @@ static void maki_user_set_from (makiUser* user)
 	}
 }
 
-makiUser* maki_user_new (makiServer* serv, const gchar* nick)
+makiUser*
+maki_user_new (gchar const* nick)
 {
 	makiUser* user;
 
-	if ((user = maki_server_get_user(serv, nick)) != NULL)
-	{
-		return maki_user_ref(user);
-	}
-
 	user = g_new(makiUser, 1);
-	user->server = serv;
 	user->from = NULL;
 	user->nick = g_strdup(nick);
 	user->user = NULL;
@@ -83,19 +80,19 @@ makiUser* maki_user_new (makiServer* serv, const gchar* nick)
 
 	maki_user_set_from(user);
 
-	maki_server_add_user(user->server, user->nick, user);
-
 	return user;
 }
 
-makiUser* maki_user_ref (makiUser* user)
+makiUser*
+maki_user_ref (makiUser* user)
 {
 	user->ref_count++;
 
 	return user;
 }
 
-void maki_user_unref (gpointer value)
+void
+maki_user_unref (gpointer value)
 {
 	makiUser* user = value;
 
@@ -103,8 +100,6 @@ void maki_user_unref (gpointer value)
 
 	if (user->ref_count == 0)
 	{
-		maki_server_remove_user(user->server, user->nick);
-
 		g_free(user->from);
 		g_free(user->nick);
 		g_free(user->user);
@@ -114,57 +109,68 @@ void maki_user_unref (gpointer value)
 	}
 }
 
-const gchar* maki_user_from (makiUser* user)
+guint
+maki_user_ref_count (makiUser* user)
+{
+	return user->ref_count;
+}
+
+gchar const*
+maki_user_from (makiUser* user)
 {
 	return user->from;
 }
 
-const gchar* maki_user_nick (makiUser* user)
+gchar const*
+maki_user_nick (makiUser* user)
 {
 	return user->nick;
 }
 
-void maki_user_set_nick (makiUser* user, const gchar* nick)
+void
+maki_user_set_nick (makiUser* user, gchar const* nick)
 {
-	maki_server_remove_user(user->server, user->nick);
-
 	g_free(user->nick);
 	user->nick = g_strdup(nick);
 	maki_user_set_from(user);
-
-	maki_server_add_user(user->server, user->nick, user);
 }
 
-void maki_user_set_user (makiUser* user, const gchar* usr)
+void
+maki_user_set_user (makiUser* user, gchar const* usr)
 {
 	g_free(user->user);
 	user->user = g_strdup(usr);
 	maki_user_set_from(user);
 }
 
-void maki_user_set_host (makiUser* user, const gchar* host)
+void
+maki_user_set_host (makiUser* user, gchar const* host)
 {
 	g_free(user->host);
 	user->host = g_strdup(host);
 	maki_user_set_from(user);
 }
 
-gboolean maki_user_away (makiUser* user)
+gboolean
+maki_user_away (makiUser* user)
 {
 	return user->away;
 }
 
-void maki_user_set_away (makiUser* user, gboolean away)
+void
+maki_user_set_away (makiUser* user, gboolean away)
 {
 	user->away = away;
 }
 
-const gchar* maki_user_away_message (makiUser* user)
+gchar const*
+maki_user_away_message (makiUser* user)
 {
 	return user->away_message;
 }
 
-void maki_user_set_away_message (makiUser* user, const gchar* away_message)
+void
+maki_user_set_away_message (makiUser* user, gchar const* away_message)
 {
 	g_free(user->away_message);
 	user->away_message = g_strdup(away_message);

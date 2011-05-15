@@ -137,9 +137,8 @@ makiChannelUser* maki_channel_rename_user (makiChannel* chan, const gchar* old_n
 
 	if ((cuser = g_hash_table_lookup(chan->users, old_nick)) != NULL)
 	{
-		maki_channel_user_ref(cuser);
+		g_hash_table_insert(chan->users, g_strdup(new_nick), maki_channel_user_ref(cuser));
 		g_hash_table_remove(chan->users, old_nick);
-		g_hash_table_insert(chan->users, g_strdup(new_nick), cuser);
 	}
 
 	return cuser;

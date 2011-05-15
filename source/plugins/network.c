@@ -52,7 +52,6 @@ servers_connect (void)
 	{
 		makiServer* serv = value;
 
-		/* FIXME thread safety */
 		if (maki_server_autoconnect(serv))
 		{
 			maki_server_connect(serv);
@@ -74,7 +73,6 @@ servers_disconnect (const gchar* message)
 	{
 		makiServer* serv = value;
 
-		/* FIXME thread safety */
 		maki_server_disconnect(serv, message);
 	}
 }

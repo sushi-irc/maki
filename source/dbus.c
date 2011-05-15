@@ -439,7 +439,7 @@ gboolean maki_dbus_action (const gchar* server, const gchar* channel, const gcha
 
 		maki_server_send_printf(serv, "PRIVMSG %s :\001ACTION %s\001", channel, tmp);
 
-		maki_log(serv, channel, "%s %s", maki_user_nick(maki_server_user(serv)), tmp);
+		maki_server_log(serv, channel, "%s %s", maki_user_nick(maki_server_user(serv)), tmp);
 
 		maki_dbus_emit_action(timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), channel, tmp);
 
@@ -627,7 +627,6 @@ gboolean maki_dbus_connect (const gchar* server, GError** error)
 	{
 		/* Disconnect, because strange things happen if we call maki_server_connect() while still connected. */
 		maki_server_disconnect(serv, "");
-		maki_server_reset(serv);
 		maki_server_connect(serv);
 	}
 	else
@@ -659,7 +658,7 @@ gboolean maki_dbus_ctcp (const gchar* server, const gchar* target, const gchar* 
 
 		g_get_current_time(&timeval);
 		maki_dbus_emit_ctcp(timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), target, message);
-		maki_log(serv, target, "=%s= %s", maki_user_nick(maki_server_user(serv)), message);
+		maki_server_log(serv, target, "=%s= %s", maki_user_nick(maki_server_user(serv)), message);
 	}
 
 	return TRUE;
@@ -675,14 +674,14 @@ gboolean maki_dbus_dcc_send (const gchar* server, const gchar* target, const gch
 		makiDCCSend* dcc;
 		makiUser* user;
 
-		user = maki_user_new(serv, target);
+		user = maki_server_add_user(serv, target);
 
 		if ((dcc = maki_dcc_send_new_out(serv, user, path)) != NULL)
 		{
 			maki_instance_add_dcc_send(inst, dcc);
 		}
 
-		maki_user_unref(user);
+		maki_server_remove_user(serv, maki_user_nick(user));
 	}
 
 	return TRUE;
@@ -1150,7 +1149,7 @@ gboolean maki_dbus_notice (const gchar* server, const gchar* target, const gchar
 
 		g_get_current_time(&timeval);
 		maki_dbus_emit_notice(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), target, message);
-		maki_log(serv, target, "-%s- %s", maki_user_nick(maki_server_user(serv)), message);
+		maki_server_log(serv, target, "-%s- %s", maki_user_nick(maki_server_user(serv)), message);
 	}
 
 	return TRUE;

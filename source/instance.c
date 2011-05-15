@@ -500,7 +500,7 @@ maki_instance_rename_server (makiInstance* inst, gchar const* old_name, gchar co
 
 	g_mutex_lock(inst->mutex);
 
-	if ((serv = g_hash_table_lookup(inst->servers, new_name)) != NULL)
+	if (g_hash_table_lookup(inst->servers, new_name) != NULL)
 	{
 		ret = FALSE;
 		goto end;

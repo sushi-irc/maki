@@ -691,7 +691,7 @@ void maki_dcc_send_free (makiDCCSend* dcc)
 
 	maki_dcc_send_close(dcc);
 
-	maki_user_unref(dcc->user);
+	maki_server_remove_user(dcc->server, maki_user_nick(dcc->user));
 
 	g_free(dcc->path);
 	g_free(dcc);

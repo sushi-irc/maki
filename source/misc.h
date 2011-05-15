@@ -40,7 +40,6 @@ gboolean maki_config_is_empty (const gchar*);
 gboolean maki_config_is_empty_list (gchar**);
 
 void maki_debug (const gchar*, ...) G_GNUC_PRINTF(1, 2);
-void maki_log (makiServer*, const gchar*, const gchar*, ...) G_GNUC_PRINTF(3, 4);
 
 void maki_ensure_string (gchar**);
 void maki_ensure_string_array (gchar***);

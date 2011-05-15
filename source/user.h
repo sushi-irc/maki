@@ -36,18 +36,20 @@ typedef struct maki_user makiUser;
 
 #include "server.h"
 
-makiUser* maki_user_new (makiServer*, const gchar*);
+makiUser* maki_user_new (gchar const*);
 makiUser* maki_user_ref (makiUser*);
 void maki_user_unref (gpointer);
 
-const gchar* maki_user_from (makiUser*);
-const gchar* maki_user_nick (makiUser*);
-void maki_user_set_nick (makiUser*, const gchar*);
-void maki_user_set_user (makiUser*, const gchar*);
-void maki_user_set_host (makiUser*, const gchar*);
+guint maki_user_ref_count (makiUser*);
+
+gchar const* maki_user_from (makiUser*);
+gchar const* maki_user_nick (makiUser*);
+void maki_user_set_nick (makiUser*, gchar const*);
+void maki_user_set_user (makiUser*, gchar const*);
+void maki_user_set_host (makiUser*, gchar const*);
 gboolean maki_user_away (makiUser*);
 void maki_user_set_away (makiUser*, gboolean);
-const gchar* maki_user_away_message (makiUser*);
-void maki_user_set_away_message (makiUser*, const gchar*);
+gchar const* maki_user_away_message (makiUser*);
+void maki_user_set_away_message (makiUser*, gchar const*);
 
 #endif
