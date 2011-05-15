@@ -177,7 +177,7 @@ static void maki_commands (makiServer* serv)
 	g_strfreev(commands);
 }
 
-static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+static void maki_in_dcc_send (makiServer* serv, makiUser* user, gchar* remaining)
 {
 	gchar* file_name;
 	gsize file_name_len;
@@ -228,7 +228,7 @@ static void maki_in_dcc_send (makiServer* serv, glong timestamp, makiUser* user,
 	}
 }
 
-static void maki_in_dcc_resume_accept (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining, gboolean is_incoming)
+static void maki_in_dcc_resume_accept (makiServer* serv, makiUser* user, gchar* remaining, gboolean is_incoming)
 {
 	gchar* file_name;
 	gsize file_name_len;
@@ -283,7 +283,7 @@ static void maki_in_dcc_resume_accept (makiServer* serv, glong timestamp, makiUs
 	}
 }
 
-static void maki_in_privmsg (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+static void maki_in_privmsg (makiServer* serv, makiUser* user, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -320,7 +320,7 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, makiUser* user, 
 					maki_server_log(serv, maki_user_nick(user), "%s %s", maki_user_nick(user), message + 7);
 				}
 
-				maki_dbus_emit_action(timestamp, maki_server_name(serv), maki_user_from(user), target, message + 7);
+				maki_dbus_emit_action(maki_server_name(serv), maki_user_from(user), target, message + 7);
 			}
 			else
 			{
@@ -336,15 +336,15 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, makiUser* user, 
 					}
 					else if (strncmp(message, "DCC SEND ", 9) == 0)
 					{
-						maki_in_dcc_send(serv, timestamp, user, message + 9);
+						maki_in_dcc_send(serv, user, message + 9);
 					}
 					else if (strncmp(message, "DCC RESUME ", 11) == 0)
 					{
-						maki_in_dcc_resume_accept(serv, timestamp, user, message + 11, FALSE);
+						maki_in_dcc_resume_accept(serv, user, message + 11, FALSE);
 					}
 					else if (strncmp(message, "DCC ACCEPT ", 11) == 0)
 					{
-						maki_in_dcc_resume_accept(serv, timestamp, user, message + 11, TRUE);
+						maki_in_dcc_resume_accept(serv, user, message + 11, TRUE);
 					}
 				}
 
@@ -357,7 +357,7 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, makiUser* user, 
 					maki_server_log(serv, maki_user_nick(user), "=%s= %s", maki_user_nick(user), message);
 				}
 
-				maki_dbus_emit_ctcp(timestamp, maki_server_name(serv), maki_user_from(user), target, message);
+				maki_dbus_emit_ctcp(maki_server_name(serv), maki_user_from(user), target, message);
 			}
 		}
 		else
@@ -371,14 +371,14 @@ static void maki_in_privmsg (makiServer* serv, glong timestamp, makiUser* user, 
 				maki_server_log(serv, maki_user_nick(user), "<%s> %s", maki_user_nick(user), message);
 			}
 
-			maki_dbus_emit_message(timestamp, maki_server_name(serv), maki_user_from(user), target, message);
+			maki_dbus_emit_message(maki_server_name(serv), maki_user_from(user), target, message);
 		}
 	}
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_join (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+static void maki_in_join (makiServer* serv, makiUser* user, gchar* remaining)
 {
 	gchar* channel;
 	makiChannel* chan;
@@ -421,10 +421,10 @@ static void maki_in_join (makiServer* serv, glong timestamp, makiUser* user, gch
 		maki_channel_add_user(chan, maki_user_nick(user), maki_channel_user_new(user));
 	}
 
-	maki_dbus_emit_join(timestamp, maki_server_name(serv), maki_user_from(user), channel);
+	maki_dbus_emit_join(maki_server_name(serv), maki_user_from(user), channel);
 }
 
-static void maki_in_part (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+static void maki_in_part (makiServer* serv, makiUser* user, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -494,17 +494,17 @@ static void maki_in_part (makiServer* serv, glong timestamp, makiUser* user, gch
 
 	if (message != NULL)
 	{
-		maki_dbus_emit_part(timestamp, maki_server_name(serv), maki_user_from(user), channel, message);
+		maki_dbus_emit_part(maki_server_name(serv), maki_user_from(user), channel, message);
 	}
 	else
 	{
-		maki_dbus_emit_part(timestamp, maki_server_name(serv), maki_user_from(user), channel, "");
+		maki_dbus_emit_part(maki_server_name(serv), maki_user_from(user), channel, "");
 	}
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_quit (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+static void maki_in_quit (makiServer* serv, makiUser* user, gchar* remaining)
 {
 	GHashTableIter iter;
 	gpointer key, value;
@@ -538,15 +538,15 @@ static void maki_in_quit (makiServer* serv, glong timestamp, makiUser* user, gch
 
 	if (remaining)
 	{
-		maki_dbus_emit_quit(timestamp, maki_server_name(serv), maki_user_from(user), maki_remove_colon(remaining));
+		maki_dbus_emit_quit(maki_server_name(serv), maki_user_from(user), maki_remove_colon(remaining));
 	}
 	else
 	{
-		maki_dbus_emit_quit(timestamp, maki_server_name(serv), maki_user_from(user), "");
+		maki_dbus_emit_quit(maki_server_name(serv), maki_user_from(user), "");
 	}
 }
 
-static void maki_in_kick (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+static void maki_in_kick (makiServer* serv, makiUser* user, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -617,17 +617,17 @@ static void maki_in_kick (makiServer* serv, glong timestamp, makiUser* user, gch
 
 	if (message != NULL)
 	{
-		maki_dbus_emit_kick(timestamp, maki_server_name(serv), maki_user_from(user), channel, who, message);
+		maki_dbus_emit_kick(maki_server_name(serv), maki_user_from(user), channel, who, message);
 	}
 	else
 	{
-		maki_dbus_emit_kick(timestamp, maki_server_name(serv), maki_user_from(user), channel, who, "");
+		maki_dbus_emit_kick(maki_server_name(serv), maki_user_from(user), channel, who, "");
 	}
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_nick (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+static void maki_in_nick (makiServer* serv, makiUser* user, gchar* remaining)
 {
 	gboolean own;
 	gchar* new_nick;
@@ -670,7 +670,7 @@ static void maki_in_nick (makiServer* serv, glong timestamp, makiUser* user, gch
 		}
 	}
 
-	maki_dbus_emit_nick(timestamp, maki_server_name(serv), maki_user_from(user), new_nick);
+	maki_dbus_emit_nick(maki_server_name(serv), maki_user_from(user), new_nick);
 	maki_server_rename_user(serv, maki_user_nick(user), new_nick);
 
 	if (own)
@@ -691,7 +691,7 @@ static void maki_in_nick (makiServer* serv, glong timestamp, makiUser* user, gch
 	}
 }
 
-static void maki_in_notice (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining)
+static void maki_in_notice (makiServer* serv, makiUser* user, gchar* remaining)
 {
 	gchar** tmp;
 	gchar* target;
@@ -717,13 +717,13 @@ static void maki_in_notice (makiServer* serv, glong timestamp, makiUser* user, g
 			maki_server_log(serv, maki_user_nick(user), "-%s- %s", maki_user_nick(user), message);
 		}
 
-		maki_dbus_emit_notice(timestamp, maki_server_name(serv), maki_user_from(user), target, message);
+		maki_dbus_emit_notice(maki_server_name(serv), maki_user_from(user), target, message);
 	}
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_mode (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining, gboolean is_numeric)
+static void maki_in_mode (makiServer* serv, makiUser* user, gchar* remaining, gboolean is_numeric)
 {
 	gboolean own;
 	gchar** modes;
@@ -790,7 +790,7 @@ static void maki_in_mode (makiServer* serv, glong timestamp, makiUser* user, gch
 				{
 					maki_server_log(serv, target, _("• Mode: %s %s"), buffer, modes[i]);
 
-					maki_dbus_emit_mode(timestamp, maki_server_name(serv), "", target, buffer, modes[i]);
+					maki_dbus_emit_mode(maki_server_name(serv), "", target, buffer, modes[i]);
 				}
 				else
 				{
@@ -803,7 +803,7 @@ static void maki_in_mode (makiServer* serv, glong timestamp, makiUser* user, gch
 						maki_server_log(serv, target, _("• %s sets mode: %s %s"), maki_user_nick(user), buffer, modes[i]);
 					}
 
-					maki_dbus_emit_mode(timestamp, maki_server_name(serv), maki_user_from(user), target, buffer, modes[i]);
+					maki_dbus_emit_mode(maki_server_name(serv), maki_user_from(user), target, buffer, modes[i]);
 				}
 
 				++i;
@@ -814,7 +814,7 @@ static void maki_in_mode (makiServer* serv, glong timestamp, makiUser* user, gch
 				{
 					maki_server_log(serv, target, _("• Mode: %s"), buffer);
 
-					maki_dbus_emit_mode(timestamp, maki_server_name(serv), "", target, buffer, "");
+					maki_dbus_emit_mode(maki_server_name(serv), "", target, buffer, "");
 				}
 				else
 				{
@@ -827,7 +827,7 @@ static void maki_in_mode (makiServer* serv, glong timestamp, makiUser* user, gch
 						maki_server_log(serv, target, _("• %s sets mode: %s"), maki_user_nick(user), buffer);
 					}
 
-					maki_dbus_emit_mode(timestamp, maki_server_name(serv), maki_user_from(user), target, buffer, "");
+					maki_dbus_emit_mode(maki_server_name(serv), maki_user_from(user), target, buffer, "");
 				}
 			}
 		}
@@ -837,7 +837,7 @@ static void maki_in_mode (makiServer* serv, glong timestamp, makiUser* user, gch
 	g_strfreev(modes);
 }
 
-static void maki_in_invite (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining, gboolean is_numeric)
+static void maki_in_invite (makiServer* serv, makiUser* user, gchar* remaining, gboolean is_numeric)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -863,19 +863,19 @@ static void maki_in_invite (makiServer* serv, glong timestamp, makiUser* user, g
 	{
 		maki_server_log(serv, channel, _("• You successfully invite %s."), who);
 
-		maki_dbus_emit_invite(timestamp, maki_server_name(serv), "", channel, who);
+		maki_dbus_emit_invite(maki_server_name(serv), "", channel, who);
 	}
 	else
 	{
 		maki_server_log(serv, channel, _("• %s invites %s."), maki_user_nick(user), who);
 
-		maki_dbus_emit_invite(timestamp, maki_server_name(serv), maki_user_from(user), channel, who);
+		maki_dbus_emit_invite(maki_server_name(serv), maki_user_from(user), channel, who);
 	}
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_topic (makiServer* serv, glong timestamp, makiUser* user, gchar* remaining, gboolean is_numeric)
+static void maki_in_topic (makiServer* serv, makiUser* user, gchar* remaining, gboolean is_numeric)
 {
 	gchar** tmp;
 	gchar* channel;
@@ -907,7 +907,7 @@ static void maki_in_topic (makiServer* serv, glong timestamp, makiUser* user, gc
 	{
 		maki_server_log(serv, channel, _("• Topic: %s"), topic);
 
-		maki_dbus_emit_topic(timestamp, maki_server_name(serv), "", channel, topic);
+		maki_dbus_emit_topic(maki_server_name(serv), "", channel, topic);
 	}
 	else
 	{
@@ -920,13 +920,13 @@ static void maki_in_topic (makiServer* serv, glong timestamp, makiUser* user, gc
 			maki_server_log(serv, channel, _("• %s changes the topic: %s"), maki_user_nick(user), topic);
 		}
 
-		maki_dbus_emit_topic(timestamp, maki_server_name(serv), maki_user_from(user), channel, topic);
+		maki_dbus_emit_topic(maki_server_name(serv), maki_user_from(user), channel, topic);
 	}
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_namreply (makiServer* serv, gchar* remaining, gboolean is_end)
 {
 	gchar** nicks;
 	gchar** prefixes;
@@ -954,7 +954,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 
 		nicks[0] = NULL;
 
-		maki_dbus_emit_names(timestamp, maki_server_name(serv), tmp[0], nicks, nicks);
+		maki_dbus_emit_names(maki_server_name(serv), tmp[0], nicks, nicks);
 
 		g_free(nicks);
 	}
@@ -1011,7 +1011,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 				maki_server_remove_user(serv, maki_user_nick(user));
 			}
 
-			maki_dbus_emit_names(timestamp, maki_server_name(serv), tmp[1], nicks, prefixes);
+			maki_dbus_emit_names(maki_server_name(serv), tmp[1], nicks, prefixes);
 
 			g_strfreev(prefixes);
 			g_free(nicks);
@@ -1022,7 +1022,7 @@ static void maki_in_rpl_namreply (makiServer* serv, glong timestamp, gchar* rema
 }
 
 /* FIXME handle more stuff */
-static void maki_in_rpl_whoreply (makiServer* serv, glong timestamp, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_whoreply (makiServer* serv, gchar* remaining, gboolean is_end)
 {
 	gchar** tmp;
 	guint length;
@@ -1058,7 +1058,7 @@ static void maki_in_rpl_whoreply (makiServer* serv, glong timestamp, gchar* rema
 			{
 				maki_user_set_away(user, away);
 
-				maki_dbus_emit_user_away(timestamp, maki_server_name(serv), maki_user_from(user), maki_user_away(user));
+				maki_dbus_emit_user_away(maki_server_name(serv), maki_user_from(user), maki_user_away(user));
 			}
 		}
 	}
@@ -1066,7 +1066,7 @@ static void maki_in_rpl_whoreply (makiServer* serv, glong timestamp, gchar* rema
 	g_strfreev(tmp);
 }
 
-static void maki_in_rpl_away (makiServer* serv, glong timestamp, gchar* remaining)
+static void maki_in_rpl_away (makiServer* serv, gchar* remaining)
 {
 	gchar** tmp;
 
@@ -1079,13 +1079,13 @@ static void maki_in_rpl_away (makiServer* serv, glong timestamp, gchar* remainin
 
 	if (g_strv_length(tmp) >= 2)
 	{
-		maki_dbus_emit_away_message(timestamp, maki_server_name(serv), tmp[0], maki_remove_colon(tmp[1]));
+		maki_dbus_emit_away_message(maki_server_name(serv), tmp[0], maki_remove_colon(tmp[1]));
 	}
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_rpl_isupport (makiServer* serv, glong timestamp, gchar* remaining)
+static void maki_in_rpl_isupport (makiServer* serv, gchar* remaining)
 {
 	guint i;
 	guint length;
@@ -1144,7 +1144,7 @@ static void maki_in_rpl_isupport (makiServer* serv, glong timestamp, gchar* rema
 	g_strfreev(tmp);
 }
 
-static void maki_in_rpl_motd (makiServer* serv, glong timestamp, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_motd (makiServer* serv, gchar* remaining, gboolean is_end)
 {
 	if (!remaining)
 	{
@@ -1153,15 +1153,15 @@ static void maki_in_rpl_motd (makiServer* serv, glong timestamp, gchar* remainin
 
 	if (is_end)
 	{
-		maki_dbus_emit_motd(timestamp, maki_server_name(serv), "");
+		maki_dbus_emit_motd(maki_server_name(serv), "");
 	}
 	else
 	{
-		maki_dbus_emit_motd(timestamp, maki_server_name(serv), maki_remove_colon(remaining));
+		maki_dbus_emit_motd(maki_server_name(serv), maki_remove_colon(remaining));
 	}
 }
 
-static void maki_in_rpl_list (makiServer* serv, glong timestamp, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_list (makiServer* serv, gchar* remaining, gboolean is_end)
 {
 	if (!remaining)
 	{
@@ -1170,7 +1170,7 @@ static void maki_in_rpl_list (makiServer* serv, glong timestamp, gchar* remainin
 
 	if (is_end)
 	{
-		maki_dbus_emit_list(timestamp, maki_server_name(serv), "", -1, "");
+		maki_dbus_emit_list(maki_server_name(serv), "", -1, "");
 	}
 	else
 	{
@@ -1180,14 +1180,14 @@ static void maki_in_rpl_list (makiServer* serv, glong timestamp, gchar* remainin
 
 		if (g_strv_length(tmp) == 3)
 		{
-			maki_dbus_emit_list(timestamp, maki_server_name(serv), tmp[0], atol(tmp[1]), maki_remove_colon(tmp[2]));
+			maki_dbus_emit_list(maki_server_name(serv), tmp[0], atol(tmp[1]), maki_remove_colon(tmp[2]));
 		}
 
 		g_strfreev(tmp);
 	}
 }
 
-static void maki_in_rpl_banlist (makiServer* serv, glong timestamp, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_banlist (makiServer* serv, gchar* remaining, gboolean is_end)
 {
 	guint length;
 	gchar** tmp;
@@ -1204,26 +1204,26 @@ static void maki_in_rpl_banlist (makiServer* serv, glong timestamp, gchar* remai
 	{
 		if (length >= 1)
 		{
-			maki_dbus_emit_banlist(timestamp, maki_server_name(serv), tmp[0], "", "", -1);
+			maki_dbus_emit_banlist(maki_server_name(serv), tmp[0], "", "", -1);
 		}
 	}
 	else
 	{
 		if (length == 4)
 		{
-			maki_dbus_emit_banlist(timestamp, maki_server_name(serv), tmp[0], tmp[1], tmp[2], atol(tmp[3]));
+			maki_dbus_emit_banlist(maki_server_name(serv), tmp[0], tmp[1], tmp[2], atol(tmp[3]));
 		}
 		else if (length == 2)
 		{
 			/* This is what the RFC specifies. */
-			maki_dbus_emit_banlist(timestamp, maki_server_name(serv), tmp[0], tmp[1], "", 0);
+			maki_dbus_emit_banlist(maki_server_name(serv), tmp[0], tmp[1], "", 0);
 		}
 	}
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_rpl_whois (makiServer* serv, glong timestamp, gchar* remaining, gboolean is_end)
+static void maki_in_rpl_whois (makiServer* serv, gchar* remaining, gboolean is_end)
 {
 	gchar** tmp;
 
@@ -1238,18 +1238,18 @@ static void maki_in_rpl_whois (makiServer* serv, glong timestamp, gchar* remaini
 	{
 		if (is_end)
 		{
-			maki_dbus_emit_whois(timestamp, maki_server_name(serv), tmp[0], "");
+			maki_dbus_emit_whois(maki_server_name(serv), tmp[0], "");
 		}
 		else
 		{
-			maki_dbus_emit_whois(timestamp, maki_server_name(serv), tmp[0], tmp[1]);
+			maki_dbus_emit_whois(maki_server_name(serv), tmp[0], tmp[1]);
 		}
 	}
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_err_nosuch (makiServer* serv, glong timestamp, gchar* remaining, gint numeric)
+static void maki_in_err_nosuch (makiServer* serv, gchar* remaining, gint numeric)
 {
 	const gchar* reason = "";
 	const gchar* type = "";
@@ -1293,15 +1293,15 @@ static void maki_in_err_nosuch (makiServer* serv, glong timestamp, gchar* remain
 
 	arguments = i_strv_new(NULL, tmp[0], NULL);
 
-	maki_dbus_emit_error(timestamp, maki_server_name(serv), "no_such", reason, arguments);
-	maki_dbus_emit_no_such(timestamp, maki_server_name(serv), tmp[0], type);
+	maki_dbus_emit_error(maki_server_name(serv), "no_such", reason, arguments);
+	maki_dbus_emit_no_such(maki_server_name(serv), tmp[0], type);
 
 	g_free(arguments);
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_err_cannot_join (makiServer* serv, glong timestamp, gchar* remaining, gint numeric)
+static void maki_in_err_cannot_join (makiServer* serv, gchar* remaining, gint numeric)
 {
 	const gchar* reason = "";
 	const gchar* type = "";
@@ -1350,15 +1350,15 @@ static void maki_in_err_cannot_join (makiServer* serv, glong timestamp, gchar* r
 
 	arguments = i_strv_new(NULL, tmp[0], NULL);
 
-	maki_dbus_emit_error(timestamp, maki_server_name(serv), "cannot_join", reason, arguments);
-	maki_dbus_emit_cannot_join(timestamp, maki_server_name(serv), tmp[0], type);
+	maki_dbus_emit_error(maki_server_name(serv), "cannot_join", reason, arguments);
+	maki_dbus_emit_cannot_join(maki_server_name(serv), tmp[0], type);
 
 	g_free(arguments);
 
 	g_strfreev(tmp);
 }
 
-static void maki_in_err_chanoprivsneeded (makiServer* serv, glong timestamp, gchar* remaining)
+static void maki_in_err_chanoprivsneeded (makiServer* serv, gchar* remaining)
 {
 	gchar** arguments;
 	gchar** tmp;
@@ -1378,7 +1378,7 @@ static void maki_in_err_chanoprivsneeded (makiServer* serv, glong timestamp, gch
 
 	arguments = i_strv_new(NULL, tmp[0], NULL);
 
-	maki_dbus_emit_error(timestamp, maki_server_name(serv), "privilege", "channel_operator", arguments);
+	maki_dbus_emit_error(maki_server_name(serv), "privilege", "channel_operator", arguments);
 
 	g_free(arguments);
 
@@ -1431,9 +1431,6 @@ void maki_in_callback (const gchar* message, gpointer data)
 		gchar* remaining;
 		guint from_length;
 		makiUser* user;
-		GTimeVal timeval;
-
-		g_get_current_time(&timeval);
 
 		parts = g_strsplit(message + 1, " ", 3);
 
@@ -1508,40 +1505,40 @@ void maki_in_callback (const gchar* message, gpointer data)
 			{
 				/* RPL_CHANNELMODEIS */
 				case 324:
-					maki_in_mode(serv, timeval.tv_sec, user, remaining, TRUE);
+					maki_in_mode(serv, user, remaining, TRUE);
 					break;
 				/* RPL_INVITING */
 				case 341:
-					maki_in_invite(serv, timeval.tv_sec, user, remaining, TRUE);
+					maki_in_invite(serv, user, remaining, TRUE);
 					break;
 				/* RPL_NAMREPLY */
 				case 353:
 				/* RPL_ENDOFNAMES */
 				case 366:
-					maki_in_rpl_namreply(serv, timeval.tv_sec, remaining, (numeric == 366));
+					maki_in_rpl_namreply(serv, remaining, (numeric == 366));
 					break;
 				/* RPL_WHOREPLY */
 				case 352:
 				/* RPL_ENDOFWHO */
 				case 315:
-					maki_in_rpl_whoreply(serv, timeval.tv_sec, remaining, (numeric == 315));
+					maki_in_rpl_whoreply(serv, remaining, (numeric == 315));
 					break;
 				/* RPL_UNAWAY */
 				case 305:
 					maki_user_set_away(maki_server_user(serv), FALSE);
 					maki_user_set_away_message(maki_server_user(serv), NULL);
-					maki_dbus_emit_back(timeval.tv_sec, maki_server_name(serv));
-					maki_dbus_emit_user_away(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), FALSE);
+					maki_dbus_emit_back(maki_server_name(serv));
+					maki_dbus_emit_user_away(maki_server_name(serv), maki_user_from(maki_server_user(serv)), FALSE);
 					break;
 				/* RPL_NOWAWAY */
 				case 306:
 					maki_user_set_away(maki_server_user(serv), TRUE);
-					maki_dbus_emit_away(timeval.tv_sec, maki_server_name(serv));
-					maki_dbus_emit_user_away(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), TRUE);
+					maki_dbus_emit_away(maki_server_name(serv));
+					maki_dbus_emit_user_away(maki_server_name(serv), maki_user_from(maki_server_user(serv)), TRUE);
 					break;
 				/* RPL_AWAY */
 				case 301:
-					maki_in_rpl_away(serv, timeval.tv_sec, remaining);
+					maki_in_rpl_away(serv, remaining);
 					break;
 				/* RPL_ENDOFMOTD */
 				case 376:
@@ -1557,7 +1554,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 						maki_out_away(serv, maki_user_away_message(maki_server_user(serv)));
 					}
 
-					maki_in_rpl_motd(serv, timeval.tv_sec, remaining, TRUE);
+					maki_in_rpl_motd(serv, remaining, TRUE);
 					break;
 				/* ERR_NICKNAMEINUSE */
 				case 433:
@@ -1567,7 +1564,7 @@ void maki_in_callback (const gchar* message, gpointer data)
 
 						nick = g_strconcat(maki_user_nick(maki_server_user(serv)), "_", NULL);
 
-						maki_dbus_emit_nick(timeval.tv_sec, maki_server_name(serv), maki_user_nick(maki_server_user(serv)), nick);
+						maki_dbus_emit_nick(maki_server_name(serv), maki_user_nick(maki_server_user(serv)), nick);
 
 						maki_server_rename_user(serv, maki_user_nick(maki_server_user(serv)), nick);
 
@@ -1583,15 +1580,15 @@ void maki_in_callback (const gchar* message, gpointer data)
 				case 402:
 				/* ERR_NOSUCHCHANNEL */
 				case 403:
-					maki_in_err_nosuch(serv, timeval.tv_sec, remaining, numeric);
+					maki_in_err_nosuch(serv, remaining, numeric);
 					break;
 				/* RPL_MOTD */
 				case 372:
-					maki_in_rpl_motd(serv, timeval.tv_sec, remaining, FALSE);
+					maki_in_rpl_motd(serv, remaining, FALSE);
 					break;
 				/* RPL_TOPIC */
 				case 332:
-					maki_in_topic(serv, timeval.tv_sec, user, remaining, TRUE);
+					maki_in_topic(serv, user, remaining, TRUE);
 					break;
 				/* RPL_WHOISUSER */
 				case 311:
@@ -1605,27 +1602,27 @@ void maki_in_callback (const gchar* message, gpointer data)
 				case 318:
 				/* RPL_WHOISCHANNELS */
 				case 319:
-					maki_in_rpl_whois(serv, timeval.tv_sec, remaining, (numeric == 318));
+					maki_in_rpl_whois(serv, remaining, (numeric == 318));
 					break;
 				/* RPL_ISUPPORT */
 				case 5:
-					maki_in_rpl_isupport(serv, timeval.tv_sec, remaining);
+					maki_in_rpl_isupport(serv, remaining);
 					break;
 				/* RPL_LIST */
 				case 322:
 				/* RPL_LISTEND */
 				case 323:
-					maki_in_rpl_list(serv, timeval.tv_sec, remaining, (numeric == 323));
+					maki_in_rpl_list(serv, remaining, (numeric == 323));
 					break;
 				/* RPL_BANLIST */
 				case 367:
 				/* RPL_ENDOFBANLIST */
 				case 368:
-					maki_in_rpl_banlist(serv, timeval.tv_sec, remaining, (numeric == 368));
+					maki_in_rpl_banlist(serv, remaining, (numeric == 368));
 					break;
 				/* RPL_YOUREOPER */
 				case 381:
-					maki_dbus_emit_oper(timeval.tv_sec, maki_server_name(serv));
+					maki_dbus_emit_oper(maki_server_name(serv));
 					break;
 				/* ERR_CHANNELISFULL */
 				case 471:
@@ -1635,10 +1632,10 @@ void maki_in_callback (const gchar* message, gpointer data)
 				case 474:
 				/* ERR_BADCHANNELKEY */
 				case 475:
-					maki_in_err_cannot_join(serv, timeval.tv_sec, remaining, numeric);
+					maki_in_err_cannot_join(serv, remaining, numeric);
 					break;
 				case 482:
-					maki_in_err_chanoprivsneeded(serv, timeval.tv_sec, remaining);
+					maki_in_err_chanoprivsneeded(serv, remaining);
 					break;
 
 				default:
@@ -1650,43 +1647,43 @@ void maki_in_callback (const gchar* message, gpointer data)
 		{
 			if (strncmp(type, "PRIVMSG", 7) == 0)
 			{
-				maki_in_privmsg(serv, timeval.tv_sec, user, remaining);
+				maki_in_privmsg(serv, user, remaining);
 			}
 			else if (strncmp(type, "JOIN", 4) == 0)
 			{
-				maki_in_join(serv, timeval.tv_sec, user, remaining);
+				maki_in_join(serv, user, remaining);
 			}
 			else if (strncmp(type, "PART", 4) == 0)
 			{
-				maki_in_part(serv, timeval.tv_sec, user, remaining);
+				maki_in_part(serv, user, remaining);
 			}
 			else if (strncmp(type, "QUIT", 4) == 0)
 			{
-				maki_in_quit(serv, timeval.tv_sec, user, remaining);
+				maki_in_quit(serv, user, remaining);
 			}
 			else if (strncmp(type, "KICK", 4) == 0)
 			{
-				maki_in_kick(serv, timeval.tv_sec, user, remaining);
+				maki_in_kick(serv, user, remaining);
 			}
 			else if (strncmp(type, "NICK", 4) == 0)
 			{
-				maki_in_nick(serv, timeval.tv_sec, user, remaining);
+				maki_in_nick(serv, user, remaining);
 			}
 			else if (strncmp(type, "NOTICE", 6) == 0)
 			{
-				maki_in_notice(serv, timeval.tv_sec, user, remaining);
+				maki_in_notice(serv, user, remaining);
 			}
 			else if (strncmp(type, "MODE", 4) == 0)
 			{
-				maki_in_mode(serv, timeval.tv_sec, user, remaining, FALSE);
+				maki_in_mode(serv, user, remaining, FALSE);
 			}
 			else if (strncmp(type, "INVITE", 6) == 0)
 			{
-				maki_in_invite(serv, timeval.tv_sec, user, remaining, FALSE);
+				maki_in_invite(serv, user, remaining, FALSE);
 			}
 			else if (strncmp(type, "TOPIC", 5) == 0)
 			{
-				maki_in_topic(serv, timeval.tv_sec, user, remaining, FALSE);
+				maki_in_topic(serv, user, remaining, FALSE);
 			}
 			else
 			{

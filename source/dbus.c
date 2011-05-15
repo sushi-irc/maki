@@ -154,8 +154,14 @@ maki_dbus_emit_helper (const gchar* name, const gchar* format, ...)
 	va_end(ap);
 }
 
-void maki_dbus_emit_action (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
+void maki_dbus_emit_action (const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("action", "(xssss)",
 		timestamp,
 		server,
@@ -164,15 +170,27 @@ void maki_dbus_emit_action (gint64 timestamp, const gchar* server, const gchar* 
 		message);
 }
 
-void maki_dbus_emit_away (gint64 timestamp, const gchar* server)
+void maki_dbus_emit_away (const gchar* server)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("away", "(xs)",
 		timestamp,
 		server);
 }
 
-void maki_dbus_emit_away_message (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
+void maki_dbus_emit_away_message (const gchar* server, const gchar* nick, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("away_message", "(xsss)",
 		timestamp,
 		server,
@@ -180,15 +198,27 @@ void maki_dbus_emit_away_message (gint64 timestamp, const gchar* server, const g
 		message);
 }
 
-void maki_dbus_emit_back (gint64 timestamp, const gchar* server)
+void maki_dbus_emit_back (const gchar* server)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("back", "(xs)",
 		timestamp,
 		server);
 }
 
-void maki_dbus_emit_banlist (gint64 timestamp, const gchar* server, const gchar* channel, const gchar* mask, const gchar* who, gint64 when)
+void maki_dbus_emit_banlist (const gchar* server, const gchar* channel, const gchar* mask, const gchar* who, gint64 when)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("banlist", "(xssssx)",
 		timestamp,
 		server,
@@ -198,8 +228,14 @@ void maki_dbus_emit_banlist (gint64 timestamp, const gchar* server, const gchar*
 		when);
 }
 
-void maki_dbus_emit_cannot_join (gint64 timestamp, const gchar* server, const gchar* channel, const gchar* reason)
+void maki_dbus_emit_cannot_join (const gchar* server, const gchar* channel, const gchar* reason)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("cannot_join", "(xsss)",
 		timestamp,
 		server,
@@ -207,22 +243,40 @@ void maki_dbus_emit_cannot_join (gint64 timestamp, const gchar* server, const gc
 		reason);
 }
 
-void maki_dbus_emit_connect (gint64 timestamp, const gchar* server)
+void maki_dbus_emit_connect (const gchar* server)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("connect", "(xs)",
 		timestamp,
 		server);
 }
 
-void maki_dbus_emit_connected (gint64 timestamp, const gchar* server)
+void maki_dbus_emit_connected (const gchar* server)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("connected", "(xs)",
 		timestamp,
 		server);
 }
 
-void maki_dbus_emit_ctcp (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
+void maki_dbus_emit_ctcp (const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("ctcp", "(xssss)",
 		timestamp,
 		server,
@@ -231,8 +285,14 @@ void maki_dbus_emit_ctcp (gint64 timestamp, const gchar* server, const gchar* ni
 		message);
 }
 
-void maki_dbus_emit_dcc_send (gint64 timestamp, guint64 id, const gchar* server, const gchar* from, const gchar* filename, guint64 size, guint64 progress, guint64 speed, guint64 status)
+void maki_dbus_emit_dcc_send (guint64 id, const gchar* server, const gchar* from, const gchar* filename, guint64 size, guint64 progress, guint64 speed, guint64 status)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("dcc_send", "(xtssstttt)",
 		timestamp,
 		id,
@@ -245,8 +305,14 @@ void maki_dbus_emit_dcc_send (gint64 timestamp, guint64 id, const gchar* server,
 		status);
 }
 
-void maki_dbus_emit_error (gint64 timestamp, const gchar* server, const gchar* domain, const gchar* reason, gchar** arguments)
+void maki_dbus_emit_error (const gchar* server, const gchar* domain, const gchar* reason, gchar** arguments)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("error", "(xsss^as)",
 		timestamp,
 		server,
@@ -255,8 +321,14 @@ void maki_dbus_emit_error (gint64 timestamp, const gchar* server, const gchar* d
 		arguments);
 }
 
-void maki_dbus_emit_invite (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
+void maki_dbus_emit_invite (const gchar* server, const gchar* nick, const gchar* channel, const gchar* who)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("invite", "(xssss)",
 		timestamp,
 		server,
@@ -265,8 +337,14 @@ void maki_dbus_emit_invite (gint64 timestamp, const gchar* server, const gchar* 
 		who);
 }
 
-void maki_dbus_emit_join (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel)
+void maki_dbus_emit_join (const gchar* server, const gchar* nick, const gchar* channel)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("join", "(xsss)",
 		timestamp,
 		server,
@@ -274,8 +352,14 @@ void maki_dbus_emit_join (gint64 timestamp, const gchar* server, const gchar* ni
 		channel);
 }
 
-void maki_dbus_emit_kick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* who, const gchar* message)
+void maki_dbus_emit_kick (const gchar* server, const gchar* nick, const gchar* channel, const gchar* who, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("kick", "(xsssss)",
 		timestamp,
 		server,
@@ -285,8 +369,14 @@ void maki_dbus_emit_kick (gint64 timestamp, const gchar* server, const gchar* ni
 		message);
 }
 
-void maki_dbus_emit_list (gint64 timestamp, const gchar* server, const gchar* channel, gint64 users, const gchar* topic)
+void maki_dbus_emit_list (const gchar* server, const gchar* channel, gint64 users, const gchar* topic)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("list", "(xssxs)",
 		timestamp,
 		server,
@@ -295,8 +385,14 @@ void maki_dbus_emit_list (gint64 timestamp, const gchar* server, const gchar* ch
 		topic);
 }
 
-void maki_dbus_emit_message (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
+void maki_dbus_emit_message (const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("message", "(xssss)",
 		timestamp,
 		server,
@@ -305,8 +401,14 @@ void maki_dbus_emit_message (gint64 timestamp, const gchar* server, const gchar*
 		message);
 }
 
-void maki_dbus_emit_mode (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* mode, const gchar* parameter)
+void maki_dbus_emit_mode (const gchar* server, const gchar* nick, const gchar* target, const gchar* mode, const gchar* parameter)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("mode", "(xsssss)",
 		timestamp,
 		server,
@@ -316,16 +418,28 @@ void maki_dbus_emit_mode (gint64 timestamp, const gchar* server, const gchar* ni
 		parameter);
 }
 
-void maki_dbus_emit_motd (gint64 timestamp, const gchar* server, const gchar* message)
+void maki_dbus_emit_motd (const gchar* server, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("motd", "(xss)",
 		timestamp,
 		server,
 		message);
 }
 
-void maki_dbus_emit_names (gint64 timestamp, const gchar* server, const gchar* channel, gchar** nicks, gchar** prefixes)
+void maki_dbus_emit_names (const gchar* server, const gchar* channel, gchar** nicks, gchar** prefixes)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("names", "(xss^as^as)",
 		timestamp,
 		server,
@@ -334,8 +448,14 @@ void maki_dbus_emit_names (gint64 timestamp, const gchar* server, const gchar* c
 		prefixes);
 }
 
-void maki_dbus_emit_nick (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* new_nick)
+void maki_dbus_emit_nick (const gchar* server, const gchar* nick, const gchar* new_nick)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("nick", "(xsss)",
 		timestamp,
 		server,
@@ -343,8 +463,14 @@ void maki_dbus_emit_nick (gint64 timestamp, const gchar* server, const gchar* ni
 		new_nick);
 }
 
-void maki_dbus_emit_no_such (gint64 timestamp, const gchar* server, const gchar* target, const gchar* type)
+void maki_dbus_emit_no_such (const gchar* server, const gchar* target, const gchar* type)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("no_such", "(xsss)",
 		timestamp,
 		server,
@@ -352,8 +478,14 @@ void maki_dbus_emit_no_such (gint64 timestamp, const gchar* server, const gchar*
 		type);
 }
 
-void maki_dbus_emit_notice (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
+void maki_dbus_emit_notice (const gchar* server, const gchar* nick, const gchar* target, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("notice", "(xssss)",
 		timestamp,
 		server,
@@ -362,15 +494,27 @@ void maki_dbus_emit_notice (gint64 timestamp, const gchar* server, const gchar* 
 		message);
 }
 
-void maki_dbus_emit_oper (gint64 timestamp, const gchar* server)
+void maki_dbus_emit_oper (const gchar* server)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("oper", "(xs)",
 		timestamp,
 		server);
 }
 
-void maki_dbus_emit_part (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* message)
+void maki_dbus_emit_part (const gchar* server, const gchar* nick, const gchar* channel, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("part", "(xssss)",
 		timestamp,
 		server,
@@ -379,8 +523,14 @@ void maki_dbus_emit_part (gint64 timestamp, const gchar* server, const gchar* ni
 		message);
 }
 
-void maki_dbus_emit_quit (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
+void maki_dbus_emit_quit (const gchar* server, const gchar* nick, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("quit", "(xsss)",
 		timestamp,
 		server,
@@ -388,14 +538,26 @@ void maki_dbus_emit_quit (gint64 timestamp, const gchar* server, const gchar* ni
 		message);
 }
 
-void maki_dbus_emit_shutdown (gint64 timestamp)
+void maki_dbus_emit_shutdown (void)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("shutdown", "(x)",
 		timestamp);
 }
 
-void maki_dbus_emit_topic (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* channel, const gchar* topic)
+void maki_dbus_emit_topic (const gchar* server, const gchar* nick, const gchar* channel, const gchar* topic)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("topic", "(xssss)",
 		timestamp,
 		server,
@@ -404,8 +566,14 @@ void maki_dbus_emit_topic (gint64 timestamp, const gchar* server, const gchar* n
 		topic);
 }
 
-void maki_dbus_emit_user_away (gint64 timestamp, const gchar* server, const gchar* from, gboolean away)
+void maki_dbus_emit_user_away (const gchar* server, const gchar* from, gboolean away)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("user_away", "(xssb)",
 		timestamp,
 		server,
@@ -413,8 +581,14 @@ void maki_dbus_emit_user_away (gint64 timestamp, const gchar* server, const gcha
 		away);
 }
 
-void maki_dbus_emit_whois (gint64 timestamp, const gchar* server, const gchar* nick, const gchar* message)
+void maki_dbus_emit_whois (const gchar* server, const gchar* nick, const gchar* message)
 {
+	GTimeVal timeval;
+	gint64 timestamp;
+
+	g_get_current_time(&timeval);
+	timestamp = timeval.tv_sec;
+
 	maki_dbus_emit_helper("whois", "(xsss)",
 		timestamp,
 		server,
@@ -424,15 +598,12 @@ void maki_dbus_emit_whois (gint64 timestamp, const gchar* server, const gchar* n
 
 gboolean maki_dbus_action (const gchar* server, const gchar* channel, const gchar* message, GError** error)
 {
-	GTimeVal timeval;
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
 	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
 		gchar* tmp;
-
-		g_get_current_time(&timeval);
 
 		tmp = g_strdup(message);
 		g_strdelimit(tmp, "\r\n", ' ');
@@ -441,7 +612,7 @@ gboolean maki_dbus_action (const gchar* server, const gchar* channel, const gcha
 
 		maki_server_log(serv, channel, "%s %s", maki_user_nick(maki_server_user(serv)), tmp);
 
-		maki_dbus_emit_action(timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), channel, tmp);
+		maki_dbus_emit_action(server, maki_user_from(maki_server_user(serv)), channel, tmp);
 
 		g_free(tmp);
 	}
@@ -652,12 +823,9 @@ gboolean maki_dbus_ctcp (const gchar* server, const gchar* target, const gchar* 
 
 	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
-		GTimeVal timeval;
-
 		maki_server_send_printf(serv, "PRIVMSG %s :\001%s\001", target, message);
 
-		g_get_current_time(&timeval);
-		maki_dbus_emit_ctcp(timeval.tv_sec, server, maki_user_from(maki_server_user(serv)), target, message);
+		maki_dbus_emit_ctcp(server, maki_user_from(maki_server_user(serv)), target, message);
 		maki_server_log(serv, target, "=%s= %s", maki_user_nick(maki_server_user(serv)), message);
 	}
 
@@ -1013,7 +1181,6 @@ gboolean maki_dbus_log (const gchar* server, const gchar* target, guint64 lines,
 
 gboolean maki_dbus_message (const gchar* server, const gchar* target, const gchar* message, GError** error)
 {
-	GTimeVal timeval;
 	makiServer* serv;
 	makiInstance* inst = maki_instance_get_default();
 
@@ -1021,8 +1188,6 @@ gboolean maki_dbus_message (const gchar* server, const gchar* target, const gcha
 	{
 		const gchar* buffer;
 		gchar** messages = NULL;
-
-		g_get_current_time(&timeval);
 
 		for (buffer = message; *buffer != '\0'; ++buffer)
 		{
@@ -1112,10 +1277,7 @@ gboolean maki_dbus_nick (const gchar* server, const gchar* nick, GError** error)
 		else
 		{
 			/* FIXME deprecated */
-			GTimeVal timeval;
-
-			g_get_current_time(&timeval);
-			maki_dbus_emit_nick(timeval.tv_sec, maki_server_name(serv), "", maki_user_nick(maki_server_user(serv)));
+			maki_dbus_emit_nick(maki_server_name(serv), "", maki_user_nick(maki_server_user(serv)));
 		}
 	}
 
@@ -1143,12 +1305,9 @@ gboolean maki_dbus_notice (const gchar* server, const gchar* target, const gchar
 
 	if ((serv = maki_instance_get_server(inst, server)) != NULL)
 	{
-		GTimeVal timeval;
-
 		maki_server_send_printf(serv, "NOTICE %s :%s", target, message);
 
-		g_get_current_time(&timeval);
-		maki_dbus_emit_notice(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), target, message);
+		maki_dbus_emit_notice(maki_server_name(serv), maki_user_from(maki_server_user(serv)), target, message);
 		maki_server_log(serv, target, "-%s- %s", maki_user_nick(maki_server_user(serv)), message);
 	}
 
@@ -1423,7 +1582,6 @@ gboolean maki_dbus_servers (gchar*** servers, GError** error)
 
 gboolean maki_dbus_shutdown (const gchar* message, GError** error)
 {
-	GTimeVal timeval;
 	GHashTableIter iter;
 	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
@@ -1437,8 +1595,7 @@ gboolean maki_dbus_shutdown (const gchar* message, GError** error)
 		maki_server_disconnect(serv, message);
 	}
 
-	g_get_current_time(&timeval);
-	maki_dbus_emit_shutdown(timeval.tv_sec);
+	maki_dbus_emit_shutdown();
 
 	/* FIXME quits too soon */
 	g_main_loop_quit(main_loop);
@@ -1502,10 +1659,7 @@ gboolean maki_dbus_topic (const gchar* server, const gchar* channel, const gchar
 			if ((chan = maki_server_get_channel(serv, channel)) != NULL
 			    && maki_channel_topic(chan) != NULL)
 			{
-				GTimeVal timeval;
-
-				g_get_current_time(&timeval);
-				maki_dbus_emit_topic(timeval.tv_sec, maki_server_name(serv), "", channel, maki_channel_topic(chan));
+				maki_dbus_emit_topic(maki_server_name(serv), "", channel, maki_channel_topic(chan));
 			}
 			else
 			{

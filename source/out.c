@@ -100,20 +100,17 @@ void maki_out_nickserv (makiServer* serv)
 static void maki_out_privmsg_internal (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)
 {
 	gchar* buffer;
-	GTimeVal timeval;
 
 	g_return_if_fail(serv != NULL);
 	g_return_if_fail(target != NULL);
 	g_return_if_fail(message != NULL);
-
-	g_get_current_time(&timeval);
 
 	buffer = g_strdup_printf("PRIVMSG %s :%s", target, message);
 	maki_server_queue(serv, buffer, queue);
 	g_free(buffer);
 
 	maki_server_log(serv, target, "<%s> %s", maki_user_nick(maki_server_user(serv)), message);
-	maki_dbus_emit_message(timeval.tv_sec, maki_server_name(serv), maki_user_from(maki_server_user(serv)), target, message);
+	maki_dbus_emit_message(maki_server_name(serv), maki_user_from(maki_server_user(serv)), target, message);
 }
 
 void maki_out_privmsg (makiServer* serv, const gchar* target, const gchar* message, gboolean queue)

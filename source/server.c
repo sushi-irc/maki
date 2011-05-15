@@ -266,7 +266,6 @@ maki_server_on_connect (gpointer data)
 	gchar* user;
 	gchar* name;
 	gchar* nick;
-	GTimeVal timeval;
 	makiServer* serv = data;
 
 	g_mutex_lock(serv->mutex);
@@ -289,9 +288,8 @@ maki_server_on_connect (gpointer data)
 
 	serv->connected = TRUE;
 
-	g_get_current_time(&timeval);
-	maki_dbus_emit_connected(timeval.tv_sec, serv->name);
-	maki_dbus_emit_nick(timeval.tv_sec, serv->name, "", maki_user_nick(serv->user));
+	maki_dbus_emit_connected(serv->name);
+	maki_dbus_emit_nick(serv->name, "", maki_user_nick(serv->user));
 
 	g_free(nick);
 	g_free(user);
@@ -1126,7 +1124,6 @@ _maki_server_connect (gpointer data)
 
 	if (!serv->connected && !maki_config_is_empty(address))
 	{
-		GTimeVal timeval;
 		makiNetwork* net = maki_instance_network(serv->instance);
 
 		/* FIXME */
@@ -1138,8 +1135,7 @@ _maki_server_connect (gpointer data)
 		sashimi_disconnect_callback(serv->connection, maki_server_on_reconnect, serv);
 		sashimi_read_callback(serv->connection, maki_in_callback, serv);
 
-		g_get_current_time(&timeval);
-		maki_dbus_emit_connect(timeval.tv_sec, serv->name);
+		maki_dbus_emit_connect(serv->name);
 
 		if (!sashimi_connect(serv->connection, address, g_key_file_get_integer(serv->key_file, "server", "port", NULL), g_key_file_get_boolean(serv->key_file, "server", "ssl", NULL)))
 		{
@@ -1193,7 +1189,6 @@ _maki_server_disconnect (gpointer data)
 		if (message != NULL)
 		{
 			GHashTableIter iter;
-			GTimeVal timeval;
 			gpointer key, value;
 
 			if (message[0] != '\0')
@@ -1227,8 +1222,7 @@ _maki_server_disconnect (gpointer data)
 				maki_channel_set_joined(chan, FALSE);
 			}
 
-			g_get_current_time(&timeval);
-			maki_dbus_emit_quit(timeval.tv_sec, serv->name, maki_user_from(serv->user), message);
+			maki_dbus_emit_quit(serv->name, maki_user_from(serv->user), message);
 		}
 
 		serv->connected = FALSE;

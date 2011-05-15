@@ -310,13 +310,9 @@ maki_instance_free (makiInstance* inst)
 
 	for (list = inst->dcc.list; list != NULL; list = list->next)
 	{
-		GTimeVal timeval;
 		makiDCCSend* dcc = list->data;
 
-		g_get_current_time(&timeval);
-
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_dcc_send_id(dcc), "", "", "", 0, 0, 0, 0);
-
+		maki_dbus_emit_dcc_send(maki_dcc_send_id(dcc), "", "", "", 0, 0, 0, 0);
 		maki_dcc_send_free(dcc);
 	}
 
@@ -629,13 +625,9 @@ maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
-		GTimeVal timeval;
-
 		inst->dcc.list = g_slist_remove(inst->dcc.list, dcc);
 
-		g_get_current_time(&timeval);
-		maki_dbus_emit_dcc_send(timeval.tv_sec, maki_dcc_send_id(dcc), "", "", "", 0, 0, 0, 0);
-
+		maki_dbus_emit_dcc_send(maki_dcc_send_id(dcc), "", "", "", 0, 0, 0, 0);
 		maki_dcc_send_free(dcc);
 	}
 

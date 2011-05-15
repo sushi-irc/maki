@@ -999,12 +999,10 @@ gchar* maki_dcc_send_filename (makiDCCSend* dcc)
 void maki_dcc_send_emit (makiDCCSend* dcc)
 {
 	gchar* filename;
-	GTimeVal timeval;
 
-	g_get_current_time(&timeval);
 	filename = maki_dcc_send_filename(dcc);
 
-	maki_dbus_emit_dcc_send(timeval.tv_sec, dcc->id, maki_server_name(dcc->server), maki_user_from(dcc->user), filename, dcc->size, maki_dcc_send_progress(dcc), maki_dcc_send_speed(dcc), dcc->status);
+	maki_dbus_emit_dcc_send(dcc->id, maki_server_name(dcc->server), maki_user_from(dcc->user), filename, dcc->size, maki_dcc_send_progress(dcc), maki_dcc_send_speed(dcc), dcc->status);
 
 	g_free(filename);
 }

@@ -56,7 +56,6 @@ GMainLoop* main_loop = NULL;
 
 static void maki_signal (int signo)
 {
-	GTimeVal timeval;
 	GHashTableIter iter;
 	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
@@ -70,8 +69,7 @@ static void maki_signal (int signo)
 		maki_server_disconnect(serv, "");
 	}
 
-	g_get_current_time(&timeval);
-	maki_dbus_emit_shutdown(timeval.tv_sec);
+	maki_dbus_emit_shutdown();
 
 	if (g_main_loop_is_running(main_loop))
 	{
