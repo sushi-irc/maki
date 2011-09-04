@@ -44,6 +44,28 @@
 #include "misc.h"
 #include "out.h"
 
+struct makiServerIdleOperation
+{
+	union
+	{
+		struct
+		{
+			makiServer* server;
+		}
+		connect;
+
+		struct
+		{
+			makiServer* server;
+			gchar* message;
+		}
+		disconnect;
+	}
+	u;
+};
+
+typedef struct makiServerIdleOperation makiServerIdleOperation;
+
 struct maki_server
 {
 	makiInstance* instance;
@@ -259,6 +281,106 @@ maki_server_thread (gpointer data)
 	return NULL;
 }
 
+static gboolean maki_server_timeout_reconnect (gpointer);
+
+/* This function is called by sashimi if the connection drops.
+ * It schedules maki_server_reconnect() to be called regularly. */
+static
+void
+maki_server_on_disconnect (gpointer data)
+{
+	makiServer* serv = data;
+
+	g_mutex_lock(serv->mutex);
+
+	/* Prevent maki_server_reconnect() from running twice. */
+	if (serv->reconnect.source == 0)
+	{
+		serv->reconnect.source = i_timeout_add_seconds(maki_instance_config_get_integer(serv->instance, "reconnect", "timeout"), maki_server_timeout_reconnect, serv, serv->main_context);
+	}
+
+	g_mutex_unlock(serv->mutex);
+}
+
+static
+void
+maki_server_internal_disconnect (makiServer* serv, gchar const* message)
+{
+	sashimi_connect_callback(serv->connection, NULL, NULL);
+	sashimi_disconnect_callback(serv->connection, NULL, NULL);
+	sashimi_read_callback(serv->connection, NULL, NULL);
+
+	if (serv->sources.away != 0)
+	{
+		i_source_remove(serv->sources.away, serv->main_context);
+		serv->sources.away = 0;
+	}
+
+	if (message != NULL)
+	{
+		GHashTableIter iter;
+		gpointer key, value;
+
+		if (message[0] != '\0')
+		{
+			maki_server_internal_sendf(serv, "QUIT :%s", message);
+		}
+		else
+		{
+			sashimi_send(serv->connection, "QUIT");
+		}
+
+		g_hash_table_iter_init(&iter, serv->channels);
+
+		while (g_hash_table_iter_next(&iter, &key, &value))
+		{
+			const gchar* chan_name = key;
+			makiChannel* chan = value;
+
+			if (maki_channel_joined(chan))
+			{
+				if (message[0] != '\0')
+				{
+					maki_server_internal_log(serv, chan_name, _("« You quit (%s)."), message);
+				}
+				else
+				{
+					maki_server_internal_log(serv, chan_name, _("« You quit."));
+				}
+			}
+
+			maki_channel_set_joined(chan, FALSE);
+		}
+
+		maki_dbus_emit_quit(serv->name, maki_user_from(serv->user), message);
+	}
+
+	serv->connected = FALSE;
+	serv->logged_in = FALSE;
+
+	/* FIXME disconnect signal */
+
+	sashimi_disconnect(serv->connection);
+}
+
+static
+gboolean
+maki_server_idle_disconnect (gpointer data)
+{
+	makiServerIdleOperation* op = data;
+	makiServer* serv = op->u.disconnect.server;
+	gchar* message = op->u.disconnect.message;
+
+	g_mutex_lock(serv->mutex);
+	maki_server_internal_disconnect(serv, message);
+	g_mutex_unlock(serv->mutex);
+
+	g_free(op->u.disconnect.message);
+	g_free(op);
+
+	return FALSE;
+}
+
 static
 void
 maki_server_on_connect (gpointer data)
@@ -305,58 +427,83 @@ maki_server_on_connect (gpointer data)
 	g_mutex_unlock(serv->mutex);
 }
 
+static
+gboolean
+maki_server_internal_connect (makiServer* serv)
+{
+	gboolean ret;
+	makiNetwork* net = maki_instance_network(serv->instance);
+	gboolean ssl;
+	gchar* address;
+	gint port;
+
+	maki_network_update(net);
+
+	sashimi_connect_callback(serv->connection, maki_server_on_connect, serv);
+	sashimi_disconnect_callback(serv->connection, maki_server_on_disconnect, serv);
+	sashimi_read_callback(serv->connection, maki_in_callback, serv);
+
+	maki_dbus_emit_connect(serv->name);
+
+	address = g_key_file_get_string(serv->key_file, "server", "address", NULL);
+	port = g_key_file_get_integer(serv->key_file, "server", "port", NULL);
+	ssl = g_key_file_get_boolean(serv->key_file, "server", "ssl", NULL);
+
+	ret = sashimi_connect(serv->connection, address, port, ssl);
+
+	g_free(address);
+
+	return ret;
+}
+
+static
+gboolean
+maki_server_idle_connect (gpointer data)
+{
+	makiServerIdleOperation* op = data;
+	makiServer* serv = op->u.connect.server;
+
+	g_mutex_lock(serv->mutex);
+	maki_server_internal_connect(serv);
+	g_mutex_unlock(serv->mutex);
+
+	g_free(op);
+
+	return FALSE;
+}
+
 /* This function handles unexpected reconnects. */
 static
 gboolean
-maki_server_reconnect (gpointer data)
+maki_server_timeout_reconnect (gpointer data)
 {
+	gboolean ret;
 	makiServer* serv = data;
 
 	g_mutex_lock(serv->mutex);
 
-	// FIXME
-	maki_server_disconnect(serv, NULL);
+	ret = (serv->reconnect.retries > 0);
+	maki_server_internal_disconnect(serv, NULL);
 
-	if (serv->reconnect.retries > 0)
+	if (ret)
 	{
 		serv->reconnect.retries--;
+
+		if (maki_server_internal_connect(serv))
+		{
+			ret = FALSE;
+			serv->reconnect.source = 0;
+		}
 	}
-	else if (serv->reconnect.retries == 0)
+	else
 	{
 		/* Finally give up. */
 		serv->reconnect.source = 0;
-		return FALSE;
 	}
-
-	// FIXME
-	maki_server_connect(serv);
 
 	g_mutex_unlock(serv->mutex);
 
-	return TRUE;
-}
-
-/* This function is called by sashimi if the connection drops.
- * It schedules maki_server_reconnect() to be called regularly. */
-static
-void
-maki_server_on_reconnect (gpointer data)
-{
-	makiServer* serv = data;
-
-	g_mutex_lock(serv->mutex);
-
-	/* Prevent maki_server_reconnect() from running twice. */
-	if (serv->reconnect.source != 0)
-	{
-		goto end;
-	}
-
-	// FIXME
-	//serv->reconnect.source = i_timeout_add_seconds(maki_instance_config_get_integer(serv->instance, "reconnect", "timeout"), maki_server_reconnect, serv, serv->main_context);
-
-end:
-	g_mutex_unlock(serv->mutex);
+	return ret;
 }
 
 static
@@ -1111,64 +1258,37 @@ maki_server_send_printf (makiServer* serv, gchar const* format, ...)
 	return ret;
 }
 
-static
 gboolean
-_maki_server_connect (gpointer data)
-{
-	makiServer* serv = data;
-	gchar* address;
-
-	g_mutex_lock(serv->mutex);
-
-	address = g_key_file_get_string(serv->key_file, "server", "address", NULL);
-
-	if (!serv->connected && !maki_config_is_empty(address))
-	{
-		makiNetwork* net = maki_instance_network(serv->instance);
-
-		/* FIXME */
-		serv->reconnect.retries = maki_instance_config_get_integer(serv->instance, "reconnect", "retries");
-
-		maki_network_update(net);
-
-		sashimi_connect_callback(serv->connection, maki_server_on_connect, serv);
-		sashimi_disconnect_callback(serv->connection, maki_server_on_reconnect, serv);
-		sashimi_read_callback(serv->connection, maki_in_callback, serv);
-
-		maki_dbus_emit_connect(serv->name);
-
-		if (!sashimi_connect(serv->connection, address, g_key_file_get_integer(serv->key_file, "server", "port", NULL), g_key_file_get_boolean(serv->key_file, "server", "ssl", NULL)))
-		{
-			// FIXME
-			maki_server_on_reconnect(serv);
-		}
-	}
-
-	g_free(address);
-
-	g_mutex_unlock(serv->mutex);
-
-	return FALSE;
-}
-
-void
 maki_server_connect (makiServer* serv)
 {
-	g_return_if_fail(serv != NULL);
+	gboolean ret = FALSE;
+
+	g_return_val_if_fail(serv != NULL, FALSE);
 
 	g_mutex_lock(serv->mutex);
-	i_idle_add(_maki_server_connect, serv, serv->main_context);
+
+	if (!serv->connected)
+	{
+		makiServerIdleOperation* op;
+
+		op = g_new(makiServerIdleOperation, 1);
+		op->u.connect.server = serv;
+
+		serv->reconnect.retries = maki_instance_config_get_integer(serv->instance, "reconnect", "retries");
+
+		i_idle_add(maki_server_idle_connect, op, serv->main_context);
+		ret = TRUE;
+	}
+
 	g_mutex_unlock(serv->mutex);
+
+	return ret;
 }
 
-static
 gboolean
-_maki_server_disconnect (gpointer data)
+maki_server_disconnect (makiServer* serv, gchar const* message)
 {
-	makiServer* serv = data;
-	/* FIXME */
-	gchar const* message = "";
-	gboolean ret = TRUE;
+	gboolean ret = FALSE;
 
 	g_return_val_if_fail(serv != NULL, FALSE);
 
@@ -1176,74 +1296,17 @@ _maki_server_disconnect (gpointer data)
 
 	if (serv->connected)
 	{
-		sashimi_connect_callback(serv->connection, NULL, NULL);
-		sashimi_disconnect_callback(serv->connection, NULL, NULL);
-		sashimi_read_callback(serv->connection, NULL, NULL);
+		makiServerIdleOperation* op;
 
-		if (serv->sources.away != 0)
-		{
-			i_source_remove(serv->sources.away, serv->main_context);
-			serv->sources.away = 0;
-		}
+		op = g_new(makiServerIdleOperation, 1);
+		op->u.disconnect.server = serv;
+		op->u.disconnect.message = g_strdup(message);
 
-		if (message != NULL)
-		{
-			GHashTableIter iter;
-			gpointer key, value;
-
-			if (message[0] != '\0')
-			{
-				maki_server_internal_sendf(serv, "QUIT :%s", message);
-			}
-			else
-			{
-				sashimi_send(serv->connection, "QUIT");
-			}
-
-			g_hash_table_iter_init(&iter, serv->channels);
-
-			while (g_hash_table_iter_next(&iter, &key, &value))
-			{
-				const gchar* chan_name = key;
-				makiChannel* chan = value;
-
-				if (maki_channel_joined(chan))
-				{
-					if (message[0] != '\0')
-					{
-						maki_server_internal_log(serv, chan_name, _("« You quit (%s)."), message);
-					}
-					else
-					{
-						maki_server_internal_log(serv, chan_name, _("« You quit."));
-					}
-				}
-
-				maki_channel_set_joined(chan, FALSE);
-			}
-
-			maki_dbus_emit_quit(serv->name, maki_user_from(serv->user), message);
-		}
-
-		serv->connected = FALSE;
-		serv->logged_in = FALSE;
-
-		/* FIXME disconnect signal */
-
-		ret = sashimi_disconnect(serv->connection);
+		i_idle_add(maki_server_idle_disconnect, op, serv->main_context);
+		ret = TRUE;
 	}
 
 	g_mutex_unlock(serv->mutex);
 
-	return FALSE;
-}
-
-void
-maki_server_disconnect (makiServer* serv, gchar const* message)
-{
-	g_return_if_fail(serv != NULL);
-
-	g_mutex_lock(serv->mutex);
-	i_idle_add(_maki_server_disconnect, serv, serv->main_context);
-	g_mutex_unlock(serv->mutex);
+	return ret;
 }

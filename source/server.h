@@ -98,7 +98,7 @@ gboolean maki_server_queue (makiServer*, gchar const*, gboolean);
 gboolean maki_server_send (makiServer*, gchar const*);
 gboolean maki_server_send_printf (makiServer*, gchar const*, ...) G_GNUC_PRINTF(2, 3);
 
-void maki_server_connect (makiServer*);
-void maki_server_disconnect (makiServer*, gchar const*);
+gboolean maki_server_connect (makiServer*);
+gboolean maki_server_disconnect (makiServer*, gchar const*);
 
 #endif
