@@ -44,6 +44,15 @@
 #include "misc.h"
 #include "out.h"
 
+enum makiServerStatus
+{
+	MAKI_SERVER_STATUS_DISCONNECTED,
+	MAKI_SERVER_STATUS_CONNECTING,
+	MAKI_SERVER_STATUS_CONNECTED
+};
+
+typedef enum makiServerStatus makiServerStatus;
+
 struct makiServerIdleOperation
 {
 	union
@@ -71,7 +80,7 @@ struct maki_server
 	makiInstance* instance;
 
 	gchar* name;
-	gboolean connected;
+	makiServerStatus status;
 	gboolean logged_in;
 	sashimiConnection* connection;
 	GHashTable* channels;
@@ -355,7 +364,7 @@ maki_server_internal_disconnect (makiServer* serv, gchar const* message)
 		maki_dbus_emit_quit(serv->name, maki_user_from(serv->user), message);
 	}
 
-	serv->connected = FALSE;
+	serv->status = MAKI_SERVER_STATUS_DISCONNECTED;
 	serv->logged_in = FALSE;
 
 	/* FIXME disconnect signal */
@@ -408,7 +417,7 @@ maki_server_on_connect (gpointer data)
 	maki_server_internal_sendf(serv, "NICK %s", nick);
 	maki_server_internal_sendf(serv, "USER %s 0 * :%s", user, name);
 
-	serv->connected = TRUE;
+	serv->status = MAKI_SERVER_STATUS_CONNECTED;
 
 	maki_dbus_emit_connected(serv->name);
 	maki_dbus_emit_nick(serv->name, "", maki_user_nick(serv->user));
@@ -584,7 +593,7 @@ maki_server_new (gchar const* name)
 	serv->instance = maki_instance_get_default();
 	serv->name = g_strdup(name);
 	serv->key_file = g_key_file_new();
-	serv->connected = FALSE;
+	serv->status = MAKI_SERVER_STATUS_DISCONNECTED;
 	serv->logged_in = FALSE;
 	serv->reconnect.source = 0;
 	serv->reconnect.retries = maki_instance_config_get_integer(serv->instance, "reconnect" ,"retries");
@@ -923,7 +932,7 @@ maki_server_connected (makiServer* serv)
 	g_return_val_if_fail(serv != NULL, FALSE);
 
 	g_mutex_lock(serv->mutex);
-	ret = serv->connected;
+	ret = (serv->status == MAKI_SERVER_STATUS_CONNECTED);
 	g_mutex_unlock(serv->mutex);
 
 	return ret;
@@ -1267,13 +1276,14 @@ maki_server_connect (makiServer* serv)
 
 	g_mutex_lock(serv->mutex);
 
-	if (!serv->connected)
+	if (serv->status == MAKI_SERVER_STATUS_DISCONNECTED)
 	{
 		makiServerIdleOperation* op;
 
 		op = g_new(makiServerIdleOperation, 1);
 		op->u.connect.server = serv;
 
+		serv->status = MAKI_SERVER_STATUS_CONNECTING;
 		serv->reconnect.retries = maki_instance_config_get_integer(serv->instance, "reconnect", "retries");
 
 		i_idle_add(maki_server_idle_connect, op, serv->main_context);
@@ -1294,7 +1304,7 @@ maki_server_disconnect (makiServer* serv, gchar const* message)
 
 	g_mutex_lock(serv->mutex);
 
-	if (serv->connected)
+	if (serv->status != MAKI_SERVER_STATUS_DISCONNECTED)
 	{
 		makiServerIdleOperation* op;
 
