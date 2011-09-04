@@ -11,20 +11,19 @@ out = 'build'
 def options (ctx):
 	ctx.load('compiler_c')
 
+	ctx.add_option('--debug', action='store_true', default=False, help='Enable debug mode')
+
 def configure (ctx):
 	ctx.load('compiler_c')
 	ctx.load('gnu_dirs')
 	ctx.load('intltool')
 
-	ctx.env.CFLAGS += ['-std=c99', '-pedantic', '-Wall', '-Wextra']
-	ctx.env.CFLAGS += ['-Wno-missing-field-initializers', '-Wno-unused-parameter', '-Wold-style-definition', '-Wdeclaration-after-statement', '-Wmissing-declarations', '-Wmissing-prototypes', '-Wredundant-decls', '-Wmissing-noreturn', '-Wshadow', '-Wpointer-arith', '-Wcast-align', '-Wwrite-strings', '-Winline', '-Wformat-nonliteral', '-Wformat-security', '-Wswitch-enum', '-Wswitch-default', '-Winit-self', '-Wmissing-include-dirs', '-Wundef', '-Waggregate-return', '-Wmissing-format-attribute', '-Wnested-externs', '-Wstrict-prototypes']
+	ctx.find_program('gzip', var = 'GZIP')
 
+	ctx.env.CFLAGS += ['-std=c99']
 	ctx.env.CFLAGS += ['-D_FILE_OFFSET_BITS=64']
 
-	# FIXME
-	ctx.env.CFLAGS.remove('-Wmissing-include-dirs')
-
-	ctx.find_program('gzip', var = 'GZIP')
+	#ctx.check_large_file()
 
 	ctx.check_cfg(
 		package = 'gio-2.0',
@@ -88,7 +87,18 @@ def configure (ctx):
 		mandatory = False
 	)
 
-	ctx.define('G_DISABLE_DEPRECATED', 1)
+	if ctx.options.debug:
+		ctx.env.CFLAGS += ['-pedantic', '-Wall', '-Wextra']
+		ctx.env.CFLAGS += ['-Wno-missing-field-initializers', '-Wno-unused-parameter', '-Wold-style-definition', '-Wdeclaration-after-statement', '-Wmissing-declarations', '-Wmissing-prototypes', '-Wredundant-decls', '-Wmissing-noreturn', '-Wshadow', '-Wpointer-arith', '-Wcast-align', '-Wwrite-strings', '-Winline', '-Wformat-nonliteral', '-Wformat-security', '-Wswitch-enum', '-Wswitch-default', '-Winit-self', '-Wmissing-include-dirs', '-Wundef', '-Waggregate-return', '-Wmissing-format-attribute', '-Wnested-externs', '-Wstrict-prototypes']
+		ctx.env.CFLAGS += ['-ggdb']
+
+		# FIXME
+		ctx.env.CFLAGS.remove('-Wmissing-include-dirs')
+
+		ctx.define('G_DISABLE_DEPRECATED', 1)
+	else:
+		ctx.env.CFLAGS += ['-O2']
+
 	ctx.define('SUSHI_VERSION', VERSION)
 
 	ctx.write_config_header('source/config.h', remove = False)
