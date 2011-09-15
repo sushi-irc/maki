@@ -2,3 +2,4 @@ source/in.c
 source/maki.c
 source/misc.c
 source/out.c
+source/server.c
