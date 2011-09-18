@@ -30,28 +30,9 @@
 #include <gmodule.h>
 #include <gio/gio.h>
 
-#include "instance.h"
+#include <instance.h>
 
-enum
-{
-	NM_OLD_STATE_UNKNOWN      = 0,
-	NM_OLD_STATE_ASLEEP       = 1,
-	NM_OLD_STATE_CONNECTING   = 2,
-	NM_OLD_STATE_CONNECTED    = 3,
-	NM_OLD_STATE_DISCONNECTED = 4
-};
-
-enum
-{
-	NM_STATE_UNKNOWN          =  0,
-	NM_STATE_ASLEEP           = 10,
-	NM_STATE_DISCONNECTED     = 20,
-	NM_STATE_DISCONNECTING    = 30,
-	NM_STATE_CONNECTING       = 40,
-	NM_STATE_CONNECTED_LOCAL  = 50,
-	NM_STATE_CONNECTED_SITE   = 60,
-	NM_STATE_CONNECTED_GLOBAL = 70
-};
+#include "network.h"
 
 gboolean init (void);
 void deinit (void);

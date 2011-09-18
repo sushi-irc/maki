@@ -30,7 +30,9 @@
 #include <gmodule.h>
 #include <gio/gio.h>
 
-#include "instance.h"
+#include <instance.h>
+
+#include "network.h"
 
 gboolean init (void);
 void deinit (void);
@@ -107,6 +109,7 @@ upower_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant
 	}
 }
 
+/* FIXME */
 static
 void
 nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
@@ -122,9 +125,18 @@ nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* pa
 
 		g_variant_get(parameters, "(u)", &state);
 
-		if (state == 0 || state == 3)
+		switch (state)
 		{
-			servers_connect();
+			/* case NM_OLD_STATE_UNKNOWN: */
+			case NM_OLD_STATE_CONNECTED:
+			case NM_STATE_UNKNOWN:
+			case NM_STATE_CONNECTED_LOCAL:
+			case NM_STATE_CONNECTED_SITE:
+			case NM_STATE_CONNECTED_GLOBAL:
+				servers_connect();
+				break;
+			default:
+				;
 		}
 	}
 }

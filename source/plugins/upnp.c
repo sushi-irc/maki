@@ -37,7 +37,7 @@
 #include <libgupnp-igd/gupnp-simple-igd.h>
 #endif
 
-#include "instance.h"
+#include <instance.h>
 
 gboolean init (void);
 void deinit (void);
