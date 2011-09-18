@@ -164,6 +164,10 @@ maki_server_internal_log_valist (makiServer* serv, const gchar* name, const gcha
 
 		g_hash_table_insert(serv->logs, file, log);
 	}
+	else
+	{
+		g_free(file);
+	}
 
 	tmp = g_strdup_vprintf(format, args);
 	maki_log_write(log, tmp);
@@ -237,14 +241,12 @@ maki_server_internal_remove_user (makiServer* serv, gchar const* nick)
 
 	if ((user = g_hash_table_lookup(serv->users, nick)) != NULL)
 	{
-		if (maki_user_ref_count(user) > 1)
-		{
-			maki_user_unref(user);
-		}
-		else
+		if (maki_user_ref_count(user) == 1)
 		{
 			ret = g_hash_table_remove(serv->users, nick);
 		}
+
+		maki_user_unref(user);
 	}
 
 	return ret;
@@ -602,7 +604,7 @@ maki_server_new (gchar const* name)
 	serv->main_loop = g_main_loop_new(serv->main_context, FALSE);
 	serv->connection = sashimi_new(serv->main_context);
 	serv->channels = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_channel_free);
-	serv->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_user_unref);
+	serv->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, NULL);
 	serv->logs = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_log_free);
 
 	path = g_build_filename(maki_instance_directory(serv->instance, "servers"), name, NULL);
@@ -1116,7 +1118,7 @@ maki_server_rename_user (makiServer* serv, gchar const* old_nick, gchar const* n
 
 	maki_user_set_nick(user, new_nick);
 	/* old_nick is probably invalid from here on! */
-	g_hash_table_insert(serv->users, g_strdup(new_nick), maki_user_ref(user));
+	g_hash_table_insert(serv->users, g_strdup(new_nick), user);
 	g_hash_table_remove(serv->users, tmp);
 
 end:

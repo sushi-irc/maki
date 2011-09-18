@@ -72,7 +72,6 @@ maki_channel_user_unref (gpointer data)
 
 	if (cuser->ref_count == 0)
 	{
-		/* FIXME */
 		maki_user_unref(cuser->user);
 
 		g_free(cuser);

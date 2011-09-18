@@ -137,6 +137,11 @@ maki_dbus_emit_helper (const gchar* name, const gchar* format, ...)
 	gchar* tmp;
 	va_list ap;
 
+	if (dbus == NULL && dbus_server == NULL)
+	{
+		return;
+	}
+
 	va_start(ap, format);
 	variant = g_variant_new_va(format, NULL, &ap);
 
