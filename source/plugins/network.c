@@ -32,6 +32,27 @@
 
 #include "instance.h"
 
+enum
+{
+	NM_OLD_STATE_UNKNOWN      = 0,
+	NM_OLD_STATE_ASLEEP       = 1,
+	NM_OLD_STATE_CONNECTING   = 2,
+	NM_OLD_STATE_CONNECTED    = 3,
+	NM_OLD_STATE_DISCONNECTED = 4
+};
+
+enum
+{
+	NM_STATE_UNKNOWN          =  0,
+	NM_STATE_ASLEEP           = 10,
+	NM_STATE_DISCONNECTED     = 20,
+	NM_STATE_DISCONNECTING    = 30,
+	NM_STATE_CONNECTING       = 40,
+	NM_STATE_CONNECTED_LOCAL  = 50,
+	NM_STATE_CONNECTED_SITE   = 60,
+	NM_STATE_CONNECTED_GLOBAL = 70
+};
+
 gboolean init (void);
 void deinit (void);
 
@@ -101,21 +122,39 @@ nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* pa
 
 		g_variant_get(parameters, "(u)", &state);
 
-		if (state == 0 || state == 3)
+		switch (state)
 		{
-			if (!is_connected)
-			{
-				is_connected = TRUE;
-				servers_connect();
-			}
-		}
-		else if (state == 1 || state == 2 || state == 4)
-		{
-			if (is_connected)
-			{
-				is_connected = FALSE;
-				servers_disconnect("Network configuration changed.");
-			}
+			/* case NM_OLD_STATE_UNKNOWN: */
+			case NM_OLD_STATE_CONNECTED:
+			case NM_STATE_UNKNOWN:
+			case NM_STATE_CONNECTED_LOCAL:
+			case NM_STATE_CONNECTED_SITE:
+			case NM_STATE_CONNECTED_GLOBAL:
+				if (!is_connected)
+				{
+					is_connected = TRUE;
+					servers_connect();
+				}
+
+				break;
+
+			case NM_OLD_STATE_ASLEEP:
+			case NM_OLD_STATE_CONNECTING:
+			case NM_OLD_STATE_DISCONNECTED:
+			case NM_STATE_ASLEEP:
+			case NM_STATE_DISCONNECTED:
+			case NM_STATE_DISCONNECTING:
+			case NM_STATE_CONNECTING:
+				if (is_connected)
+				{
+					is_connected = FALSE;
+					servers_disconnect("Network configuration changed.");
+				}
+
+				break;
+
+			default:
+				g_warn_if_reached();
 		}
 	}
 }
@@ -139,7 +178,20 @@ init (void)
 		variant = g_dbus_proxy_get_cached_property(nm_proxy, "State");
 		g_variant_get(variant, "u", &state);
 		g_variant_unref(variant);
-		is_connected = (state == 0 || state == 3);
+
+		switch (state)
+		{
+			/* case NM_OLD_STATE_UNKNOWN: */
+			case NM_OLD_STATE_CONNECTED:
+			case NM_STATE_UNKNOWN:
+			case NM_STATE_CONNECTED_LOCAL:
+			case NM_STATE_CONNECTED_SITE:
+			case NM_STATE_CONNECTED_GLOBAL:
+				is_connected = TRUE;
+				break;
+			default:
+				is_connected = FALSE;
+		}
 
 		g_signal_connect(nm_proxy, "g-signal", G_CALLBACK(nm_on_signal), NULL);
 	}
