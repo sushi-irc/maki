@@ -33,9 +33,8 @@
 #include <instance.h>
 
 #include "network.h"
+#include "plugin.h"
 
-gboolean init (void);
-void deinit (void);
 gboolean sleeping (void);
 
 static GDBusProxy* upower_proxy;

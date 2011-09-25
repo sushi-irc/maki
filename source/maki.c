@@ -204,6 +204,7 @@ int main (int argc, char* argv[])
 		makiServer* serv;
 
 		/* FIXME this emits signals */
+		/* FIXME UPnP plugin may not be ready here */
 		if ((serv = maki_server_new(file)) != NULL)
 		{
 			maki_instance_add_server(inst, maki_server_name(serv), serv);

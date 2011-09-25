@@ -33,9 +33,7 @@
 #include <instance.h>
 
 #include "network.h"
-
-gboolean init (void);
-void deinit (void);
+#include "plugin.h"
 
 static GDBusProxy* nm_proxy;
 static gboolean is_connected;

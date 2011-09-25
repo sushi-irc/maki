@@ -39,10 +39,18 @@
 
 #include <instance.h>
 
-gboolean init (void);
-void deinit (void);
+#include "plugin.h"
+#include "upnp.h"
 
-gchar* get_external_ip (void);
+struct UPnPGetExternalIPData
+{
+	makiUPnPGetExternalIPCallback callback;
+	gpointer data;
+};
+
+typedef struct UPnPGetExternalIPData UPnPGetExternalIPData;
+
+gboolean get_external_ip (makiUPnPGetExternalIPCallback, gpointer);
 gboolean add_port (const gchar*, guint, const gchar*);
 gboolean remove_port (guint);
 
@@ -65,34 +73,61 @@ on_service_proxy_available (GUPnPControlPoint* cp, GUPnPServiceProxy* proxy, gpo
 }
 #endif
 
+#ifdef HAVE_GUPNP
+static
+void
+on_get_external_ip (GUPnPServiceProxy* proxy, GUPnPServiceProxyAction* action, gpointer user_data)
+{
+	UPnPGetExternalIPData* p = user_data;
+	GError* error = NULL;
+	gchar* ip = NULL;
+
+	gupnp_service_proxy_end_action(proxy,
+		action,
+		&error,
+		"NewExternalIPAddress", G_TYPE_STRING, &ip,
+		NULL
+	);
+
+	if (error == NULL)
+	{
+		p->callback(ip, p->data);
+	}
+	else
+	{
+		g_error_free(error);
+	}
+
+	g_free(ip);
+	g_free(p);
+}
+#endif
+
 G_MODULE_EXPORT
-gchar*
-get_external_ip (void)
+gboolean
+get_external_ip (makiUPnPGetExternalIPCallback callback, gpointer data)
 {
 #ifdef HAVE_GUPNP
 	if (upnp_service_proxy != NULL)
 	{
-		GError* error = NULL;
-		gchar* ip;
+		UPnPGetExternalIPData* p;
 
-		gupnp_service_proxy_send_action(upnp_service_proxy,
+		p = g_new(UPnPGetExternalIPData, 1);
+		p->callback = callback;
+		p->data = data;
+
+		gupnp_service_proxy_begin_action(upnp_service_proxy,
 			"GetExternalIPAddress",
-			&error,
-			NULL,
-			"NewExternalIPAddress", G_TYPE_STRING, &ip,
+			on_get_external_ip,
+			p,
 			NULL
 		);
 
-		if (error == NULL)
-		{
-			return ip;
-		}
-
-		g_error_free(error);
+		return TRUE;
 	}
 #endif
 
-	return NULL;
+	return FALSE;
 }
 
 G_MODULE_EXPORT

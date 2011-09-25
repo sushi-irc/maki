@@ -43,6 +43,8 @@
 
 #include "network.h"
 
+#include "plugins/upnp.h"
+
 struct maki_network
 {
 	makiInstance* instance;
@@ -103,6 +105,24 @@ maki_network_update_internal (gpointer data)
 }
 
 static
+void
+maki_network_on_upnp_get_external_ip (gchar const* ip, gpointer data)
+{
+	makiNetwork* net = data;
+
+	g_mutex_lock(net->lock);
+
+	if (net->external.inet_address != NULL)
+	{
+		g_object_unref(net->external.inet_address);
+	}
+
+	net->external.inet_address = g_inet_address_new_from_string(ip);
+
+	g_mutex_unlock(net->lock);
+}
+
+static
 gboolean
 maki_network_update_external (gpointer data)
 {
@@ -118,18 +138,12 @@ maki_network_update_external (gpointer data)
 	net->external.inet_address = NULL;
 
 	{
-		gchar* (*get_external_ip) (void);
+		makiUPnPGetExternalIPFunc get_external_ip;
 
 		if (maki_instance_plugin_method(net->instance, "upnp", "get_external_ip", (gpointer*)&get_external_ip))
 		{
-			gchar* ip;
-
-			if ((ip = (*get_external_ip)()) != NULL)
+			if ((*get_external_ip)(maki_network_on_upnp_get_external_ip, net))
 			{
-				net->external.inet_address = g_inet_address_new_from_string(ip);
-
-				g_free(ip);
-
 				goto end;
 			}
 		}
@@ -277,7 +291,7 @@ maki_network_external_address (makiNetwork* net)
 gboolean
 maki_network_upnp_add_port (makiNetwork* net, guint port, gchar const* description)
 {
-	gboolean (*add_port) (gchar const*, guint, gchar const*);
+	makiUPnPAddPortFunc add_port;
 	gboolean ret = FALSE;
 
 	g_mutex_lock(net->lock);
@@ -299,7 +313,7 @@ maki_network_upnp_add_port (makiNetwork* net, guint port, gchar const* descripti
 gboolean
 maki_network_upnp_remove_port (makiNetwork* net, guint port)
 {
-	gboolean (*remove_port) (guint);
+	makiUPnPRemovePortFunc remove_port;
 	gboolean ret = FALSE;
 
 	g_mutex_lock(net->lock);
