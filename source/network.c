@@ -52,12 +52,14 @@ struct maki_network
 	struct
 	{
 		GInetAddress* inet_address;
+		guint source;
 	}
 	internal;
 
 	struct
 	{
 		GInetAddress* inet_address;
+		guint source;
 	}
 	external;
 
@@ -98,6 +100,8 @@ maki_network_update_internal (gpointer data)
 		}
 	}
 #endif
+
+	net->internal.source = 0;
 
 	g_mutex_unlock(net->lock);
 
@@ -208,6 +212,8 @@ maki_network_update_external (gpointer data)
 #endif
 
 end:
+	net->external.source = 0;
+
 	g_mutex_unlock(net->lock);
 
 	return FALSE;
@@ -223,7 +229,9 @@ maki_network_new (makiInstance* inst)
 	net->instance = inst;
 
 	net->internal.inet_address = NULL;
+	net->internal.source = 0;
 	net->external.inet_address = NULL;
+	net->external.source = 0;
 
 	net->lock = g_mutex_new();
 
@@ -234,6 +242,16 @@ void
 maki_network_free (makiNetwork* net)
 {
 	g_mutex_free(net->lock);
+
+	if (net->internal.source != 0)
+	{
+		i_source_remove(net->internal.source, maki_instance_main_context(net->instance));
+	}
+
+	if (net->external.source != 0)
+	{
+		i_source_remove(net->external.source, maki_instance_main_context(net->instance));
+	}
 
 	if (net->internal.inet_address != NULL)
 	{
@@ -254,9 +272,17 @@ maki_network_update (makiNetwork* net)
 	g_return_if_fail(net != NULL);
 
 	g_mutex_lock(net->lock);
-	/* FIXME sources */
-	i_idle_add(maki_network_update_internal, net, maki_instance_main_context(net->instance));
-	i_idle_add(maki_network_update_external, net, maki_instance_main_context(net->instance));
+
+	if (net->internal.source == 0)
+	{
+		net->internal.source = i_idle_add(maki_network_update_internal, net, maki_instance_main_context(net->instance));
+	}
+
+	if (net->external.source == 0)
+	{
+		net->external.source = i_idle_add(maki_network_update_external, net, maki_instance_main_context(net->instance));
+	}
+
 	g_mutex_unlock(net->lock);
 }
 
