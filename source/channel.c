@@ -46,7 +46,9 @@ struct maki_channel
 	gchar* topic;
 };
 
-static void maki_channel_set_defaults (makiChannel* chan)
+static
+void
+maki_channel_set_defaults (makiChannel* chan)
 {
 	if (!maki_server_config_exists(chan->server, chan->name, "autojoin"))
 	{
@@ -54,7 +56,33 @@ static void maki_channel_set_defaults (makiChannel* chan)
 	}
 }
 
-makiChannel* maki_channel_new (makiServer* serv, const gchar* name)
+static
+void
+maki_channel_remove_users (makiChannel* chan)
+{
+	GHashTableIter iter;
+	gpointer key, value;
+
+	if (g_hash_table_size(chan->users) == 0)
+	{
+		return;
+	}
+
+	g_hash_table_iter_init(&iter, chan->users);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		makiUser* user = value;
+
+		maki_server_remove_user(chan->server, maki_user_nick(user));
+	}
+
+	g_hash_table_remove_all(chan->user_prefixes);
+	g_hash_table_remove_all(chan->users);
+}
+
+makiChannel*
+maki_channel_new (makiServer* serv, gchar const* name)
 {
 	makiChannel* chan;
 
@@ -73,7 +101,8 @@ makiChannel* maki_channel_new (makiServer* serv, const gchar* name)
 }
 
 /* This function gets called when a channel is removed from the channels hash table. */
-void maki_channel_free (gpointer data)
+void
+maki_channel_free (gpointer data)
 {
 	makiChannel* chan = data;
 
@@ -88,48 +117,62 @@ void maki_channel_free (gpointer data)
 	g_free(chan);
 }
 
-gboolean maki_channel_autojoin (makiChannel* chan)
+gboolean
+maki_channel_autojoin (makiChannel* chan)
 {
 	return maki_server_config_get_boolean(chan->server, chan->name, "autojoin");
 }
 
-void maki_channel_set_autojoin (makiChannel* chan, gboolean autojoin)
+void
+maki_channel_set_autojoin (makiChannel* chan, gboolean autojoin)
 {
 	maki_server_config_set_boolean(chan->server, chan->name, "autojoin", autojoin);
 }
 
-gboolean maki_channel_joined (makiChannel* chan)
+gboolean
+maki_channel_joined (makiChannel* chan)
 {
 	return chan->joined;
 }
 
-void maki_channel_set_joined (makiChannel* chan, gboolean joined)
+void
+maki_channel_set_joined (makiChannel* chan, gboolean joined)
 {
+	if (chan->joined != joined)
+	{
+		maki_channel_remove_users(chan);
+	}
+
 	chan->joined = joined;
 }
 
-gchar* maki_channel_key (makiChannel* chan)
+gchar*
+maki_channel_key (makiChannel* chan)
 {
 	return maki_server_config_get_string(chan->server, chan->name, "key");
 }
 
-void maki_channel_set_key (makiChannel* chan, const gchar* key)
+void
+maki_channel_set_key (makiChannel* chan, gchar const* key)
 {
 	maki_server_config_set_string(chan->server, chan->name, "key", key);
 }
 
-const gchar* maki_channel_topic (makiChannel* chan)
+gchar const*
+maki_channel_topic (makiChannel* chan)
 {
 	return chan->topic;
 }
 
-void maki_channel_set_topic (makiChannel* chan, const gchar* topic)
+void
+maki_channel_set_topic (makiChannel* chan, gchar const* topic)
 {
 	g_free(chan->topic);
 	chan->topic = g_strdup(topic);
 }
 
-makiUser* maki_channel_add_user (makiChannel* chan, const gchar* name)
+makiUser*
+maki_channel_add_user (makiChannel* chan, gchar const* name)
 {
 	makiUser* user;
 
@@ -140,12 +183,14 @@ makiUser* maki_channel_add_user (makiChannel* chan, const gchar* name)
 	return user;
 }
 
-makiUser* maki_channel_get_user (makiChannel* chan, const gchar* name)
+makiUser*
+maki_channel_get_user (makiChannel* chan, gchar const* name)
 {
 	return g_hash_table_lookup(chan->users, name);
 }
 
-makiUser* maki_channel_rename_user (makiChannel* chan, const gchar* old_nick, const gchar* new_nick)
+makiUser*
+maki_channel_rename_user (makiChannel* chan, gchar const* old_nick, gchar const* new_nick)
 {
 	makiUser* user = NULL;
 
@@ -158,7 +203,8 @@ makiUser* maki_channel_rename_user (makiChannel* chan, const gchar* old_nick, co
 	return user;
 }
 
-void maki_channel_remove_user (makiChannel* chan, const gchar* name)
+void
+maki_channel_remove_user (makiChannel* chan, gchar const* name)
 {
 	makiUser* user;
 
@@ -170,30 +216,14 @@ void maki_channel_remove_user (makiChannel* chan, const gchar* name)
 	}
 }
 
-void maki_channel_remove_users (makiChannel* chan)
-{
-	GHashTableIter iter;
-	gpointer key, value;
-
-	g_hash_table_iter_init(&iter, chan->users);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		makiUser* user = value;
-
-		maki_server_remove_user(chan->server, maki_user_nick(user));
-	}
-
-	g_hash_table_remove_all(chan->user_prefixes);
-	g_hash_table_remove_all(chan->users);
-}
-
-guint maki_channel_users_count (makiChannel* chan)
+guint
+maki_channel_users_count (makiChannel* chan)
 {
 	return g_hash_table_size(chan->users);
 }
 
-void maki_channel_users_iter (makiChannel* chan, GHashTableIter* iter)
+void
+maki_channel_users_iter (makiChannel* chan, GHashTableIter* iter)
 {
 	g_hash_table_iter_init(iter, chan->users);
 }

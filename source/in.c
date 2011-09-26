@@ -398,7 +398,6 @@ static void maki_in_join (makiServer* serv, makiUser* user, gchar* remaining)
 	{
 		if (chan != NULL)
 		{
-			maki_channel_remove_users(chan);
 			maki_channel_set_joined(chan, TRUE);
 		}
 		else
@@ -461,7 +460,6 @@ static void maki_in_part (makiServer* serv, makiUser* user, gchar* remaining)
 			key = maki_channel_key(chan);
 
 			maki_channel_set_joined(chan, FALSE);
-			maki_channel_remove_users(chan);
 
 			if (!maki_channel_autojoin(chan) && key == NULL)
 			{

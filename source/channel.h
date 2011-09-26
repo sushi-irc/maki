@@ -37,7 +37,7 @@ typedef struct maki_channel makiChannel;
 #include "server.h"
 #include "user.h"
 
-makiChannel* maki_channel_new (makiServer*, const gchar*);
+makiChannel* maki_channel_new (makiServer*, gchar const*);
 void maki_channel_free (gpointer);
 
 gboolean maki_channel_autojoin (makiChannel*);
@@ -47,16 +47,15 @@ gboolean maki_channel_joined (makiChannel*);
 void maki_channel_set_joined (makiChannel*, gboolean);
 
 gchar* maki_channel_key (makiChannel*);
-void maki_channel_set_key (makiChannel*, const gchar*);
+void maki_channel_set_key (makiChannel*, gchar const*);
 
-const gchar* maki_channel_topic (makiChannel*);
-void maki_channel_set_topic (makiChannel*, const gchar*);
+gchar const* maki_channel_topic (makiChannel*);
+void maki_channel_set_topic (makiChannel*, gchar const*);
 
-makiUser* maki_channel_add_user (makiChannel*, const gchar*);
-makiUser* maki_channel_get_user (makiChannel*, const gchar*);
-makiUser* maki_channel_rename_user (makiChannel*, const gchar*, const gchar*);
-void maki_channel_remove_user (makiChannel*, const gchar*);
-void maki_channel_remove_users (makiChannel*);
+makiUser* maki_channel_add_user (makiChannel*, gchar const*);
+makiUser* maki_channel_get_user (makiChannel*, gchar const*);
+makiUser* maki_channel_rename_user (makiChannel*, gchar const*, gchar const*);
+void maki_channel_remove_user (makiChannel*, gchar const*);
 guint maki_channel_users_count (makiChannel*);
 void maki_channel_users_iter (makiChannel*, GHashTableIter*);
 
