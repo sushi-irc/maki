@@ -33,12 +33,16 @@
 
 #include "channel.h"
 
+#include "server.h"
+#include "user.h"
+
 struct maki_channel
 {
 	makiServer* server;
 	gchar* name;
 	gboolean joined;
 	GHashTable* users;
+	GHashTable* user_prefixes;
 	gchar* topic;
 };
 
@@ -59,7 +63,8 @@ makiChannel* maki_channel_new (makiServer* serv, const gchar* name)
 	chan->server = serv;
 	chan->name = g_strdup(name);
 	chan->joined = FALSE;
-	chan->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, maki_channel_user_unref);
+	chan->users = g_hash_table_new_full(i_ascii_str_case_hash, i_ascii_str_case_equal, g_free, NULL);
+	chan->user_prefixes = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, NULL);
 	chan->topic = NULL;
 
 	maki_channel_set_defaults(chan);
@@ -72,6 +77,9 @@ void maki_channel_free (gpointer data)
 {
 	makiChannel* chan = data;
 
+	maki_channel_remove_users(chan);
+
+	g_hash_table_destroy(chan->user_prefixes);
 	g_hash_table_destroy(chan->users);
 
 	g_free(chan->topic);
@@ -121,36 +129,62 @@ void maki_channel_set_topic (makiChannel* chan, const gchar* topic)
 	chan->topic = g_strdup(topic);
 }
 
-void maki_channel_add_user (makiChannel* chan, const gchar* name, makiChannelUser* cuser)
+makiUser* maki_channel_add_user (makiChannel* chan, const gchar* name)
 {
-	g_hash_table_insert(chan->users, g_strdup(name), cuser);
+	makiUser* user;
+
+	user = maki_server_add_user(chan->server, name);
+	g_hash_table_insert(chan->users, g_strdup(maki_user_nick(user)), user);
+	g_hash_table_insert(chan->user_prefixes, user, GUINT_TO_POINTER(0));
+
+	return user;
 }
 
-makiChannelUser* maki_channel_get_user (makiChannel* chan, const gchar* name)
+makiUser* maki_channel_get_user (makiChannel* chan, const gchar* name)
 {
 	return g_hash_table_lookup(chan->users, name);
 }
 
-makiChannelUser* maki_channel_rename_user (makiChannel* chan, const gchar* old_nick, const gchar* new_nick)
+makiUser* maki_channel_rename_user (makiChannel* chan, const gchar* old_nick, const gchar* new_nick)
 {
-	makiChannelUser* cuser = NULL;
+	makiUser* user = NULL;
 
-	if ((cuser = g_hash_table_lookup(chan->users, old_nick)) != NULL)
+	if ((user = g_hash_table_lookup(chan->users, old_nick)) != NULL)
 	{
-		g_hash_table_insert(chan->users, g_strdup(new_nick), maki_channel_user_ref(cuser));
+		g_hash_table_insert(chan->users, g_strdup(new_nick), user);
 		g_hash_table_remove(chan->users, old_nick);
 	}
 
-	return cuser;
+	return user;
 }
 
 void maki_channel_remove_user (makiChannel* chan, const gchar* name)
 {
-	g_hash_table_remove(chan->users, name);
+	makiUser* user;
+
+	if ((user = g_hash_table_lookup(chan->users, name)) != NULL)
+	{
+		g_hash_table_remove(chan->user_prefixes, user);
+		g_hash_table_remove(chan->users, name);
+		maki_server_remove_user(chan->server, maki_user_nick(user));
+	}
 }
 
 void maki_channel_remove_users (makiChannel* chan)
 {
+	GHashTableIter iter;
+	gpointer key, value;
+
+	g_hash_table_iter_init(&iter, chan->users);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		makiUser* user = value;
+
+		maki_server_remove_user(chan->server, maki_user_nick(user));
+	}
+
+	g_hash_table_remove_all(chan->user_prefixes);
 	g_hash_table_remove_all(chan->users);
 }
 
@@ -162,4 +196,53 @@ guint maki_channel_users_count (makiChannel* chan)
 void maki_channel_users_iter (makiChannel* chan, GHashTableIter* iter)
 {
 	g_hash_table_iter_init(iter, chan->users);
+}
+
+gboolean
+maki_channel_get_user_prefix (makiChannel* chan, makiUser* user, guint pos)
+{
+	gpointer v;
+	guint prefix = 0;
+
+	if (g_hash_table_lookup_extended(chan->user_prefixes, user, NULL, &v))
+	{
+		prefix = GPOINTER_TO_UINT(v);
+	}
+
+	return (prefix & (1 << pos));
+}
+
+void
+maki_channel_set_user_prefix (makiChannel* chan, makiUser* user, guint pos, gboolean set)
+{
+	gpointer v;
+
+	if (g_hash_table_lookup_extended(chan->user_prefixes, user, NULL, &v))
+	{
+		guint prefix;
+
+		prefix = GPOINTER_TO_UINT(v);
+
+		if (set)
+		{
+			prefix |= (1 << pos);
+		}
+		else
+		{
+			prefix &= ~(1 << pos);
+		}
+
+		g_hash_table_insert(chan->user_prefixes, user, GUINT_TO_POINTER(prefix));
+	}
+}
+
+void
+maki_channel_set_user_prefix_override (makiChannel* chan, makiUser* user, guint prefix)
+{
+	gpointer v;
+
+	if (g_hash_table_lookup_extended(chan->user_prefixes, user, NULL, &v))
+	{
+		g_hash_table_insert(chan->user_prefixes, user, GUINT_TO_POINTER(prefix));
+	}
 }

@@ -34,8 +34,8 @@ typedef struct maki_channel makiChannel;
 
 #include <glib.h>
 
-#include "channel_user.h"
 #include "server.h"
+#include "user.h"
 
 makiChannel* maki_channel_new (makiServer*, const gchar*);
 void maki_channel_free (gpointer);
@@ -52,12 +52,16 @@ void maki_channel_set_key (makiChannel*, const gchar*);
 const gchar* maki_channel_topic (makiChannel*);
 void maki_channel_set_topic (makiChannel*, const gchar*);
 
-void maki_channel_add_user (makiChannel*, const gchar*, makiChannelUser*);
-makiChannelUser* maki_channel_get_user (makiChannel*, const gchar*);
-makiChannelUser* maki_channel_rename_user (makiChannel*, const gchar*, const gchar*);
+makiUser* maki_channel_add_user (makiChannel*, const gchar*);
+makiUser* maki_channel_get_user (makiChannel*, const gchar*);
+makiUser* maki_channel_rename_user (makiChannel*, const gchar*, const gchar*);
 void maki_channel_remove_user (makiChannel*, const gchar*);
 void maki_channel_remove_users (makiChannel*);
 guint maki_channel_users_count (makiChannel*);
 void maki_channel_users_iter (makiChannel*, GHashTableIter*);
+
+gboolean maki_channel_get_user_prefix (makiChannel*, makiUser*, guint);
+void maki_channel_set_user_prefix (makiChannel*, makiUser*, guint, gboolean);
+void maki_channel_set_user_prefix_override (makiChannel*, makiUser*, guint);
 
 #endif

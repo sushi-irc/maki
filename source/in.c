@@ -418,7 +418,7 @@ static void maki_in_join (makiServer* serv, makiUser* user, gchar* remaining)
 
 	if (chan != NULL)
 	{
-		maki_channel_add_user(chan, maki_user_nick(user), maki_channel_user_new(user));
+		maki_channel_add_user(chan, maki_user_nick(user));
 	}
 
 	maki_dbus_emit_join(maki_server_name(serv), maki_user_from(user), channel);
@@ -648,17 +648,14 @@ static void maki_in_nick (makiServer* serv, makiUser* user, gchar* remaining)
 	{
 		const gchar* chan_name = key;
 		makiChannel* chan = value;
-		makiChannelUser* cuser;
 
 		if (!maki_channel_joined(chan))
 		{
 			continue;
 		}
 
-		if ((cuser = maki_channel_get_user(chan, maki_user_nick(user))) != NULL)
+		if (maki_channel_rename_user(chan, maki_user_nick(user), new_nick) != NULL)
 		{
-			maki_channel_rename_user(chan, maki_user_nick(user), new_nick);
-
 			if (own)
 			{
 				maki_server_log(serv, chan_name, _("• You are now known as %s."), new_nick);
@@ -777,12 +774,12 @@ static void maki_in_mode (makiServer* serv, makiUser* user, gchar* remaining, gb
 				if ((pos = maki_prefix_position(serv, FALSE, *mode)) >= 0)
 				{
 					makiChannel* chan;
-					makiChannelUser* cuser;
+					makiUser* muser;
 
 					if ((chan = maki_server_get_channel(serv, target)) != NULL
-					    && (cuser = maki_channel_get_user(chan, modes[i])) != NULL)
+					    && (muser = maki_channel_get_user(chan, modes[i])) != NULL)
 					{
-						maki_channel_user_prefix_set(cuser, pos, (sign == '+'));
+						maki_channel_set_user_prefix(chan, muser, pos, (sign == '+'));
 					}
 				}
 
@@ -983,7 +980,6 @@ static void maki_in_rpl_namreply (makiServer* serv, gchar* remaining, gboolean i
 				guint prefix = 0;
 				gint pos;
 				makiUser* user;
-				makiChannelUser* cuser;
 
 				prefix_str[0] = '\0';
 				prefix_str[1] = '\0';
@@ -999,16 +995,11 @@ static void maki_in_rpl_namreply (makiServer* serv, gchar* remaining, gboolean i
 					nick++;
 				}
 
-				user = maki_server_add_user(serv, nick);
-
-				cuser = maki_channel_user_new(user);
-				maki_channel_add_user(chan, nick, cuser);
-				maki_channel_user_set_prefix(cuser, prefix);
+				user = maki_channel_add_user(chan, nick);
+				maki_channel_set_user_prefix_override(chan, user, prefix);
 
 				nicks[j] = nick;
 				prefixes[j] = g_strdup(prefix_str);
-
-				maki_server_remove_user(serv, maki_user_nick(user));
 			}
 
 			maki_dbus_emit_names(maki_server_name(serv), tmp[1], nicks, prefixes);

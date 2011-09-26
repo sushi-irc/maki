@@ -688,16 +688,16 @@ gboolean maki_dbus_channel_nicks (const gchar* server, const gchar* channel, gch
 			while (g_hash_table_iter_next(&iter, &key, &value))
 			{
 				guint pos;
-				makiChannelUser* cuser = value;
+				makiUser* user = value;
 
-				*nick = g_strdup(maki_user_nick(maki_channel_user_user(cuser)));
+				*nick = g_strdup(maki_user_nick(user));
 				nick++;
 
 				prefix_str[0] = '\0';
 
 				for (pos = 0; pos < length; pos++)
 				{
-					if (maki_channel_user_prefix_get(cuser, pos))
+					if (maki_channel_get_user_prefix(chan, user, pos))
 					{
 						prefix_str[0] = prefix_prefixes[pos];
 						break;
@@ -1776,9 +1776,9 @@ gboolean maki_dbus_user_channel_mode (const gchar* server, const gchar* channel,
 
 		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 		{
-			makiChannelUser* cuser;
+			makiUser* user;
 
-			if ((cuser = maki_channel_get_user(chan, nick)) != NULL)
+			if ((user = maki_channel_get_user(chan, nick)) != NULL)
 			{
 				const gchar* prefix_modes;
 				gint pos;
@@ -1790,7 +1790,7 @@ gboolean maki_dbus_user_channel_mode (const gchar* server, const gchar* channel,
 
 				for (pos = 0; pos < length; pos++)
 				{
-					if (maki_channel_user_prefix_get(cuser, pos))
+					if (maki_channel_get_user_prefix(chan, user, pos))
 					{
 						tmp = prefix_modes[pos];
 						break;
@@ -1830,9 +1830,9 @@ gboolean maki_dbus_user_channel_prefix (const gchar* server, const gchar* channe
 
 		if ((chan = maki_server_get_channel(serv, channel)) != NULL)
 		{
-			makiChannelUser* cuser;
+			makiUser* user;
 
-			if ((cuser = maki_channel_get_user(chan, nick)) != NULL)
+			if ((user = maki_channel_get_user(chan, nick)) != NULL)
 			{
 				const gchar* prefix_prefixes;
 				gint pos;
@@ -1844,7 +1844,7 @@ gboolean maki_dbus_user_channel_prefix (const gchar* server, const gchar* channe
 
 				for (pos = 0; pos < length; pos++)
 				{
-					if (maki_channel_user_prefix_get(cuser, pos))
+					if (maki_channel_get_user_prefix(chan, user, pos))
 					{
 						tmp = prefix_prefixes[pos];
 						break;
