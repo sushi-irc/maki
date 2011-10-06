@@ -32,7 +32,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-static gchar* sushi_remote_print_bus_address (void)
+static gchar* maki_remote_print_bus_address (void)
 {
 	gchar* bus_address;
 	gchar* path;
@@ -49,7 +49,7 @@ static gchar* sushi_remote_print_bus_address (void)
 	return bus_address;
 }
 
-static gchar* sushi_remote_get_bus_address (const gchar* userhost)
+static gchar* maki_remote_get_bus_address (const gchar* userhost)
 {
 	gchar** command;
 	gchar* bus_address = NULL;
@@ -68,7 +68,7 @@ static gchar* sushi_remote_get_bus_address (const gchar* userhost)
 		cur = 0;
 	}
 
-	command[cur++] = g_strdup("sushi-remote");
+	command[cur++] = g_strdup("maki-remote");
 	command[cur++] = g_strdup("--print-bus-address");
 	command[cur] = NULL;
 
@@ -93,7 +93,7 @@ static gchar* sushi_remote_get_bus_address (const gchar* userhost)
 	return bus_address;
 }
 
-static gboolean sushi_remote_setup_forwarding (const gchar* userhost, guint64 port)
+static gboolean maki_remote_setup_forwarding (const gchar* userhost, guint64 port)
 {
 	gboolean ret;
 	gchar** command;
@@ -121,7 +121,7 @@ static gboolean sushi_remote_setup_forwarding (const gchar* userhost, guint64 po
 	return ret;
 }
 
-static gboolean sushi_remote_execute_command (gint argc, gchar** argv)
+static gboolean maki_remote_execute_command (gint argc, gchar** argv)
 {
 	GPid pid;
 	gboolean ret;
@@ -182,7 +182,7 @@ int main (int argc, char* argv[])
 
 	if (opt_print_bus_address)
 	{
-		bus_address = sushi_remote_print_bus_address();
+		bus_address = maki_remote_print_bus_address();
 
 		if (bus_address != NULL)
 		{
@@ -212,7 +212,7 @@ int main (int argc, char* argv[])
 		gchar** p;
 		guint64 port = 0;
 
-		if ((bus_address = sushi_remote_get_bus_address(userhost)) == NULL)
+		if ((bus_address = maki_remote_get_bus_address(userhost)) == NULL)
 		{
 			g_printerr("Bus address could not be determined.\n");
 
@@ -246,7 +246,7 @@ int main (int argc, char* argv[])
 			goto error;
 		}
 
-		sushi_remote_setup_forwarding(userhost, port);
+		maki_remote_setup_forwarding(userhost, port);
 
 		if (!g_setenv("SUSHI_REMOTE_BUS_ADDRESS", bus_address, TRUE))
 		{
@@ -255,7 +255,7 @@ int main (int argc, char* argv[])
 			goto error;
 		}
 
-		sushi_remote_execute_command(argc, argv);
+		maki_remote_execute_command(argc, argv);
 	}
 
 end:

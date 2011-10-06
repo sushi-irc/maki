@@ -106,17 +106,17 @@ def configure (ctx):
 def build (ctx):
 	# maki
 	ctx.program(
-		source = ctx.path.ant_glob('source/*.c', excl = 'source/sushi-remote.c'),
+		source = ctx.path.ant_glob('source/*.c', excl = 'source/remote.c'),
 		target = 'source/maki',
 		use = ['GIO', 'GLIB', 'GMODULE', 'GOBJECT', 'GTHREAD', 'NICE'],
 		includes = ['source'],
-		defines = ['MAKI_PLUGIN_DIRECTORY="%s"' % (Utils.subst_vars('${LIBDIR}/sushi/maki/plugins', ctx.env)),
-		           'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATAROOTDIR}/sushi/maki', ctx.env))]
+		defines = ['MAKI_PLUGIN_DIRECTORY="%s"' % (Utils.subst_vars('${LIBDIR}/maki/plugins', ctx.env)),
+		           'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATAROOTDIR}/maki', ctx.env))]
 	)
 
 	ctx.program(
-		source = 'source/sushi-remote.c',
-		target = 'source/sushi-remote',
+		source = 'source/remote.c',
+		target = 'source/maki-remote',
 		use = ['GLIB']
 	)
 
@@ -135,7 +135,7 @@ def build (ctx):
 			target = 'source/plugins/%s' % (plugin,),
 			use = uselibs,
 			includes = ['source'],
-			install_path = '${LIBDIR}/sushi/maki/plugins'
+			install_path = '${LIBDIR}/maki/plugins'
 		)
 
 	# po
@@ -152,7 +152,7 @@ def build (ctx):
 	)
 
 	# Data
-	ctx.install_files('${DATAROOTDIR}/sushi/maki', 'data/dbus.xml')
+	ctx.install_files('${DATAROOTDIR}/maki', 'data/dbus.xml')
 
 	dbus_dir = ctx.env.DBUS_session_bus_services_dir
 
@@ -164,7 +164,7 @@ def build (ctx):
 			install_path = '${DBUS_session_bus_services_dir}'
 		)
 
-	for man in ('maki.1', 'sushi-remote.1'):
+	for man in ('maki.1', 'maki-remote.1'):
 		ctx(
 			features = 'subst',
 			source = 'data/%s.in' % (man,),
@@ -175,7 +175,7 @@ def build (ctx):
 
 	ctx.add_group()
 
-	for man in ('maki.1', 'sushi-remote.1'):
+	for man in ('maki.1', 'maki-remote.1'):
 		ctx(
 			source = 'data/%s' % (man,),
 			target = 'data/%s.gz' % (man),
