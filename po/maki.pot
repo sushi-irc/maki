@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-15 20:14+0200\n"
+"POT-Creation-Date: 2012-01-02 22:21+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,125 +17,125 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../source/in.c:412
+#: ../source/in.c:411
 msgid "» You join."
 msgstr ""
 
-#: ../source/in.c:416
+#: ../source/in.c:415
 #, c-format
 msgid "» %s joins."
 msgstr ""
 
-#: ../source/in.c:476
+#: ../source/in.c:474
 #, c-format
 msgid "« You part (%s)."
 msgstr ""
 
-#: ../source/in.c:480
+#: ../source/in.c:478
 msgid "« You part."
 msgstr ""
 
-#: ../source/in.c:487
+#: ../source/in.c:485
 #, c-format
 msgid "« %s parts (%s)."
 msgstr ""
 
-#: ../source/in.c:491
+#: ../source/in.c:489
 #, c-format
 msgid "« %s parts."
 msgstr ""
 
-#: ../source/in.c:528
+#: ../source/in.c:526
 #, c-format
 msgid "« %s quits (%s)."
 msgstr ""
 
-#: ../source/in.c:532
+#: ../source/in.c:530
 #, c-format
 msgid "« %s quits."
 msgstr ""
 
-#: ../source/in.c:599
+#: ../source/in.c:597
 #, c-format
 msgid "« %s kicks you (%s)."
 msgstr ""
 
-#: ../source/in.c:603
+#: ../source/in.c:601
 #, c-format
 msgid "« %s kicks you."
 msgstr ""
 
-#: ../source/in.c:610
+#: ../source/in.c:608
 #, c-format
 msgid "« %s kicks %s (%s)."
 msgstr ""
 
-#: ../source/in.c:614
+#: ../source/in.c:612
 #, c-format
 msgid "« %s kicks %s."
 msgstr ""
 
-#: ../source/in.c:664
+#: ../source/in.c:659
 #, c-format
 msgid "• You are now known as %s."
 msgstr ""
 
-#: ../source/in.c:668
+#: ../source/in.c:663
 #, c-format
 msgid "• %s is now known as %s."
 msgstr ""
 
-#: ../source/in.c:791
+#: ../source/in.c:786
 #, c-format
 msgid "• Mode: %s %s"
 msgstr ""
 
-#: ../source/in.c:799
+#: ../source/in.c:794
 #, c-format
 msgid "• You set mode: %s %s"
 msgstr ""
 
-#: ../source/in.c:803
+#: ../source/in.c:798
 #, c-format
 msgid "• %s sets mode: %s %s"
 msgstr ""
 
-#: ../source/in.c:815
+#: ../source/in.c:810
 #, c-format
 msgid "• Mode: %s"
 msgstr ""
 
-#: ../source/in.c:823
+#: ../source/in.c:818
 #, c-format
 msgid "• You set mode: %s"
 msgstr ""
 
-#: ../source/in.c:827
+#: ../source/in.c:822
 #, c-format
 msgid "• %s sets mode: %s"
 msgstr ""
 
-#: ../source/in.c:864
+#: ../source/in.c:859
 #, c-format
 msgid "• You successfully invite %s."
 msgstr ""
 
-#: ../source/in.c:870
+#: ../source/in.c:865
 #, c-format
 msgid "• %s invites %s."
 msgstr ""
 
-#: ../source/in.c:908
+#: ../source/in.c:903
 #, c-format
 msgid "• Topic: %s"
 msgstr ""
 
-#: ../source/in.c:916
+#: ../source/in.c:911
 #, c-format
 msgid "• You change the topic: %s"
 msgstr ""
 
-#: ../source/in.c:920
+#: ../source/in.c:915
 #, c-format
 msgid "• %s changes the topic: %s"
 msgstr ""
@@ -165,11 +165,11 @@ msgstr ""
 msgid "“%s” is locked. maki may already be running."
 msgstr ""
 
-#: ../source/server.c:354
+#: ../source/server.c:363
 #, c-format
 msgid "« You quit (%s)."
 msgstr ""
 
-#: ../source/server.c:358
+#: ../source/server.c:367
 msgid "« You quit."
 msgstr ""
