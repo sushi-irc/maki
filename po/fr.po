@@ -6,80 +6,80 @@ msgid ""
 msgstr ""
 "Project-Id-Version: maki\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-08-27 17:57+0200\n"
+"POT-Creation-Date: 2011-09-15 20:14+0200\n"
 "PO-Revision-Date: 2010-05-31 06:46+0000\n"
 "Last-Translator: Michael Kuhn <Unknown>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-11-14 01:08+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2012-01-02 20:40+0000\n"
+"X-Generator: Launchpad (build 14560)\n"
 
-#: ../source/in.c:403
+#: ../source/in.c:412
 msgid "» You join."
 msgstr "» Vous joignez le canal."
 
-#: ../source/in.c:407
+#: ../source/in.c:416
 #, c-format
 msgid "» %s joins."
 msgstr "» %s joint le canal."
 
-#: ../source/in.c:467
+#: ../source/in.c:476
 #, c-format
 msgid "« You part (%s)."
 msgstr "« Vous quittez le canal (%s)."
 
-#: ../source/in.c:471
+#: ../source/in.c:480
 msgid "« You part."
 msgstr "Vous quittez le canal."
 
-#: ../source/in.c:478
+#: ../source/in.c:487
 #, c-format
 msgid "« %s parts (%s)."
 msgstr "« %s quitte le canal (%s)."
 
-#: ../source/in.c:482
+#: ../source/in.c:491
 #, c-format
 msgid "« %s parts."
 msgstr "« %s quitte le canal."
 
-#: ../source/in.c:519
+#: ../source/in.c:528
 #, c-format
 msgid "« %s quits (%s)."
 msgstr "« %s quitte IRC (%s)."
 
-#: ../source/in.c:523
+#: ../source/in.c:532
 #, c-format
 msgid "« %s quits."
 msgstr "« %s quitte IRC."
 
-#: ../source/in.c:590
+#: ../source/in.c:599
 #, c-format
 msgid "« %s kicks you (%s)."
 msgstr "« %s vous a kické (%s)."
 
-#: ../source/in.c:594
+#: ../source/in.c:603
 #, c-format
 msgid "« %s kicks you."
 msgstr "« %s vous a kické."
 
-#: ../source/in.c:601
+#: ../source/in.c:610
 #, c-format
 msgid "« %s kicks %s (%s)."
 msgstr "« %s a éjecté %s (%s)."
 
-#: ../source/in.c:605
+#: ../source/in.c:614
 #, c-format
 msgid "« %s kicks %s."
 msgstr "« %s a éjecté %s."
 
-#: ../source/in.c:655
+#: ../source/in.c:664
 #, c-format
 msgid "• You are now known as %s."
 msgstr "• Vous vous appellez maintenant %s."
 
-#: ../source/in.c:659
+#: ../source/in.c:668
 #, c-format
 msgid "• %s is now known as %s."
 msgstr "• %s s'appelle maintenant %s."
@@ -139,45 +139,42 @@ msgstr "Vous avez changé le sujet en: %s"
 msgid "• %s changes the topic: %s"
 msgstr "• %s a changé le sujet en: %s"
 
-#: ../source/maki.c:92
+#: ../source/maki.c:96
 msgid "Run as daemon"
 msgstr "Démarrer comme démon"
 
-#: ../source/maki.c:93
+#: ../source/maki.c:97
 msgid "Start DBus server"
 msgstr "Demarrer le DBus server"
 
-#: ../source/maki.c:94
+#: ../source/maki.c:98
 msgid "Output debug messages"
 msgstr "Messages de sortie de debuggage."
 
-#: ../source/maki.c:138
+#: ../source/maki.c:141
 msgid "Could not switch to daemon mode."
 msgstr "Ne peut passe en mode démon."
 
-#: ../source/maki.c:146
+#: ../source/maki.c:149
 msgid "Could not create maki instance."
 msgstr "Ne peut créer une instance de maki."
-
-#. Use g_warning() here to not overwrite the debug log of the already running maki.
-#: ../source/maki.c:157
-msgid "Could not connect to DBus. maki may already be running."
-msgstr "Ne peut se connecter à DBus. maki est peut-être déjà lancé."
 
 #: ../source/maki.c:179
 #, c-format
 msgid "“%s” is locked. maki may already be running."
 msgstr "“%s” est bloqué. Il se peut que maki soit déjà en cours d'exécution."
 
-#: ../source/misc.c:92
-msgid "Could not open debug log file."
-msgstr "Ne peut ouvrir le fichier journal de debuggage."
-
-#: ../source/out.c:199
+#: ../source/server.c:354
 #, c-format
 msgid "« You quit (%s)."
 msgstr "« Vous quittez IRC (%s)"
 
-#: ../source/out.c:203
+#: ../source/server.c:358
 msgid "« You quit."
 msgstr "« Vous quittez IRC"
+
+#~ msgid "Could not connect to DBus. maki may already be running."
+#~ msgstr "Ne peut se connecter à DBus. maki est peut-être déjà lancé."
+
+#~ msgid "Could not open debug log file."
+#~ msgstr "Ne peut ouvrir le fichier journal de debuggage."

@@ -6,80 +6,80 @@ msgid ""
 msgstr ""
 "Project-Id-Version: maki\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-08-27 17:57+0200\n"
+"POT-Creation-Date: 2011-09-15 20:14+0200\n"
 "PO-Revision-Date: 2010-05-31 06:43+0000\n"
 "Last-Translator: Michael Kuhn <Unknown>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2010-11-14 01:08+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2012-01-02 20:40+0000\n"
+"X-Generator: Launchpad (build 14560)\n"
 
-#: ../source/in.c:403
+#: ../source/in.c:412
 msgid "» You join."
 msgstr "» Sie betreten den Chat."
 
-#: ../source/in.c:407
+#: ../source/in.c:416
 #, c-format
 msgid "» %s joins."
 msgstr "» %s betritt den Chat."
 
-#: ../source/in.c:467
+#: ../source/in.c:476
 #, c-format
 msgid "« You part (%s)."
 msgstr "« Sie verlassen den Chat (%s)."
 
-#: ../source/in.c:471
+#: ../source/in.c:480
 msgid "« You part."
 msgstr "« Sie verlassen den Chat."
 
-#: ../source/in.c:478
+#: ../source/in.c:487
 #, c-format
 msgid "« %s parts (%s)."
 msgstr "« %s verlässt den Chat (%s)."
 
-#: ../source/in.c:482
+#: ../source/in.c:491
 #, c-format
 msgid "« %s parts."
 msgstr "« %s verlässt den Chat."
 
-#: ../source/in.c:519
+#: ../source/in.c:528
 #, c-format
 msgid "« %s quits (%s)."
 msgstr "« %s trennt die Verbindung (%s)."
 
-#: ../source/in.c:523
+#: ../source/in.c:532
 #, c-format
 msgid "« %s quits."
 msgstr "« %s trennt die Verbindung."
 
-#: ../source/in.c:590
+#: ../source/in.c:599
 #, c-format
 msgid "« %s kicks you (%s)."
 msgstr "« %s wirft Sie aus dem Chat (%s)."
 
-#: ../source/in.c:594
+#: ../source/in.c:603
 #, c-format
 msgid "« %s kicks you."
 msgstr "« %s wirft Sie aus dem Chat."
 
-#: ../source/in.c:601
+#: ../source/in.c:610
 #, c-format
 msgid "« %s kicks %s (%s)."
 msgstr "« %s wirft %s aus dem Chat (%s)."
 
-#: ../source/in.c:605
+#: ../source/in.c:614
 #, c-format
 msgid "« %s kicks %s."
 msgstr "« %s wirft %s aus dem Chat."
 
-#: ../source/in.c:655
+#: ../source/in.c:664
 #, c-format
 msgid "• You are now known as %s."
 msgstr "• Sie sind jetzt bekannt als %s."
 
-#: ../source/in.c:659
+#: ../source/in.c:668
 #, c-format
 msgid "• %s is now known as %s."
 msgstr "• %s ist jetzt bekannt als %s."
@@ -139,46 +139,43 @@ msgstr "• Sie setzen das Thema: %s"
 msgid "• %s changes the topic: %s"
 msgstr "• %s setzt das Thema: %s"
 
-#: ../source/maki.c:92
+#: ../source/maki.c:96
 msgid "Run as daemon"
 msgstr "Als Daemon laufen"
 
-#: ../source/maki.c:93
+#: ../source/maki.c:97
 msgid "Start DBus server"
 msgstr "DBus-Server starten"
 
-#: ../source/maki.c:94
+#: ../source/maki.c:98
 msgid "Output debug messages"
 msgstr "Debug-Meldungen ausgeben"
 
-#: ../source/maki.c:138
+#: ../source/maki.c:141
 msgid "Could not switch to daemon mode."
 msgstr "Daemon-Modus konnte nicht aktiviert werden."
 
-#: ../source/maki.c:146
+#: ../source/maki.c:149
 msgid "Could not create maki instance."
 msgstr "maki-Instanz konnte nicht erzeugt werden."
-
-#. Use g_warning() here to not overwrite the debug log of the already running maki.
-#: ../source/maki.c:157
-msgid "Could not connect to DBus. maki may already be running."
-msgstr ""
-"Verbindung zu DBus ist fehlgeschlagen. maki läuft möglicherweise schon."
 
 #: ../source/maki.c:179
 #, c-format
 msgid "“%s” is locked. maki may already be running."
 msgstr "»%s« ist gesperrt. maki läuft möglicherweise schon."
 
-#: ../source/misc.c:92
-msgid "Could not open debug log file."
-msgstr "Debug-Log-Datei konnte nicht geöffnet werden."
-
-#: ../source/out.c:199
+#: ../source/server.c:354
 #, c-format
 msgid "« You quit (%s)."
 msgstr "« Sie beenden die Verbindung (%s)."
 
-#: ../source/out.c:203
+#: ../source/server.c:358
 msgid "« You quit."
 msgstr "« Sie beenden die Verbindung."
+
+#~ msgid "Could not open debug log file."
+#~ msgstr "Debug-Log-Datei konnte nicht geöffnet werden."
+
+#~ msgid "Could not connect to DBus. maki may already be running."
+#~ msgstr ""
+#~ "Verbindung zu DBus ist fehlgeschlagen. maki läuft möglicherweise schon."
