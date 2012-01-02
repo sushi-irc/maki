@@ -61,7 +61,14 @@ struct maki_instance
 	GMainLoop* main_loop;
 	GThread* thread;
 
-	GMutex* mutex;
+	struct
+	{
+		GMutex* config;
+		GMutex* dcc;
+		GMutex* instance;
+		GMutex* servers;
+	}
+	mutex;
 };
 
 static
@@ -289,7 +296,10 @@ maki_instance_new (void)
 	inst->dcc.id = 0;
 	inst->dcc.list = NULL;
 
-	inst->mutex = g_mutex_new();
+	inst->mutex.config = g_mutex_new();
+	inst->mutex.dcc = g_mutex_new();
+	inst->mutex.instance = g_mutex_new();
+	inst->mutex.servers = g_mutex_new();
 
 	inst->network = maki_network_new(inst);
 
@@ -302,8 +312,6 @@ void
 maki_instance_free (makiInstance* inst)
 {
 	GSList* list;
-
-	g_mutex_free(inst->mutex);
 
 	g_hash_table_destroy(inst->plugins);
 	g_hash_table_destroy(inst->servers);
@@ -330,6 +338,11 @@ maki_instance_free (makiInstance* inst)
 
 	g_hash_table_destroy(inst->directories);
 
+	g_mutex_free(inst->mutex.config);
+	g_mutex_free(inst->mutex.dcc);
+	g_mutex_free(inst->mutex.instance);
+	g_mutex_free(inst->mutex.servers);
+
 	g_free(inst);
 }
 
@@ -338,9 +351,9 @@ maki_instance_config_get_boolean (makiInstance* inst, gchar const* group, gchar 
 {
 	gboolean ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.config);
 	ret = g_key_file_get_boolean(inst->key_file, group, key, NULL);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.config);
 
 	return ret;
 }
@@ -348,10 +361,10 @@ maki_instance_config_get_boolean (makiInstance* inst, gchar const* group, gchar 
 void
 maki_instance_config_set_boolean (makiInstance* inst, gchar const* group, gchar const* key, gboolean value)
 {
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.config);
 	g_key_file_set_boolean(inst->key_file, group, key, value);
 	maki_instance_config_save(inst);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.config);
 }
 
 gint
@@ -359,9 +372,9 @@ maki_instance_config_get_integer (makiInstance* inst, gchar const* group, gchar 
 {
 	gint ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.config);
 	ret = g_key_file_get_integer(inst->key_file, group, key, NULL);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.config);
 
 	return ret;
 }
@@ -369,10 +382,10 @@ maki_instance_config_get_integer (makiInstance* inst, gchar const* group, gchar 
 void
 maki_instance_config_set_integer (makiInstance* inst, gchar const* group, gchar const* key, gint value)
 {
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.config);
 	g_key_file_set_integer(inst->key_file, group, key, value);
 	maki_instance_config_save(inst);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.config);
 }
 
 gchar*
@@ -380,9 +393,9 @@ maki_instance_config_get_string (makiInstance* inst, gchar const* group, gchar c
 {
 	gchar* ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.config);
 	ret = g_key_file_get_string(inst->key_file, group, key, NULL);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.config);
 
 	return ret;
 }
@@ -390,10 +403,10 @@ maki_instance_config_get_string (makiInstance* inst, gchar const* group, gchar c
 void
 maki_instance_config_set_string (makiInstance* inst, gchar const* group, gchar const* key, gchar const* string)
 {
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.config);
 	g_key_file_set_string(inst->key_file, group, key, string);
 	maki_instance_config_save(inst);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.config);
 }
 
 gchar**
@@ -401,9 +414,9 @@ maki_instance_config_get_keys (makiInstance* inst, gchar const* group)
 {
 	gchar** ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.config);
 	ret = g_key_file_get_keys(inst->key_file, group, NULL, NULL);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.config);
 
 	return ret;
 }
@@ -413,9 +426,9 @@ maki_instance_config_exists (makiInstance* inst, gchar const* group, gchar const
 {
 	gboolean ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.config);
 	ret = g_key_file_has_key(inst->key_file, group, key, NULL);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.config);
 
 	return ret;
 }
@@ -425,9 +438,9 @@ maki_instance_main_context (makiInstance* inst)
 {
 	GMainContext* ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.instance);
 	ret = inst->main_context;
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.instance);
 
 	return ret;
 }
@@ -437,9 +450,9 @@ maki_instance_network (makiInstance* inst)
 {
 	makiNetwork* ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.instance);
 	ret = inst->network;
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.instance);
 
 	return ret;
 }
@@ -449,9 +462,9 @@ maki_instance_directory (makiInstance* inst, gchar const* directory)
 {
 	gchar const* ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.instance);
 	ret = g_hash_table_lookup(inst->directories, directory);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.instance);
 
 	return ret;
 }
@@ -459,9 +472,9 @@ maki_instance_directory (makiInstance* inst, gchar const* directory)
 void
 maki_instance_add_server (makiInstance* inst, gchar const* name, makiServer* serv)
 {
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.servers);
 	g_hash_table_insert(inst->servers, g_strdup(name), serv);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.servers);
 }
 
 makiServer*
@@ -469,9 +482,9 @@ maki_instance_get_server (makiInstance* inst, gchar const* name)
 {
 	makiServer* ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.servers);
 	ret = g_hash_table_lookup(inst->servers, name);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.servers);
 
 	return ret;
 }
@@ -481,9 +494,9 @@ maki_instance_remove_server (makiInstance* inst, gchar const* name)
 {
 	gboolean ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.servers);
 	ret = g_hash_table_remove(inst->servers, name);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.servers);
 
 	return ret;
 }
@@ -494,7 +507,7 @@ maki_instance_rename_server (makiInstance* inst, gchar const* old_name, gchar co
 	makiServer* serv;
 	gboolean ret = TRUE;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.servers);
 
 	if (g_hash_table_lookup(inst->servers, new_name) != NULL)
 	{
@@ -512,7 +525,7 @@ maki_instance_rename_server (makiInstance* inst, gchar const* old_name, gchar co
 	g_hash_table_remove(inst->servers, old_name);
 
 end:
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.servers);
 
 	return ret;
 }
@@ -522,9 +535,9 @@ maki_instance_servers_count (makiInstance* inst)
 {
 	guint ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.servers);
 	ret = g_hash_table_size(inst->servers);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.servers);
 
 	return ret;
 }
@@ -532,9 +545,9 @@ maki_instance_servers_count (makiInstance* inst)
 void
 maki_instance_servers_iter (makiInstance* inst, GHashTableIter* iter)
 {
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.servers);
 	g_hash_table_iter_init(iter, inst->servers);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.servers);
 }
 
 guint64
@@ -542,10 +555,10 @@ maki_instance_get_dcc_send_id (makiInstance* inst)
 {
 	guint64 id;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 	inst->dcc.id++;
 	id = inst->dcc.id;
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 
 	return id;
 }
@@ -553,9 +566,9 @@ maki_instance_get_dcc_send_id (makiInstance* inst)
 void
 maki_instance_add_dcc_send (makiInstance* inst, makiDCCSend* dcc)
 {
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 	inst->dcc.list = g_slist_prepend(inst->dcc.list, dcc);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 }
 
 gboolean
@@ -563,14 +576,14 @@ maki_instance_accept_dcc_send (makiInstance* inst, guint64 id)
 {
 	makiDCCSend* dcc;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
 		maki_dcc_send_accept(dcc);
 	}
 
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 
 	return (dcc != NULL);
 }
@@ -580,14 +593,14 @@ maki_instance_resume_dcc_send (makiInstance* inst, guint64 id)
 {
 	makiDCCSend* dcc;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
 		maki_dcc_send_resume(dcc);
 	}
 
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 
 	return (dcc != NULL);
 }
@@ -598,7 +611,7 @@ maki_instance_resume_accept_dcc_send (makiInstance* inst, gchar* file_name, guin
 	gboolean ret = FALSE;
 	GSList* list;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 
 	for (list = inst->dcc.list; list != NULL; list = list->next)
 	{
@@ -611,7 +624,7 @@ maki_instance_resume_accept_dcc_send (makiInstance* inst, gchar* file_name, guin
 		}
 	}
 
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 
 	return ret;
 }
@@ -621,7 +634,7 @@ maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
 {
 	makiDCCSend* dcc;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
@@ -631,7 +644,7 @@ maki_instance_remove_dcc_send (makiInstance* inst, guint64 id)
 		maki_dcc_send_free(dcc);
 	}
 
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 
 	return (dcc != NULL);
 }
@@ -641,9 +654,9 @@ maki_instance_dcc_sends_count (makiInstance* inst)
 {
 	guint ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 	ret = g_slist_length(inst->dcc.list);
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 
 	return ret;
 }
@@ -654,7 +667,7 @@ maki_instance_dcc_send_get (makiInstance* inst, guint64 id, gchar const* key)
 	makiDCCSend* dcc;
 	gchar* value = NULL;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
@@ -668,7 +681,7 @@ maki_instance_dcc_send_get (makiInstance* inst, guint64 id, gchar const* key)
 		}
 	}
 
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 
 	return value;
 }
@@ -679,7 +692,7 @@ maki_instance_dcc_send_set (makiInstance* inst, guint64 id, gchar const* key, gc
 	makiDCCSend* dcc;
 	gboolean ret = FALSE;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 
 	if ((dcc = maki_instance_get_dcc_send(inst, id)) != NULL)
 	{
@@ -704,7 +717,7 @@ maki_instance_dcc_send_set (makiInstance* inst, guint64 id, gchar const* key, gc
 		}
 	}
 
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 
 	return ret;
 }
@@ -715,7 +728,7 @@ maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** servers,
 	guint i;
 	GSList* list;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.dcc);
 
 	for (list = inst->dcc.list, i = 0; list != NULL; list = list->next, i++)
 	{
@@ -742,7 +755,7 @@ maki_instance_dcc_sends_xxx (makiInstance* inst, GArray** ids, gchar*** servers,
 		*statuses = g_array_append_val(*statuses, status);
 	}
 
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.dcc);
 }
 
 gboolean
@@ -751,7 +764,7 @@ maki_instance_plugin_method (makiInstance* inst, gchar const* plugin, gchar cons
 	GModule* module;
 	gboolean ret;
 
-	g_mutex_lock(inst->mutex);
+	g_mutex_lock(inst->mutex.instance);
 
 	if ((module = g_hash_table_lookup(inst->plugins, plugin)) == NULL)
 	{
@@ -762,7 +775,7 @@ maki_instance_plugin_method (makiInstance* inst, gchar const* plugin, gchar cons
 	ret = g_module_symbol(module, method, symbol);
 
 end:
-	g_mutex_unlock(inst->mutex);
+	g_mutex_unlock(inst->mutex.instance);
 
 	return ret;
 }

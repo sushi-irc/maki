@@ -122,7 +122,14 @@ struct maki_server
 	GMainLoop* main_loop;
 	GThread* thread;
 
-	GMutex* mutex;
+	struct
+	{
+		GMutex* channels;
+		GMutex* config;
+		GMutex* server;
+		GMutex* users;
+	}
+	mutex;
 
 	gint ref_count;
 };
@@ -260,7 +267,7 @@ maki_server_away (gpointer data)
 	GHashTableIter iter;
 	gpointer key, value;
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 
 	g_hash_table_iter_init(&iter, serv->channels);
 
@@ -275,7 +282,7 @@ maki_server_away (gpointer data)
 		}
 	}
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return TRUE;
 }
@@ -302,7 +309,7 @@ maki_server_on_disconnect (gpointer data)
 {
 	makiServer* serv = data;
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 
 	/* Prevent maki_server_reconnect() from running twice. */
 	if (serv->reconnect.source == 0)
@@ -310,7 +317,7 @@ maki_server_on_disconnect (gpointer data)
 		serv->reconnect.source = i_timeout_add_seconds(maki_instance_config_get_integer(serv->instance, "reconnect", "timeout"), maki_server_timeout_reconnect, serv, serv->main_context);
 	}
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 }
 
 static
@@ -382,9 +389,9 @@ maki_server_idle_disconnect (gpointer data)
 	makiServer* serv = op->u.disconnect.server;
 	gchar* message = op->u.disconnect.message;
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	maki_server_internal_disconnect(serv, message);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	g_free(op->u.disconnect.message);
 	g_free(op);
@@ -401,7 +408,7 @@ maki_server_on_connect (gpointer data)
 	gchar* nick;
 	makiServer* serv = data;
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 
 	if (serv->reconnect.source != 0)
 	{
@@ -435,7 +442,7 @@ maki_server_on_connect (gpointer data)
 
 	serv->sources.away = i_timeout_add_seconds(60, maki_server_away, serv, serv->main_context);
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 }
 
 static
@@ -474,9 +481,9 @@ maki_server_idle_connect (gpointer data)
 	makiServerIdleOperation* op = data;
 	makiServer* serv = op->u.connect.server;
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	maki_server_internal_connect(serv);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	g_free(op);
 
@@ -491,7 +498,7 @@ maki_server_timeout_reconnect (gpointer data)
 	gboolean ret;
 	makiServer* serv = data;
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 
 	ret = (serv->reconnect.retries > 0);
 	maki_server_internal_disconnect(serv, NULL);
@@ -512,7 +519,7 @@ maki_server_timeout_reconnect (gpointer data)
 		serv->reconnect.source = 0;
 	}
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -626,7 +633,10 @@ maki_server_new (gchar const* name)
 
 	sashimi_timeout(serv->connection, 60);
 
-	serv->mutex = g_mutex_new();
+	serv->mutex.channels = g_mutex_new();
+	serv->mutex.config = g_mutex_new();
+	serv->mutex.server = g_mutex_new();
+	serv->mutex.users = g_mutex_new();
 
 	groups = g_key_file_get_groups(serv->key_file, NULL);
 
@@ -670,14 +680,7 @@ maki_server_unref (gpointer data)
 
 	if (g_atomic_int_dec_and_test(&(serv->ref_count)))
 	{
-		maki_server_disconnect(serv, NULL);
-
-		g_mutex_free(serv->mutex);
-
-		if (serv->reconnect.source != 0)
-		{
-			i_source_remove(serv->reconnect.source, serv->main_context);
-		}
+		maki_server_internal_disconnect(serv, NULL);
 
 		g_main_loop_quit(serv->main_loop);
 		g_thread_join(serv->thread);
@@ -698,6 +701,12 @@ maki_server_unref (gpointer data)
 		g_hash_table_destroy(serv->users);
 		sashimi_free(serv->connection);
 		g_free(serv->name);
+
+		g_mutex_free(serv->mutex.channels);
+		g_mutex_free(serv->mutex.config);
+		g_mutex_free(serv->mutex.server);
+		g_mutex_free(serv->mutex.users);
+
 		g_free(serv);
 	}
 }
@@ -711,9 +720,9 @@ maki_server_config_get_boolean (makiServer* serv, gchar const* group, gchar cons
 	g_return_val_if_fail(group != NULL, FALSE);
 	g_return_val_if_fail(key != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	ret = g_key_file_get_boolean(serv->key_file, group, key, NULL);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 
 	return ret;
 }
@@ -725,10 +734,10 @@ maki_server_config_set_boolean (makiServer* serv, gchar const* group, gchar cons
 	g_return_if_fail(group != NULL);
 	g_return_if_fail(key != NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	g_key_file_set_boolean(serv->key_file, group, key, value);
 	maki_server_config_save(serv);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 }
 
 gint
@@ -740,9 +749,9 @@ maki_server_config_get_integer (makiServer* serv, gchar const* group, gchar cons
 	g_return_val_if_fail(group != NULL, -1);
 	g_return_val_if_fail(key != NULL, -1);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	ret = g_key_file_get_integer(serv->key_file, group, key, NULL);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 
 	return ret;
 }
@@ -754,10 +763,10 @@ maki_server_config_set_integer (makiServer* serv, gchar const* group, gchar cons
 	g_return_if_fail(group != NULL);
 	g_return_if_fail(key != NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	g_key_file_set_integer(serv->key_file, group, key, value);
 	maki_server_config_save(serv);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 }
 
 gchar*
@@ -769,9 +778,9 @@ maki_server_config_get_string (makiServer* serv, gchar const* group, gchar const
 	g_return_val_if_fail(group != NULL, NULL);
 	g_return_val_if_fail(key != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	ret = g_key_file_get_string(serv->key_file, group, key, NULL);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 
 	return ret;
 }
@@ -784,10 +793,10 @@ maki_server_config_set_string (makiServer* serv, gchar const* group, gchar const
 	g_return_if_fail(key != NULL);
 	g_return_if_fail(string != NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	g_key_file_set_string(serv->key_file, group, key, string);
 	maki_server_config_save(serv);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 }
 
 gchar**
@@ -799,9 +808,9 @@ maki_server_config_get_string_list (makiServer* serv, gchar const* group, gchar 
 	g_return_val_if_fail(group != NULL, NULL);
 	g_return_val_if_fail(key != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	ret = g_key_file_get_string_list(serv->key_file, group, key, NULL, NULL);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 
 	return ret;
 }
@@ -814,10 +823,10 @@ maki_server_config_set_string_list (makiServer* serv, gchar const* group, gchar 
 	g_return_if_fail(key != NULL);
 	g_return_if_fail(list != NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	g_key_file_set_string_list(serv->key_file, group, key, (gchar const* const*)list, g_strv_length(list));
 	maki_server_config_save(serv);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 }
 
 gboolean
@@ -829,10 +838,10 @@ maki_server_config_remove_key (makiServer* serv, gchar const* group, gchar const
 	g_return_val_if_fail(group != NULL, FALSE);
 	g_return_val_if_fail(key != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	ret = g_key_file_remove_key(serv->key_file, group, key, NULL);
 	maki_server_config_save(serv);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 
 	return ret;
 }
@@ -845,10 +854,10 @@ maki_server_config_remove_group (makiServer* serv, gchar const* group)
 	g_return_val_if_fail(serv != NULL, FALSE);
 	g_return_val_if_fail(group != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	ret = g_key_file_remove_group(serv->key_file, group, NULL);
 	maki_server_config_save(serv);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 
 	return ret;
 }
@@ -861,9 +870,9 @@ maki_server_config_get_keys (makiServer* serv, gchar const* group)
 	g_return_val_if_fail(serv != NULL, NULL);
 	g_return_val_if_fail(group != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	ret = g_key_file_get_keys(serv->key_file, group, NULL, NULL);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 
 	return ret;
 }
@@ -875,9 +884,9 @@ maki_server_config_get_groups (makiServer* serv)
 
 	g_return_val_if_fail(serv != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	ret =  g_key_file_get_groups(serv->key_file, NULL);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 
 	return ret;
 }
@@ -891,9 +900,9 @@ maki_server_config_exists (makiServer* serv, gchar const* group, gchar const* ke
 	g_return_val_if_fail(group != NULL, FALSE);
 	g_return_val_if_fail(key != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.config);
 	ret = g_key_file_has_key(serv->key_file, group, key, NULL);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.config);
 
 	return ret;
 }
@@ -905,9 +914,9 @@ maki_server_name (makiServer* serv)
 
 	g_return_val_if_fail(serv != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	ret = serv->name;
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -919,9 +928,9 @@ maki_server_autoconnect (makiServer* serv)
 
 	g_return_val_if_fail(serv != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	ret = g_key_file_get_boolean(serv->key_file, "server", "autoconnect", NULL);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -933,9 +942,9 @@ maki_server_connected (makiServer* serv)
 
 	g_return_val_if_fail(serv != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	ret = (serv->status == MAKI_SERVER_STATUS_CONNECTED);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -947,9 +956,9 @@ maki_server_logged_in (makiServer* serv)
 
 	g_return_val_if_fail(serv != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	ret = serv->logged_in;
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -959,9 +968,9 @@ maki_server_set_logged_in (makiServer* serv, gboolean logged_in)
 {
 	g_return_if_fail(serv != NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	serv->logged_in = logged_in;
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 }
 
 makiUser*
@@ -971,9 +980,9 @@ maki_server_user (makiServer* serv)
 
 	g_return_val_if_fail(serv != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	ret = serv->user;
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -985,7 +994,7 @@ maki_server_support (makiServer* serv, makiServerSupport support)
 
 	g_return_val_if_fail(serv != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 
 	switch (support)
 	{
@@ -1005,7 +1014,7 @@ maki_server_support (makiServer* serv, makiServerSupport support)
 			g_warn_if_reached();
 	}
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -1016,7 +1025,7 @@ maki_server_set_support (makiServer* serv, makiServerSupport support, gchar cons
 	g_return_if_fail(serv != NULL);
 	g_return_if_fail(value != NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 
 	switch (support)
 	{
@@ -1040,7 +1049,7 @@ maki_server_set_support (makiServer* serv, makiServerSupport support, gchar cons
 			g_warn_if_reached();
 	}
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 }
 
 makiUser*
@@ -1051,9 +1060,9 @@ maki_server_add_user (makiServer* serv, gchar const* nick)
 	g_return_val_if_fail(serv != NULL, NULL);
 	g_return_val_if_fail(nick != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.users);
 	ret = maki_server_internal_add_user(serv, nick);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.users);
 
 	return ret;
 }
@@ -1066,9 +1075,9 @@ maki_server_get_user (makiServer* serv, gchar const* nick)
 	g_return_val_if_fail(serv != NULL, NULL);
 	g_return_val_if_fail(nick != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.users);
 	ret = g_hash_table_lookup(serv->users, nick);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.users);
 
 	return ret;
 }
@@ -1081,9 +1090,9 @@ maki_server_remove_user (makiServer* serv, gchar const* nick)
 	g_return_val_if_fail(serv != NULL, FALSE);
 	g_return_val_if_fail(nick != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.users);
 	ret = maki_server_internal_remove_user(serv, nick);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.users);
 
 	return ret;
 }
@@ -1099,7 +1108,7 @@ maki_server_rename_user (makiServer* serv, gchar const* old_nick, gchar const* n
 	g_return_val_if_fail(old_nick != NULL, FALSE);
 	g_return_val_if_fail(new_nick != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.users);
 
 	if (g_hash_table_lookup(serv->users, new_nick) != NULL)
 	{
@@ -1124,7 +1133,7 @@ maki_server_rename_user (makiServer* serv, gchar const* old_nick, gchar const* n
 end:
 	g_free(tmp);
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.users);
 
 	return ret;
 }
@@ -1136,9 +1145,9 @@ maki_server_add_channel (makiServer* serv, gchar const* name, makiChannel* chan)
 	g_return_if_fail(name != NULL);
 	g_return_if_fail(chan != NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.channels);
 	g_hash_table_insert(serv->channels, g_strdup(name), chan);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.channels);
 }
 
 makiChannel*
@@ -1149,9 +1158,9 @@ maki_server_get_channel (makiServer* serv, gchar const* name)
 	g_return_val_if_fail(serv != NULL, NULL);
 	g_return_val_if_fail(name != NULL, NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.channels);
 	ret = g_hash_table_lookup(serv->channels, name);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.channels);
 
 	return ret;
 }
@@ -1164,9 +1173,9 @@ maki_server_remove_channel (makiServer* serv, gchar const* name)
 	g_return_val_if_fail(serv != NULL, FALSE);
 	g_return_val_if_fail(name != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.channels);
 	ret = g_hash_table_remove(serv->channels, name);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.channels);
 
 	return ret;
 }
@@ -1178,9 +1187,9 @@ maki_server_channels_count (makiServer* serv)
 
 	g_return_val_if_fail(serv != NULL, 0);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.channels);
 	ret = g_hash_table_size(serv->channels);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.channels);
 
 	return ret;
 }
@@ -1191,9 +1200,9 @@ maki_server_channels_iter (makiServer* serv, GHashTableIter* iter)
 	g_return_if_fail(serv != NULL);
 	g_return_if_fail(iter != NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.channels);
 	g_hash_table_iter_init(iter, serv->channels);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.channels);
 }
 
 void
@@ -1205,11 +1214,11 @@ maki_server_log (makiServer* serv, const gchar* name, const gchar* format, ...)
 	g_return_if_fail(name != NULL);
 	g_return_if_fail(format != NULL);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	va_start(args, format);
 	maki_server_internal_log_valist(serv, name, format, args);
 	va_end(args);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 }
 
 gboolean
@@ -1220,7 +1229,7 @@ maki_server_queue (makiServer* serv, gchar const* message, gboolean force)
 	g_return_val_if_fail(serv != NULL, FALSE);
 	g_return_val_if_fail(message != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 
 	if (force)
 	{
@@ -1231,7 +1240,7 @@ maki_server_queue (makiServer* serv, gchar const* message, gboolean force)
 		ret = sashimi_send_or_queue(serv->connection, message);
 	}
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -1244,9 +1253,9 @@ maki_server_send (makiServer* serv, gchar const* message)
 	g_return_val_if_fail(serv != NULL, FALSE);
 	g_return_val_if_fail(message != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	ret = sashimi_send(serv->connection, message);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -1260,11 +1269,11 @@ maki_server_send_printf (makiServer* serv, gchar const* format, ...)
 	g_return_val_if_fail(serv != NULL, FALSE);
 	g_return_val_if_fail(format != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 	va_start(args, format);
 	ret = maki_server_internal_sendf_valist(serv, format, args);
 	va_end(args);
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -1276,7 +1285,7 @@ maki_server_connect (makiServer* serv)
 
 	g_return_val_if_fail(serv != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 
 	if (serv->status == MAKI_SERVER_STATUS_DISCONNECTED)
 	{
@@ -1292,7 +1301,7 @@ maki_server_connect (makiServer* serv)
 		ret = TRUE;
 	}
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
@@ -1304,7 +1313,7 @@ maki_server_disconnect (makiServer* serv, gchar const* message)
 
 	g_return_val_if_fail(serv != NULL, FALSE);
 
-	g_mutex_lock(serv->mutex);
+	g_mutex_lock(serv->mutex.server);
 
 	if (serv->status != MAKI_SERVER_STATUS_DISCONNECTED)
 	{
@@ -1318,7 +1327,7 @@ maki_server_disconnect (makiServer* serv, gchar const* message)
 		ret = TRUE;
 	}
 
-	g_mutex_unlock(serv->mutex);
+	g_mutex_unlock(serv->mutex.server);
 
 	return ret;
 }
