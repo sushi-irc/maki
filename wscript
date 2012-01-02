@@ -69,6 +69,7 @@ def configure (ctx):
 	ctx.check_cfg(
 		package = 'gupnp-1.0',
 		args = ['--cflags', '--libs'],
+		atleast_version = '0.17.2',
 		uselib_store = 'GUPNP',
 		mandatory = False
 	)
@@ -76,6 +77,7 @@ def configure (ctx):
 	ctx.check_cfg(
 		package = 'gupnp-igd-1.0',
 		args = ['--cflags', '--libs'],
+		atleast_version = '0.2.0',
 		uselib_store = 'GUPNP_IGD',
 		mandatory = False
 	)
