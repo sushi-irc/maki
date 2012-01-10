@@ -13,6 +13,8 @@ def options (ctx):
 
 	ctx.add_option('--debug', action='store_true', default=False, help='Enable debug mode')
 
+	ctx.add_option('--miniupnpc', action='store', default='/usr', help='Use MiniUPnPc')
+
 def configure (ctx):
 	ctx.load('compiler_c')
 	ctx.load('gnu_dirs')
@@ -82,6 +84,15 @@ def configure (ctx):
 		mandatory = False
 	)
 
+	ctx.check_cc(
+		header_name = 'miniupnpc.h',
+		lib = 'miniupnpc',
+		includes = ['%s/include/miniupnpc' % (ctx.options.miniupnpc,)],
+		libpath = ['%s/lib' % (ctx.options.miniupnpc,)],
+		uselib_store = 'MINIUPNPC',
+		define_name = 'HAVE_MINIUPNPC'
+	)
+
 	ctx.check_cfg(
 		package = 'dbus-1',
 		variables = ['session_bus_services_dir'],
@@ -127,10 +138,10 @@ def build (ctx):
 		uselibs = ['GIO', 'GLIB', 'GMODULE', 'GOBJECT', 'GTHREAD']
 
 		if plugin == 'upnp':
-			if not ctx.env.HAVE_GUPNP and not ctx.env.HAVE_GUPNP_IGD:
+			if not ctx.env.HAVE_GUPNP and not ctx.env.HAVE_GUPNP_IGD and not ctx.env.HAVE_MINIUPNPC:
 				continue
 
-			uselibs += ['GUPNP', 'GUPNP_IGD']
+			uselibs += ['GUPNP', 'GUPNP_IGD', 'MINIUPNPC']
 
 		ctx.shlib(
 			source = ['source/plugins/%s.c' % (plugin,)],

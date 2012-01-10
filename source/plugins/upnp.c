@@ -37,6 +37,13 @@
 #include <libgupnp-igd/gupnp-simple-igd.h>
 #endif
 
+#ifdef HAVE_MINIUPNPC
+#include <miniupnpc.h>
+#include <upnpcommands.h>
+#endif
+
+#include <ilib.h>
+
 #include <instance.h>
 
 #include "plugin.h"
@@ -46,6 +53,7 @@ struct UPnPGetExternalIPData
 {
 	makiUPnPGetExternalIPCallback callback;
 	gpointer data;
+	gchar* ip;
 };
 
 typedef struct UPnPGetExternalIPData UPnPGetExternalIPData;
@@ -55,13 +63,19 @@ gboolean add_port (const gchar*, guint, const gchar*);
 gboolean remove_port (guint);
 
 #ifdef HAVE_GUPNP
-GUPnPContext* upnp_context;
-GUPnPControlPoint* upnp_control_point;
-GUPnPServiceProxy* upnp_service_proxy;
+static GUPnPContext* upnp_context = NULL;
+static GUPnPControlPoint* upnp_control_point = NULL;
+static GUPnPServiceProxy* upnp_service_proxy = NULL;
 #endif
 
 #ifdef HAVE_GUPNP_IGD
-GUPnPSimpleIgd* upnp_igd;
+static GUPnPSimpleIgd* upnp_igd = NULL;
+#endif
+
+#ifdef HAVE_MINIUPNPC
+static struct UPNPDev* miniupnpc_dev = NULL;
+static struct UPNPUrls miniupnpc_urls = { 0 };
+static struct IGDdatas miniupnpc_datas;
 #endif
 
 #ifdef HAVE_GUPNP
@@ -103,6 +117,22 @@ on_get_external_ip (GUPnPServiceProxy* proxy, GUPnPServiceProxyAction* action, g
 }
 #endif
 
+#ifdef HAVE_MINIUPNPC
+static
+gboolean
+get_external_ip_idle (gpointer user_data)
+{
+	UPnPGetExternalIPData* p = user_data;
+
+	p->callback(p->ip, p->data);
+
+	g_free(p->ip);
+	g_free(p);
+
+	return FALSE;
+}
+#endif
+
 G_MODULE_EXPORT
 gboolean
 get_external_ip (makiUPnPGetExternalIPCallback callback, gpointer data)
@@ -115,6 +145,7 @@ get_external_ip (makiUPnPGetExternalIPCallback callback, gpointer data)
 		p = g_new(UPnPGetExternalIPData, 1);
 		p->callback = callback;
 		p->data = data;
+		p->ip = NULL;
 
 		gupnp_service_proxy_begin_action(upnp_service_proxy,
 			"GetExternalIPAddress",
@@ -122,6 +153,24 @@ get_external_ip (makiUPnPGetExternalIPCallback callback, gpointer data)
 			p,
 			NULL
 		);
+
+		return TRUE;
+	}
+#endif
+
+#ifdef HAVE_MINIUPNPC
+	{
+		UPnPGetExternalIPData* p;
+		gchar external_ip[64] = { '\0' };
+
+		UPNP_GetExternalIPAddress(miniupnpc_urls.controlURL, miniupnpc_datas.first.servicetype, external_ip);
+
+		p = g_new(UPnPGetExternalIPData, 1);
+		p->callback = callback;
+		p->data = data;
+		p->ip = g_strdup(external_ip);
+
+		i_idle_add(get_external_ip_idle, p, g_main_context_get_thread_default());
 
 		return TRUE;
 	}
@@ -140,9 +189,23 @@ add_port (const gchar* ip, guint port, const gchar* description)
 
 #ifdef HAVE_GUPNP_IGD
 	gupnp_simple_igd_add_port(upnp_igd, "TCP", port, ip, port, 600, description);
-#endif
 
 	return TRUE;
+#endif
+
+#ifdef HAVE_MINIUPNPC
+	{
+		gchar* port_str;
+
+		port_str = g_strdup_printf("%d", port);
+		UPNP_AddPortMapping(miniupnpc_urls.controlURL, miniupnpc_datas.first.servicetype, port_str, port_str, ip, description, "TCP", NULL, "600");
+		g_free(port_str);
+
+		return TRUE;
+	}
+#endif
+
+	return FALSE;
 }
 
 G_MODULE_EXPORT
@@ -153,9 +216,23 @@ remove_port (guint port)
 
 #ifdef HAVE_GUPNP_IGD
 	gupnp_simple_igd_remove_port(upnp_igd, "TCP", port);
-#endif
 
 	return TRUE;
+#endif
+
+#ifdef HAVE_MINIUPNPC
+	{
+		gchar* port_str;
+
+		port_str = g_strdup_printf("%d", port);
+		UPNP_DeletePortMapping(miniupnpc_urls.controlURL, miniupnpc_datas.first.servicetype, port_str, "TCP", NULL);
+		g_free(port_str);
+
+		return TRUE;
+	}
+#endif
+
+	return FALSE;
 }
 
 G_MODULE_EXPORT
@@ -181,6 +258,17 @@ init (void)
 	g_assert(upnp_igd != NULL);
 #endif
 
+#ifdef HAVE_MINIUPNPC
+	{
+		gchar addr[64] = { '\0' };
+		gint error;
+
+		miniupnpc_dev = upnpDiscover(1000, NULL, NULL, 0, 0, &error);
+		g_assert(error == UPNPDISCOVER_SUCCESS);
+		UPNP_GetValidIGD(miniupnpc_dev, &miniupnpc_urls, &miniupnpc_datas, addr, sizeof(addr));
+	}
+#endif
+
 	return TRUE;
 }
 
@@ -200,5 +288,10 @@ deinit (void)
 
 #ifdef HAVE_GUPNP_IGD
 	g_object_unref(upnp_igd);
+#endif
+
+#ifdef HAVE_MINIUPNPC
+	FreeUPNPUrls(&miniupnpc_urls);
+	freeUPNPDevlist(miniupnpc_dev);
 #endif
 }
