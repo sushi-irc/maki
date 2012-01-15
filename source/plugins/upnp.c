@@ -198,7 +198,11 @@ add_port (const gchar* ip, guint port, const gchar* description)
 		gchar* port_str;
 
 		port_str = g_strdup_printf("%d", port);
+#ifdef HAVE_MINIUPNPC_16
 		UPNP_AddPortMapping(miniupnpc_urls.controlURL, miniupnpc_datas.first.servicetype, port_str, port_str, ip, description, "TCP", NULL, "600");
+#else
+		UPNP_AddPortMapping(miniupnpc_urls.controlURL, miniupnpc_datas.first.servicetype, port_str, port_str, ip, description, "TCP", NULL);
+#endif
 		g_free(port_str);
 
 		return TRUE;
@@ -261,9 +265,13 @@ init (void)
 #ifdef HAVE_MINIUPNPC
 	{
 		gchar addr[64] = { '\0' };
+#ifdef HAVE_MINIUPNPC_16
 		gint error;
 
 		miniupnpc_dev = upnpDiscover(1000, NULL, NULL, 0, 0, &error);
+#else
+		miniupnpc_dev = upnpDiscover(1000, NULL, NULL, 0);
+#endif
 		g_assert(miniupnpc_dev != NULL);
 		//g_assert(error == UPNPDISCOVER_SUCCESS);
 		UPNP_GetValidIGD(miniupnpc_dev, &miniupnpc_urls, &miniupnpc_datas, addr, sizeof(addr));

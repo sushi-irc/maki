@@ -92,8 +92,33 @@ def configure (ctx):
 		includes = ['%s/include/miniupnpc' % (ctx.options.miniupnpc,)],
 		libpath = ['%s/lib' % (ctx.options.miniupnpc,)],
 		uselib_store = 'MINIUPNPC',
-		define_name = 'HAVE_MINIUPNPC'
+		define_name = 'HAVE_MINIUPNPC',
+		mandatory = False
 	)
+
+	if ctx.env.HAVE_MINIUPNPC:
+		ctx.check_cc(
+			fragment = '''
+			#include <stdlib.h>
+
+			#include <miniupnpc.h>
+			#include <upnpcommands.h>
+
+			int main (void)
+			{
+				struct UPNPUrls miniupnpc_urls = { 0 };
+				struct IGDdatas miniupnpc_datas;
+
+				UPNP_AddPortMapping(miniupnpc_urls.controlURL, miniupnpc_datas.first.servicetype, "42", "42", "127.0.0.1", "sushi IRC", "TCP", NULL, "600");
+
+				return 0;
+			}
+			''',
+			msg = 'Checking for MiniUPnPc 1.6',
+			use = ['MINIUPNPC'],
+			define_name = 'HAVE_MINIUPNPC_16',
+			mandatory = False
+		)
 
 	ctx.check_cfg(
 		package = 'dbus-1',
