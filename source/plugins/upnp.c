@@ -264,7 +264,8 @@ init (void)
 		gint error;
 
 		miniupnpc_dev = upnpDiscover(1000, NULL, NULL, 0, 0, &error);
-		g_assert(error == UPNPDISCOVER_SUCCESS);
+		g_assert(miniupnpc_dev != NULL);
+		//g_assert(error == UPNPDISCOVER_SUCCESS);
 		UPNP_GetValidIGD(miniupnpc_dev, &miniupnpc_urls, &miniupnpc_datas, addr, sizeof(addr));
 	}
 #endif

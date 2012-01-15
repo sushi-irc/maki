@@ -68,21 +68,23 @@ def configure (ctx):
 		mandatory = False
 	)
 
-	ctx.check_cfg(
-		package = 'gupnp-1.0',
-		args = ['--cflags', '--libs'],
-		atleast_version = '0.17.2',
-		uselib_store = 'GUPNP',
-		mandatory = False
-	)
+	# FIXME https://bugzilla.gnome.org/show_bug.cgi?id=667494
 
-	ctx.check_cfg(
-		package = 'gupnp-igd-1.0',
-		args = ['--cflags', '--libs'],
-		atleast_version = '0.2.0',
-		uselib_store = 'GUPNP_IGD',
-		mandatory = False
-	)
+	#ctx.check_cfg(
+	#	package = 'gupnp-1.0',
+	#	args = ['--cflags', '--libs'],
+	#	atleast_version = '0.17.2',
+	#	uselib_store = 'GUPNP',
+	#	mandatory = False
+	#)
+
+	#ctx.check_cfg(
+	#	package = 'gupnp-igd-1.0',
+	#	args = ['--cflags', '--libs'],
+	#	atleast_version = '0.2.0',
+	#	uselib_store = 'GUPNP_IGD',
+	#	mandatory = False
+	#)
 
 	ctx.check_cc(
 		header_name = 'miniupnpc.h',
