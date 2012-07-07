@@ -31,35 +31,35 @@ def configure (ctx):
 	ctx.check_cfg(
 		package = 'gio-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.26',
+		atleast_version = '2.32',
 		uselib_store = 'GIO'
 	)
 
 	ctx.check_cfg(
 		package = 'glib-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.26',
+		atleast_version = '2.32',
 		uselib_store = 'GLIB'
 	)
 
 	ctx.check_cfg(
 		package = 'gmodule-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.26',
+		atleast_version = '2.32',
 		uselib_store = 'GMODULE'
 	)
 
 	ctx.check_cfg(
 		package = 'gobject-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.26',
+		atleast_version = '2.32',
 		uselib_store = 'GOBJECT'
 	)
 
 	ctx.check_cfg(
 		package = 'gthread-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.26',
+		atleast_version = '2.32',
 		uselib_store = 'GTHREAD'
 	)
 
@@ -162,7 +162,7 @@ def build (ctx):
 	)
 
 	# Plugins
-	for plugin in ('network', 'sleep', 'upnp'):
+	for plugin in ('sleep', 'upnp'):
 		uselibs = ['GIO', 'GLIB', 'GMODULE', 'GOBJECT', 'GTHREAD']
 
 		if plugin == 'upnp':

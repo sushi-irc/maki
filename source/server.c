@@ -526,6 +526,37 @@ maki_server_timeout_reconnect (gpointer data)
 
 static
 void
+maki_server_on_network_changed (GNetworkMonitor* network_monitor, gboolean available, gpointer user_data)
+{
+	makiServer* serv = user_data;
+
+	GSocketConnectable* network_address;
+	gchar* address;
+	gint port;
+
+	address = g_key_file_get_string(serv->key_file, "server", "address", NULL);
+	port = g_key_file_get_integer(serv->key_file, "server", "port", NULL);
+
+	network_address = g_network_address_new(address, port);
+
+	if (g_network_monitor_can_reach(network_monitor, network_address, NULL, NULL))
+	{
+		if (maki_server_autoconnect(serv))
+		{
+			maki_server_connect(serv);
+		}
+	}
+	else
+	{
+		maki_server_disconnect(serv, "Network configuration changed.");
+	}
+
+	g_object_unref(network_address);
+	g_free(address);
+}
+
+static
+void
 maki_server_config_save (makiServer* serv)
 {
 	gchar* path;
@@ -590,6 +621,7 @@ maki_server_config_set_defaults (makiServer* serv)
 makiServer*
 maki_server_new (gchar const* name)
 {
+	GNetworkMonitor* network_monitor;
 	gchar* nick;
 	gchar* path;
 	gchar** group;
@@ -651,6 +683,10 @@ maki_server_new (gchar const* name)
 	g_strfreev(groups);
 
 	serv->thread = g_thread_create(maki_server_thread, serv, TRUE, NULL);
+
+	network_monitor = g_network_monitor_get_default();
+
+	g_signal_connect(network_monitor, "network-changed", G_CALLBACK(maki_server_on_network_changed), serv);
 
 	if (maki_server_autoconnect(serv))
 	{

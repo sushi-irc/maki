@@ -35,10 +35,7 @@
 #include "network.h"
 #include "plugin.h"
 
-gboolean sleeping (void);
-
 static GDBusProxy* upower_proxy;
-static GDBusProxy* nm_proxy;
 static gboolean is_sleeping;
 
 static
@@ -55,52 +52,14 @@ upower_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant
 	}
 	else if (g_strcmp0(signal_name, "Resuming") == 0)
 	{
-		gchar* owner;
 		gboolean handle_connect;
 
 		is_sleeping = FALSE;
-
-		owner = g_dbus_proxy_get_name_owner(nm_proxy);
-		handle_connect = (owner == NULL);
-		g_free(owner);
+		handle_connect = FALSE;
 
 		if (handle_connect)
 		{
 			maki_network_connect(maki_instance_network(inst), FALSE);
-		}
-	}
-}
-
-/* FIXME */
-static
-void
-nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
-{
-	makiInstance* inst = maki_instance_get_default();
-
-	if (g_strcmp0(signal_name, "StateChanged") == 0)
-	{
-		guint32 state;
-
-		if (is_sleeping)
-		{
-			return;
-		}
-
-		g_variant_get(parameters, "(u)", &state);
-
-		switch (state)
-		{
-			/* case NM_OLD_STATE_UNKNOWN: */
-			case NM_OLD_STATE_CONNECTED:
-			case NM_STATE_UNKNOWN:
-			case NM_STATE_CONNECTED_LOCAL:
-			case NM_STATE_CONNECTED_SITE:
-			case NM_STATE_CONNECTED_GLOBAL:
-				maki_network_connect(maki_instance_network(inst), FALSE);
-				break;
-			default:
-				;
 		}
 	}
 }
@@ -120,15 +79,6 @@ init (void)
 		g_signal_connect(upower_proxy, "g-signal", G_CALLBACK(upower_on_signal), NULL);
 	}
 
-	nm_proxy = g_dbus_proxy_new_for_bus_sync(G_BUS_TYPE_SYSTEM, G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES, NULL,
-		"org.freedesktop.NetworkManager", "/org/freedesktop/NetworkManager", "org.freedesktop.NetworkManager",
-		NULL, NULL);
-
-	if (nm_proxy != NULL)
-	{
-		g_signal_connect(nm_proxy, "g-signal", G_CALLBACK(nm_on_signal), NULL);
-	}
-
 	return TRUE;
 }
 
@@ -136,20 +86,8 @@ G_MODULE_EXPORT
 void
 deinit (void)
 {
-	if (nm_proxy != NULL)
-	{
-		g_object_unref(nm_proxy);
-	}
-
 	if (upower_proxy != NULL)
 	{
 		g_object_unref(upower_proxy);
 	}
-}
-
-G_MODULE_EXPORT
-gboolean
-sleeping (void)
-{
-	return is_sleeping;
 }
