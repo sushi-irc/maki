@@ -49,6 +49,7 @@
 #include "dbus.h"
 #include "dbus_server.h"
 #include "instance.h"
+#include "network.h"
 
 gboolean opt_verbose = FALSE;
 
@@ -56,18 +57,9 @@ GMainLoop* main_loop = NULL;
 
 static void maki_signal (int signo)
 {
-	GHashTableIter iter;
-	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
 
-	maki_instance_servers_iter(inst, &iter);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		makiServer* serv = value;
-
-		maki_server_disconnect(serv, "");
-	}
+	maki_network_disconnect(maki_instance_network(inst), "");
 
 	maki_dbus_emit_shutdown();
 

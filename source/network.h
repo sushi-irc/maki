@@ -60,4 +60,7 @@ GInetAddress* maki_network_external_address (makiNetwork*);
 gboolean maki_network_upnp_add_port (makiNetwork*, guint, gchar const*);
 gboolean maki_network_upnp_remove_port (makiNetwork*, guint);
 
+void maki_network_connect (makiNetwork*, gboolean);
+void maki_network_disconnect (makiNetwork*, const gchar*);
+
 #endif

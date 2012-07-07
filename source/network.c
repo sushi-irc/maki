@@ -353,3 +353,38 @@ maki_network_upnp_remove_port (makiNetwork* net, guint port)
 
 	return ret;
 }
+
+void
+maki_network_connect (makiNetwork* net, gboolean force)
+{
+	GHashTableIter iter;
+	gpointer key, value;
+
+	maki_instance_servers_iter(net->instance, &iter);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		makiServer* serv = value;
+
+		if (force || maki_server_autoconnect(serv))
+		{
+			maki_server_connect(serv);
+		}
+	}
+}
+
+void
+maki_network_disconnect (makiNetwork* net, const gchar* message)
+{
+	GHashTableIter iter;
+	gpointer key, value;
+
+	maki_instance_servers_iter(net->instance, &iter);
+
+	while (g_hash_table_iter_next(&iter, &key, &value))
+	{
+		makiServer* serv = value;
+
+		maki_server_disconnect(serv, message);
+	}
+}

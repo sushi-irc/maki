@@ -41,6 +41,7 @@
 #include "instance.h"
 #include "maki.h"
 #include "misc.h"
+#include "network.h"
 #include "out.h"
 #include "server.h"
 
@@ -1590,18 +1591,9 @@ gboolean maki_dbus_servers (gchar*** servers, GError** error)
 
 gboolean maki_dbus_shutdown (const gchar* message, GError** error)
 {
-	GHashTableIter iter;
-	gpointer key, value;
 	makiInstance* inst = maki_instance_get_default();
 
-	maki_instance_servers_iter(inst, &iter);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		makiServer* serv = value;
-
-		maki_server_disconnect(serv, message);
-	}
+	maki_network_disconnect(maki_instance_network(inst), message);
 
 	maki_dbus_emit_shutdown();
 

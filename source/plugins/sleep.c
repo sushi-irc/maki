@@ -43,52 +43,15 @@ static gboolean is_sleeping;
 
 static
 void
-servers_connect (void)
-{
-	GHashTableIter iter;
-	gpointer key, value;
-	makiInstance* inst = maki_instance_get_default();
-
-	maki_instance_servers_iter(inst, &iter);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		makiServer* serv = value;
-
-		if (maki_server_autoconnect(serv))
-		{
-			maki_server_connect(serv);
-		}
-	}
-}
-
-static
-void
-servers_disconnect (const gchar* message)
-{
-	GHashTableIter iter;
-	gpointer key, value;
-	makiInstance* inst = maki_instance_get_default();
-
-	maki_instance_servers_iter(inst, &iter);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		makiServer* serv = value;
-
-		maki_server_disconnect(serv, message);
-	}
-}
-
-static
-void
 upower_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
 {
+	makiInstance* inst = maki_instance_get_default();
+
 	if (g_strcmp0(signal_name, "Sleeping") == 0)
 	{
 		is_sleeping = TRUE;
 
-		servers_disconnect("Computer is going to sleep.");
+		maki_network_disconnect(maki_instance_network(inst), "Computer is going to sleep.");
 	}
 	else if (g_strcmp0(signal_name, "Resuming") == 0)
 	{
@@ -103,7 +66,7 @@ upower_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant
 
 		if (handle_connect)
 		{
-			servers_connect();
+			maki_network_connect(maki_instance_network(inst), FALSE);
 		}
 	}
 }
@@ -113,6 +76,8 @@ static
 void
 nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* parameters, gpointer data)
 {
+	makiInstance* inst = maki_instance_get_default();
+
 	if (g_strcmp0(signal_name, "StateChanged") == 0)
 	{
 		guint32 state;
@@ -132,7 +97,7 @@ nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* pa
 			case NM_STATE_CONNECTED_LOCAL:
 			case NM_STATE_CONNECTED_SITE:
 			case NM_STATE_CONNECTED_GLOBAL:
-				servers_connect();
+				maki_network_connect(maki_instance_network(inst), FALSE);
 				break;
 			default:
 				;

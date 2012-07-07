@@ -31,51 +31,13 @@
 #include <gio/gio.h>
 
 #include <instance.h>
+#include <network.h>
 
 #include "network.h"
 #include "plugin.h"
 
 static GDBusProxy* nm_proxy;
 static gboolean is_connected;
-
-static
-void
-servers_connect (void)
-{
-	GHashTableIter iter;
-	gpointer key, value;
-	makiInstance* inst = maki_instance_get_default();
-
-	maki_instance_servers_iter(inst, &iter);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		makiServer* serv = value;
-
-		if (maki_server_autoconnect(serv))
-		{
-			maki_server_connect(serv);
-		}
-	}
-}
-
-static
-void
-servers_disconnect (const gchar* message)
-{
-	GHashTableIter iter;
-	gpointer key, value;
-	makiInstance* inst = maki_instance_get_default();
-
-	maki_instance_servers_iter(inst, &iter);
-
-	while (g_hash_table_iter_next(&iter, &key, &value))
-	{
-		makiServer* serv = value;
-
-		maki_server_disconnect(serv, message);
-	}
-}
 
 static
 void
@@ -112,7 +74,7 @@ nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* pa
 				if (!is_connected)
 				{
 					is_connected = TRUE;
-					servers_connect();
+					maki_network_connect(maki_instance_network(inst), FALSE);
 				}
 
 				break;
@@ -127,7 +89,7 @@ nm_on_signal (GDBusProxy* proxy, gchar* sender, gchar* signal_name, GVariant* pa
 				if (is_connected)
 				{
 					is_connected = FALSE;
-					servers_disconnect("Network configuration changed.");
+					maki_network_disconnect(maki_instance_network(inst), "Network configuration changed.");
 				}
 
 				break;
