@@ -25,7 +25,7 @@
  * SUCH DAMAGE.
  */
 
-#define _XOPEN_SOURCE
+#define _POSIX_C_SOURCE 200809L
 
 #include "config.h"
 
@@ -188,7 +188,7 @@ maki_network_update_external (gpointer data)
 			GInetAddress* inet_address = NULL;
 			socklen_t me_len = sizeof(me);
 
-			if (stun_usage_bind_run(p->ai_addr, p->ai_addrlen, &(me.sa), &me_len) != STUN_USAGE_BIND_RETURN_SUCCESS)
+			if (stun_usage_bind_run(p->ai_addr, p->ai_addrlen, &(me.ss), &me_len) != STUN_USAGE_BIND_RETURN_SUCCESS)
 			{
 				continue;
 			}
