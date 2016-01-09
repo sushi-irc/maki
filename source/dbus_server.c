@@ -735,10 +735,7 @@ maki_dbus_server_new (void)
 	path = g_build_filename(MAKI_SHARE_DIRECTORY, "dbus.xml", NULL);
 	guid = g_dbus_generate_guid();
 
-	server_flags = G_DBUS_SERVER_FLAGS_AUTHENTICATION_ALLOW_ANONYMOUS;
-#if GLIB_CHECK_VERSION(2,28,7)
-	server_flags |= G_DBUS_SERVER_FLAGS_RUN_IN_THREAD;
-#endif
+	server_flags = G_DBUS_SERVER_FLAGS_AUTHENTICATION_ALLOW_ANONYMOUS | G_DBUS_SERVER_FLAGS_RUN_IN_THREAD;
 
 	if ((server = g_dbus_server_new_sync("tcp:host=0.0.0.0", server_flags, guid, NULL, NULL, NULL)) != NULL
 	    && g_file_get_contents(path, &introspection_xml, NULL, NULL))

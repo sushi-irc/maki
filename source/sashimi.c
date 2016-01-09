@@ -383,7 +383,6 @@ disconnect:
 	}
 }
 
-#if GLIB_CHECK_VERSION(2,28,0)
 static
 void
 sashimi_ssl_db_handler (GSocketClient* client, GSocketClientEvent event, GSocketConnectable* connectable, GIOStream* connection, gpointer user_data)
@@ -403,7 +402,6 @@ sashimi_ssl_db_handler (GSocketClient* client, GSocketClientEvent event, GSocket
 
 	g_tls_connection_set_database(G_TLS_CONNECTION(c), db);
 }
-#endif
 
 sashimiConnection*
 sashimi_new (GMainContext* main_context)
@@ -545,17 +543,12 @@ sashimi_connect (sashimiConnection* conn, gchar const* address, guint port, gboo
 
 	if (ssl)
 	{
-#if GLIB_CHECK_VERSION(2,28,0)
 		if (ssl_db != NULL && strlen(ssl_db) > 0)
 		{
 			g_signal_connect(client, "event", G_CALLBACK(sashimi_ssl_db_handler), ssl_db);
 		}
 
 		g_socket_client_set_tls(client, TRUE);
-#else
-		ret = FALSE;
-		goto end;
-#endif
 	}
 
 	g_socket_client_connect_to_host_async(client, address, port, conn->cancellables[c_connect], sashimi_on_connect, conn);
