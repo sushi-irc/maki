@@ -223,11 +223,6 @@ maki_instance_config_set_defaults (makiInstance* inst)
 		g_key_file_set_integer(inst->key_file, "reconnect", "timeout", 10);
 	}
 
-	if (!g_key_file_has_key(inst->key_file, "plugins", "network", NULL))
-	{
-		g_key_file_set_boolean(inst->key_file, "plugins", "network", TRUE);
-	}
-
 	if (!g_key_file_has_key(inst->key_file, "plugins", "sleep", NULL))
 	{
 		g_key_file_set_boolean(inst->key_file, "plugins", "sleep", TRUE);
