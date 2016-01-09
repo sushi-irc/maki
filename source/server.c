@@ -134,6 +134,11 @@ struct maki_server
 	gint ref_count;
 };
 
+static void maki_server_internal_log_valist (makiServer*, const gchar*, const gchar*, va_list) G_GNUC_PRINTF(3, 0);
+static void maki_server_internal_log (makiServer*, const gchar*, const gchar*, ...) G_GNUC_PRINTF(3, 4);
+static gboolean maki_server_internal_sendf_valist (makiServer*, gchar const*, va_list) G_GNUC_PRINTF(2, 0);
+static gboolean maki_server_internal_sendf (makiServer*, gchar const*, ...) G_GNUC_PRINTF(2, 3);
+
 static
 void
 maki_server_internal_log_valist (makiServer* serv, const gchar* name, const gchar* format, va_list args)
