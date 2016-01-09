@@ -452,7 +452,8 @@ maki_server_internal_connect (makiServer* serv)
 	gboolean ret;
 	makiNetwork* net = maki_instance_network(serv->instance);
 	gboolean ssl;
-	gchar* address, *ssl_cert;
+	gchar* address;
+	gchar* ssl_db;
 	gint port;
 
 	maki_network_update(net);
@@ -466,9 +467,9 @@ maki_server_internal_connect (makiServer* serv)
 	address = g_key_file_get_string(serv->key_file, "server", "address", NULL);
 	port = g_key_file_get_integer(serv->key_file, "server", "port", NULL);
 	ssl = g_key_file_get_boolean(serv->key_file, "server", "ssl", NULL);
-	ssl_cert = g_key_file_get_string(serv->key_file, "server", "ssl_cert", NULL);
+	ssl_db = g_key_file_get_string(serv->key_file, "server", "ssl_db", NULL);
 
-	ret = sashimi_connect(serv->connection, address, port, ssl, ssl_cert);
+	ret = sashimi_connect(serv->connection, address, port, ssl, ssl_db);
 
 	g_free(address);
 
@@ -584,6 +585,11 @@ maki_server_config_set_defaults (makiServer* serv)
 	if (!g_key_file_has_key(serv->key_file, "server", "ssl", NULL))
 	{
 		g_key_file_set_boolean(serv->key_file, "server", "ssl", FALSE);
+	}
+
+	if (!g_key_file_has_key(serv->key_file, "server", "ssl_db", NULL))
+	{
+		g_key_file_set_string(serv->key_file, "server", "ssl_db", "");
 	}
 
 	if (!g_key_file_has_key(serv->key_file, "server", "nick", NULL))

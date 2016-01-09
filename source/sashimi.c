@@ -383,6 +383,28 @@ disconnect:
 	}
 }
 
+#if GLIB_CHECK_VERSION(2,28,0)
+static
+void
+sashimi_ssl_db_handler (GSocketClient* client, GSocketClientEvent event, GSocketConnectable* connectable, GIOStream* connection, gpointer user_data)
+{
+	GTlsClientConnection *c;
+	GTlsDatabase *db;
+	gchar const* anchors;
+
+	if (event != G_SOCKET_CLIENT_TLS_HANDSHAKING)
+	{
+		return;
+	}
+
+	c = (GTlsClientConnection*) connection;
+	anchors = (gchar const*) user_data;
+	db = g_tls_file_database_new(anchors, NULL);
+
+	g_tls_connection_set_database(G_TLS_CONNECTION(c), db);
+}
+#endif
+
 sashimiConnection*
 sashimi_new (GMainContext* main_context)
 {
@@ -501,32 +523,8 @@ sashimi_disconnect_callback (sashimiConnection* conn, void (*callback) (gpointer
 	g_mutex_unlock(conn->mutex);
 }
 
-#if GLIB_CHECK_VERSION(2,28,0)
-void
-tls_custom_certificate_handler (GSocketClient      *client,
-               GSocketClientEvent  event,
-               GSocketConnectable *connectable,
-               GIOStream          *connection,
-               gpointer            user_data)
-{
-	if (event != G_SOCKET_CLIENT_TLS_HANDSHAKING) {
-		return;
-	}
-
-	// client is about to begin a TLS handshake. connection is a
-	// GTlsClientConnection.
-	GTlsClientConnection* c = (GTlsClientConnection*) connection;
-
-	const gchar* anchors = (const gchar*) user_data;
-
-	GTlsDatabase* db = g_tls_file_database_new(anchors, NULL);
-
-	g_tls_connection_set_database(G_TLS_CONNECTION(c), db);
-}
-#endif
-
 gboolean
-sashimi_connect (sashimiConnection* conn, gchar const* address, guint port, gboolean ssl, gchar* ssl_cert)
+sashimi_connect (sashimiConnection* conn, gchar const* address, guint port, gboolean ssl, gchar const* ssl_db)
 {
 	GSocketClient* client = NULL;
 	gboolean ret = TRUE;
@@ -548,8 +546,9 @@ sashimi_connect (sashimiConnection* conn, gchar const* address, guint port, gboo
 	if (ssl)
 	{
 #if GLIB_CHECK_VERSION(2,28,0)
-		if (ssl_cert != NULL && strlen(ssl_cert) > 0) {
-			g_signal_connect(client, "event", G_CALLBACK(tls_custom_certificate_handler), ssl_cert);
+		if (ssl_db != NULL && strlen(ssl_db) > 0)
+		{
+			g_signal_connect(client, "event", G_CALLBACK(sashimi_ssl_db_handler), ssl_db);
 		}
 
 		g_socket_client_set_tls(client, TRUE);

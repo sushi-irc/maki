@@ -43,7 +43,7 @@ void sashimi_connect_callback (sashimiConnection*, void (*) (gpointer), gpointer
 void sashimi_read_callback (sashimiConnection* conn, void (*) (const gchar*, gpointer), gpointer);
 void sashimi_disconnect_callback (sashimiConnection*, void (*) (gpointer), gpointer);
 
-gboolean sashimi_connect (sashimiConnection*, const gchar*, guint, gboolean, gchar*);
+gboolean sashimi_connect (sashimiConnection*, const gchar*, guint, gboolean, gchar const*);
 gboolean sashimi_disconnect (sashimiConnection*);
 
 gboolean sashimi_send (sashimiConnection*, const gchar*);
