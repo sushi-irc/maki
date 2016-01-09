@@ -132,6 +132,8 @@ def configure (ctx):
 	else:
 		ctx.env.CFLAGS += ['-O2']
 
+	ctx.define('LOCALEDIR', Utils.subst_vars('${LOCALEDIR}', ctx.env))
+
 	ctx.define('SUSHI_VERSION', VERSION)
 
 	# FIXME remove=false
