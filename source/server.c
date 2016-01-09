@@ -124,10 +124,10 @@ struct maki_server
 
 	struct
 	{
-		GMutex* channels;
-		GMutex* config;
-		GMutex* server;
-		GMutex* users;
+		GMutex channels[1];
+		GMutex config[1];
+		GMutex server[1];
+		GMutex users[1];
 	}
 	mutex;
 
@@ -672,10 +672,10 @@ maki_server_new (gchar const* name)
 
 	sashimi_timeout(serv->connection, 60);
 
-	serv->mutex.channels = g_mutex_new();
-	serv->mutex.config = g_mutex_new();
-	serv->mutex.server = g_mutex_new();
-	serv->mutex.users = g_mutex_new();
+	g_mutex_init(serv->mutex.channels);
+	g_mutex_init(serv->mutex.config);
+	g_mutex_init(serv->mutex.server);
+	g_mutex_init(serv->mutex.users);
 
 	groups = g_key_file_get_groups(serv->key_file, NULL);
 
@@ -689,7 +689,7 @@ maki_server_new (gchar const* name)
 
 	g_strfreev(groups);
 
-	serv->thread = g_thread_create(maki_server_thread, serv, TRUE, NULL);
+	serv->thread = g_thread_new(serv->name, maki_server_thread, serv);
 
 	network_monitor = g_network_monitor_get_default();
 
@@ -745,10 +745,10 @@ maki_server_unref (gpointer data)
 		sashimi_free(serv->connection);
 		g_free(serv->name);
 
-		g_mutex_free(serv->mutex.channels);
-		g_mutex_free(serv->mutex.config);
-		g_mutex_free(serv->mutex.server);
-		g_mutex_free(serv->mutex.users);
+		g_mutex_clear(serv->mutex.channels);
+		g_mutex_clear(serv->mutex.config);
+		g_mutex_clear(serv->mutex.server);
+		g_mutex_clear(serv->mutex.users);
 
 		g_free(serv);
 	}

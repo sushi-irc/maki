@@ -93,7 +93,7 @@ struct sashimi_connection
 	}
 	read;
 
-	GMutex* mutex;
+	GMutex mutex[1];
 };
 
 static
@@ -447,7 +447,7 @@ sashimi_new (GMainContext* main_context)
 	conn->disconnect.callback = NULL;
 	conn->disconnect.data = NULL;
 
-	conn->mutex = g_mutex_new();
+	g_mutex_init(conn->mutex);
 
 	return conn;
 }
@@ -460,7 +460,7 @@ sashimi_free (sashimiConnection* conn)
 	sashimi_cancel(conn, TRUE);
 	sashimi_close(conn);
 
-	g_mutex_free(conn->mutex);
+	g_mutex_clear(conn->mutex);
 
 	/* Clean up the queue. */
 	while (!g_queue_is_empty(conn->queue))
@@ -545,7 +545,7 @@ sashimi_connect (sashimiConnection* conn, gchar const* address, guint port, gboo
 	{
 		if (ssl_db != NULL && strlen(ssl_db) > 0)
 		{
-			g_signal_connect(client, "event", G_CALLBACK(sashimi_ssl_db_handler), ssl_db);
+			g_signal_connect(client, "event", G_CALLBACK(sashimi_ssl_db_handler), (gchar*)ssl_db);
 		}
 
 		g_socket_client_set_tls(client, TRUE);

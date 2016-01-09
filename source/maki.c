@@ -92,11 +92,6 @@ int main (int argc, char* argv[])
 		{ NULL }
 	};
 
-	if (!g_thread_get_initialized())
-	{
-		g_thread_init(NULL);
-	}
-
 	g_type_init();
 
 	setlocale(LC_ALL, "");

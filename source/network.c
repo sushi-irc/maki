@@ -63,7 +63,7 @@ struct maki_network
 	}
 	external;
 
-	GMutex* lock;
+	GMutex lock[1];
 };
 
 static
@@ -233,7 +233,7 @@ maki_network_new (makiInstance* inst)
 	net->external.inet_address = NULL;
 	net->external.source = 0;
 
-	net->lock = g_mutex_new();
+	g_mutex_init(net->lock);
 
 	return net;
 }
@@ -241,7 +241,7 @@ maki_network_new (makiInstance* inst)
 void
 maki_network_free (makiNetwork* net)
 {
-	g_mutex_free(net->lock);
+	g_mutex_clear(net->lock);
 
 	if (net->internal.source != 0)
 	{

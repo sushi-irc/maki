@@ -63,10 +63,10 @@ struct maki_instance
 
 	struct
 	{
-		GMutex* config;
-		GMutex* dcc;
-		GMutex* instance;
-		GMutex* servers;
+		GMutex config[1];
+		GMutex dcc[1];
+		GMutex instance[1];
+		GMutex servers[1];
 	}
 	mutex;
 };
@@ -291,14 +291,14 @@ maki_instance_new (void)
 	inst->dcc.id = 0;
 	inst->dcc.list = NULL;
 
-	inst->mutex.config = g_mutex_new();
-	inst->mutex.dcc = g_mutex_new();
-	inst->mutex.instance = g_mutex_new();
-	inst->mutex.servers = g_mutex_new();
+	g_mutex_init(inst->mutex.config);
+	g_mutex_init(inst->mutex.dcc);
+	g_mutex_init(inst->mutex.instance);
+	g_mutex_init(inst->mutex.servers);
 
 	inst->network = maki_network_new(inst);
 
-	inst->thread = g_thread_create(maki_instance_thread, inst, TRUE, NULL);
+	inst->thread = g_thread_new("makiInstance", maki_instance_thread, inst);
 
 	return inst;
 }
@@ -333,10 +333,10 @@ maki_instance_free (makiInstance* inst)
 
 	g_hash_table_destroy(inst->directories);
 
-	g_mutex_free(inst->mutex.config);
-	g_mutex_free(inst->mutex.dcc);
-	g_mutex_free(inst->mutex.instance);
-	g_mutex_free(inst->mutex.servers);
+	g_mutex_clear(inst->mutex.config);
+	g_mutex_clear(inst->mutex.dcc);
+	g_mutex_clear(inst->mutex.instance);
+	g_mutex_clear(inst->mutex.servers);
 
 	g_free(inst);
 }

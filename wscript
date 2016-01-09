@@ -133,10 +133,7 @@ def configure (ctx):
 		ctx.env.CFLAGS += ['-Wno-missing-field-initializers', '-Wno-unused-parameter', '-Wold-style-definition', '-Wdeclaration-after-statement', '-Wmissing-declarations', '-Wmissing-prototypes', '-Wredundant-decls', '-Wmissing-noreturn', '-Wshadow', '-Wpointer-arith', '-Wcast-align', '-Wwrite-strings', '-Winline', '-Wformat-nonliteral', '-Wformat-security', '-Wswitch-enum', '-Wswitch-default', '-Winit-self', '-Wmissing-include-dirs', '-Wundef', '-Waggregate-return', '-Wmissing-format-attribute', '-Wnested-externs', '-Wstrict-prototypes']
 		ctx.env.CFLAGS += ['-ggdb']
 
-		# FIXME
-		ctx.env.CFLAGS.remove('-Wmissing-include-dirs')
-
-		ctx.define('G_DISABLE_DEPRECATED', 1)
+		ctx.define('GLIB_VERSION_MIN_REQUIRED', 'GLIB_VERSION_2_32', quote = False)
 	else:
 		ctx.env.CFLAGS += ['-O2']
 
