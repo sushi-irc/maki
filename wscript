@@ -9,6 +9,8 @@ VERSION = '1.4.0'
 top = '.'
 out = 'build'
 
+SUSHI_GLIB_VERSION = '2.40'
+
 def options (ctx):
 	ctx.load('compiler_c')
 
@@ -31,35 +33,35 @@ def configure (ctx):
 	ctx.check_cfg(
 		package = 'gio-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.40',
+		atleast_version = SUSHI_GLIB_VERSION,
 		uselib_store = 'GIO'
 	)
 
 	ctx.check_cfg(
 		package = 'glib-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.40',
+		atleast_version = SUSHI_GLIB_VERSION,
 		uselib_store = 'GLIB'
 	)
 
 	ctx.check_cfg(
 		package = 'gmodule-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.40',
+		atleast_version = SUSHI_GLIB_VERSION,
 		uselib_store = 'GMODULE'
 	)
 
 	ctx.check_cfg(
 		package = 'gobject-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.40',
+		atleast_version = SUSHI_GLIB_VERSION,
 		uselib_store = 'GOBJECT'
 	)
 
 	ctx.check_cfg(
 		package = 'gthread-2.0',
 		args = ['--cflags', '--libs'],
-		atleast_version = '2.40',
+		atleast_version = SUSHI_GLIB_VERSION,
 		uselib_store = 'GTHREAD'
 	)
 
@@ -126,7 +128,7 @@ def configure (ctx):
 		ctx.env.CFLAGS += ['-Wno-missing-field-initializers', '-Wno-unused-parameter', '-Wold-style-definition', '-Wdeclaration-after-statement', '-Wmissing-declarations', '-Wmissing-prototypes', '-Wredundant-decls', '-Wmissing-noreturn', '-Wshadow', '-Wpointer-arith', '-Wcast-align', '-Wwrite-strings', '-Winline', '-Wformat-nonliteral', '-Wformat-security', '-Wswitch-enum', '-Wswitch-default', '-Winit-self', '-Wmissing-include-dirs', '-Wundef', '-Waggregate-return', '-Wmissing-format-attribute', '-Wnested-externs', '-Wstrict-prototypes']
 		ctx.env.CFLAGS += ['-ggdb']
 
-		ctx.define('GLIB_VERSION_MIN_REQUIRED', 'GLIB_VERSION_2_40', quote = False)
+		ctx.define('GLIB_VERSION_MIN_REQUIRED', 'GLIB_VERSION_' + SUSHI_GLIB_VERSION.replace('.', '_'), quote = False)
 	else:
 		ctx.env.CFLAGS += ['-O2']
 
