@@ -121,13 +121,6 @@ def configure (ctx):
 			mandatory = False
 		)
 
-	ctx.check_cfg(
-		package = 'dbus-1',
-		variables = ['session_bus_services_dir'],
-		uselib_store = 'DBUS',
-		mandatory = False
-	)
-
 	if ctx.options.debug:
 		ctx.env.CFLAGS += ['-pedantic', '-Wall', '-Wextra']
 		ctx.env.CFLAGS += ['-Wno-missing-field-initializers', '-Wno-unused-parameter', '-Wold-style-definition', '-Wdeclaration-after-statement', '-Wmissing-declarations', '-Wmissing-prototypes', '-Wredundant-decls', '-Wmissing-noreturn', '-Wshadow', '-Wpointer-arith', '-Wcast-align', '-Wwrite-strings', '-Winline', '-Wformat-nonliteral', '-Wformat-security', '-Wswitch-enum', '-Wswitch-default', '-Winit-self', '-Wmissing-include-dirs', '-Wundef', '-Waggregate-return', '-Wmissing-format-attribute', '-Wnested-externs', '-Wstrict-prototypes']
@@ -139,6 +132,7 @@ def configure (ctx):
 
 	ctx.define('SUSHI_VERSION', VERSION)
 
+	# FIXME remove=false
 	ctx.write_config_header('source/config.h', remove = False)
 
 def build (ctx):
@@ -149,7 +143,7 @@ def build (ctx):
 		use = ['GIO', 'GLIB', 'GMODULE', 'GOBJECT', 'GTHREAD', 'NICE'],
 		includes = ['source'],
 		defines = ['MAKI_PLUGIN_DIRECTORY="%s"' % (Utils.subst_vars('${LIBDIR}/maki/plugins', ctx.env)),
-		           'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATAROOTDIR}/maki', ctx.env))]
+		           'MAKI_SHARE_DIRECTORY="%s"' % (Utils.subst_vars('${DATADIR}/maki', ctx.env))]
 	)
 
 	ctx.program(
@@ -190,17 +184,14 @@ def build (ctx):
 	)
 
 	# Data
-	ctx.install_files('${DATAROOTDIR}/maki', 'data/dbus.xml')
+	ctx.install_files('${DATADIR}/maki', 'data/dbus.xml')
 
-	dbus_dir = ctx.env.DBUS_session_bus_services_dir
-
-	if dbus_dir and dbus_dir.startswith(ctx.env.PREFIX):
-		ctx(
-			features = 'subst',
-			source = 'data/de.ikkoku.sushi.service.in',
-			target = 'data/de.ikkoku.sushi.service',
-			install_path = '${DBUS_session_bus_services_dir}'
-		)
+	ctx(
+		features = 'subst',
+		source = 'data/de.ikkoku.sushi.service.in',
+		target = 'data/de.ikkoku.sushi.service',
+		install_path = '${DATADIR}/dbus-1/services'
+	)
 
 	for man in ('maki.1', 'maki-remote.1'):
 		ctx(
