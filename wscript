@@ -73,6 +73,7 @@ def configure (ctx):
 
 	# FIXME https://bugzilla.gnome.org/show_bug.cgi?id=667494
 
+	have_gupnp = False
 	#ctx.check_cfg(
 	#	package = 'gupnp-1.0',
 	#	args = ['--cflags', '--libs'],
@@ -81,6 +82,7 @@ def configure (ctx):
 	#	mandatory = False
 	#)
 
+	have_gupnp_igd = False
 	#ctx.check_cfg(
 	#	package = 'gupnp-igd-1.0',
 	#	args = ['--cflags', '--libs'],
@@ -89,6 +91,7 @@ def configure (ctx):
 	#	mandatory = False
 	#)
 
+	have_miniupnpc = \
 	ctx.check_cc(
 		header_name = 'miniupnpc.h',
 		lib = 'miniupnpc',
@@ -99,7 +102,7 @@ def configure (ctx):
 		mandatory = False
 	)
 
-	if ctx.env.HAVE_MINIUPNPC:
+	if have_miniupnpc:
 		ctx.check_cc(
 			fragment = '''
 			#include <stdlib.h>
@@ -132,6 +135,8 @@ def configure (ctx):
 	else:
 		ctx.env.CFLAGS += ['-O2']
 
+	ctx.env.SUSHI_BUILD_UPNP = (have_gupnp or have_gupnp_igd or have_miniupnpc)
+
 	ctx.define('LOCALEDIR', Utils.subst_vars('${LOCALEDIR}', ctx.env))
 
 	ctx.define('SUSHI_VERSION', VERSION)
@@ -161,7 +166,7 @@ def build (ctx):
 		uselibs = ['GIO', 'GLIB', 'GMODULE', 'GOBJECT', 'GTHREAD']
 
 		if plugin == 'upnp':
-			if not ctx.env.HAVE_GUPNP and not ctx.env.HAVE_GUPNP_IGD and not ctx.env.HAVE_MINIUPNPC:
+			if not ctx.env.SUSHI_BUILD_UPNP:
 				continue
 
 			uselibs += ['GUPNP', 'GUPNP_IGD', 'MINIUPNPC']
