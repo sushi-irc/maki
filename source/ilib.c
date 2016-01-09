@@ -25,7 +25,7 @@
  * SUCH DAMAGE.
  */
 
-#define _XOPEN_SOURCE 500
+#define _XOPEN_SOURCE 700
 
 #include "config.h"
 
