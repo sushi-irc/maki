@@ -92,8 +92,6 @@ int main (int argc, char* argv[])
 		{ NULL }
 	};
 
-	g_type_init();
-
 	setlocale(LC_ALL, "");
 	bindtextdomain("maki", LOCALEDIR);
 	textdomain("maki");
